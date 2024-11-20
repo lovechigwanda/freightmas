@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-10-24 21:42:08.339257",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "trip_milestone_date",
+  "trip_milestone",
+  "trip_milestone_comment",
+  "updated_by"
+ ],
+ "fields": [
+  {
+   "default": "User",
+   "fieldname": "updated_by",
+   "fieldtype": "Link",
+   "label": "Updated By",
+   "options": "User",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "trip_milestone",
+   "fieldtype": "Link",
+   "label": "Trip Milestone",
+   "options": "Trip Milestones",
+   "set_only_once": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "trip_milestone_date",
+   "fieldtype": "Datetime",
+   "label": "Milestone Date",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "trip_milestone_comment",
+   "fieldtype": "Data",
+   "label": "Tracking Comment",
+   "set_only_once": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-11-07 21:34:17.769022",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Trip Tracking",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

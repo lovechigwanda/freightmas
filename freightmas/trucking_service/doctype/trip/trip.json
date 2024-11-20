@@ -1,0 +1,541 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2024-10-19 00:03:29.956219",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_trip_information_section",
+  "naming_series",
+  "customer",
+  "customer_reference",
+  "column_break_muos",
+  "date_created",
+  "consignee",
+  "consignee_reference",
+  "column_break_akss",
+  "created_by",
+  "company",
+  "amended_from",
+  "truck_and_driver_details_section",
+  "truck",
+  "column_break_mvsf",
+  "horse",
+  "driver",
+  "column_break_aazz",
+  "trailer",
+  "route_information_section",
+  "trip_direction",
+  "route",
+  "column_break_wiwj",
+  "origin",
+  "distance_loaded",
+  "extra_distance_loaded",
+  "column_break_uwan",
+  "destination",
+  "distance_empty",
+  "extra_distance_empty",
+  "cargo_tab",
+  "cargo_details",
+  "cargo_type",
+  "container_type",
+  "border_reference",
+  "column_break_xeuy",
+  "cargo_description",
+  "container_number",
+  "column_break_tidx",
+  "gross_weight",
+  "seal_number",
+  "loading_information_section",
+  "last_drop_off_date",
+  "loading_address",
+  "loaded_weight",
+  "column_break_nuqz",
+  "last_pickup_date",
+  "loading_instructions",
+  "offloaded_weight",
+  "column_break_fzwx",
+  "container_drop_off_at",
+  "offloading_address",
+  "charges_tab",
+  "revenue_charges_section",
+  "trip_revenue_charges",
+  "section_break_ixmv",
+  "trip_cost_charges",
+  "section_break_lftw",
+  "total_estimated_revenue",
+  "column_break_mcia",
+  "total_estimated_cost",
+  "column_break_zsgi",
+  "estimated_profit",
+  "trip_cost_summary_section",
+  "trip_cost_summary",
+  "tracking_tab",
+  "trip_tracking_update_section",
+  "trip_tracking_update",
+  "current_tracking_update_section",
+  "current_trip_milestone",
+  "column_break_xqoe",
+  "current_milestone_comment",
+  "column_break_hipq",
+  "updated_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Trip",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "no_copy": 1,
+   "options": "TRIP-.#####.-.YY.",
+   "print_hide": 1,
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_muos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_created",
+   "fieldtype": "Date",
+   "label": "Date Created",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "user_fullname",
+   "fieldname": "created_by",
+   "fieldtype": "Data",
+   "label": "Created By",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "print_hide": 1,
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "truck",
+   "fieldtype": "Link",
+   "label": "Truck",
+   "options": "Truck",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mvsf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "truck.horse",
+   "fieldname": "horse",
+   "fieldtype": "Read Only",
+   "label": "Horse"
+  },
+  {
+   "fetch_from": "truck.assigned_trailer",
+   "fieldname": "trailer",
+   "fieldtype": "Read Only",
+   "label": "Trailer"
+  },
+  {
+   "fetch_from": "truck.assigned_driver_name",
+   "fieldname": "driver",
+   "fieldtype": "Read Only",
+   "label": "Driver"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Link",
+   "label": "Route",
+   "options": "Route"
+  },
+  {
+   "fieldname": "column_break_wiwj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "route_information_section",
+   "fieldtype": "Section Break",
+   "label": "Route Information"
+  },
+  {
+   "fieldname": "basic_trip_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Trip Information"
+  },
+  {
+   "fieldname": "truck_and_driver_details_section",
+   "fieldtype": "Section Break",
+   "label": "Truck & Driver Details"
+  },
+  {
+   "fetch_from": "route.destination",
+   "fieldname": "destination",
+   "fieldtype": "Read Only",
+   "label": "Destination"
+  },
+  {
+   "fetch_from": "route.distance_empty",
+   "fieldname": "distance_empty",
+   "fieldtype": "Read Only",
+   "label": "Distance Empty"
+  },
+  {
+   "depends_on": "eval:doc.route",
+   "fieldname": "extra_distance_empty",
+   "fieldtype": "Float",
+   "label": "Extra Distance Empty",
+   "precision": "0"
+  },
+  {
+   "fetch_from": "route.origin",
+   "fieldname": "origin",
+   "fieldtype": "Read Only",
+   "label": "Origin"
+  },
+  {
+   "fetch_from": "route.distance_loaded",
+   "fieldname": "distance_loaded",
+   "fieldtype": "Read Only",
+   "label": "Distance Loaded"
+  },
+  {
+   "depends_on": "eval:doc.route",
+   "fieldname": "extra_distance_loaded",
+   "fieldtype": "Float",
+   "label": "Extra Distance Loaded",
+   "non_negative": 1,
+   "precision": "0"
+  },
+  {
+   "fieldname": "column_break_akss",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_aazz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_uwan",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_reference",
+   "fieldtype": "Data",
+   "label": "Customer Reference"
+  },
+  {
+   "fieldname": "consignee",
+   "fieldtype": "Link",
+   "label": "Consignee",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "consignee_reference",
+   "fieldtype": "Data",
+   "label": "Consignee Reference"
+  },
+  {
+   "fieldname": "trip_direction",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Trip Direction",
+   "options": "Trip Direction",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "cargo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cargo"
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "tracking_tab",
+   "fieldtype": "Tab Break",
+   "label": "Tracking"
+  },
+  {
+   "fieldname": "cargo_description",
+   "fieldtype": "Data",
+   "label": "Cargo Description"
+  },
+  {
+   "fieldname": "cargo_details",
+   "fieldtype": "Section Break",
+   "label": "Cargo Details"
+  },
+  {
+   "fieldname": "cargo_type",
+   "fieldtype": "Select",
+   "label": "Cargo Type",
+   "options": "\nContainerised\nBulk\nLoose\nOther"
+  },
+  {
+   "fieldname": "column_break_xeuy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_tidx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "container_type",
+   "fieldtype": "Select",
+   "label": "Container Type",
+   "options": "\n20ft\n40ft\nOther"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "container_number",
+   "fieldtype": "Data",
+   "label": "Container Number"
+  },
+  {
+   "fieldname": "gross_weight",
+   "fieldtype": "Float",
+   "label": "Gross Weight (tonnes)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "loading_information_section",
+   "fieldtype": "Section Break",
+   "label": "Loading Information"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "last_pickup_date",
+   "fieldtype": "Date",
+   "label": "Container Last Pickup Date"
+  },
+  {
+   "fieldname": "column_break_nuqz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "last_drop_off_date",
+   "fieldtype": "Date",
+   "label": "Container Last Drop Off Date"
+  },
+  {
+   "fieldname": "column_break_fzwx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "border_reference",
+   "fieldtype": "Data",
+   "label": "Border Reference"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "seal_number",
+   "fieldtype": "Data",
+   "label": "Seal Number"
+  },
+  {
+   "fieldname": "loading_address",
+   "fieldtype": "Small Text",
+   "label": "Loading Address"
+  },
+  {
+   "fieldname": "offloading_address",
+   "fieldtype": "Small Text",
+   "label": "Offloading Address"
+  },
+  {
+   "fieldname": "loading_instructions",
+   "fieldtype": "Small Text",
+   "label": "Loading Instructions"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Bulk' || doc.cargo_type == 'Loose' || doc.cargo_type == 'Other'",
+   "fieldname": "loaded_weight",
+   "fieldtype": "Float",
+   "label": "Loaded Weight (tonnes)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Bulk' || doc.cargo_type == 'Loose' || doc.cargo_type == 'Other'",
+   "fieldname": "offloaded_weight",
+   "fieldtype": "Float",
+   "label": "Offloaded Weight (tonnes)",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "container_drop_off_at",
+   "fieldtype": "Data",
+   "label": "Container Drop Off At"
+  },
+  {
+   "fieldname": "trip_revenue_charges",
+   "fieldtype": "Table",
+   "options": "Trip Revenue Charges"
+  },
+  {
+   "fieldname": "trip_cost_charges",
+   "fieldtype": "Table",
+   "options": "Trip Cost Charges"
+  },
+  {
+   "fieldname": "section_break_ixmv",
+   "fieldtype": "Section Break",
+   "label": "Cost Charges"
+  },
+  {
+   "fieldname": "section_break_lftw",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "total_estimated_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mcia",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_zsgi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "estimated_profit",
+   "fieldtype": "Currency",
+   "label": "Estimated Profit",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_trip_milestone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Current Trip Milestone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xqoe",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hipq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "updated_on",
+   "fieldtype": "Date",
+   "label": "Updated on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_milestone_comment",
+   "fieldtype": "Data",
+   "label": "Current Milestone Comment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trip_tracking_update",
+   "fieldtype": "Table",
+   "options": "Trip Tracking"
+  },
+  {
+   "fieldname": "current_tracking_update_section",
+   "fieldtype": "Section Break",
+   "label": "Current Tracking Update"
+  },
+  {
+   "fieldname": "trip_tracking_update_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trip_cost_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Trip Cost Summary"
+  },
+  {
+   "fieldname": "trip_cost_summary",
+   "fieldtype": "Table",
+   "label": "Cost Sheet",
+   "options": "Trip Cost Summary",
+   "read_only": 1
+  },
+  {
+   "fieldname": "revenue_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Revenue Charges"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-11-17 23:43:26.736825",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Trip",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

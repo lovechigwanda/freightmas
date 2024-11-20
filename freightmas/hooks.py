@@ -242,3 +242,29 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+
+##############################################################
+
+##REGISTER BEFORE DELETE AND VALIDATE FOR TRIP REVENUE CHARGES
+
+doc_events = {
+    "Trip Revenue Charges": {
+        "validate": "freightmas.trucking_service.doctype.trip_revenue_charges.trip_revenue_charges.validate",
+        "before_delete": "freightmas.trucking_service.doctype.trip_revenue_charges.trip_revenue_charges.before_delete"
+    }
+}
+
+##############################################################
+
+##REGISTER BEFORE DELETE AND VALIDATE FOR TRIP COST CHARGES
+
+doc_events = {
+    "Trip Cost Charges": {
+        "validate": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.validate",
+        "before_delete": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.before_delete"
+    }
+}
+
+##############################################################
+
