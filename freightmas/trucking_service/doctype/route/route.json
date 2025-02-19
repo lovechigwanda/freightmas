@@ -1,0 +1,134 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{origin}-{destination}--{drop_off_at}",
+ "creation": "2024-10-18 23:04:08.322816",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_deactivated",
+  "route_details_section",
+  "origin",
+  "drop_off_at",
+  "distance_empty",
+  "column_break_pxtu",
+  "destination",
+  "trip_direction",
+  "distance_loaded"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "is_deactivated",
+   "fieldtype": "Check",
+   "label": "Is Deactivated"
+  },
+  {
+   "fieldname": "route_details_section",
+   "fieldtype": "Section Break",
+   "label": "Route Details"
+  },
+  {
+   "fieldname": "origin",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Origin",
+   "reqd": 1
+  },
+  {
+   "fieldname": "drop_off_at",
+   "fieldtype": "Data",
+   "label": "Drop Off At",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "distance_empty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Distance Empty (km)",
+   "non_negative": 1,
+   "precision": "0",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_pxtu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Destination",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trip_direction",
+   "fieldtype": "Link",
+   "label": "Direction",
+   "options": "Trip Direction",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "distance_loaded",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Distance Loaded (km)",
+   "non_negative": 1,
+   "precision": "0",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-08 08:55:28.447926",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Route",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fleet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -10,6 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 // CALCULATE PROFIT IN TRIP DOCTYPE
+
 frappe.ui.form.on('Trip', {
     // Trigger calculations when the form is refreshed or validated
     refresh: function(frm) {
@@ -21,79 +22,121 @@ frappe.ui.form.on('Trip', {
 });
 
 frappe.ui.form.on('Trip Revenue Charges', {
-    // Trigger calculation when quantity is changed
+    // Trigger calculation when quantity or rate is changed
     quantity: function(frm, cdt, cdn) {
         calculate_revenue_total(frm, cdt, cdn);
     },
-    // Trigger calculation when rate is changed
     rate: function(frm, cdt, cdn) {
         calculate_revenue_total(frm, cdt, cdn);
     },
-    // Recalculate totals when a row is removed from Revenue Charges
     revenue_charges_remove: function(frm) {
         calculate_totals(frm);
     }
 });
 
-frappe.ui.form.on('Trip Cost Charges', {
-    // Trigger calculation when quantity is changed
+frappe.ui.form.on('Trip Fuel Costs', {
+    // Trigger calculation when quantity or rate is changed
     quantity: function(frm, cdt, cdn) {
-        calculate_cost_total(frm, cdt, cdn);
+        calculate_fuel_cost_total(frm, cdt, cdn);
     },
-    // Trigger calculation when rate is changed
     rate: function(frm, cdt, cdn) {
-        calculate_cost_total(frm, cdt, cdn);
+        calculate_fuel_cost_total(frm, cdt, cdn);
     },
-    // Recalculate totals when a row is removed from Cost Charges
-    cost_charges_remove: function(frm) {
+    trip_fuel_costs_remove: function(frm) {
+        calculate_totals(frm);
+    }
+});
+
+frappe.ui.form.on('Trip Other Costs', {
+    // Trigger calculation when quantity or rate is changed
+    quantity: function(frm, cdt, cdn) {
+        calculate_other_cost_total(frm, cdt, cdn);
+    },
+    rate: function(frm, cdt, cdn) {
+        calculate_other_cost_total(frm, cdt, cdn);
+    },
+    trip_other_costs_remove: function(frm) {
+        calculate_totals(frm);
+    }
+});
+
+frappe.ui.form.on('Trip Commissions', {
+    // Trigger calculation when quantity or rate is changed
+    quantity: function(frm, cdt, cdn) {
+        calculate_commission_total(frm, cdt, cdn);
+    },
+    rate: function(frm, cdt, cdn) {
+        calculate_commission_total(frm, cdt, cdn);
+    },
+    trip_commissions_remove: function(frm) {
         calculate_totals(frm);
     }
 });
 
 function calculate_revenue_total(frm, cdt, cdn) {
-    // Get the current row in Revenue Charges
     let row = locals[cdt][cdn];
-    // Calculate the total amount for the current row
     row.total_amount = row.quantity * row.rate;
-    // Refresh the Revenue Charges table to reflect the changes
     frm.refresh_field('trip_revenue_charges');
-    // Recalculate the overall totals
     calculate_totals(frm);
 }
 
-function calculate_cost_total(frm, cdt, cdn) {
-    // Get the current row in Cost Charges
+function calculate_fuel_cost_total(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
-    // Calculate the total amount for the current row
     row.total_amount = row.quantity * row.rate;
-    // Refresh the Cost Charges table to reflect the changes
-    frm.refresh_field('trip_cost_charges');
-    // Recalculate the overall totals
+    frm.refresh_field('trip_fuel_costs');
+    calculate_totals(frm);
+}
+
+function calculate_other_cost_total(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    row.total_amount = row.quantity * row.rate;
+    frm.refresh_field('trip_other_costs');
+    calculate_totals(frm);
+}
+
+function calculate_commission_total(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    row.total_amount = row.quantity * row.rate;
+    frm.refresh_field('trip_commissions');
     calculate_totals(frm);
 }
 
 function calculate_totals(frm) {
     let total_revenue = 0;
-    let total_cost = 0;
-    // Sum up all total_amount fields in Revenue Charges
+    let total_fuel_cost = 0;
+    let total_other_costs = 0;
+    let total_commissions = 0;
+
+    // Sum up revenue charges
     frm.doc.trip_revenue_charges.forEach(function(d) {
         total_revenue += d.total_amount;
     });
-    // Sum up all total_amount fields in Cost Charges
-    frm.doc.trip_cost_charges.forEach(function(d) {
-        total_cost += d.total_amount;
+
+    // Sum up fuel costs
+    frm.doc.trip_fuel_costs.forEach(function(d) {
+        total_fuel_cost += d.total_amount;
     });
-    // Set the total_estimated_revenue field
+
+    // Sum up other costs
+    frm.doc.trip_other_costs.forEach(function(d) {
+        total_other_costs += d.total_amount;
+    });
+
+    // Sum up commissions
+    frm.doc.trip_commissions.forEach(function(d) {
+        total_commissions += d.total_amount;
+    });
+
+    // Set total fields and calculate profit
     frm.set_value('total_estimated_revenue', total_revenue);
-    // Set the total_estimated_cost field
-    frm.set_value('total_estimated_cost', total_cost);
-    // Calculate and set the estimated_profit field
-    frm.set_value('estimated_profit', total_revenue - total_cost);
+    frm.set_value('total_estimated_cost', total_fuel_cost + total_other_costs + total_commissions);
+    frm.set_value('estimated_profit', total_revenue - (total_fuel_cost + total_other_costs + total_commissions));
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 //UPDATE CURRENT MILESTONE
 
@@ -285,6 +328,8 @@ frappe.ui.form.on('Trip Revenue Charges', {
 
 /////////////////////////////////////////////////////////////////////////
 
+
+////CREATE PURCHASE INVOICE FROM TRIP COST CHARGES
 frappe.ui.form.on('Trip', {
     refresh: function (frm) {
         // Add the "Purchase Invoice" button under the "Create" dropdown
@@ -413,53 +458,127 @@ frappe.ui.form.on('Trip Cost Charges', {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-//ADD BUTTON FOR VIEW TRIP COST SHEET
+//CREATE STOCK ENTRY FROM FUEL COSTS CHARGES
 
 frappe.ui.form.on('Trip', {
     refresh: function (frm) {
-        frm.add_custom_button('Trip Cost Sheet', () => {
-            // Ensure trip_name is passed correctly
-            frappe.set_route('query-report', 'Trip Cost Sheet', { trip_name: frm.doc.name });
-        }, 'View'); // Adds the button under the "View" dropdown
-    },
-});
+        // Add the "Stock Entry" button under the "Create" dropdown
+        frm.add_custom_button('Stock Entry', () => {
+            let dialog = new frappe.ui.Dialog({
+                title: 'Create Stock Entry',
+                fields: [
+                    {
+                        fieldtype: 'Link',
+                        fieldname: 'warehouse',
+                        options: 'Warehouse',
+                        label: 'Source Warehouse',
+                        reqd: 1,
+                        onchange: function () {
+                            const warehouse = dialog.get_value('warehouse');
+                            const costs = frm.doc.trip_fuel_costs.filter(c => {
+                                return !c.is_invoiced && c.warehouse === warehouse;
+                            });
+                            dialog.fields_dict.costs.df.data = costs;
+                            dialog.fields_dict.costs.refresh();
+                        },
+                    },
+                    {
+                        fieldtype: 'Table',
+                        fieldname: 'costs',
+                        label: 'Select Fuel Costs',
+                        fields: [
+                            {
+                                fieldtype: 'Data',
+                                fieldname: 'name',
+                                label: 'ID',
+                                hidden: 1,
+                            },
+                            {
+                                fieldtype: 'Link',
+                                fieldname: 'item_code',
+                                label: 'Fuel Item',
+                                options: 'Item',
+                                in_list_view: 1,
+                            },
+                            {
+                                fieldtype: 'Float',
+                                fieldname: 'quantity',
+                                label: 'Quantity',
+                                in_list_view: 1,
+                            },
+                            {
+                                fieldtype: 'Float',
+                                fieldname: 'rate',
+                                label: 'Rate',
+                                in_list_view: 1,
+                            },
+                            {
+                                fieldtype: 'Float',
+                                fieldname: 'total_amount', // Updated field name
+                                label: 'Total Amount',
+                                in_list_view: 1,
+                                read_only: 1,
+                            },
+                        ],
+                        data: [],
+                        get_data: function () {
+                            const warehouse = dialog.get_value('warehouse');
+                            return frm.doc.trip_fuel_costs.filter(c => {
+                                return !c.is_invoiced && c.warehouse === warehouse;
+                            });
+                        },
+                    },
+                ],
+                primary_action_label: 'Create Stock Entry',
+                primary_action: function () {
+                    const values = dialog.get_values();
 
+                    if (!values || !values.warehouse || !values.costs || values.costs.length === 0) {
+                        frappe.msgprint('Please select a warehouse and at least one fuel cost.');
+                        return;
+                    }
 
+                    const selected_costs = values.costs.map(c => c.name);
 
-////////////////////////////////////////////////////////////////////////////////////////////
-
-
-///Populate the trip_cost_summary child table when the Trip form is refreshed.
-
-frappe.ui.form.on('Trip', {
-    refresh: function (frm) {
-        // Call the server-side method to populate the Cost Sheet
-        frappe.call({
-            method: "freightmas.trucking_service.doctype.trip.trip.get_trip_cost_sheet",
-            args: {
-                trip_name: frm.doc.name,
-            },
-            callback: function (response) {
-                if (response.message) {
-                    // Clear existing data
-                    frm.clear_table("trip_cost_summary");
-
-                    // Add new rows
-                    response.message.forEach(row => {
-                        let child = frm.add_child("trip_cost_summary");
-                        frappe.model.set_value(child.doctype, child.name, "party", row.party);
-                        frappe.model.set_value(child.doctype, child.name, "charge_type", row.charge_type);
-                        frappe.model.set_value(child.doctype, child.name, "total_estimated", row.total_estimated);
-                        frappe.model.set_value(child.doctype, child.name, "total_invoiced", row.total_invoiced);
-                        frappe.model.set_value(child.doctype, child.name, "difference", row.difference);
+                    frappe.call({
+                        method: 'freightmas.trucking_service.doctype.trip.trip.create_stock_entry_from_fuel_costs',
+                        args: {
+                            trip_name: frm.doc.name,
+                            selected_costs,
+                            source_warehouse: values.warehouse,
+                        },
+                        callback: function (response) {
+                            if (response.message) {
+                                frappe.msgprint(`Stock Entry Created: ${response.message.stock_entry_name}`);
+                                frappe.set_route('Form', 'Stock Entry', response.message.stock_entry_name);
+                                frm.reload_doc();
+                            }
+                        },
                     });
+                    dialog.hide();
+                },
+            });
 
-                    // Refresh the field to display the data
-                    frm.refresh_field("trip_cost_summary");
-                }
-            },
-        });
+            dialog.show();
+        }, 'Create'); // Attach to the "Create" dropdown
     },
 });
 
-///////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+// PREVENT DELETION OF INVOICED FUEL COSTS
+
+frappe.ui.form.on('Trip Fuel Costs', {
+    before_trip_fuel_costs_remove: function (frm, cdt, cdn) {
+        const row = frappe.get_doc(cdt, cdn);
+        if (row.is_invoiced) {
+            frappe.throw(__("You cannot delete an invoiced fuel cost."));
+        }
+    }
+});
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////////////////////////////////////////////////

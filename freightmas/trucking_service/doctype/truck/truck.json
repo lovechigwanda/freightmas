@@ -5,12 +5,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "truck_details_section",
   "horse",
   "assigned_driver",
-  "warehouse",
+  "truck_status",
   "column_break_eyun",
   "assigned_trailer",
-  "truck_status",
+  "warehouse",
   "section_break_higb",
   "assigned_driver_name",
   "license_number",
@@ -25,12 +26,29 @@
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Horse",
    "link_filters": "[[\"Vehicle\",\"vehicle_is_horse\",\"=\",1]]",
    "options": "Vehicle",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "assigned_driver",
+   "fieldtype": "Link",
+   "label": "Assigned Driver",
+   "options": "Driver",
+   "reqd": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Fuel Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_eyun",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "assigned_trailer",
@@ -40,43 +58,43 @@
    "in_standard_filter": 1,
    "label": "Assigned Trailer",
    "link_filters": "[[\"Vehicle\",\"vehicle_is_trailer\",\"=\",1]]",
-   "options": "Vehicle"
-  },
-  {
-   "fieldname": "assigned_driver",
-   "fieldtype": "Link",
-   "in_filter": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Assigned Driver",
-   "options": "Driver"
-  },
-  {
-   "fieldname": "column_break_eyun",
-   "fieldtype": "Column Break"
+   "options": "Vehicle",
+   "reqd": 1
   },
   {
    "default": "Available",
    "fieldname": "truck_status",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Truck Status",
    "options": "Available\nNot Available"
+  },
+  {
+   "fieldname": "section_break_higb",
+   "fieldtype": "Section Break",
+   "label": "Driver Details"
   },
   {
    "fetch_from": "assigned_driver.full_name",
    "fieldname": "assigned_driver_name",
    "fieldtype": "Data",
-   "label": "Assigned Driver Name"
-  },
-  {
-   "fieldname": "section_break_higb",
-   "fieldtype": "Section Break"
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Driver Name"
   },
   {
    "fetch_from": "assigned_driver.license_number",
    "fieldname": "license_number",
    "fieldtype": "Read Only",
    "label": "License Number"
+  },
+  {
+   "fetch_from": "assigned_driver.cell_number2",
+   "fieldname": "cell_number2",
+   "fieldtype": "Read Only",
+   "label": "Driver Cell Number 2"
   },
   {
    "fieldname": "column_break_cpjg",
@@ -95,23 +113,16 @@
    "label": "Driver Cell Number"
   },
   {
-   "fetch_from": "assigned_driver.cell_number2",
-   "fieldname": "cell_number2",
-   "fieldtype": "Read Only",
-   "label": "Driver Cell Number 2"
-  },
-  {
-   "fieldname": "warehouse",
-   "fieldtype": "Link",
-   "label": "Warehouse",
-   "options": "Warehouse"
+   "fieldname": "truck_details_section",
+   "fieldtype": "Section Break",
+   "label": "Truck Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-18 21:14:14.550571",
+ "modified": "2025-02-18 22:37:02.861429",
  "modified_by": "Administrator",
- "module": "FreightMas",
+ "module": "Trucking Service",
  "name": "Truck",
  "naming_rule": "Expression",
  "owner": "Administrator",
@@ -125,6 +136,28 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fleet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
    "share": 1,
    "write": 1
   }

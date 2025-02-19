@@ -1,0 +1,324 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2024-11-24 10:27:59.247342",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_nb5a",
+  "order_date",
+  "order_creation_time",
+  "column_break_nrnb",
+  "requested_by",
+  "approved_by",
+  "amended_from",
+  "column_break_fqis",
+  "status",
+  "approval_time",
+  "naming_series",
+  "section_break_pvab",
+  "truck",
+  "warehouse",
+  "column_break_atwt",
+  "driver",
+  "cell_number",
+  "column_break_msfp",
+  "passport_number",
+  "cell_number2",
+  "section_break_pljp",
+  "supplier",
+  "column_break_jznz",
+  "fuel_location",
+  "column_break_evoh",
+  "supplier_whatsapp_number",
+  "section_break_fhrr",
+  "item_code",
+  "item_name",
+  "column_break_lehm",
+  "required_litres",
+  "purchase_receipt",
+  "column_break_znuo",
+  "actual_litres",
+  "remark"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_nb5a",
+   "fieldtype": "Section Break",
+   "label": "Order Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Fuel Order",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "order_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Order Date"
+  },
+  {
+   "fieldname": "truck",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Truck",
+   "options": "Truck",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "label": "Supplier",
+   "options": "Supplier",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "required_litres",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Required Litres",
+   "non_negative": 1,
+   "precision": "0",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "actual_litres",
+   "fieldtype": "Float",
+   "label": "Actual Litres",
+   "non_negative": 1,
+   "precision": "0"
+  },
+  {
+   "fieldname": "purchase_receipt",
+   "fieldtype": "Link",
+   "label": "Purchase Receipt",
+   "options": "Purchase Receipt",
+   "read_only": 1
+  },
+  {
+   "default": "User",
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "Requested By",
+   "options": "User"
+  },
+  {
+   "fetch_from": "truck.assigned_driver_name",
+   "fieldname": "driver",
+   "fieldtype": "Read Only",
+   "label": "Driver Name"
+  },
+  {
+   "fieldname": "column_break_nrnb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "options": "FREQ-.#####.-.YY.",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "section_break_pljp",
+   "fieldtype": "Section Break",
+   "label": "Supplier Details"
+  },
+  {
+   "fieldname": "column_break_jznz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_fhrr",
+   "fieldtype": "Section Break",
+   "label": "Item Details"
+  },
+  {
+   "fieldname": "column_break_znuo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_pvab",
+   "fieldtype": "Section Break",
+   "label": "Truck Details"
+  },
+  {
+   "fieldname": "column_break_atwt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nPending Approval\nRejected\nApproved\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remark",
+   "fieldtype": "Small Text",
+   "label": "Remark"
+  },
+  {
+   "fetch_from": "supplier.mobile_no",
+   "fieldname": "supplier_whatsapp_number",
+   "fieldtype": "Read Only",
+   "label": "Supplier Whatsapp Number"
+  },
+  {
+   "fieldname": "fuel_location",
+   "fieldtype": "Data",
+   "label": "Fuel Location"
+  },
+  {
+   "fieldname": "column_break_evoh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_fqis",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_msfp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_lehm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "truck.cell_number",
+   "fieldname": "cell_number",
+   "fieldtype": "Read Only",
+   "label": "Driver Cell Number 1"
+  },
+  {
+   "fetch_from": "truck.passport_number",
+   "fieldname": "passport_number",
+   "fieldtype": "Read Only",
+   "label": "Passport Number"
+  },
+  {
+   "fetch_from": "truck.cell_number2",
+   "fieldname": "cell_number2",
+   "fieldtype": "Read Only",
+   "label": "Driver Cell Number 2"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "link_filters": "[[\"Item\",\"stock_uom\",\"=\",\"Litre\"]]",
+   "options": "Item",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Read Only",
+   "label": "Item Name"
+  },
+  {
+   "fetch_from": "truck.warehouse",
+   "fieldname": "warehouse",
+   "fieldtype": "Read Only",
+   "label": "Fuel Warehouse"
+  },
+  {
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Approved By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "order_creation_time",
+   "fieldtype": "Datetime",
+   "label": "Order Creation Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_time",
+   "fieldtype": "Datetime",
+   "label": "Approval Time",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-02-19 22:12:06.532079",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Fuel Order",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fleet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

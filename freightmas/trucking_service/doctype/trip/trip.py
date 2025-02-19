@@ -6,7 +6,7 @@ from frappe.model.document import Document
 
 
 class Trip(Document):
-	pass
+    pass
 
 #######################################################################################
 
@@ -176,76 +176,101 @@ class TripCostCharges(Document):
 #####################################################################################
 
 
-#### Calculates and returns the Cost Sheet data for a given Trip
-
+#### STOCK ENTRY CREATION FROM TRIP FUEL CHARGES
 import frappe
 from frappe.utils import flt
 
 @frappe.whitelist()
-def get_trip_cost_sheet(trip_name):
-    """
-    Fetch and summarize cost sheet details for the given trip.
-    """
+def create_stock_entry_from_fuel_costs(trip_name, selected_costs, source_warehouse):
+    """Create a Stock Entry for selected fuel costs."""
+    import json
+    selected_costs = json.loads(selected_costs)  # Parse JSON data
+    if not selected_costs:
+        frappe.throw("No fuel costs selected for stock entry.")
+
     trip = frappe.get_doc("Trip", trip_name)
 
-    cost_sheet = []
+    # Prepare Stock Entry items
+    items = []
+    for cost_id in selected_costs:
+        cost = next((c for c in trip.trip_fuel_costs if c.name == cost_id), None)
+        if not cost:
+            frappe.throw(f"Cost with ID {cost_id} not found in Trip Fuel Costs.")
+        if cost.is_invoiced:
+            frappe.throw(f"Fuel cost for item '{cost.item_code}' has already been invoiced or used.")
 
-    # Revenue Charges (Receivable Party)
-    receivable_summary = summarize_charges(trip.trip_revenue_charges, "receivable_party", "Sales Invoice")
-    for party, summary in receivable_summary.items():
-        cost_sheet.append({
-            "party": party,
-            "charge_type": "Revenue",
-            "total_estimated": summary["total_estimated"],
-            "total_invoiced": summary["total_invoiced"],
-            "difference": summary["total_invoiced"] - summary["total_estimated"],
+        items.append({
+            "item_code": cost.item_code,
+            "qty": flt(cost.quantity),
+            "rate": flt(cost.rate),
+            "s_warehouse": source_warehouse,
         })
 
-    # Cost Charges (Payable Party)
-    payable_summary = summarize_charges(trip.trip_cost_charges, "payable_party", "Purchase Invoice")
-    for party, summary in payable_summary.items():
-        cost_sheet.append({
-            "party": party,
-            "charge_type": "Cost",
-            "total_estimated": summary["total_estimated"],
-            "total_invoiced": summary["total_invoiced"],
-            "difference": summary["total_invoiced"] - summary["total_estimated"],
-        })
+    if not items:
+        frappe.throw("No valid items to create the Stock Entry.")
 
-    return cost_sheet
+    # Create the Stock Entry
+    stock_entry = frappe.get_doc({
+        "doctype": "Stock Entry",
+        "stock_entry_type": "Material Issue",
+        "items": items,
+        "company": trip.company,
+        "trip_reference": trip_name,
+        "remarks": f"Stock issued for Trip {trip_name}",
+    })
+
+    # Save the Stock Entry
+    stock_entry.insert()
+
+    # Update the fuel costs table
+    for cost_id in selected_costs:
+        cost = next((c for c in trip.trip_fuel_costs if c.name == cost_id), None)
+        if cost:
+            cost.is_invoiced = 1
+            cost.stock_entry = stock_entry.name
+    trip.save()
+
+    return {"stock_entry_name": stock_entry.name}
 
 
-def summarize_charges(charges, party_field, invoice_field):
-    """
-    Summarize charges by party and calculate total estimated and invoiced amounts.
-    """
-    summary = {}
-    for charge in charges:
-        party = getattr(charge, party_field, None)
-        if not party:
-            continue
 
-        if party not in summary:
-            summary[party] = {"total_estimated": 0, "total_invoiced": 0}
 
-        # Add estimated charge: Use `total_amount` if available, else calculate `rate * quantity`
-        estimated_amount = (
-            flt(getattr(charge, "total_amount", 0)) or
-            flt(getattr(charge, "rate", 0)) * flt(getattr(charge, "quantity", 1))
-        )
-        summary[party]["total_estimated"] += estimated_amount
-
-        # Add invoiced amount if available
-        invoice_name = getattr(charge, invoice_field, None)
-        if invoice_name:
-            invoice_total = frappe.db.get_value(
-                "Sales Invoice" if invoice_field == "Sales Invoice" else "Purchase Invoice",
-                invoice_name,
-                "total"
-            ) or 0
-            summary[party]["total_invoiced"] += flt(invoice_total)
-
-    return summary
 
 
     ################################################################################
+
+    ##Prevent Editing or Deletion of Used Fuel Charges
+
+
+def validate(self):
+    for fuel_cost in self.trip_fuel_costs:
+        if fuel_cost.is_invoiced and frappe.flags.in_update:
+            frappe.throw(f"You cannot modify an invoiced fuel cost: {fuel_cost.item_code}")
+
+
+
+import frappe
+from frappe.model.document import Document
+
+class TripFuelCosts(Document):
+    def validate(self):
+        """
+        Prevent editing of invoiced fuel costs.
+        """
+        if self.is_invoiced:
+            frappe.throw(f"Cannot edit fuel cost for item '{self.item_code}' because it has already been invoiced.")
+
+    def before_delete(self):
+        """
+        Prevent deletion of invoiced fuel costs.
+        """
+        if self.is_invoiced or self.stock_entry:
+            frappe.throw(f"Cannot delete fuel cost for item '{self.item_code}' because it has been invoiced. Associated Stock Entry: {self.stock_entry or 'N/A'}.")
+
+    
+########################################################################
+
+
+
+#####################################################
+

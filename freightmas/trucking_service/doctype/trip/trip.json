@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "basic_trip_information_section",
   "naming_series",
   "customer",
@@ -47,11 +48,11 @@
   "gross_weight",
   "seal_number",
   "loading_information_section",
-  "last_drop_off_date",
+  "last_pickup_date",
   "loading_address",
   "loaded_weight",
   "column_break_nuqz",
-  "last_pickup_date",
+  "last_drop_off_date",
   "loading_instructions",
   "offloaded_weight",
   "column_break_fzwx",
@@ -60,17 +61,23 @@
   "charges_tab",
   "revenue_charges_section",
   "trip_revenue_charges",
-  "section_break_ixmv",
-  "trip_cost_charges",
+  "fuel_charges_section",
+  "trip_fuel_costs",
+  "other_trip_expenses_section",
+  "trip_other_costs",
+  "trip_commissions_section",
+  "trip_commissions",
   "section_break_lftw",
   "total_estimated_revenue",
   "column_break_mcia",
   "total_estimated_cost",
   "column_break_zsgi",
   "estimated_profit",
-  "trip_cost_summary_section",
-  "trip_cost_summary",
   "tracking_tab",
+  "important_dates_section",
+  "date_loaded",
+  "column_break_axue",
+  "date_offloaded",
   "trip_tracking_update_section",
   "trip_tracking_update",
   "current_tracking_update_section",
@@ -78,7 +85,8 @@
   "column_break_xqoe",
   "current_milestone_comment",
   "column_break_hipq",
-  "updated_on"
+  "updated_on",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -173,7 +181,8 @@
    "fieldname": "route",
    "fieldtype": "Link",
    "label": "Route",
-   "options": "Route"
+   "options": "Route",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_wiwj",
@@ -274,17 +283,17 @@
   {
    "fieldname": "cargo_tab",
    "fieldtype": "Tab Break",
-   "label": "Cargo"
+   "label": "CARGO"
   },
   {
    "fieldname": "charges_tab",
    "fieldtype": "Tab Break",
-   "label": "Charges"
+   "label": "CHARGES"
   },
   {
    "fieldname": "tracking_tab",
    "fieldtype": "Tab Break",
-   "label": "Tracking"
+   "label": "TRACKING"
   },
   {
    "fieldname": "cargo_description",
@@ -406,22 +415,13 @@
   {
    "fieldname": "trip_revenue_charges",
    "fieldtype": "Table",
+   "label": "Revenue Charges",
    "options": "Trip Revenue Charges"
-  },
-  {
-   "fieldname": "trip_cost_charges",
-   "fieldtype": "Table",
-   "options": "Trip Cost Charges"
-  },
-  {
-   "fieldname": "section_break_ixmv",
-   "fieldtype": "Section Break",
-   "label": "Cost Charges"
   },
   {
    "fieldname": "section_break_lftw",
    "fieldtype": "Section Break",
-   "label": "Totals"
+   "label": "Profitability"
   },
   {
    "fieldname": "total_estimated_revenue",
@@ -491,30 +491,95 @@
   },
   {
    "fieldname": "trip_tracking_update_section",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "trip_cost_summary_section",
    "fieldtype": "Section Break",
-   "label": "Trip Cost Summary"
-  },
-  {
-   "fieldname": "trip_cost_summary",
-   "fieldtype": "Table",
-   "label": "Cost Sheet",
-   "options": "Trip Cost Summary",
-   "read_only": 1
+   "label": "Tracking"
   },
   {
    "fieldname": "revenue_charges_section",
    "fieldtype": "Section Break",
-   "label": "Revenue Charges"
+   "label": "Revenue"
+  },
+  {
+   "fieldname": "trip_fuel_costs",
+   "fieldtype": "Table",
+   "label": "Fuel Charges",
+   "options": "Trip Fuel Costs"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "CONNECTIONS",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "fuel_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Expenses"
+  },
+  {
+   "fieldname": "other_trip_expenses_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "trip_other_costs",
+   "fieldtype": "Table",
+   "label": "Other Trip Charges",
+   "options": "Trip Other Costs"
+  },
+  {
+   "fieldname": "trip_commissions",
+   "fieldtype": "Table",
+   "label": "Commissions",
+   "options": "Trip Commissions"
+  },
+  {
+   "fieldname": "trip_commissions_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "DETAILS"
+  },
+  {
+   "fieldname": "important_dates_section",
+   "fieldtype": "Section Break",
+   "label": "Important Dates"
+  },
+  {
+   "fieldname": "date_loaded",
+   "fieldtype": "Date",
+   "label": "Date Loaded",
+   "options": "Today"
+  },
+  {
+   "fieldname": "column_break_axue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date_offloaded",
+   "fieldtype": "Date",
+   "label": "Date Offloaded"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2024-11-17 23:43:26.736825",
+ "links": [
+  {
+   "link_doctype": "Stock Entry",
+   "link_fieldname": "trip_reference",
+   "table_fieldname": "trip"
+  },
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "trip_reference"
+  },
+  {
+   "link_doctype": "Journal Entry",
+   "link_fieldname": "trip_reference"
+  }
+ ],
+ "modified": "2025-01-08 08:37:51.376947",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
@@ -530,6 +595,41 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Fleet Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
    "share": 1,
    "submit": 1,
    "write": 1
