@@ -274,3 +274,53 @@ doc_events = {
     }
 }
 ####################################################################################
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            ["name", "in", [
+                "Purchase Receipt-custom_reference",
+                "Journal Entry-custom_trip_reference",
+                "Stock Entry-custom_trip_reference",
+                "Driver-custom_passport_number",
+                "Driver-custom_passport_issue_date",
+                "Driver-custom_passport_expiry_date",
+                "Driver-custom_cellphone_number_2",
+                "Purchase Invoice-custom_trip_reference",
+                "Purchase Invoice-custom_is_trip_invoice",
+                "Sales Invoice-custom_trip_reference",
+                "Sales Invoice-custom_is_trip_invoice",
+                "Trip-workflow_state",
+                "Vehicle-custom_is_trailer",
+                "Vehicle-custom_is_horse"
+            ]]
+        ]
+    },
+    {
+        "dt": "Workflow",
+        "filters": [
+            ["name", "in", ["Fuel Order Workflow", "Trip Workflow"]]
+        ]
+    },
+    {
+        "dt": "Workflow State",
+        "filters": [
+            ["name", "in", [
+                "Booking",
+                "Offloading",
+                "In Transit",
+                "Loading",
+                "Pending"
+            ]]
+        ]
+    },
+    {
+        "dt": "Workspace",
+        "filters": [
+            ["name", "=", "Trucking Service"]
+        ]
+    }
+]
+
+
+#############################################################################
