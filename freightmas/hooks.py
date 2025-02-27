@@ -268,11 +268,7 @@ doc_events = {
 
 ##############################################################
 
-doc_events = {
-    "Truck": {
-        "after_insert": "freightmas.freightmas.doctype.truck.truck.after_insert"
-    }
-}
+
 ####################################################################################
 fixtures = [
     {
