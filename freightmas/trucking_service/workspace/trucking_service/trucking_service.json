@@ -1,7 +1,12 @@
 {
- "charts": [],
- "content": "[{\"id\":\"19g37rIPrU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Trucking Service</span>\",\"col\":12}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"3P2nl1NiW6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Revenue\",\"col\":4}},{\"id\":\"HAEWvBP7av\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"4mkvgtCJOO\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2025-02-21 14:22:06.624512",
+ "charts": [
+  {
+   "chart_name": "Truck Revenue Graph",
+   "label": "Truck Revenue"
+  }
+ ],
+ "content": "[{\"id\":\"19g37rIPrU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Trucking Service</span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7HA_a-xDn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips In Progress (Count)\",\"col\":4}},{\"id\":\"Bm0PcgpU-F\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips in Progress (Revenue)\",\"col\":4}},{\"id\":\"tUukWgU_6t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips Completed (Revenue)\",\"col\":4}},{\"id\":\"vjeTJmDxXE\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}}]",
+ "creation": "2025-02-27 23:39:52.822106",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -16,11 +21,53 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 3,
+   "label": "Pending Approval Fuel Orders",
+   "link_count": 0,
+   "link_to": "Pending Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Fuel Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Approved Fuel Orders",
+   "link_count": 0,
+   "link_to": "Approved Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Fuel Order",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trucking Masters",
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Items",
+   "link_count": 0,
+   "link_to": "Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trucks",
+   "link_count": 0,
+   "link_to": "Truck",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -35,9 +82,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Milestones",
+   "label": "Drivers",
    "link_count": 0,
-   "link_to": "Trip Milestones",
+   "link_to": "Driver",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -45,7 +92,17 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Direction",
+   "label": "Milestones",
+   "link_count": 0,
+   "link_to": "Milestone",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trip Directions",
    "link_count": 0,
    "link_to": "Trip Direction",
    "link_type": "DocType",
@@ -55,7 +112,56 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Reports",
+   "label": "Fuel Reports",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Fuel Orders",
+   "link_count": 0,
+   "link_to": "Fuel Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Fuel Orders Report",
+   "link_count": 0,
+   "link_to": "Fuel Orders Summary Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Pending Fuel Orders",
+   "link_count": 0,
+   "link_to": "Pending Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Approved Fuel Orders",
+   "link_count": 0,
+   "link_to": "Approved Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trip Reports",
    "link_count": 1,
    "link_type": "DocType",
    "onboard": 0,
@@ -64,7 +170,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Trip",
+   "label": "Trips",
    "link_count": 0,
    "link_to": "Trip",
    "link_type": "DocType",
@@ -72,14 +178,22 @@
    "type": "Link"
   }
  ],
- "modified": "2025-02-22 09:51:59.058031",
+ "modified": "2025-03-02 20:56:15.236294",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",
  "number_cards": [
   {
-   "label": "Revenue",
-   "number_card_name": "Revenue"
+   "label": "Trips In Progress (Count)",
+   "number_card_name": "Trip In Progress (Count)"
+  },
+  {
+   "label": "Trips Completed (Revenue)",
+   "number_card_name": "Trip Completed (Revenue)"
+  },
+  {
+   "label": "Trips in Progress (Revenue)",
+   "number_card_name": "Trip In Progress"
   }
  ],
  "owner": "Administrator",
@@ -91,7 +205,23 @@
  "shortcuts": [
   {
    "color": "Grey",
-   "doc_view": "List",
+   "doc_view": "New",
+   "label": "Trip",
+   "link_to": "Trip",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "Fuel Order",
+   "link_to": "Fuel Order",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
    "format": "{}Open",
    "label": "Truck",
    "link_to": "Truck",
@@ -100,25 +230,9 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
-   "label": "Trip",
-   "link_to": "Trip",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
+   "doc_view": "New",
    "label": "Route",
    "link_to": "Route",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Fuel Order",
-   "link_to": "Fuel Order",
    "stats_filter": "[]",
    "type": "DocType"
   }

@@ -425,7 +425,7 @@
   },
   {
    "fieldname": "total_estimated_revenue",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Total Estimated Revenue",
    "precision": "2",
    "read_only": 1
@@ -436,7 +436,7 @@
   },
   {
    "fieldname": "total_estimated_cost",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Total Estimated Cost",
    "precision": "2",
    "read_only": 1
@@ -447,7 +447,7 @@
   },
   {
    "fieldname": "estimated_profit",
-   "fieldtype": "Currency",
+   "fieldtype": "Float",
    "label": "Estimated Profit",
    "precision": "2",
    "read_only": 1
@@ -579,7 +579,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-01-08 08:37:51.376947",
+ "modified": "2025-03-02 19:20:46.346907",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
