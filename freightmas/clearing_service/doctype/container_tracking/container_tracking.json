@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-16 19:24:48.822956",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "container_milestone",
+  "updated_on",
+  "updated_by",
+  "column_break_vbpc",
+  "tracking_comment"
+ ],
+ "fields": [
+  {
+   "fieldname": "container_milestone",
+   "fieldtype": "Link",
+   "label": "Container Milestone",
+   "options": "Container Milestone"
+  },
+  {
+   "default": "now",
+   "fieldname": "updated_on",
+   "fieldtype": "Datetime",
+   "label": "Updated On"
+  },
+  {
+   "default": "User",
+   "fieldname": "updated_by",
+   "fieldtype": "Link",
+   "label": "Updated By",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_vbpc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tracking_comment",
+   "fieldtype": "Small Text",
+   "label": "Tracking Comment"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-16 19:48:08.838208",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Container Tracking",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

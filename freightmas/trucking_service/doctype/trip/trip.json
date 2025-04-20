@@ -27,14 +27,15 @@
   "trailer",
   "route_information_section",
   "trip_direction",
-  "route",
-  "column_break_wiwj",
-  "origin",
-  "distance_loaded",
-  "extra_distance_loaded",
-  "column_break_uwan",
   "destination",
   "distance_empty",
+  "column_break_wiwj",
+  "route",
+  "drop_off_at",
+  "extra_distance_loaded",
+  "column_break_uwan",
+  "origin",
+  "distance_loaded",
   "extra_distance_empty",
   "cargo_tab",
   "cargo_details",
@@ -61,9 +62,8 @@
   "charges_tab",
   "revenue_charges_section",
   "trip_revenue_charges",
-  "fuel_charges_section",
-  "trip_fuel_costs",
   "other_trip_expenses_section",
+  "trip_fuel_allocation",
   "trip_other_costs",
   "trip_commissions_section",
   "trip_commissions",
@@ -122,10 +122,11 @@
    "set_only_once": 1
   },
   {
-   "default": "user_fullname",
+   "default": "user",
    "fieldname": "created_by",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Created By",
+   "options": "User",
    "reqd": 1,
    "set_only_once": 1
   },
@@ -424,6 +425,7 @@
    "label": "Profitability"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_revenue",
    "fieldtype": "Float",
    "label": "Total Estimated Revenue",
@@ -435,6 +437,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_cost",
    "fieldtype": "Float",
    "label": "Total Estimated Cost",
@@ -446,6 +449,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "estimated_profit",
    "fieldtype": "Float",
    "label": "Estimated Profit",
@@ -500,27 +504,19 @@
    "label": "Revenue"
   },
   {
-   "fieldname": "trip_fuel_costs",
-   "fieldtype": "Table",
-   "label": "Fuel Charges",
-   "options": "Trip Fuel Costs"
-  },
-  {
    "fieldname": "connections_tab",
    "fieldtype": "Tab Break",
    "label": "CONNECTIONS",
    "show_dashboard": 1
   },
   {
-   "fieldname": "fuel_charges_section",
+   "description": "Record Trip Expenses, Fuel, Trip Bonuses and Other Costs under this section.",
+   "fieldname": "other_trip_expenses_section",
    "fieldtype": "Section Break",
    "label": "Expenses"
   },
   {
-   "fieldname": "other_trip_expenses_section",
-   "fieldtype": "Section Break"
-  },
-  {
+   "description": "Record all other trip expenses paid to the driver",
    "fieldname": "trip_other_costs",
    "fieldtype": "Table",
    "label": "Other Trip Charges",
@@ -560,6 +556,19 @@
    "fieldname": "date_offloaded",
    "fieldtype": "Date",
    "label": "Date Offloaded"
+  },
+  {
+   "description": "Allocate fuel for this trip only",
+   "fieldname": "trip_fuel_allocation",
+   "fieldtype": "Table",
+   "label": "Fuel Allocation",
+   "options": "Trip Fuel Allocation"
+  },
+  {
+   "fetch_from": "route.drop_off_at",
+   "fieldname": "drop_off_at",
+   "fieldtype": "Read Only",
+   "label": "Drop Off At"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -579,7 +588,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-03-02 19:20:46.346907",
+ "modified": "2025-04-15 18:57:23.103540",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",

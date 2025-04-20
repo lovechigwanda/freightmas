@@ -1,0 +1,31 @@
+{
+ "cards": [
+  {
+   "card": "Trip Completed (Revenue)"
+  },
+  {
+   "card": "Trip In Progress"
+  },
+  {
+   "card": "Trip In Progress (Count)"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Truck Revenue Graph",
+   "width": "Full"
+  }
+ ],
+ "creation": "2025-03-04 19:53:32.859544",
+ "dashboard_name": "Trucking Service Dashboard",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-03-04 19:55:01.768681",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Trucking Service Dashboard",
+ "owner": "Administrator"
+}

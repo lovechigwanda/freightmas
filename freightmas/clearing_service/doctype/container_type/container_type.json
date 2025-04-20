@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:container_name",
+ "creation": "2025-04-16 19:11:48.701855",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "container_name",
+  "container_description",
+  "column_break_yytx",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "description": "e.g. \"20FT SD\"",
+   "fieldname": "container_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Container Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "e.g. \"20-Foot Standard Dry\"",
+   "fieldname": "container_description",
+   "fieldtype": "Data",
+   "label": "Container Description",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "column_break_yytx",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-16 19:18:45.409372",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Container Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

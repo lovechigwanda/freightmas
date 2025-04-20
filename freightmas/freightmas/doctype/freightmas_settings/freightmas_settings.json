@@ -1,0 +1,72 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-01 20:40:15.943815",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "trucking_service_tab",
+  "driver_commission_mode",
+  "driver_bonus_account",
+  "column_break_chsz",
+  "driver_advance_parent_account",
+  "port_clearing_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "driver_commission_mode",
+   "fieldtype": "Select",
+   "label": "Driver Commission Mode",
+   "options": "Journal Entry\nPayroll Entry"
+  },
+  {
+   "fieldname": "trucking_service_tab",
+   "fieldtype": "Tab Break",
+   "label": "Trucking Service"
+  },
+  {
+   "fieldname": "column_break_chsz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_clearing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Port Clearing"
+  },
+  {
+   "fieldname": "driver_advance_parent_account",
+   "fieldtype": "Link",
+   "label": "Driver Advance Parent Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "driver_bonus_account",
+   "fieldtype": "Link",
+   "label": "Driver Bonus Parent Account",
+   "options": "Account"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-04-05 19:42:03.319523",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "FreightMas Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -7,16 +7,18 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
-  "description",
-  "quantity",
+  "truck",
   "rate",
   "total_amount",
-  "driver",
-  "driver_name",
-  "party",
-  "account",
+  "cost_centre",
+  "journal_entry",
   "is_invoiced",
-  "journal_entry"
+  "column_break_csmz",
+  "item_name",
+  "driver_advance_account",
+  "quantity",
+  "expense_account",
+  "description"
  ],
  "fields": [
   {
@@ -25,11 +27,13 @@
    "in_list_view": 1,
    "label": "Charge",
    "options": "Item",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1,
+   "width": "1"
   },
   {
    "fieldname": "description",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Description"
   },
   {
@@ -40,23 +44,27 @@
    "label": "Qty",
    "non_negative": 1,
    "precision": "0",
-   "reqd": 1
+   "set_only_once": 1,
+   "width": "1"
   },
   {
    "fieldname": "rate",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
    "non_negative": 1,
    "precision": "2",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1,
+   "width": "1"
   },
   {
    "fieldname": "total_amount",
-   "fieldtype": "Float",
-   "label": "Amount",
+   "fieldtype": "Currency",
+   "label": "Total",
    "precision": "2",
-   "read_only": 1
+   "read_only": 1,
+   "width": "1"
   },
   {
    "default": "0",
@@ -73,38 +81,56 @@
    "read_only": 1
   },
   {
-   "fetch_from": "party.full_name",
-   "fieldname": "driver_name",
-   "fieldtype": "Read Only",
-   "label": "Driver Name"
+   "fieldname": "truck",
+   "fieldtype": "Link",
+   "label": "Truck",
+   "options": "Truck",
+   "reqd": 1,
+   "set_only_once": 1,
+   "width": "1"
   },
   {
-   "fieldname": "account",
+   "fieldname": "column_break_csmz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "truck.cost_centre",
+   "fieldname": "cost_centre",
    "fieldtype": "Link",
-   "label": "Account",
+   "label": "Cost Centre",
+   "options": "Cost Center",
+   "set_only_once": 1,
+   "width": "1"
+  },
+  {
+   "fetch_from": "truck.driver_advance_account",
+   "fieldname": "driver_advance_account",
+   "fieldtype": "Link",
+   "label": "Driver Account",
+   "options": "Account",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "expense_account",
+   "fieldtype": "Link",
+   "label": "Expense Account",
    "options": "Account",
    "remember_last_selected_value": 1,
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1,
+   "width": "2"
   },
   {
-   "fieldname": "driver",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Driver",
-   "options": "Driver",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "driver.employee",
-   "fieldname": "party",
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
    "fieldtype": "Read Only",
-   "label": "Employee"
+   "label": "Charge Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-04 10:36:41.072225",
+ "modified": "2025-03-30 20:42:23.659061",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Other Costs",

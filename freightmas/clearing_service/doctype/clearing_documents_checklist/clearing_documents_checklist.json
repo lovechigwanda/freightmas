@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-16 08:15:20.442327",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document",
+  "attach",
+  "section_break_xbpp",
+  "is_submitted",
+  "date_submitted",
+  "column_break_tkmj",
+  "is_verified",
+  "date_verified"
+ ],
+ "fields": [
+  {
+   "fieldname": "document",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document",
+   "options": "Clearing Document",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_submitted",
+   "fieldtype": "Check",
+   "label": "Is Submitted"
+  },
+  {
+   "depends_on": "eval:doc.is_submitted == 1\r\n",
+   "fieldname": "date_submitted",
+   "fieldtype": "Date",
+   "label": "Date Submitted",
+   "mandatory_depends_on": "eval:doc.is_submitted == 1"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_verified",
+   "fieldtype": "Check",
+   "label": "Is Verified"
+  },
+  {
+   "depends_on": "eval:doc.is_verified == 1",
+   "fieldname": "date_verified",
+   "fieldtype": "Date",
+   "label": "Date Verified",
+   "mandatory_depends_on": "eval:doc.is_verified == 1"
+  },
+  {
+   "fieldname": "section_break_xbpp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tkmj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-18 14:03:33.957461",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Clearing Documents Checklist",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,37 +1,19 @@
+import frappe
+from erpnext.stock.utils import get_incoming_rate
+
 @frappe.whitelist()
-def create_journal_entry(trip, charges, debit_accounts):
-    charges = json.loads(charges)
-    debit_accounts = json.loads(debit_accounts)
+def get_fuel_rate(item_code, warehouse, posting_date=None):
+    if not posting_date:
+        posting_date = frappe.utils.today()
 
-    journal_entry = frappe.new_doc("Journal Entry")
-    journal_entry.voucher_type = "Journal Entry"
-    journal_entry.user_remark = f"Trip: {trip}"
-    journal_entry.company = frappe.defaults.get_user_default("Company")
-    
-    total_amount = 0
-    for charge, debit_account in zip(charges, debit_accounts):
-        journal_entry.append("accounts", {
-            "account": debit_account,
-            "debit_in_account_currency": charge.get("amount"),
-            "credit_in_account_currency": 0,
-            "reference_type": "Trip Other Costs",  # Updated DocType name
-            "reference_name": charge.get("name")
-        })
-        total_amount += charge.get("amount")
+    args = {
+        "item_code": item_code,
+        "warehouse": warehouse,
+        "posting_date": posting_date,
+        "qty": 1,
+        "allow_zero_valuation": 1
+    }
 
-    # Credit the Driver Account
-    driver_account = frappe.get_value("Trip", trip, "driver_account")
-    journal_entry.append("accounts", {
-        "account": driver_account,
-        "debit_in_account_currency": 0,
-        "credit_in_account_currency": total_amount
-    })
+    rate = get_incoming_rate(args)
+    return rate or 0
 
-    journal_entry.insert()
-    journal_entry.submit()
-
-    # Update Trip Other Costs as journaled
-    for charge in charges:
-        frappe.db.set_value("Trip Other Costs", charge.get("name"), "is_journaled", 1)
-
-    return journal_entry.name

@@ -175,101 +175,164 @@ class TripCostCharges(Document):
 
 #####################################################################################
 
-
 #### STOCK ENTRY CREATION FROM TRIP FUEL CHARGES
-import frappe
-from frappe.utils import flt
 
-@frappe.whitelist()
-def create_stock_entry_from_fuel_costs(trip_name, selected_costs, source_warehouse):
-    """Create a Stock Entry for selected fuel costs."""
-    import json
-    selected_costs = json.loads(selected_costs)  # Parse JSON data
-    if not selected_costs:
-        frappe.throw("No fuel costs selected for stock entry.")
-
-    trip = frappe.get_doc("Trip", trip_name)
-
-    # Prepare Stock Entry items
-    items = []
-    for cost_id in selected_costs:
-        cost = next((c for c in trip.trip_fuel_costs if c.name == cost_id), None)
-        if not cost:
-            frappe.throw(f"Cost with ID {cost_id} not found in Trip Fuel Costs.")
-        if cost.is_invoiced:
-            frappe.throw(f"Fuel cost for item '{cost.item_code}' has already been invoiced or used.")
-
-        items.append({
-            "item_code": cost.item_code,
-            "qty": flt(cost.quantity),
-            "rate": flt(cost.rate),
-            "s_warehouse": source_warehouse,
-        })
-
-    if not items:
-        frappe.throw("No valid items to create the Stock Entry.")
-
-    # Create the Stock Entry
-    stock_entry = frappe.get_doc({
-        "doctype": "Stock Entry",
-        "stock_entry_type": "Material Issue",
-        "items": items,
-        "company": trip.company,
-        "trip_reference": trip_name,
-        "remarks": f"Stock issued for Trip {trip_name}",
-    })
-
-    # Save the Stock Entry
-    stock_entry.insert()
-
-    # Update the fuel costs table
-    for cost_id in selected_costs:
-        cost = next((c for c in trip.trip_fuel_costs if c.name == cost_id), None)
-        if cost:
-            cost.is_invoiced = 1
-            cost.stock_entry = stock_entry.name
-    trip.save()
-
-    return {"stock_entry_name": stock_entry.name}
-
-
-
-
-
-
-    ################################################################################
-
-    ##Prevent Editing or Deletion of Used Fuel Charges
-
-
-def validate(self):
-    for fuel_cost in self.trip_fuel_costs:
-        if fuel_cost.is_invoiced and frappe.flags.in_update:
-            frappe.throw(f"You cannot modify an invoiced fuel cost: {fuel_cost.item_code}")
-
-
-
+import json
 import frappe
 from frappe.model.document import Document
 
-class TripFuelCosts(Document):
-    def validate(self):
-        """
-        Prevent editing of invoiced fuel costs.
-        """
-        if self.is_invoiced:
-            frappe.throw(f"Cannot edit fuel cost for item '{self.item_code}' because it has already been invoiced.")
+@frappe.whitelist()
+def create_fuel_stock_entry_with_rows(docname, row_names):
+    row_names = json.loads(row_names) if isinstance(row_names, str) else row_names
+    trip = frappe.get_doc("Trip", docname)
 
-    def before_delete(self):
-        """
-        Prevent deletion of invoiced fuel costs.
-        """
-        if self.is_invoiced or self.stock_entry:
-            frappe.throw(f"Cannot delete fuel cost for item '{self.item_code}' because it has been invoiced. Associated Stock Entry: {self.stock_entry or 'N/A'}.")
+    ste = frappe.new_doc("Stock Entry")
+    ste.stock_entry_type = "Material Issue"
+    ste.company = frappe.defaults.get_user_default("company")
+    ste.set_posting_time = 1
+    ste.posting_date = frappe.utils.today()
+    ste.trip_reference = trip.name  
 
-    
+    updated_rows = []
+
+    for row in trip.trip_fuel_allocation:
+        if row.name not in row_names:
+            continue
+        if not (row.item and row.qty and row.s_warehouse):
+            continue
+
+        ste.append("items", {
+            "item_code": row.item,
+            "qty": row.qty,
+            "s_warehouse": row.s_warehouse,
+            "basic_rate": row.rate or 0,
+            "cost_center": row.cost_centre,
+        })
+
+        updated_rows.append(row.name)
+
+    ste.insert(ignore_permissions=True)
+    stock_entry_name = ste.name
+
+    for row in trip.trip_fuel_allocation:
+        if row.name in updated_rows:
+            row.stock_entry_reference = stock_entry_name
+            row.is_invoiced = 1
+
+    trip.save(ignore_permissions=True)
+    return stock_entry_name
+
+
+################################################################################
+### Create Journal Entries from Trip Other Costs
+
+@frappe.whitelist()
+def create_journal_entry_from_other_costs(docname, row_names):
+    import json
+    row_names = json.loads(row_names) if isinstance(row_names, str) else row_names
+    trip = frappe.get_doc("Trip", docname)
+
+    journal_entry = frappe.new_doc("Journal Entry")
+    journal_entry.voucher_type = "Journal Entry"
+    journal_entry.posting_date = frappe.utils.today()
+    journal_entry.company = frappe.defaults.get_user_default("company")
+    journal_entry.trip_reference = trip.name  #Custom field on Journal Entry
+    journal_entry.remark = f"Trip Expenses for {trip.name}"
+
+    updated_rows = []
+
+    for row in trip.trip_other_costs:
+        if row.name not in row_names:
+            continue
+
+        if not (row.item_code and row.quantity and row.rate and row.driver_advance_account and row.expense_account):
+            continue
+
+        amount = frappe.utils.flt(row.quantity) * frappe.utils.flt(row.rate)
+        if amount <= 0:
+            continue
+
+        # Safely sanitize and limit the remark
+        safe_remark = (row.description or "").strip()
+        if len(safe_remark) > 500:
+            safe_remark = safe_remark[:500] + "..."
+
+        journal_entry.append("accounts", {
+            "account": row.expense_account,
+            "debit_in_account_currency": amount,
+            "cost_center": row.cost_centre,
+            "user_remark": safe_remark
+        })
+
+        journal_entry.append("accounts", {
+            "account": row.driver_advance_account,
+            "credit_in_account_currency": amount,
+            "cost_center": row.cost_centre,
+            "user_remark": safe_remark
+        })
+
+        updated_rows.append(row.name)
+
+    journal_entry.insert(ignore_permissions=True)
+    journal_entry_name = journal_entry.name
+
+    for row in trip.trip_other_costs:
+        if row.name in updated_rows:
+            row.journal_entry = journal_entry_name
+            row.is_invoiced = 1
+
+    trip.save()
+    return journal_entry_name
+
+       
 ########################################################################
 
+@frappe.whitelist()
+def create_additional_salary_from_trip_commissions(docname, row_names):
+    import json
+    row_names = json.loads(row_names) if isinstance(row_names, str) else row_names
+    trip = frappe.get_doc("Trip", docname)
+
+    if not trip.company:
+        frappe.throw("Please set the Company on the Trip before posting to payroll.")
+
+    posted_rows = []
+
+    for row in trip.trip_commissions:
+        if row.name not in row_names:
+            continue
+
+        if not (row.employee and row.salary_component and row.amount):
+            continue
+
+        if frappe.utils.flt(row.amount) <= 0:
+            continue
+
+        remarks = (row.description or "").strip()
+        if len(remarks) > 140:
+            remarks = remarks[:140] + "..."
+
+        additional_salary = frappe.get_doc({
+            "doctype": "Additional Salary",
+            "employee": row.employee,
+            "salary_component": row.salary_component,
+            "amount": row.amount,
+            "payroll_date": trip.end_date or frappe.utils.today(),
+            "company": trip.company,
+            "remarks": f"Trip Bonus for {trip.name}: {remarks}",
+            "reference_doctype": "Trip",
+            "reference_name": trip.name
+        })
+
+        additional_salary.insert(ignore_permissions=True)
+        additional_salary.submit()
+
+        row.is_posted_to_payroll = 1
+        row.payroll_entry = additional_salary.name
+        posted_rows.append(row.name)
+
+    trip.save()
+    return posted_rows
 
 
 #####################################################

@@ -162,7 +162,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Trip Reports",
-   "link_count": 1,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -176,9 +176,29 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Tracking",
+   "link_count": 0,
+   "link_to": "Trip Tracking Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Tracking (Active)",
+   "link_count": 0,
+   "link_to": "Trip Tracking Report (Active)",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-03-02 20:56:15.236294",
+ "modified": "2025-03-18 20:57:18.147849",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

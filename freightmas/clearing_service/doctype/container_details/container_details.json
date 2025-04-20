@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-16 18:43:18.214618",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "container_details_section",
+  "container_number",
+  "seal_no",
+  "date_discharged_from_port",
+  "date_returned",
+  "column_break_lnrj",
+  "container_type",
+  "date_discharged_from_vessel",
+  "free_days",
+  "last_free_day",
+  "transport_details_section",
+  "include_transport",
+  "transporter",
+  "driver_name",
+  "driver_passport_no",
+  "driver_contact_no_2",
+  "column_break_befm",
+  "truck_reg_no",
+  "trailer_reg_no",
+  "driver_licence_no",
+  "driver_contact_no"
+ ],
+ "fields": [
+  {
+   "fieldname": "container_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Container Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_lnrj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "container_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Container Type",
+   "options": "Container Type",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_discharged_from_vessel",
+   "fieldtype": "Date",
+   "label": "Date Discharged From Vessel"
+  },
+  {
+   "fieldname": "date_discharged_from_port",
+   "fieldtype": "Date",
+   "label": "Date Discharged From Port"
+  },
+  {
+   "fieldname": "free_days",
+   "fieldtype": "Int",
+   "label": "Free Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "date_returned",
+   "fieldtype": "Date",
+   "label": "Date Returned"
+  },
+  {
+   "fieldname": "last_free_day",
+   "fieldtype": "Date",
+   "label": "Last Free Day"
+  },
+  {
+   "fieldname": "container_details_section",
+   "fieldtype": "Section Break",
+   "label": "Container Details"
+  },
+  {
+   "fieldname": "transport_details_section",
+   "fieldtype": "Section Break",
+   "label": "Transport Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_transport",
+   "fieldtype": "Check",
+   "label": "Include Transport"
+  },
+  {
+   "fieldname": "transporter",
+   "fieldtype": "Link",
+   "label": "Transporter",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "column_break_befm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "label": "Driver Name"
+  },
+  {
+   "fieldname": "seal_no",
+   "fieldtype": "Data",
+   "label": "Seal No"
+  },
+  {
+   "fieldname": "driver_passport_no",
+   "fieldtype": "Data",
+   "label": "Driver Passport No"
+  },
+  {
+   "fieldname": "driver_contact_no_2",
+   "fieldtype": "Data",
+   "label": "Driver Contact No 2"
+  },
+  {
+   "fieldname": "driver_licence_no",
+   "fieldtype": "Data",
+   "label": "Driver Licence No"
+  },
+  {
+   "fieldname": "driver_contact_no",
+   "fieldtype": "Data",
+   "label": "Driver Contact No"
+  },
+  {
+   "fieldname": "truck_reg_no",
+   "fieldtype": "Data",
+   "label": "Truck Reg No"
+  },
+  {
+   "fieldname": "trailer_reg_no",
+   "fieldtype": "Data",
+   "label": "Trailer Reg No"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-18 14:31:43.972692",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Container Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -318,5 +318,92 @@ fixtures = [
     }
 ]
 
+##########################################################################
+
+fixtures = ["Print Format"]
+
 
 #############################################################################
+doc_events = {
+    "Driver": {
+        "before_insert": "freightmas.hooks.driver_hooks.create_driver_advance_account"
+    }
+}
+
+#############################################################################
+
+# Hook on Driver doctype
+def create_driver_advance_account(doc, method):
+    import frappe
+
+    settings = frappe.get_single("FreightMas Settings")
+
+    # Create Advance Account
+    if not doc.driver_advance_account:
+        create_child_account(
+            account_type="advance",
+            driver_name=doc.full_name,
+            settings_account=settings.driver_advance_parent_account,
+            field_to_set="driver_advance_account",
+            doc=doc
+        )
+
+    # Create Bonus Account
+    if not doc.driver_bonus_account:
+        create_child_account(
+            account_type="bonus",
+            driver_name=doc.full_name,
+            settings_account=settings.driver_bonus_parent_account,
+            field_to_set="driver_bonus_account",
+            doc=doc
+        )
+
+
+def create_child_account(account_type, driver_name, settings_account, field_to_set, doc):
+    import frappe
+
+    if not settings_account:
+        frappe.throw(f"Please set the Driver {account_type.title()} Parent Account in FreightMas Settings.")
+
+    account_name = f"{driver_name} {account_type.title()}"
+    existing_account = frappe.db.exists("Account", {
+        "account_name": account_name,
+        "parent_account": settings_account
+    })
+
+    if not existing_account:
+        new_account = frappe.get_doc({
+            "doctype": "Account",
+            "account_name": account_name,
+            "parent_account": settings_account,
+            "company": frappe.db.get_value("Account", settings_account, "company"),
+            "is_group": 0,
+            "report_type": "Balance Sheet",
+            "root_type": "Asset"
+        })
+        new_account.insert()
+
+        # Set the new account back to the Driver doc
+        setattr(doc, field_to_set, new_account.name)
+
+
+#############################################################################
+
+after_install = "freightmas.hooks.create_driver_party_type"
+
+#############################################################################
+
+
+def create_driver_party_type():
+    import frappe
+
+    if not frappe.db.exists("Party Type", "Driver"):
+        frappe.get_doc({
+            "doctype": "Party Type",
+            "party_type": "Driver",
+            "reference_doctype": "Driver",
+            "disabled": 0
+        }).insert(ignore_permissions=True)
+
+
+###########################################################################

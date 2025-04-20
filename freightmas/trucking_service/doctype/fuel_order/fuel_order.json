@@ -236,8 +236,9 @@
   {
    "fetch_from": "truck.warehouse",
    "fieldname": "warehouse",
-   "fieldtype": "Read Only",
-   "label": "Fuel Warehouse"
+   "fieldtype": "Link",
+   "label": "Fuel Warehouse",
+   "options": "Warehouse"
   },
   {
    "fieldname": "approved_by",
@@ -262,7 +263,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-19 22:12:06.532079",
+ "modified": "2025-03-18 20:41:40.520419",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Fuel Order",

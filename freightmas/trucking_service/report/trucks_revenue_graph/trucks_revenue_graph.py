@@ -27,17 +27,22 @@ def execute(filters=None):
         """, (start_date, end_date), as_dict=True
     )
 
-    # Fetch actual invoiced revenue per truck for the current month
+    # Fetch actual invoiced revenue per truck for the current month from Sales Invoice
     invoiced_revenue_data = frappe.db.sql(
-        """
-        SELECT t.truck, COALESCE(SUM(rc.total_amount), 0) AS total_amount
-        FROM `tabTrip` t
-        JOIN `tabTrip Revenue Charges` rc ON rc.parent = t.name
-        WHERE rc.is_invoiced = 1 AND t.docstatus < 2 
-        AND t.date_created BETWEEN %s AND %s
-        GROUP BY t.truck
-        """, (start_date, end_date), as_dict=True
-    )
+    """
+    SELECT 
+        t.truck, 
+        COALESCE(SUM(si_item.amount), 0) AS total_amount
+    FROM `tabTrip` t
+    JOIN `tabTrip Revenue Charges` rc ON rc.parent = t.name
+    JOIN `tabSales Invoice` si ON si.trip_reference = t.name  -- Linking Invoice to Trip
+    JOIN `tabSales Invoice Item` si_item ON si_item.parent = si.name
+    WHERE si.docstatus = 1 
+    AND si.posting_date BETWEEN %s AND %s
+    GROUP BY t.truck
+    """, (start_date, end_date), as_dict=True
+)
+
 
     # Convert results to dictionaries for easy lookup
     estimated_revenue = {row["truck"]: row.get("total_amount", 0) for row in estimated_revenue_data}

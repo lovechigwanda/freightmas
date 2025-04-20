@@ -12,13 +12,16 @@
   "column_break_eyun",
   "assigned_trailer",
   "warehouse",
+  "cost_centre",
   "section_break_higb",
   "assigned_driver_name",
   "license_number",
   "cell_number2",
+  "driver_bonus_account",
   "column_break_cpjg",
   "passport_number",
-  "cell_number"
+  "cell_number",
+  "driver_advance_account"
  ],
  "fields": [
   {
@@ -116,11 +119,31 @@
    "fieldname": "truck_details_section",
    "fieldtype": "Section Break",
    "label": "Truck Details"
+  },
+  {
+   "description": "Create a cost centre with the same name as the truck for easy tracking",
+   "fieldname": "cost_centre",
+   "fieldtype": "Link",
+   "label": "Cost Centre",
+   "options": "Cost Center",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "assigned_driver.driver_advance_account",
+   "fieldname": "driver_advance_account",
+   "fieldtype": "Data",
+   "label": "Driver Advance Account"
+  },
+  {
+   "fetch_from": "assigned_driver.driver_bonus_account",
+   "fieldname": "driver_bonus_account",
+   "fieldtype": "Data",
+   "label": "Driver Bonus Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-02-27 23:13:18.893485",
+ "modified": "2025-04-05 19:40:11.812573",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Truck",

@@ -7,12 +7,13 @@
  "engine": "InnoDB",
  "field_order": [
   "charge",
-  "charge_description",
   "quantity",
-  "rate",
   "total_amount",
-  "receivable_party",
   "sales_invoice",
+  "column_break_hyeh",
+  "charge_description",
+  "rate",
+  "receivable_party",
   "is_invoiced"
  ],
  "fields": [
@@ -40,7 +41,6 @@
    "label": "Qty",
    "non_negative": 1,
    "precision": "0",
-   "reqd": 1,
    "set_only_once": 1
   },
   {
@@ -53,7 +53,7 @@
   },
   {
    "fieldname": "total_amount",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "label": "Total",
    "precision": "2",
    "read_only": 1,
@@ -61,7 +61,7 @@
   },
   {
    "fieldname": "rate",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
    "non_negative": 1,
@@ -83,12 +83,16 @@
    "fieldtype": "Check",
    "label": "Is Invoiced",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_hyeh",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-12-17 22:52:21.907690",
+ "modified": "2025-03-30 20:42:52.695853",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Revenue Charges",
