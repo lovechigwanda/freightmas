@@ -6,20 +6,25 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "company",
+  "currency",
+  "naming_series",
+  "column_break_zlnk",
+  "created_by",
+  "base_currency",
+  "amended_from",
+  "column_break_asyr",
+  "date_created",
+  "conversion_rate",
   "section_break_6xsk",
   "job_type",
   "customer",
-  "customer_reference",
-  "amended_from",
+  "consignee",
   "column_break_btvf",
   "direction",
-  "consignee",
+  "customer_reference",
   "consignee_reference",
   "column_break_emto",
-  "naming_series",
-  "company",
-  "created_by",
-  "date_created",
   "shipment_information_section",
   "bl_number",
   "origin",
@@ -520,12 +525,39 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "base_currency",
+   "fieldtype": "Data",
+   "label": "Base Currency",
+   "reqd": 1
+  },
+  {
+   "default": "1.0",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate"
+  },
+  {
+   "fieldname": "column_break_zlnk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_asyr",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-23 10:39:21.037683",
+ "modified": "2025-04-28 23:14:45.360275",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

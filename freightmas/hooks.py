@@ -276,9 +276,11 @@ fixtures = [
         "dt": "Custom Field",
         "filters": [
             ["name", "in", [
+                "Driver-custom_advance_account",
+                "Driver-custom_bonus_account",
+                "Stock Entry-custom_trip_reference",
                 "Purchase Receipt-custom_reference",
                 "Journal Entry-custom_trip_reference",
-                "Stock Entry-custom_trip_reference",
                 "Driver-custom_passport_number",
                 "Driver-custom_passport_issue_date",
                 "Driver-custom_passport_expiry_date",
