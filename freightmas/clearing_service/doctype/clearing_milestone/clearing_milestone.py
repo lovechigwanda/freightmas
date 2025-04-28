@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class ContainerTracking(Document):
+class ClearingMilestone(Document):
 	pass

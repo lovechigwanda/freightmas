@@ -9,11 +9,10 @@
   "container_details_section",
   "container_number",
   "seal_no",
-  "date_discharged_from_port",
+  "date_loaded",
   "date_returned",
   "column_break_lnrj",
   "container_type",
-  "date_discharged_from_vessel",
   "free_days",
   "last_free_day",
   "transport_details_section",
@@ -23,6 +22,7 @@
   "driver_passport_no",
   "driver_contact_no_2",
   "column_break_befm",
+  "transport_charge",
   "truck_reg_no",
   "trailer_reg_no",
   "driver_licence_no",
@@ -48,16 +48,6 @@
    "options": "Container Type",
    "remember_last_selected_value": 1,
    "reqd": 1
-  },
-  {
-   "fieldname": "date_discharged_from_vessel",
-   "fieldtype": "Date",
-   "label": "Date Discharged From Vessel"
-  },
-  {
-   "fieldname": "date_discharged_from_port",
-   "fieldtype": "Date",
-   "label": "Date Discharged From Port"
   },
   {
    "fieldname": "free_days",
@@ -140,12 +130,23 @@
    "fieldname": "trailer_reg_no",
    "fieldtype": "Data",
    "label": "Trailer Reg No"
+  },
+  {
+   "fieldname": "date_loaded",
+   "fieldtype": "Date",
+   "label": "Date Loaded"
+  },
+  {
+   "fieldname": "transport_charge",
+   "fieldtype": "Link",
+   "label": "Transport Charge",
+   "options": "Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-18 14:31:43.972692",
+ "modified": "2025-04-21 22:29:20.233482",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Container Details",

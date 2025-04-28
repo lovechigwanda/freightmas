@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestContainerMilestone(FrappeTestCase):
+class TestClearingMilestone(FrappeTestCase):
 	pass

@@ -1,29 +1,42 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-04-16 19:24:48.822956",
+ "creation": "2025-04-22 18:04:28.880580",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "container_milestone",
+  "milestone",
   "updated_on",
-  "updated_by",
-  "column_break_vbpc",
-  "tracking_comment"
+  "column_break_swlk",
+  "comment",
+  "updated_by"
  ],
  "fields": [
   {
-   "fieldname": "container_milestone",
+   "fieldname": "milestone",
    "fieldtype": "Link",
-   "label": "Container Milestone",
-   "options": "Container Milestone"
+   "in_list_view": 1,
+   "label": "Milestone",
+   "options": "Clearing Milestone",
+   "reqd": 1
   },
   {
-   "default": "now",
+   "default": "Now",
    "fieldname": "updated_on",
    "fieldtype": "Datetime",
    "label": "Updated On"
+  },
+  {
+   "fieldname": "column_break_swlk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Comment",
+   "reqd": 1
   },
   {
    "default": "User",
@@ -31,24 +44,15 @@
    "fieldtype": "Link",
    "label": "Updated By",
    "options": "User"
-  },
-  {
-   "fieldname": "column_break_vbpc",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "tracking_comment",
-   "fieldtype": "Small Text",
-   "label": "Tracking Comment"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-16 19:48:08.838208",
+ "modified": "2025-04-22 18:24:25.550609",
  "modified_by": "Administrator",
  "module": "Clearing Service",
- "name": "Container Tracking",
+ "name": "Clearing Tracking",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",

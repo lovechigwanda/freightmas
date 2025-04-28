@@ -1,0 +1,49 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+ "creation": "2025-04-20 20:33:29.959551",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "stock",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Port Clearing Service",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Links",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Clearing Job",
+   "link_count": 0,
+   "link_to": "Clearing Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-04-20 20:43:55.180584",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Port Clearing Service",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 39.0,
+ "shortcuts": [],
+ "title": "Port Clearing Service"
+}

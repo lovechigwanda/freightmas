@@ -28,6 +28,7 @@
   "destination",
   "column_break_cjvh",
   "eta",
+  "etd",
   "section_break_fkqn",
   "clearing_documents_checklist",
   "bill_of_lading_details_section",
@@ -36,16 +37,54 @@
   "obl_received_date",
   "is_telex_confirmed",
   "telex_confirmed_date",
+  "containers_tab",
+  "container_details_and_tracking_section",
+  "container_count",
+  "dd_starts_on",
+  "column_break_vhmo",
+  "last_free_day",
+  "column_break_aoyq",
+  "storage_starts_on",
+  "section_break_rmku",
+  "container_details",
+  "current_update_section",
+  "current_milestone",
+  "column_break_dhrd",
+  "current_comment",
+  "column_break_phud",
+  "last_updated_on",
+  "last_updated_by",
   "tracking_tab",
   "container_master_section",
-  "date_discharged_from_vessel",
-  "container_count",
-  "column_break_tocp",
+  "is_sl_invoice_received",
+  "sl_invoice_received_date",
+  "is_discharged_from_port",
   "date_discharged_from_port",
+  "is_do_requested",
+  "do_requested_date",
+  "column_break_tocp",
+  "is_discharged_from_vessel",
+  "date_discharged_from_vessel",
+  "is_booking_confirmed",
+  "booking_confirmation_date",
   "column_break_mfxb",
-  "last_free_day",
-  "section_break_rmku",
-  "container_details"
+  "is_do_received",
+  "do_received_date",
+  "is_sl_invoice_paid",
+  "sl_invoice_payment_date",
+  "section_break_zwiv",
+  "milestone_tracker",
+  "job_tracking_section",
+  "clearing_tracking",
+  "charges_tab",
+  "clearing_charges",
+  "section_break_bcwy",
+  "total_estimated_revenue",
+  "column_break_xggo",
+  "total_estimated_cost",
+  "column_break_axcz",
+  "total_estimated_profit",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -64,11 +103,14 @@
    "search_index": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Series",
    "options": "CLJB-.#####.-.YY.",
+   "print_hide": 1,
+   "report_hide": 1,
    "reqd": 1
   },
   {
@@ -79,6 +121,7 @@
    "default": "Today",
    "fieldname": "date_created",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Date Created",
    "set_only_once": 1
   },
@@ -93,6 +136,7 @@
   {
    "fieldname": "consignee",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Consignee",
    "options": "Customer",
    "reqd": 1
@@ -107,6 +151,7 @@
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Customer Reference",
    "reqd": 1
   },
@@ -117,6 +162,7 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Customer",
    "options": "Customer",
    "set_only_once": 1
@@ -124,6 +170,7 @@
   {
    "fieldname": "consignee_reference",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Consignee Reference",
    "reqd": 1
   },
@@ -156,8 +203,7 @@
   {
    "fieldname": "eta",
    "fieldtype": "Date",
-   "label": "ETA",
-   "reqd": 1
+   "label": "ETA"
   },
   {
    "fieldname": "origin",
@@ -174,6 +220,7 @@
   {
    "fieldname": "job_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Job Type",
    "options": "Containerised\nBulk\nOther"
   },
@@ -205,7 +252,6 @@
    "options": "OBL\nTelex Release"
   },
   {
-   "depends_on": "eval:doc.bl_type == 'OBL'",
    "fieldname": "obl_received_date",
    "fieldtype": "Date",
    "label": "OBL Received Date"
@@ -218,7 +264,6 @@
    "label": "Is Telex Confirmed"
   },
   {
-   "depends_on": "eval:doc.is_telex_confirmed == 1",
    "fieldname": "telex_confirmed_date",
    "fieldtype": "Date",
    "label": "Telex Confirmed Date"
@@ -250,7 +295,7 @@
   {
    "fieldname": "section_break_rmku",
    "fieldtype": "Section Break",
-   "label": "Container Details & Tracking"
+   "label": "Container Tracking"
   },
   {
    "fieldname": "date_discharged_from_port",
@@ -269,19 +314,218 @@
   {
    "fieldname": "container_master_section",
    "fieldtype": "Section Break",
-   "label": "Container Master"
+   "label": "Key Milestones"
   },
   {
    "fieldname": "container_count",
    "fieldtype": "Int",
    "label": "Container Count",
    "non_negative": 1
+  },
+  {
+   "fieldname": "etd",
+   "fieldtype": "Date",
+   "label": "ETD"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_discharged_from_vessel",
+   "fieldtype": "Check",
+   "label": "Is Discharged from Vessel"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_discharged_from_port",
+   "fieldtype": "Check",
+   "label": "Is Discharged from Port"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_sl_invoice_received",
+   "fieldtype": "Check",
+   "label": "Is SL Invoice Received"
+  },
+  {
+   "fieldname": "sl_invoice_received_date",
+   "fieldtype": "Date",
+   "label": "SL Invoice Received Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_do_received",
+   "fieldtype": "Check",
+   "label": "Is DO Received"
+  },
+  {
+   "fieldname": "do_received_date",
+   "fieldtype": "Date",
+   "label": "DO Received Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_booking_confirmed",
+   "fieldtype": "Check",
+   "label": "Is Booking with SL Confirmed"
+  },
+  {
+   "fieldname": "booking_confirmation_date",
+   "fieldtype": "Date",
+   "label": "Booking Confirmation Date"
+  },
+  {
+   "fieldname": "container_details_and_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Container Details"
+  },
+  {
+   "fieldname": "column_break_vhmo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "storage_starts_on",
+   "fieldtype": "Date",
+   "label": "Storage Starts On"
+  },
+  {
+   "fieldname": "dd_starts_on",
+   "fieldtype": "Date",
+   "label": "D&D Starts On"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_sl_invoice_paid",
+   "fieldtype": "Check",
+   "label": "Is SL Invoice Paid"
+  },
+  {
+   "fieldname": "sl_invoice_payment_date",
+   "fieldtype": "Date",
+   "label": "SL Invoice Payment Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_do_requested",
+   "fieldtype": "Check",
+   "label": "Is DO Requested"
+  },
+  {
+   "fieldname": "do_requested_date",
+   "fieldtype": "Date",
+   "label": "DO Requested Date"
+  },
+  {
+   "fieldname": "column_break_aoyq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "job_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Job Tracking"
+  },
+  {
+   "fieldname": "clearing_tracking",
+   "fieldtype": "Table",
+   "options": "Clearing Tracking"
+  },
+  {
+   "fieldname": "current_update_section",
+   "fieldtype": "Section Break",
+   "label": "Current Update"
+  },
+  {
+   "fieldname": "current_milestone",
+   "fieldtype": "Read Only",
+   "label": "Current Milestone"
+  },
+  {
+   "fieldname": "column_break_dhrd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "current_comment",
+   "fieldtype": "Read Only",
+   "label": "Current Comment"
+  },
+  {
+   "fieldname": "column_break_phud",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_updated_on",
+   "fieldtype": "Date",
+   "label": "Last Updated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_updated_by",
+   "fieldtype": "Read Only",
+   "label": "Last Updated By"
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "clearing_charges",
+   "fieldtype": "Table",
+   "options": "Clearing Charges"
+  },
+  {
+   "fieldname": "section_break_bcwy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_estimated_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_xggo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_axcz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_profit",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_zwiv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "milestone_tracker",
+   "fieldtype": "HTML",
+   "label": "Milestone Tracker"
+  },
+  {
+   "fieldname": "containers_tab",
+   "fieldtype": "Tab Break",
+   "label": "Containers"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-18 13:53:20.746672",
+ "modified": "2025-04-23 10:39:21.037683",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

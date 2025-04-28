@@ -266,10 +266,11 @@ doc_events = {
     }
 }
 
-##############################################################
 
+################################################################
 
-####################################################################################
+###FIXTURES
+
 fixtures = [
     {
         "dt": "Custom Field",
@@ -293,40 +294,28 @@ fixtures = [
         ]
     },
     {
-        "dt": "Workflow",
-        "filters": [
-            ["name", "in", ["Fuel Order Workflow", "Trip Workflow"]]
-        ]
+        "dt": "Workflow"
     },
     {
-        "dt": "Workflow State",
-        "filters": [
-            ["name", "in", [
-                "Booking",
-                "Offloading",
-                "In Transit",
-                "Loading",
-                "Pending"
-            ]]
-        ]
+        "dt": "Workflow State"
     },
     {
-        "dt": "Workspace",
-        "filters": [
-            ["name", "=", "Trucking Service"]
-        ]
+        "dt": "Workflow Action"
+    },
+    {
+        "dt": "Workspace"
+    },
+    {
+        "dt": "Print Format"
     }
 ]
 
-##########################################################################
-
-fixtures = ["Print Format"]
-
 
 #############################################################################
+
 doc_events = {
     "Driver": {
-        "before_insert": "freightmas.hooks.driver_hooks.create_driver_advance_account"
+        "before_insert": "freightmas.hooks.create_driver_advance_account"
     }
 }
 

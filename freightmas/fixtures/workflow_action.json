@@ -1,0 +1,1388 @@
+[
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 23:43:41.065413",
+  "name": "111j77ktt1",
+  "permitted_roles": [
+   {
+    "parent": "111j77ktt1",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 23:43:52.210403",
+  "name": "k7lh8f3438",
+  "permitted_roles": [
+   {
+    "parent": "k7lh8f3438",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-02-27 23:43:56.839703",
+  "name": "421a8vdf8t",
+  "permitted_roles": [
+   {
+    "parent": "421a8vdf8t",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 08:51:23.829644",
+  "name": "b1imthcsck",
+  "permitted_roles": [
+   {
+    "parent": "b1imthcsck",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 09:19:15.147736",
+  "name": "jvs1g43lmm",
+  "permitted_roles": [
+   {
+    "parent": "jvs1g43lmm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 09:20:15.796325",
+  "name": "ujemte0ls6",
+  "permitted_roles": [
+   {
+    "parent": "ujemte0ls6",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:10:49.640450",
+  "name": "hjqgmssr1r",
+  "permitted_roles": [
+   {
+    "parent": "hjqgmssr1r",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:11:04.566982",
+  "name": "usnobeqhdn",
+  "permitted_roles": [
+   {
+    "parent": "usnobeqhdn",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:55:39.225402",
+  "name": "vkbo82kqi8",
+  "permitted_roles": [
+   {
+    "parent": "vkbo82kqi8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00003-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:55:41.936126",
+  "name": "029hnpnn4e",
+  "permitted_roles": [
+   {
+    "parent": "029hnpnn4e",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00003-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:55:46.701283",
+  "name": "672f7isfuu",
+  "permitted_roles": [
+   {
+    "parent": "672f7isfuu",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00003-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:59:46.831498",
+  "name": "j7h7u2fbaq",
+  "permitted_roles": [
+   {
+    "parent": "j7h7u2fbaq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00004-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:59:50.524161",
+  "name": "ka2mt2h6eq",
+  "permitted_roles": [
+   {
+    "parent": "ka2mt2h6eq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00004-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 16:59:52.448013",
+  "name": "s2skuv9iv2",
+  "permitted_roles": [
+   {
+    "parent": "s2skuv9iv2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00004-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:24:07.176315",
+  "name": "p171bep6u8",
+  "permitted_roles": [
+   {
+    "parent": "p171bep6u8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:24:45.798151",
+  "name": "touljgoiju",
+  "permitted_roles": [
+   {
+    "parent": "touljgoiju",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:45:42.857752",
+  "name": "lgerhs4i1b",
+  "permitted_roles": [
+   {
+    "parent": "lgerhs4i1b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:45:54.570292",
+  "name": "7p5u5c6rnj",
+  "permitted_roles": [
+   {
+    "parent": "7p5u5c6rnj",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:45:57.193593",
+  "name": "r6jpj9i3k8",
+  "permitted_roles": [
+   {
+    "parent": "r6jpj9i3k8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:45:59.261979",
+  "name": "b3a91jlqhm",
+  "permitted_roles": [
+   {
+    "parent": "b3a91jlqhm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00002-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Closed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 19:48:15.890871",
+  "name": "3akinspv86",
+  "permitted_roles": [
+   {
+    "parent": "3akinspv86",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00003-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 21:00:15.375853",
+  "name": "ibrcoumlv1",
+  "permitted_roles": [
+   {
+    "parent": "ibrcoumlv1",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00004-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-02 21:23:47.705296",
+  "name": "k6bvpqthbo",
+  "permitted_roles": [
+   {
+    "parent": "k6bvpqthbo",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00004-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 08:30:41.372670",
+  "name": "mmhn7lqrkk",
+  "permitted_roles": [
+   {
+    "parent": "mmhn7lqrkk",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 08:31:23.501200",
+  "name": "k6itbsiu5b",
+  "permitted_roles": [
+   {
+    "parent": "k6itbsiu5b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00006-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 08:32:23.657743",
+  "name": "hq0l3t67pn",
+  "permitted_roles": [
+   {
+    "parent": "hq0l3t67pn",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00007-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 08:33:07.097865",
+  "name": "an9r3ilrd2",
+  "permitted_roles": [
+   {
+    "parent": "an9r3ilrd2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00007-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 08:33:10.430047",
+  "name": "69bl5kk4j2",
+  "permitted_roles": [
+   {
+    "parent": "69bl5kk4j2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00007-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 21:28:24.725495",
+  "name": "q92rf98jue",
+  "permitted_roles": [
+   {
+    "parent": "q92rf98jue",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 21:28:26.259472",
+  "name": "esa9ju5ivk",
+  "permitted_roles": [
+   {
+    "parent": "esa9ju5ivk",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 21:28:28.816555",
+  "name": "e9h3b4rh7d",
+  "permitted_roles": [
+   {
+    "parent": "e9h3b4rh7d",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-03 21:28:31.239606",
+  "name": "r5hd9gcs3r",
+  "permitted_roles": [
+   {
+    "parent": "r5hd9gcs3r",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-04 21:15:57.044234",
+  "name": "bt4epcos71",
+  "permitted_roles": [
+   {
+    "parent": "bt4epcos71",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00005-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Closed"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-15 23:09:36.916587",
+  "name": "2eqb5345i2",
+  "permitted_roles": [
+   {
+    "parent": "2eqb5345i2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00002-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 08:52:09.144166",
+  "name": "12nhstrvtp",
+  "permitted_roles": [
+   {
+    "parent": "12nhstrvtp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 09:03:02.631512",
+  "name": "7734mf38of",
+  "permitted_roles": [
+   {
+    "parent": "7734mf38of",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 09:03:09.477472",
+  "name": "2ne8os3gn9",
+  "permitted_roles": [
+   {
+    "parent": "2ne8os3gn9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 09:03:16.153651",
+  "name": "hjchv0eh2t",
+  "permitted_roles": [
+   {
+    "parent": "hjchv0eh2t",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 09:03:23.992825",
+  "name": "oq7r7ndhci",
+  "permitted_roles": [
+   {
+    "parent": "oq7r7ndhci",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00008-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:00:36.900800",
+  "name": "msn2hp5mi9",
+  "permitted_roles": [
+   {
+    "parent": "msn2hp5mi9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:01:03.184404",
+  "name": "cf96dpkaik",
+  "permitted_roles": [
+   {
+    "parent": "cf96dpkaik",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:01:05.683401",
+  "name": "pj2hm55p05",
+  "permitted_roles": [
+   {
+    "parent": "pj2hm55p05",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:01:08.153111",
+  "name": "qik3393oa7",
+  "permitted_roles": [
+   {
+    "parent": "qik3393oa7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:01:10.397978",
+  "name": "vucgm37jjl",
+  "permitted_roles": [
+   {
+    "parent": "vucgm37jjl",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 19:07:48.273349",
+  "name": "2avgjtv60p",
+  "permitted_roles": [
+   {
+    "parent": "2avgjtv60p",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00009-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Closed"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:36:22.765637",
+  "name": "28nnje6slb",
+  "permitted_roles": [
+   {
+    "parent": "28nnje6slb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:36:31.319244",
+  "name": "tl0s18ct5i",
+  "permitted_roles": [
+   {
+    "parent": "tl0s18ct5i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:36:34.356094",
+  "name": "sqk5b6sira",
+  "permitted_roles": [
+   {
+    "parent": "sqk5b6sira",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00005-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:38:48.055512",
+  "name": "a7ud5964sg",
+  "permitted_roles": [
+   {
+    "parent": "a7ud5964sg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00006-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:38:52.369238",
+  "name": "0u5s3charv",
+  "permitted_roles": [
+   {
+    "parent": "0u5s3charv",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00006-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:39:05.672135",
+  "name": "7jldhu3447",
+  "permitted_roles": [
+   {
+    "parent": "7jldhu3447",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00006-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:42:20.459650",
+  "name": "lqt9m1njlg",
+  "permitted_roles": [
+   {
+    "parent": "lqt9m1njlg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00007-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:42:22.453630",
+  "name": "2ujq5bvm58",
+  "permitted_roles": [
+   {
+    "parent": "2ujq5bvm58",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00007-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:42:24.267667",
+  "name": "j4d5dnqmai",
+  "permitted_roles": [
+   {
+    "parent": "j4d5dnqmai",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00007-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 20:47:21.886634",
+  "name": "drbhq389ju",
+  "permitted_roles": [
+   {
+    "parent": "drbhq389ju",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00010-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 22:13:41.000886",
+  "name": "9pca9fn04o",
+  "permitted_roles": [
+   {
+    "parent": "9pca9fn04o",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Fleet Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 22:14:02.930462",
+  "name": "hfkju3htlg",
+  "permitted_roles": [
+   {
+    "parent": "hfkju3htlg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Fleet Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending Approval"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "Accounts Manager",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-18 22:14:05.738807",
+  "name": "sfkntj8076",
+  "permitted_roles": [
+   {
+    "parent": "sfkntj8076",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Fuel Order",
+  "reference_name": "FREQ-00008-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Approved"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-22 22:33:12.843071",
+  "name": "iv17doghfp",
+  "permitted_roles": [
+   {
+    "parent": "iv17doghfp",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00011-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-22 22:34:26.265120",
+  "name": "79r9h3h3rv",
+  "permitted_roles": [
+   {
+    "parent": "79r9h3h3rv",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00011-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-23 00:18:48.961784",
+  "name": "q3vcv75g8l",
+  "permitted_roles": [
+   {
+    "parent": "q3vcv75g8l",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00012-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-23 02:16:49.211061",
+  "name": "u5phkv55sc",
+  "permitted_roles": [
+   {
+    "parent": "u5phkv55sc",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00013-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-03-23 21:00:49.018814",
+  "name": "4r6unc126o",
+  "permitted_roles": [
+   {
+    "parent": "4r6unc126o",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00014-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-01 18:02:27.235146",
+  "name": "h02uhj9sm0",
+  "permitted_roles": [
+   {
+    "parent": "h02uhj9sm0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00015-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Booking"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-01 18:15:00.725536",
+  "name": "82gs7samp3",
+  "permitted_roles": [
+   {
+    "parent": "82gs7samp3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00015-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-04-01 18:15:02.944788",
+  "name": "31cfvcq81c",
+  "permitted_roles": [
+   {
+    "parent": "31cfvcq81c",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00015-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Transit"
+ }
+]
