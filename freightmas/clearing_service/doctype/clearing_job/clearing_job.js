@@ -224,11 +224,39 @@ function getCircularClipPath(percent) {
 
 ///CALCULATIONS LOGIC
 
+// --- CALCULATIONS LOGIC (With Multi-Currency & Base Fields Hidden) ---
+
 frappe.ui.form.on('Clearing Job', {
     refresh(frm) {
         calculate_clearing_totals(frm);
+        toggle_base_fields(frm);
     },
     validate(frm) {
+        calculate_clearing_totals(frm);
+    },
+    currency(frm) {
+        if (frm.doc.currency && frm.doc.base_currency && frm.doc.currency !== frm.doc.base_currency) {
+            frappe.call({
+                method: "erpnext.setup.utils.get_exchange_rate",
+                args: {
+                    from_currency: frm.doc.currency,
+                    to_currency: frm.doc.base_currency
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value("conversion_rate", r.message);
+                        calculate_clearing_totals(frm);
+                        toggle_base_fields(frm);
+                    }
+                }
+            });
+        } else {
+            frm.set_value("conversion_rate", 1.0);
+            calculate_clearing_totals(frm);
+            toggle_base_fields(frm);
+        }
+    },
+    conversion_rate(frm) {
         calculate_clearing_totals(frm);
     }
 });
@@ -265,10 +293,357 @@ function calculate_clearing_totals(frm) {
         total_cost += row.cost_amount || 0;
     });
 
+    const profit = total_revenue - total_cost;
+    const rate = frm.doc.conversion_rate || 1.0;
+
     frm.set_value('total_estimated_revenue', total_revenue);
     frm.set_value('total_estimated_cost', total_cost);
-    frm.set_value('total_estimated_profit', total_revenue - total_cost);
+    frm.set_value('total_estimated_profit', profit);
+
+    frm.set_value('total_estimated_revenue_base', total_revenue * rate);
+    frm.set_value('total_estimated_cost_base', total_cost * rate);
+    frm.set_value('total_estimated_profit_base', profit * rate);
+}
+
+function toggle_base_fields(frm) {
+    const is_same_currency = frm.doc.currency === frm.doc.base_currency;
+
+    frm.toggle_display("total_estimated_revenue_base", !is_same_currency);
+    frm.toggle_display("total_estimated_cost_base", !is_same_currency);
+    frm.toggle_display("total_estimated_profit_base", !is_same_currency);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+
+////DYNAMIC CURRENCY LABELS
+
+frappe.ui.form.on("Clearing Job", {
+    refresh(frm) {
+        update_currency_labels(frm);
+    },
+    currency: function(frm) {
+        update_currency_labels(frm);
+    },
+    base_currency: function(frm) {
+        update_currency_labels(frm);
+    }
+});
+
+function update_currency_labels(frm) {
+    const currency = frm.doc.currency || "USD";
+    const base_currency = frm.doc.base_currency || "USD";
+
+    const label_map = {
+        "total_estimated_revenue": __("Total Estimated Revenue ({0})", [currency]),
+        "total_estimated_cost": __("Total Estimated Cost ({0})", [currency]),
+        "total_estimated_profit": __("Total Estimated Profit ({0})", [currency]),
+        "total_estimated_revenue_base": __("Total Estimated Revenue ({0})", [base_currency]),
+        "total_estimated_cost_base": __("Total Estimated Cost ({0})", [base_currency]),
+        "total_estimated_profit_base": __("Total Estimated Profit ({0})", [base_currency])
+    };
+
+    for (const [fieldname, label] of Object.entries(label_map)) {
+        if (frm.fields_dict[fieldname]) {
+            frm.fields_dict[fieldname].df.label = label;
+            frm.refresh_field(fieldname);
+        }
+    }
+}
+
+
+////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// CREATE SALES INVOICE FROM CLEARING CHARGES
+///////////////////////////////////////////////////////////////////////////////
+
+frappe.ui.form.on('Clearing Job', {
+  refresh(frm) {
+    if (!frm.is_new()) {
+      frm.add_custom_button('Sales Invoice', () => {
+        const all_rows = frm.doc.clearing_charges || [];
+        const eligible_rows = all_rows.filter(row => !row.is_invoiced && !row.sales_invoice_reference);
+
+        if (!eligible_rows.length) {
+          frappe.msgprint("No eligible charges found for invoicing.");
+          return;
+        }
+
+        let selected_customer = eligible_rows[0].customer;
+
+        const get_unique_customers = () => [...new Set(eligible_rows.map(r => r.customer))];
+
+        const render_dialog_ui = (dialog, customer) => {
+          const customers = get_unique_customers();
+          const rows = customer ? eligible_rows.filter(r => r.customer === customer) : eligible_rows;
+
+          const customer_filter = `
+            <div style="margin-bottom: 10px;">
+              <label for="customer-filter">Customer:</label>
+              <select id="customer-filter" class="form-control">
+                <option value="">-- All --</option>
+                ${customers.map(c =>
+                  `<option value="${c}" ${c === customer ? 'selected' : ''}>${c}</option>`
+                ).join('')}
+              </select>
+            </div>
+          `;
+
+          const table = `
+            <table class="table table-bordered table-sm">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Customer</th>
+                  <th>Charge</th>
+                  <th>Rate</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(row => `
+                  <tr>
+                    <td><input type="checkbox" class="charge-row-check" data-row-name="${row.name}"></td>
+                    <td>${row.customer}</td>
+                    <td>${row.charge}</td>
+                    <td>${frappe.format(row.revenue_amount, { fieldtype: 'Currency' })}</td>
+                    <td>${row.qty}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+
+          dialog.fields_dict.charge_rows_html.$wrapper.html(customer_filter + table);
+
+          dialog.$wrapper.find('#customer-filter').on('change', function () {
+            selected_customer = this.value;
+            render_dialog_ui(dialog, selected_customer);
+          });
+        };
+
+        const dialog = new frappe.ui.Dialog({
+          title: 'Select Charges to Invoice',
+          fields: [
+            {
+              fieldtype: 'HTML',
+              fieldname: 'charge_rows_html',
+              options: ''
+            }
+          ],
+          primary_action_label: 'Create Sales Invoice',
+          primary_action() {
+            const selected = Array.from(
+              dialog.$wrapper.find('.charge-row-check:checked')
+            ).map(el => el.dataset.rowName);
+
+            if (!selected.length) {
+              frappe.msgprint("Please select at least one row.");
+              return;
+            }
+
+            const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+            const unique_customers = [...new Set(selected_rows.map(r => r.customer))];
+
+            if (unique_customers.length > 1) {
+              frappe.msgprint("You can only create an invoice for one customer at a time.");
+              return;
+            }
+
+            frappe.call({
+              method: "freightmas.clearing_service.doctype.clearing_job.clearing_job.create_sales_invoice_with_rows",
+              args: {
+                docname: frm.doc.name,
+                row_names: selected
+              },
+              callback(r) {
+                if (r.message) {
+                  frappe.set_route("Form", "Sales Invoice", r.message);
+                  frm.reload_doc();
+                  dialog.hide();
+                }
+              }
+            });
+          }
+        });
+
+        dialog.show();
+        render_dialog_ui(dialog, selected_customer);
+      }, __("Create"));
+    }
+  }
+});
+
+///////////////////////////////////////////////////////////////////////////////
+// CREATE PURCHASE INVOICE FROM CLEARING CHARGES
+///////////////////////////////////////////////////////////////////////////////
+
+frappe.ui.form.on('Clearing Job', {
+  refresh(frm) {
+    if (!frm.is_new()) {
+      frm.add_custom_button('Purchase Invoice', () => {
+        const all_rows = frm.doc.clearing_charges || [];
+        const eligible_rows = all_rows.filter(row => !row.is_purchased && !row.purchase_invoice_reference);
+
+        if (!eligible_rows.length) {
+          frappe.msgprint("No eligible charges found for purchase invoicing.");
+          return;
+        }
+
+        let selected_supplier = eligible_rows[0].supplier;
+
+        const get_unique_suppliers = () => [...new Set(eligible_rows.map(r => r.supplier))];
+
+        const render_dialog_ui = (dialog, supplier) => {
+          const suppliers = get_unique_suppliers();
+          const rows = supplier ? eligible_rows.filter(r => r.supplier === supplier) : eligible_rows;
+
+          const supplier_filter = `
+            <div style="margin-bottom: 10px;">
+              <label for="supplier-filter">Supplier:</label>
+              <select id="supplier-filter" class="form-control">
+                <option value="">-- All --</option>
+                ${suppliers.map(s =>
+                  `<option value="${s}" ${s === supplier ? 'selected' : ''}>${s}</option>`
+                ).join('')}
+              </select>
+            </div>
+          `;
+
+          const table = `
+            <table class="table table-bordered table-sm">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Supplier</th>
+                  <th>Charge</th>
+                  <th>Rate</th>
+                  <th>Qty</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map(row => `
+                  <tr>
+                    <td><input type="checkbox" class="charge-row-check" data-row-name="${row.name}"></td>
+                    <td>${row.supplier}</td>
+                    <td>${row.charge}</td>
+                    <td>${frappe.format(row.buy_rate, { fieldtype: 'Currency' })}</td>
+                    <td>${row.qty}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+
+          dialog.fields_dict.charge_rows_html.$wrapper.html(supplier_filter + table);
+
+          dialog.$wrapper.find('#supplier-filter').on('change', function () {
+            selected_supplier = this.value;
+            render_dialog_ui(dialog, selected_supplier);
+          });
+        };
+
+        const dialog = new frappe.ui.Dialog({
+          title: 'Select Charges for Purchase Invoice',
+          fields: [
+            {
+              fieldtype: 'HTML',
+              fieldname: 'charge_rows_html',
+              options: ''
+            }
+          ],
+          primary_action_label: 'Create Purchase Invoice',
+          primary_action() {
+            const selected = Array.from(
+              dialog.$wrapper.find('.charge-row-check:checked')
+            ).map(el => el.dataset.rowName);
+
+            if (!selected.length) {
+              frappe.msgprint("Please select at least one row.");
+              return;
+            }
+
+            const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+            const unique_suppliers = [...new Set(selected_rows.map(r => r.supplier))];
+
+            if (unique_suppliers.length > 1) {
+              frappe.msgprint("You can only create an invoice for one supplier at a time.");
+              return;
+            }
+
+            frappe.call({
+              method: "freightmas.clearing_service.doctype.clearing_job.clearing_job.create_purchase_invoice_with_rows",
+              args: {
+                docname: frm.doc.name,
+                row_names: selected
+              },
+              callback(r) {
+                if (r.message) {
+                  frappe.set_route("Form", "Purchase Invoice", r.message);
+                  frm.reload_doc();
+                  dialog.hide();
+                }
+              }
+            });
+          }
+        });
+
+        dialog.show();
+        render_dialog_ui(dialog, selected_supplier);
+      }, __("Create"));
+    }
+  }
+});
+
+///////////////////////////////////////////////////////////////////////////////
+// FIELD LOCKING + DELETION PREVENTION FOR INVOICED CHARGES
+///////////////////////////////////////////////////////////////////////////////
+
+frappe.ui.form.on('Clearing Charges', {
+  form_render(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    const grid_row = frm.fields_dict.clearing_charges.grid.grid_rows_by_docname[cdn];
+
+    if (row.sales_invoice_reference) {
+      grid_row.toggle_editable('sell_rate', false);
+      grid_row.toggle_editable('customer', false);
+      grid_row.toggle_editable('qty', false);
+    }
+
+    if (row.purchase_invoice_reference) {
+      grid_row.toggle_editable('buy_rate', false);
+      grid_row.toggle_editable('supplier', false);
+      grid_row.toggle_editable('qty', false);
+    }
+  },
+
+  before_clearing_charges_remove(frm, cdt, cdn) {
+    const row = frappe.get_doc(cdt, cdn);
+    if (row.sales_invoice_reference || row.purchase_invoice_reference) {
+      frappe.throw(__("You cannot delete a charge that is already invoiced."));
+    }
+  }
+});
+
+/////////////////////////////////////////////////////////////////////////////////
+
+// ////////////////////////////////////////////////////////////////////////////
+// UPDATE CURRENT MILESTONE SECTION FROM LAST ROW OF CLEARING TRACKING TABLE
+// ////////////////////////////////////////////////////////////////////////////
+
+frappe.ui.form.on('Clearing Job', {
+  before_save: function(frm) {
+    const tracking = frm.doc.clearing_tracking;
+    if (tracking && tracking.length > 0) {
+      const last = tracking[tracking.length - 1];
+
+      frm.set_value('current_milestone', last.milestone);
+      frm.set_value('current_comment', last.comment);
+      frm.set_value('last_updated_on', last.updated_on);
+      frm.set_value('last_updated_by', last.updated_by);
+    }
+  }
+});
+
+/////////////////////////////////////////////////////////////////////////////////////

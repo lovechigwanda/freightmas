@@ -7,86 +7,147 @@
  "engine": "InnoDB",
  "field_order": [
   "charge",
+  "column_break_ujtk",
+  "description",
+  "section_break_tkwp",
   "qty",
+  "column_break_dlkj",
+  "section_break_kspy",
   "sell_rate",
   "revenue_amount",
   "customer",
+  "is_invoiced",
+  "sales_invoice_reference",
   "column_break_zxnj",
-  "charge_description",
   "buy_rate",
   "cost_amount",
-  "supplier"
+  "supplier",
+  "is_purchased",
+  "purchase_invoice_reference"
  ],
  "fields": [
   {
    "fieldname": "charge",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Charges",
+   "label": "Charge",
    "options": "Item",
    "reqd": 1,
    "set_only_once": 1
-  },
-  {
-   "fieldname": "charge_description",
-   "fieldtype": "Data",
-   "label": "Description"
   },
   {
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Int",
    "label": "Qty",
-   "non_negative": 1,
-   "set_only_once": 1
+   "non_negative": 1
   },
   {
    "fieldname": "sell_rate",
    "fieldtype": "Currency",
    "label": "Sell Rate",
-   "precision": "2",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.customer",
+   "options": "currency",
+   "precision": "2"
   },
   {
    "fieldname": "buy_rate",
    "fieldtype": "Currency",
    "label": "Buy Rate",
-   "options": "buy_currency",
+   "mandatory_depends_on": "eval:doc.supplier",
+   "options": "currency",
    "precision": "2"
   },
   {
    "fieldname": "revenue_amount",
    "fieldtype": "Currency",
    "label": "Revenue Amount",
-   "precision": "2"
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "cost_amount",
    "fieldtype": "Currency",
    "label": "Cost Amount",
-   "precision": "2"
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
+   "mandatory_depends_on": "eval:doc.sell_rate",
    "options": "Customer"
   },
   {
    "fieldname": "supplier",
    "fieldtype": "Link",
    "label": "Supplier",
+   "mandatory_depends_on": "eval:doc.buy_rate",
    "options": "Supplier"
   },
   {
    "fieldname": "column_break_zxnj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_invoiced",
+   "fieldtype": "Check",
+   "label": "Is Invoiced",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice_reference",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "charge.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_ujtk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_tkwp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_kspy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_purchased",
+   "fieldtype": "Check",
+   "label": "Is Purchased",
+   "read_only": 1
+  },
+  {
+   "fieldname": "purchase_invoice_reference",
+   "fieldtype": "Link",
+   "label": "Purchase Invoice",
+   "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dlkj",
    "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-24 20:33:59.377475",
+ "modified": "2025-05-01 17:42:42.715610",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Charges",

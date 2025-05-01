@@ -7,24 +7,21 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
-  "currency",
   "naming_series",
   "column_break_zlnk",
   "created_by",
-  "base_currency",
   "amended_from",
   "column_break_asyr",
   "date_created",
-  "conversion_rate",
   "section_break_6xsk",
-  "job_type",
   "customer",
   "consignee",
   "column_break_btvf",
-  "direction",
   "customer_reference",
   "consignee_reference",
   "column_break_emto",
+  "cargo_type",
+  "direction",
   "shipment_information_section",
   "bl_number",
   "origin",
@@ -42,23 +39,17 @@
   "obl_received_date",
   "is_telex_confirmed",
   "telex_confirmed_date",
-  "containers_tab",
+  "cargo_tab",
   "container_details_and_tracking_section",
-  "container_count",
+  "cargo_description",
   "dd_starts_on",
   "column_break_vhmo",
   "last_free_day",
+  "container_count",
   "column_break_aoyq",
   "storage_starts_on",
   "section_break_rmku",
   "container_details",
-  "current_update_section",
-  "current_milestone",
-  "column_break_dhrd",
-  "current_comment",
-  "column_break_phud",
-  "last_updated_on",
-  "last_updated_by",
   "tracking_tab",
   "container_master_section",
   "is_sl_invoice_received",
@@ -81,14 +72,30 @@
   "milestone_tracker",
   "job_tracking_section",
   "clearing_tracking",
+  "current_update_section",
+  "current_milestone",
+  "last_updated_by",
+  "column_break_dhrd",
+  "current_comment",
+  "column_break_phud",
+  "last_updated_on",
   "charges_tab",
+  "currency",
+  "column_break_bfkl",
+  "conversion_rate",
+  "column_break_jhwy",
+  "base_currency",
+  "section_break_yrwe",
   "clearing_charges",
   "section_break_bcwy",
   "total_estimated_revenue",
+  "total_estimated_revenue_base",
   "column_break_xggo",
   "total_estimated_cost",
+  "total_estimated_cost_base",
   "column_break_axcz",
   "total_estimated_profit",
+  "total_estimated_profit_base",
   "connections_tab"
  ],
  "fields": [
@@ -170,14 +177,14 @@
    "in_list_view": 1,
    "label": "Customer",
    "options": "Customer",
+   "reqd": 1,
    "set_only_once": 1
   },
   {
    "fieldname": "consignee_reference",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Consignee Reference",
-   "reqd": 1
+   "label": "Consignee Reference"
   },
   {
    "fieldname": "shipment_information_section",
@@ -223,13 +230,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "job_type",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Job Type",
-   "options": "Containerised\nBulk\nOther"
-  },
-  {
    "fieldname": "direction",
    "fieldtype": "Select",
    "label": "Direction",
@@ -254,7 +254,7 @@
    "fieldname": "bl_type",
    "fieldtype": "Select",
    "label": "BL Type",
-   "options": "OBL\nTelex Release"
+   "options": "\nOBL\nTelex Release"
   },
   {
    "fieldname": "obl_received_date",
@@ -298,6 +298,7 @@
    "label": "Date Discharged from Vessel"
   },
   {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "section_break_rmku",
    "fieldtype": "Section Break",
    "label": "Container Tracking"
@@ -309,7 +310,7 @@
   },
   {
    "fieldname": "last_free_day",
-   "fieldtype": "Int",
+   "fieldtype": "Date",
    "label": "Last Free Day"
   },
   {
@@ -322,10 +323,11 @@
    "label": "Key Milestones"
   },
   {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "container_count",
    "fieldtype": "Int",
    "label": "Container Count",
-   "non_negative": 1
+   "read_only": 1
   },
   {
    "fieldname": "etd",
@@ -380,7 +382,7 @@
   {
    "fieldname": "container_details_and_tracking_section",
    "fieldtype": "Section Break",
-   "label": "Container Details"
+   "label": "Cargo Details"
   },
   {
    "fieldname": "column_break_vhmo",
@@ -483,8 +485,7 @@
   {
    "fieldname": "total_estimated_revenue",
    "fieldtype": "Currency",
-   "label": "Total Estimated Revenue",
-   "precision": "2"
+   "label": "Total Estimated Revenue"
   },
   {
    "fieldname": "column_break_xggo",
@@ -493,8 +494,7 @@
   {
    "fieldname": "total_estimated_cost",
    "fieldtype": "Currency",
-   "label": "Total Estimated Cost",
-   "precision": "2"
+   "label": "Total Estimated Cost"
   },
   {
    "fieldname": "column_break_axcz",
@@ -503,8 +503,7 @@
   {
    "fieldname": "total_estimated_profit",
    "fieldtype": "Currency",
-   "label": "Total Estimated Profit",
-   "precision": "2"
+   "label": "Total Estimated Profit"
   },
   {
    "fieldname": "section_break_zwiv",
@@ -514,11 +513,6 @@
    "fieldname": "milestone_tracker",
    "fieldtype": "HTML",
    "label": "Milestone Tracker"
-  },
-  {
-   "fieldname": "containers_tab",
-   "fieldtype": "Tab Break",
-   "label": "Containers"
   },
   {
    "fieldname": "connections_tab",
@@ -534,8 +528,9 @@
    "reqd": 1
   },
   {
+   "fetch_from": "company.default_currency",
    "fieldname": "base_currency",
-   "fieldtype": "Data",
+   "fieldtype": "Read Only",
    "label": "Base Currency",
    "reqd": 1
   },
@@ -543,7 +538,8 @@
    "default": "1.0",
    "fieldname": "conversion_rate",
    "fieldtype": "Float",
-   "label": "Exchange Rate"
+   "label": "Exchange Rate",
+   "precision": "4"
   },
   {
    "fieldname": "column_break_zlnk",
@@ -552,12 +548,59 @@
   {
    "fieldname": "column_break_asyr",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_estimated_cost_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_estimated_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_bfkl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jhwy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_yrwe",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cargo_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Cargo Type",
+   "options": "Containerised\nBulk\nOther"
+  },
+  {
+   "fieldname": "cargo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cargo"
+  },
+  {
+   "fieldname": "cargo_description",
+   "fieldtype": "Data",
+   "label": "Cargo Description"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-28 23:14:45.360275",
+ "modified": "2025-05-01 20:32:59.944126",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

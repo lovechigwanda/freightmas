@@ -19,13 +19,15 @@
    "in_list_view": 1,
    "label": "Milestone",
    "options": "Clearing Milestone",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "default": "Now",
    "fieldname": "updated_on",
    "fieldtype": "Datetime",
-   "label": "Updated On"
+   "label": "Updated On",
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_swlk",
@@ -36,20 +38,22 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Comment",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "default": "User",
    "fieldname": "updated_by",
    "fieldtype": "Link",
    "label": "Updated By",
-   "options": "User"
+   "options": "User",
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-22 18:24:25.550609",
+ "modified": "2025-05-01 19:45:11.052125",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Tracking",

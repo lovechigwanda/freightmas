@@ -8,25 +8,29 @@
  "field_order": [
   "container_details_section",
   "container_number",
-  "seal_no",
-  "date_loaded",
-  "date_returned",
+  "free_days",
   "column_break_lnrj",
   "container_type",
-  "free_days",
   "last_free_day",
-  "transport_details_section",
-  "include_transport",
-  "transporter",
+  "column_break_aoni",
+  "seal_no",
+  "loading_details_section",
+  "transporter_name",
   "driver_name",
+  "driver_contact_no",
+  "column_break_zqiu",
+  "truck_reg_no",
   "driver_passport_no",
   "driver_contact_no_2",
-  "column_break_befm",
-  "transport_charge",
-  "truck_reg_no",
+  "column_break_gbhn",
   "trailer_reg_no",
   "driver_licence_no",
-  "driver_contact_no"
+  "section_break_vorb",
+  "is_loaded",
+  "date_loaded",
+  "column_break_ikep",
+  "is_returned",
+  "date_returned"
  ],
  "fields": [
   {
@@ -56,9 +60,11 @@
    "non_negative": 1
   },
   {
+   "depends_on": "eval:doc.is_returned==1",
    "fieldname": "date_returned",
    "fieldtype": "Date",
-   "label": "Date Returned"
+   "label": "Date Returned",
+   "mandatory_depends_on": "eval:doc.is_returned==1"
   },
   {
    "fieldname": "last_free_day",
@@ -69,27 +75,6 @@
    "fieldname": "container_details_section",
    "fieldtype": "Section Break",
    "label": "Container Details"
-  },
-  {
-   "fieldname": "transport_details_section",
-   "fieldtype": "Section Break",
-   "label": "Transport Details"
-  },
-  {
-   "default": "0",
-   "fieldname": "include_transport",
-   "fieldtype": "Check",
-   "label": "Include Transport"
-  },
-  {
-   "fieldname": "transporter",
-   "fieldtype": "Link",
-   "label": "Transporter",
-   "options": "Supplier"
-  },
-  {
-   "fieldname": "column_break_befm",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "driver_name",
@@ -132,21 +117,59 @@
    "label": "Trailer Reg No"
   },
   {
+   "depends_on": "eval:doc.is_loaded==1",
    "fieldname": "date_loaded",
    "fieldtype": "Date",
-   "label": "Date Loaded"
+   "label": "Date Loaded",
+   "mandatory_depends_on": "eval:doc.is_loaded==1"
   },
   {
-   "fieldname": "transport_charge",
-   "fieldtype": "Link",
-   "label": "Transport Charge",
-   "options": "Item"
+   "fieldname": "section_break_vorb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_loaded",
+   "fieldtype": "Check",
+   "label": "Is Loaded"
+  },
+  {
+   "fieldname": "column_break_ikep",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_returned",
+   "fieldtype": "Check",
+   "label": "Is Returned"
+  },
+  {
+   "fieldname": "loading_details_section",
+   "fieldtype": "Section Break",
+   "label": "Loading Details"
+  },
+  {
+   "fieldname": "transporter_name",
+   "fieldtype": "Data",
+   "label": "Transporter Name"
+  },
+  {
+   "fieldname": "column_break_zqiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_aoni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_gbhn",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-04-21 22:29:20.233482",
+ "modified": "2025-05-01 20:07:40.231081",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Container Details",
