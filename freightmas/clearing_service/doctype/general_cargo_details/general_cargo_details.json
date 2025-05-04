@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-05-04 12:57:13.471554",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_description",
+  "gate_out_date",
+  "storage_days_accumulated",
+  "column_break_qlwq",
+  "quantity",
+  "gate_in_date",
+  "column_break_hzvg",
+  "unit",
+  "dnd_days_accumulated"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Item Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_qlwq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "label": "Quantity"
+  },
+  {
+   "fieldname": "column_break_hzvg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Select",
+   "label": "Unit",
+   "options": "Nos\nTons\nPackages\nKgs\nLitres"
+  },
+  {
+   "fieldname": "gate_out_date",
+   "fieldtype": "Date",
+   "label": "Gate Out Date"
+  },
+  {
+   "fieldname": "storage_days_accumulated",
+   "fieldtype": "Int",
+   "label": "Storage Days Accumulated"
+  },
+  {
+   "fieldname": "gate_in_date",
+   "fieldtype": "Date",
+   "label": "Gate In Date"
+  },
+  {
+   "fieldname": "dnd_days_accumulated",
+   "fieldtype": "Int",
+   "label": "D&D Days Accumulated"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-04 13:04:46.780883",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "General Cargo Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -20,7 +20,6 @@
   "customer_reference",
   "consignee_reference",
   "column_break_emto",
-  "cargo_type",
   "direction",
   "shipment_information_section",
   "bl_number",
@@ -42,14 +41,33 @@
   "cargo_tab",
   "container_details_and_tracking_section",
   "cargo_description",
-  "dd_starts_on",
+  "is_hazardous",
   "column_break_vhmo",
-  "last_free_day",
-  "container_count",
+  "cargo_type",
   "column_break_aoyq",
-  "storage_starts_on",
-  "section_break_rmku",
+  "container_count",
+  "packages_count",
+  "section_break_oqsn",
+  "dnd_free_days",
+  "column_break_iqhn",
+  "port_free_days",
+  "column_break_hark",
+  "discharge_date",
+  "section_break_xkiy",
+  "last_free_dnd_day",
+  "dnd_start_date",
+  "column_break_pzmz",
+  "port_last_free_day",
+  "port_storage_start_date",
+  "column_break_rnlz",
+  "total_dnd_days",
+  "total_storage_days",
+  "container_details_section",
+  "container_details_column",
   "container_details",
+  "general_cargo_details_section",
+  "general_cargo_details_column",
+  "general_cargo_details",
   "tracking_tab",
   "container_master_section",
   "is_sl_invoice_received",
@@ -283,12 +301,6 @@
    "label": "Tracking"
   },
   {
-   "fieldname": "container_details",
-   "fieldtype": "Table",
-   "label": "Container Details",
-   "options": "Container Details"
-  },
-  {
    "fieldname": "column_break_tocp",
    "fieldtype": "Column Break"
   },
@@ -298,20 +310,9 @@
    "label": "Date Discharged from Vessel"
   },
   {
-   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
-   "fieldname": "section_break_rmku",
-   "fieldtype": "Section Break",
-   "label": "Container Tracking"
-  },
-  {
    "fieldname": "date_discharged_from_port",
    "fieldtype": "Date",
    "label": "Date Discharged from Port"
-  },
-  {
-   "fieldname": "last_free_day",
-   "fieldtype": "Date",
-   "label": "Last Free Day"
   },
   {
    "fieldname": "column_break_mfxb",
@@ -325,7 +326,7 @@
   {
    "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "container_count",
-   "fieldtype": "Int",
+   "fieldtype": "Data",
    "label": "Container Count",
    "read_only": 1
   },
@@ -387,16 +388,6 @@
   {
    "fieldname": "column_break_vhmo",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "storage_starts_on",
-   "fieldtype": "Date",
-   "label": "Storage Starts On"
-  },
-  {
-   "fieldname": "dd_starts_on",
-   "fieldtype": "Date",
-   "label": "D&D Starts On"
   },
   {
    "default": "0",
@@ -582,25 +573,148 @@
   {
    "fieldname": "cargo_type",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Cargo Type",
-   "options": "Containerised\nBulk\nOther"
+   "options": "Containerised\nGeneral Cargo"
   },
   {
    "fieldname": "cargo_tab",
    "fieldtype": "Tab Break",
-   "label": "Cargo"
+   "label": "Cargo",
+   "read_only": 1
   },
   {
    "fieldname": "cargo_description",
    "fieldtype": "Data",
    "label": "Cargo Description"
+  },
+  {
+   "description": "The actual date the cargo was offloaded from vessel at port.",
+   "fieldname": "discharge_date",
+   "fieldtype": "Date",
+   "label": "Discharge Date"
+  },
+  {
+   "description": "Storage free days allowed by port authority.",
+   "fieldname": "port_free_days",
+   "fieldtype": "Int",
+   "label": "Port Free Days"
+  },
+  {
+   "fieldname": "column_break_iqhn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_xkiy",
+   "fieldtype": "Section Break",
+   "label": "Important Dates"
+  },
+  {
+   "fieldname": "port_last_free_day",
+   "fieldtype": "Date",
+   "label": "Port Last Free Day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rnlz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_storage_start_date",
+   "fieldtype": "Date",
+   "label": "Port Storage Start Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_oqsn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_hark",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_pzmz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Demurrage and Detention free days allowed by SL.",
+   "fieldname": "dnd_free_days",
+   "fieldtype": "Int",
+   "label": "D&D Free Days"
+  },
+  {
+   "fieldname": "last_free_dnd_day",
+   "fieldtype": "Date",
+   "label": "Last Free D&D Day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dnd_start_date",
+   "fieldtype": "Date",
+   "label": "D&D Start Date",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_dnd_days",
+   "fieldtype": "Int",
+   "label": "Total D&D Days",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_storage_days",
+   "fieldtype": "Int",
+   "label": "Total Storage Days",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_hazardous",
+   "fieldtype": "Check",
+   "label": "Is Hazardous"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!=\"Containerised\"",
+   "fieldname": "general_cargo_details_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "general_cargo_details",
+   "fieldtype": "Table",
+   "options": "General Cargo Details"
+  },
+  {
+   "fieldname": "general_cargo_details_column",
+   "fieldtype": "Column Break",
+   "label": "General Cargo Details"
+  },
+  {
+   "fieldname": "container_details",
+   "fieldtype": "Table",
+   "options": "Container Details"
+  },
+  {
+   "fieldname": "container_details_column",
+   "fieldtype": "Column Break",
+   "label": "Container Details"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "container_details_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!== \"Containerised\"",
+   "fieldname": "packages_count",
+   "fieldtype": "Data",
+   "label": "Packages Count"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-01 20:32:59.944126",
+ "modified": "2025-05-04 16:24:40.639326",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

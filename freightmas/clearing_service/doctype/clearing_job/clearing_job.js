@@ -647,3 +647,326 @@ frappe.ui.form.on('Clearing Job', {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////
+
+/// CALCULATION OF DND AND STORAGE DAYS
+
+// Parent triggers
+frappe.ui.form.on('Clearing Job', {
+    discharge_date: function(frm) {
+        update_all_dnd_storage(frm);
+    },
+
+    dnd_free_days: function(frm) {
+        update_all_dnd_storage(frm);
+    },
+
+    port_free_days: function(frm) {
+        update_all_dnd_storage(frm);
+    },
+
+    onload: function(frm) {
+        update_all_dnd_storage(frm);
+    },
+
+    refresh: function(frm) {
+        update_all_dnd_storage(frm);
+    }
+});
+
+// Container table triggers
+frappe.ui.form.on('Container Details', {
+    gate_out_full_date: function(frm, cdt, cdn) {
+        calculate_container_dnd_and_storage(frm, cdt, cdn);
+    },
+    gate_in_empty_date: function(frm, cdt, cdn) {
+        calculate_container_dnd_and_storage(frm, cdt, cdn);
+    },
+    container_number: function(frm, cdt, cdn) {
+        calculate_container_dnd_and_storage(frm, cdt, cdn);
+    }
+});
+
+// General cargo table triggers
+frappe.ui.form.on('General Cargo Details', {
+    gate_out_date: function(frm, cdt, cdn) {
+        calculate_general_dnd_storage(frm, cdt, cdn);
+    },
+    gate_in_date: function(frm, cdt, cdn) {
+        calculate_general_dnd_storage(frm, cdt, cdn);
+    }
+});
+
+function update_all_dnd_storage(frm) {
+    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const today = frappe.datetime.get_today();
+
+    // Parent reference dates
+    if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
+        const last_free_dnd_day = dnd_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        frm.set_value('last_free_dnd_day', last_free_dnd_day);
+        frm.set_value('dnd_start_date', frappe.datetime.add_days(last_free_dnd_day, 1));
+    }
+
+    if (discharge_date && port_free_days !== null && !isNaN(port_free_days)) {
+        const port_last_free_day = port_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        frm.set_value('port_last_free_day', port_last_free_day);
+        frm.set_value('port_storage_start_date', frappe.datetime.add_days(port_last_free_day, 1));
+    }
+
+    // Recalculate per row
+    (frm.doc.container_details || []).forEach(row => {
+        calculate_container_dnd_and_storage(frm, null, row.name);
+    });
+    (frm.doc.general_cargo_details || []).forEach(row => {
+        calculate_general_dnd_storage(frm, null, row.name);
+    });
+
+    frm.refresh_field('container_details');
+    frm.refresh_field('general_cargo_details');
+    update_total_dnd_days(frm);
+    update_total_storage_days(frm);
+}
+
+function calculate_container_dnd_and_storage(frm, cdt, cdn) {
+    const row = locals[cdt || "Container Details"][cdn];
+    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const today = frappe.datetime.get_today();
+
+    if (!discharge_date || dnd_free_days === null || isNaN(dnd_free_days)) {
+        row.dnd_days_accumulated = 0;
+    } else {
+        const last_free_dnd_day = dnd_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        const dnd_start_date = frappe.datetime.add_days(last_free_dnd_day, 1);
+        const gate_out = row.gate_out_full_date;
+        const gate_in = row.gate_in_empty_date;
+        const dnd_end = gate_in || today;
+
+        if (gate_out === discharge_date) {
+            row.dnd_days_accumulated = 0;
+        } else if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_dnd_day)) {
+            row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start_date) + 1;
+        } else {
+            row.dnd_days_accumulated = 0;
+        }
+    }
+
+    if (!discharge_date || port_free_days === null || isNaN(port_free_days)) {
+        row.storage_days_accumulated = 0;
+    } else {
+        const port_last_free_day = port_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        const port_storage_start_date = frappe.datetime.add_days(port_last_free_day, 1);
+        const storage_end_date = row.gate_out_full_date || today;
+
+        if (frappe.datetime.obj_to_str(storage_end_date) >= frappe.datetime.obj_to_str(port_storage_start_date)) {
+            row.storage_days_accumulated = frappe.datetime.get_diff(storage_end_date, port_storage_start_date) + 1;
+        } else {
+            row.storage_days_accumulated = 0;
+        }
+    }
+}
+
+function calculate_general_dnd_storage(frm, cdt, cdn) {
+    const row = locals[cdt || 'General Cargo Details'][cdn];
+    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const today = frappe.datetime.get_today();
+
+    if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
+        const last_free_day = dnd_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        const dnd_start = frappe.datetime.add_days(last_free_day, 1);
+        const dnd_end = row.gate_in_date || today;
+
+        if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_day)) {
+            row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start) + 1;
+        } else {
+            row.dnd_days_accumulated = 0;
+        }
+    } else {
+        row.dnd_days_accumulated = 0;
+    }
+
+    if (discharge_date && port_free_days !== null && !isNaN(port_free_days)) {
+        const last_free_day = port_free_days > 0
+            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
+            : frappe.datetime.add_days(discharge_date, -1);
+        const storage_start = frappe.datetime.add_days(last_free_day, 1);
+        const storage_end = row.gate_out_date || today;
+
+        if (frappe.datetime.obj_to_str(storage_end) >= frappe.datetime.obj_to_str(storage_start)) {
+            row.storage_days_accumulated = frappe.datetime.get_diff(storage_end, storage_start) + 1;
+        } else {
+            row.storage_days_accumulated = 0;
+        }
+    } else {
+        row.storage_days_accumulated = 0;
+    }
+}
+
+function update_total_dnd_days(frm) {
+    let total = 0;
+    (frm.doc.container_details || []).forEach(row => {
+        total += parseInt(row.dnd_days_accumulated || 0);
+    });
+    (frm.doc.general_cargo_details || []).forEach(row => {
+        total += parseInt(row.dnd_days_accumulated || 0);
+    });
+    frm.set_value('total_dnd_days', total);
+}
+
+function update_total_storage_days(frm) {
+    let total = 0;
+    (frm.doc.container_details || []).forEach(row => {
+        total += parseInt(row.storage_days_accumulated || 0);
+    });
+    (frm.doc.general_cargo_details || []).forEach(row => {
+        total += parseInt(row.storage_days_accumulated || 0);
+    });
+    frm.set_value('total_storage_days', total);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// ========================================
+// UPDATE CONTAINER & PACKAGE COUNT SUMMARY
+// ========================================
+// This block calculates:
+// - A summary of container types from the Container Details table (e.g. "4 x 20SD, 2 x 40HC")
+// - A count of rows from the General Cargo Details table (e.g. "3 x Packages")
+// The results are set on the parent fields: container_count and packages_count
+// ========================================
+
+function update_container_and_package_counts(frm) {
+    let container_summary = {};
+    let container_text = "";
+    let total_containers = 0;
+
+    // Count container types
+    (frm.doc.container_details || []).forEach(row => {
+        if (row.container_type) {
+            container_summary[row.container_type] = (container_summary[row.container_type] || 0) + 1;
+            total_containers++;
+        }
+    });
+
+    // Format like "4 x 20SD, 2 x 40HC"
+    let parts = [];
+    for (let type in container_summary) {
+        parts.push(`${container_summary[type]} x ${type}`);
+    }
+    if (parts.length) {
+        container_text = parts.join(", ");
+    }
+
+    // Count general cargo packages
+    let general_count = frm.doc.general_cargo_details?.length || 0;
+    let package_text = general_count ? `${general_count} x Packages` : "";
+
+    // Set values
+    frm.set_value('container_count', container_text);
+    frm.set_value('packages_count', package_text);
+}
+
+// Triggers when rows are added or edited
+frappe.ui.form.on('Container Details', {
+    container_type: update_container_and_package_counts,
+    container_number: update_container_and_package_counts,
+    container_details_remove: update_container_and_package_counts
+});
+
+frappe.ui.form.on('General Cargo Details', {
+    item_description: update_container_and_package_counts,
+    general_cargo_details_remove: update_container_and_package_counts
+});
+
+frappe.ui.form.on('Clearing Job', {
+    onload: function(frm) {
+        update_container_and_package_counts(frm);
+    },
+    refresh: function(frm) {
+        update_container_and_package_counts(frm);
+    }
+});
+
+
+///////////////////////////////////////////////////////////////////////////
+
+// ========================================
+// VALIDATE ISO 6346 CONTAINER NUMBER + NO DUPLICATES
+// ========================================
+
+frappe.ui.form.on('Container Details', {
+    container_number: function(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        const number = (row.container_number || "").toUpperCase().trim();
+
+        // Basic ISO format: 4 letters + 7 digits
+        if (number.length !== 11 || !/^[A-Z]{4}\d{7}$/.test(number)) {
+            frappe.msgprint(`Container number "${number}" is not a valid Container Number.`);
+            row.container_number = "";
+            frm.refresh_field("container_details");
+            return;
+        }
+
+        // Check digit validation
+        if (!is_valid_iso_container_number(number)) {
+            frappe.msgprint(`Container number "${number}" has an invalid check digit.`);
+            row.container_number = "";
+            frm.refresh_field("container_details");
+            return;
+        }
+
+        // Duplicate check
+        const existing = (frm.doc.container_details || []).filter(r =>
+            r.name !== row.name && r.container_number === number
+        );
+        if (existing.length > 0) {
+            frappe.msgprint(`Container number "${number}" is already entered in another row.`);
+            row.container_number = "";
+            frm.refresh_field("container_details");
+            return;
+        }
+
+        // Set back formatted number (uppercase)
+        row.container_number = number;
+        frm.refresh_field("container_details");
+    }
+});
+
+// ISO 6346 Check Digit Validator
+function is_valid_iso_container_number(container_number) {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const weights = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
+    let sum = 0;
+
+    for (let i = 0; i < 10; i++) {
+        const char = container_number[i];
+        let value;
+
+        if (i < 4) {
+            const code = letters.indexOf(char);
+            if (code === -1) return false;
+            value = (code + 10) + Math.floor((code + 10) / 11);
+        } else {
+            value = parseInt(char);
+        }
+
+        sum += value * weights[i];
+    }
+
+    let check_digit = sum % 11;
+    if (check_digit === 10) check_digit = 0;
+
+    return parseInt(container_number[10]) === check_digit;
+}
+
+
+////////////////////////////////////////////////////////////////////////
