@@ -7,13 +7,17 @@
  "engine": "InnoDB",
  "field_order": [
   "item_description",
-  "gate_out_date",
-  "storage_days_accumulated",
+  "to_be_returned",
   "column_break_qlwq",
   "quantity",
-  "gate_in_date",
   "column_break_hzvg",
   "unit",
+  "section_break_oyey",
+  "gate_out_date",
+  "gate_in_date",
+  "column_break_rogo",
+  "storage_days_accumulated",
+  "column_break_wghw",
   "dnd_days_accumulated"
  ],
  "fields": [
@@ -62,12 +66,30 @@
    "fieldname": "dnd_days_accumulated",
    "fieldtype": "Int",
    "label": "D&D Days Accumulated"
+  },
+  {
+   "default": "0",
+   "fieldname": "to_be_returned",
+   "fieldtype": "Check",
+   "label": "To be Returned?"
+  },
+  {
+   "fieldname": "section_break_oyey",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_rogo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wghw",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-04 13:04:46.780883",
+ "modified": "2025-05-04 19:20:46.332985",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "General Cargo Details",

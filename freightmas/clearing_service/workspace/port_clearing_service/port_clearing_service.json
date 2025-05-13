@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"ehI2zZGIJ3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"x-ZOwVQXYM\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
  "creation": "2025-04-20 20:33:29.959551",
  "custom_blocks": [],
  "docstatus": 0,
@@ -31,9 +31,48 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operations Reports",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Clearing Job Profitability (Estimate)",
+   "link_count": 0,
+   "link_to": "Clearing Job Profitability Estimate",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Clearing Job Profitability (Actual)",
+   "link_count": 0,
+   "link_to": "Clearing Job Profitability Actual",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Clearing Job Profitability",
+   "link_count": 0,
+   "link_to": "Clearing Job Profitability Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-04-20 20:43:55.180584",
+ "modified": "2025-05-13 23:39:58.206356",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",

@@ -1,0 +1,28 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2025-05-13 21:20:02.649979",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "",
+ "letterhead": null,
+ "modified": "2025-05-13 23:29:05.874454",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Clearing Job Profitability Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Clearing Job",
+ "report_name": "Clearing Job Profitability Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}

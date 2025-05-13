@@ -7,18 +7,30 @@
 // 	},
 // });
 
+// Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
+// For license information, please see license.txt
+
+// Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd
+// For license information, please see license.txt
+
 frappe.ui.form.on('Clearing Job', {
+
+  // When the form is refreshed
   refresh: function(frm) {
-    toggle_fields(frm);
+    toggle_fields(frm);  // Control visibility of fields based on values
   },
 
-  // Triggers
+  // Triggered when BL Type is changed
   bl_type: function(frm) {
-    toggle_fields(frm);
+    toggle_fields(frm);  // Reevaluate field visibility
   },
+
+  // Triggered when Telex checkbox is changed
   is_telex_confirmed: function(frm) {
     toggle_fields(frm);
   },
+
+  // Other field triggers (used to toggle date fields)
   is_discharged_from_vessel: function(frm) {
     toggle_fields(frm);
   },
@@ -41,14 +53,18 @@ frappe.ui.form.on('Clearing Job', {
     toggle_fields(frm);
   },
 
+  // Validation before saving the form
   validate: function(frm) {
     let missing_fields = [];
+    const bl_type = (frm.doc.bl_type || '').trim();
 
-    if (frm.doc.bl_type === 'OBL' && !frm.doc.obl_received_date) {
+    // Check OBL requirement
+    if (bl_type === 'OBL' && !frm.doc.obl_received_date) {
       missing_fields.push("OBL Received Date");
     }
 
-    if (frm.doc.bl_type === 'Telex Release') {
+    // Check Telex fields
+    if (bl_type === 'Telex Release') {
       if (!frm.doc.is_telex_confirmed) {
         missing_fields.push("Is Telex Confirmed");
       }
@@ -57,34 +73,30 @@ frappe.ui.form.on('Clearing Job', {
       }
     }
 
+    // Check discharge and invoice-related flags and dates
     if (frm.doc.is_discharged_from_vessel && !frm.doc.date_discharged_from_vessel) {
       missing_fields.push("Date Discharged from Vessel");
     }
-
     if (frm.doc.is_discharged_from_port && !frm.doc.date_discharged_from_port) {
       missing_fields.push("Date Discharged from Port");
     }
-
     if (frm.doc.is_sl_invoice_received && !frm.doc.sl_invoice_received_date) {
       missing_fields.push("SL Invoice Received Date");
     }
-
     if (frm.doc.is_do_received && !frm.doc.do_received_date) {
       missing_fields.push("DO Received Date");
     }
-
     if (frm.doc.is_booking_confirmed && !frm.doc.booking_confirmation_date) {
       missing_fields.push("Booking Confirmation Date");
     }
-
     if (frm.doc.is_sl_invoice_paid && !frm.doc.sl_invoice_payment_date) {
       missing_fields.push("SL Invoice Payment Date");
     }
-
     if (frm.doc.is_do_requested && !frm.doc.do_requested_date) {
       missing_fields.push("DO Requested Date");
     }
 
+    // Show error message if any required field is missing
     if (missing_fields.length > 0) {
       frappe.msgprint({
         title: __('Missing Information'),
@@ -92,17 +104,29 @@ frappe.ui.form.on('Clearing Job', {
         message: __('Please fill in the following fields before saving:') +
           '<ul><li>' + missing_fields.join('</li><li>') + '</li></ul>'
       });
-      frappe.validated = false;
+      frappe.validated = false;  // Prevent form submission
     }
   }
 });
 
-// Show/hide dependent fields
-function toggle_fields(frm) {
-  frm.set_df_property('obl_received_date', 'hidden', frm.doc.bl_type !== 'OBL');
-  frm.set_df_property('is_telex_confirmed', 'hidden', frm.doc.bl_type !== 'Telex Release');
-  frm.set_df_property('telex_confirmed_date', 'hidden', !frm.doc.is_telex_confirmed);
 
+// Function to show/hide and enforce required fields dynamically
+function toggle_fields(frm) {
+  const bl_type = (frm.doc.bl_type || '').trim();
+
+  // Show OBL Received Date only if BL Type is OBL
+  frm.set_df_property('obl_received_date', 'hidden', bl_type !== 'OBL');
+
+  // Show Telex fields only if BL Type is Telex Release
+  frm.set_df_property('is_telex_confirmed', 'hidden', bl_type !== 'Telex Release');
+
+  // Show Telex Confirmed Date only if checkbox is ticked
+  frm.set_df_property('telex_confirmed_date', 'hidden', !(bl_type === 'Telex Release' && frm.doc.is_telex_confirmed));
+
+  // Make Telex Confirmed Date mandatory only when visible
+  frappe.meta.get_docfield('Clearing Job', 'telex_confirmed_date', frm.doc.name).reqd = (bl_type === 'Telex Release' && frm.doc.is_telex_confirmed);
+
+  // Show/hide date fields for other boolean flags
   frm.set_df_property('date_discharged_from_vessel', 'hidden', !frm.doc.is_discharged_from_vessel);
   frm.set_df_property('date_discharged_from_port', 'hidden', !frm.doc.is_discharged_from_port);
   frm.set_df_property('sl_invoice_received_date', 'hidden', !frm.doc.is_sl_invoice_received);
@@ -648,9 +672,12 @@ frappe.ui.form.on('Clearing Job', {
 
 /////////////////////////////////////////////////////////////////////////////////////
 
-/// CALCULATION OF DND AND STORAGE DAYS
+// =============================================
+// D&D AND PORT STORAGE DAYS - AUTO CALCULATION
+// With support for to_be_returned toggle
+// =============================================
 
-// Parent triggers
+// --- Parent field triggers ---
 frappe.ui.form.on('Clearing Job', {
     discharge_date: function(frm) {
         update_all_dnd_storage(frm);
@@ -673,34 +700,49 @@ frappe.ui.form.on('Clearing Job', {
     }
 });
 
-// Container table triggers
+// --- Container table triggers ---
 frappe.ui.form.on('Container Details', {
     gate_out_full_date: function(frm, cdt, cdn) {
         calculate_container_dnd_and_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
     },
     gate_in_empty_date: function(frm, cdt, cdn) {
         calculate_container_dnd_and_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
     },
-    container_number: function(frm, cdt, cdn) {
+    to_be_returned: function(frm, cdt, cdn) {
         calculate_container_dnd_and_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
     }
 });
 
-// General cargo table triggers
+// --- General cargo table triggers ---
 frappe.ui.form.on('General Cargo Details', {
     gate_out_date: function(frm, cdt, cdn) {
         calculate_general_dnd_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
     },
     gate_in_date: function(frm, cdt, cdn) {
         calculate_general_dnd_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
+    },
+    to_be_returned: function(frm, cdt, cdn) {
+        calculate_general_dnd_storage(frm, cdt, cdn);
+        update_total_dnd_days(frm);
+        update_total_storage_days(frm);
     }
 });
 
+// --- Parent-level D&D + storage reference dates ---
 function update_all_dnd_storage(frm) {
     const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
     const today = frappe.datetime.get_today();
 
-    // Parent reference dates
     if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
         const last_free_dnd_day = dnd_free_days > 0
             ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
@@ -717,7 +759,6 @@ function update_all_dnd_storage(frm) {
         frm.set_value('port_storage_start_date', frappe.datetime.add_days(port_last_free_day, 1));
     }
 
-    // Recalculate per row
     (frm.doc.container_details || []).forEach(row => {
         calculate_container_dnd_and_storage(frm, null, row.name);
     });
@@ -731,11 +772,13 @@ function update_all_dnd_storage(frm) {
     update_total_storage_days(frm);
 }
 
+// --- Container-level logic with to_be_returned check ---
 function calculate_container_dnd_and_storage(frm, cdt, cdn) {
     const row = locals[cdt || "Container Details"][cdn];
     const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
     const today = frappe.datetime.get_today();
 
+    // D&D
     if (!discharge_date || dnd_free_days === null || isNaN(dnd_free_days)) {
         row.dnd_days_accumulated = 0;
     } else {
@@ -743,11 +786,12 @@ function calculate_container_dnd_and_storage(frm, cdt, cdn) {
             ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
             : frappe.datetime.add_days(discharge_date, -1);
         const dnd_start_date = frappe.datetime.add_days(last_free_dnd_day, 1);
-        const gate_out = row.gate_out_full_date;
-        const gate_in = row.gate_in_empty_date;
-        const dnd_end = gate_in || today;
 
-        if (gate_out === discharge_date) {
+        const dnd_end = row.to_be_returned
+            ? row.gate_in_empty_date || today
+            : row.gate_out_full_date || today;
+
+        if (row.gate_out_full_date === discharge_date) {
             row.dnd_days_accumulated = 0;
         } else if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_dnd_day)) {
             row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start_date) + 1;
@@ -756,6 +800,7 @@ function calculate_container_dnd_and_storage(frm, cdt, cdn) {
         }
     }
 
+    // Port Storage
     if (!discharge_date || port_free_days === null || isNaN(port_free_days)) {
         row.storage_days_accumulated = 0;
     } else {
@@ -771,19 +816,26 @@ function calculate_container_dnd_and_storage(frm, cdt, cdn) {
             row.storage_days_accumulated = 0;
         }
     }
+
+    frm.refresh_field('container_details');
 }
 
+// --- General cargo logic with to_be_returned check ---
 function calculate_general_dnd_storage(frm, cdt, cdn) {
     const row = locals[cdt || 'General Cargo Details'][cdn];
     const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
     const today = frappe.datetime.get_today();
 
+    // D&D
     if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
         const last_free_day = dnd_free_days > 0
             ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
             : frappe.datetime.add_days(discharge_date, -1);
         const dnd_start = frappe.datetime.add_days(last_free_day, 1);
-        const dnd_end = row.gate_in_date || today;
+
+        const dnd_end = row.to_be_returned
+            ? row.gate_in_date || today
+            : row.gate_out_date || today;
 
         if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_day)) {
             row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start) + 1;
@@ -794,6 +846,7 @@ function calculate_general_dnd_storage(frm, cdt, cdn) {
         row.dnd_days_accumulated = 0;
     }
 
+    // Port Storage
     if (discharge_date && port_free_days !== null && !isNaN(port_free_days)) {
         const last_free_day = port_free_days > 0
             ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
@@ -809,8 +862,11 @@ function calculate_general_dnd_storage(frm, cdt, cdn) {
     } else {
         row.storage_days_accumulated = 0;
     }
+
+    frm.refresh_field('general_cargo_details');
 }
 
+// --- Aggregate totals for parent display ---
 function update_total_dnd_days(frm) {
     let total = 0;
     (frm.doc.container_details || []).forEach(row => {
@@ -832,7 +888,6 @@ function update_total_storage_days(frm) {
     });
     frm.set_value('total_storage_days', total);
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // ========================================

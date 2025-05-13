@@ -6,6 +6,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "shipment_details_tab",
+  "basic_information_section",
   "company",
   "naming_series",
   "column_break_zlnk",
@@ -65,9 +67,9 @@
   "container_details_section",
   "container_details_column",
   "container_details",
-  "general_cargo_details_section",
-  "general_cargo_details_column",
+  "section_break_jufg",
   "general_cargo_details",
+  "milestones_tab",
   "tracking_tab",
   "container_master_section",
   "is_sl_invoice_received",
@@ -120,7 +122,7 @@
   {
    "fieldname": "section_break_6xsk",
    "fieldtype": "Section Break",
-   "label": "Basic Information"
+   "label": "Customer & References"
   },
   {
    "fieldname": "amended_from",
@@ -136,7 +138,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "naming_series",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "label": "Series",
    "options": "CLJB-.#####.-.YY.",
    "print_hide": 1,
@@ -151,6 +152,7 @@
    "default": "Today",
    "fieldname": "date_created",
    "fieldtype": "Date",
+   "in_filter": 1,
    "in_list_view": 1,
    "label": "Date Created",
    "set_only_once": 1
@@ -159,6 +161,7 @@
    "default": "user",
    "fieldname": "created_by",
    "fieldtype": "Link",
+   "in_filter": 1,
    "label": "Created By",
    "options": "User",
    "set_only_once": 1
@@ -166,6 +169,7 @@
   {
    "fieldname": "consignee",
    "fieldtype": "Link",
+   "in_filter": 1,
    "in_list_view": 1,
    "label": "Consignee",
    "options": "Customer",
@@ -181,7 +185,7 @@
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "in_filter": 1,
    "label": "Customer Reference",
    "reqd": 1
   },
@@ -192,7 +196,10 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_filter": 1,
    "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Customer",
    "options": "Customer",
    "reqd": 1,
@@ -201,7 +208,7 @@
   {
    "fieldname": "consignee_reference",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "in_filter": 1,
    "label": "Consignee Reference"
   },
   {
@@ -212,6 +219,10 @@
   {
    "fieldname": "bl_number",
    "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "BL Number",
    "reqd": 1
   },
@@ -222,6 +233,7 @@
   {
    "fieldname": "shipping_line",
    "fieldtype": "Link",
+   "in_filter": 1,
    "label": "Shipping Line",
    "options": "Supplier",
    "reqd": 1
@@ -233,6 +245,7 @@
   {
    "fieldname": "eta",
    "fieldtype": "Date",
+   "in_filter": 1,
    "label": "ETA"
   },
   {
@@ -250,6 +263,10 @@
   {
    "fieldname": "direction",
    "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
    "label": "Direction",
    "options": "Import\nExport"
   },
@@ -271,12 +288,14 @@
   {
    "fieldname": "bl_type",
    "fieldtype": "Select",
+   "in_filter": 1,
    "label": "BL Type",
    "options": "\nOBL\nTelex Release"
   },
   {
    "fieldname": "obl_received_date",
    "fieldtype": "Date",
+   "in_filter": 1,
    "label": "OBL Received Date"
   },
   {
@@ -284,11 +303,13 @@
    "depends_on": "eval:doc.bl_type == 'Telex Release'",
    "fieldname": "is_telex_confirmed",
    "fieldtype": "Check",
+   "in_filter": 1,
    "label": "Is Telex Confirmed"
   },
   {
    "fieldname": "telex_confirmed_date",
    "fieldtype": "Date",
+   "in_filter": 1,
    "label": "Telex Confirmed Date"
   },
   {
@@ -327,12 +348,14 @@
    "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "container_count",
    "fieldtype": "Data",
+   "in_filter": 1,
    "label": "Container Count",
    "read_only": 1
   },
   {
    "fieldname": "etd",
    "fieldtype": "Date",
+   "in_filter": 1,
    "label": "ETD"
   },
   {
@@ -433,6 +456,7 @@
   {
    "fieldname": "current_milestone",
    "fieldtype": "Read Only",
+   "in_list_view": 1,
    "label": "Current Milestone"
   },
   {
@@ -573,6 +597,7 @@
   {
    "fieldname": "cargo_type",
    "fieldtype": "Select",
+   "in_filter": 1,
    "label": "Cargo Type",
    "options": "Containerised\nGeneral Cargo"
   },
@@ -585,6 +610,7 @@
   {
    "fieldname": "cargo_description",
    "fieldtype": "Data",
+   "in_filter": 1,
    "label": "Cargo Description"
   },
   {
@@ -605,8 +631,7 @@
   },
   {
    "fieldname": "section_break_xkiy",
-   "fieldtype": "Section Break",
-   "label": "Important Dates"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "port_last_free_day",
@@ -626,7 +651,8 @@
   },
   {
    "fieldname": "section_break_oqsn",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Free Days & Discharge"
   },
   {
    "fieldname": "column_break_hark",
@@ -672,49 +698,63 @@
    "default": "0",
    "fieldname": "is_hazardous",
    "fieldtype": "Check",
+   "in_filter": 1,
    "label": "Is Hazardous"
   },
   {
-   "depends_on": "eval:doc.cargo_type!=\"Containerised\"",
-   "fieldname": "general_cargo_details_section",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "general_cargo_details",
-   "fieldtype": "Table",
-   "options": "General Cargo Details"
-  },
-  {
-   "fieldname": "general_cargo_details_column",
-   "fieldtype": "Column Break",
-   "label": "General Cargo Details"
-  },
-  {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "container_details",
    "fieldtype": "Table",
    "options": "Container Details"
   },
   {
    "fieldname": "container_details_column",
-   "fieldtype": "Column Break",
-   "label": "Container Details"
+   "fieldtype": "Column Break"
   },
   {
    "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "container_details_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Containers Details"
   },
   {
    "depends_on": "eval:doc.cargo_type!== \"Containerised\"",
    "fieldname": "packages_count",
    "fieldtype": "Data",
+   "in_filter": 1,
    "label": "Packages Count"
+  },
+  {
+   "fieldname": "shipment_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Shipment"
+  },
+  {
+   "fieldname": "milestones_tab",
+   "fieldtype": "Tab Break",
+   "label": "Milestones"
+  },
+  {
+   "fieldname": "basic_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "general_cargo_details",
+   "fieldtype": "Table",
+   "options": "General Cargo Details"
+  },
+  {
+   "fieldname": "section_break_jufg",
+   "fieldtype": "Section Break",
+   "label": "Package Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-04 16:24:40.639326",
+ "modified": "2025-05-11 10:55:07.566635",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",
