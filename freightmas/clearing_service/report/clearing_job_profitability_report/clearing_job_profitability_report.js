@@ -21,7 +21,8 @@ frappe.query_reports["Clearing Job Profitability Report"] = {
             fieldname: "customer",
             label: __("Customer"),
             fieldtype: "Link",
-            options: "Customer"
+            options: "Customer",
+            only_select: true
         },
         {
             fieldname: "bl_number",
