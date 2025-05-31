@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"ehI2zZGIJ3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"x-ZOwVQXYM\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"rtSfzSRBYJ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"zV00Via_pM\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"ehI2zZGIJ3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"x-ZOwVQXYM\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
  "creation": "2025-04-20 20:33:29.959551",
  "custom_blocks": [],
  "docstatus": 0,
@@ -102,11 +102,20 @@
    "type": "Link"
   }
  ],
- "modified": "2025-05-18 16:27:34.016825",
+ "modified": "2025-05-19 23:47:20.621417",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Active Jobs",
+   "number_card_name": "Total Active Jobs"
+  },
+  {
+   "label": "Completed Jobs",
+   "number_card_name": "Completed"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

@@ -16,9 +16,13 @@
   "section_break_qomc",
   "is_loaded",
   "gate_out_full_date",
+  "is_empty_picked",
+  "pick_up_empty_date",
   "column_break_locf",
   "is_returned",
   "gate_in_empty_date",
+  "is_gated_in_port",
+  "gate_in_full_date",
   "column_break_pjov",
   "dnd_days_accumulated",
   "storage_days_accumulated",
@@ -178,12 +182,34 @@
    "fieldname": "to_be_returned",
    "fieldtype": "Check",
    "label": "To be returned?"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_empty_picked",
+   "fieldtype": "Check",
+   "label": "Is Empty Picked"
+  },
+  {
+   "fieldname": "pick_up_empty_date",
+   "fieldtype": "Date",
+   "label": "Pickup Empty Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_gated_in_port",
+   "fieldtype": "Check",
+   "label": "Is Gated In Port"
+  },
+  {
+   "fieldname": "gate_in_full_date",
+   "fieldtype": "Date",
+   "label": "Gated In Full Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-04 19:18:43.365128",
+ "modified": "2025-05-24 21:14:51.570745",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Container Details",

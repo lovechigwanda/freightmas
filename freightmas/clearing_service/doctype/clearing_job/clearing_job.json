@@ -35,11 +35,12 @@
   "section_break_fkqn",
   "clearing_documents_checklist",
   "bill_of_lading_details_section",
+  "is_bl_received",
   "bl_type",
+  "bl_received_date",
   "column_break_aqbr",
-  "obl_received_date",
-  "is_telex_confirmed",
-  "telex_confirmed_date",
+  "is_bl_confirmed",
+  "bl_confirmed_date",
   "cargo_tab",
   "container_details_and_tracking_section",
   "cargo_description",
@@ -47,14 +48,14 @@
   "column_break_vhmo",
   "cargo_type",
   "column_break_aoyq",
-  "container_count",
-  "packages_count",
+  "cargo_count",
   "section_break_oqsn",
   "dnd_free_days",
   "column_break_iqhn",
   "port_free_days",
   "column_break_hark",
   "discharge_date",
+  "vessel_loading_date",
   "section_break_xkiy",
   "last_free_dnd_day",
   "dnd_start_date",
@@ -70,7 +71,6 @@
   "section_break_jufg",
   "general_cargo_details",
   "milestones_tab",
-  "tracking_tab",
   "container_master_section",
   "is_sl_invoice_received",
   "sl_invoice_received_date",
@@ -78,18 +78,29 @@
   "date_discharged_from_port",
   "is_do_requested",
   "do_requested_date",
+  "is_clearing_for_shipment_done",
+  "shipment_cleared_date",
   "column_break_tocp",
   "is_discharged_from_vessel",
   "date_discharged_from_vessel",
   "is_booking_confirmed",
   "booking_confirmation_date",
+  "is_port_release_confirmed",
+  "port_release_confirmed_date",
+  "is_loaded_on_vessel",
+  "loaded_on_vessel_date",
   "column_break_mfxb",
   "is_do_received",
   "do_received_date",
   "is_sl_invoice_paid",
   "sl_invoice_payment_date",
+  "is_vessel_arrived_at_port",
+  "vessel_arrived_date",
+  "is_vessel_sailed",
+  "vessel_sailed_date",
   "section_break_zwiv",
   "milestone_tracker",
+  "tracking_tab",
   "job_tracking_section",
   "clearing_tracking",
   "current_update_section",
@@ -97,6 +108,7 @@
   "last_updated_by",
   "column_break_dhrd",
   "current_comment",
+  "status",
   "column_break_phud",
   "last_updated_on",
   "charges_tab",
@@ -268,7 +280,8 @@
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Direction",
-   "options": "Import\nExport"
+   "options": "Import\nExport",
+   "set_only_once": 1
   },
   {
    "fieldname": "section_break_fkqn",
@@ -291,26 +304,6 @@
    "in_filter": 1,
    "label": "BL Type",
    "options": "\nOBL\nTelex Release"
-  },
-  {
-   "fieldname": "obl_received_date",
-   "fieldtype": "Date",
-   "in_filter": 1,
-   "label": "OBL Received Date"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.bl_type == 'Telex Release'",
-   "fieldname": "is_telex_confirmed",
-   "fieldtype": "Check",
-   "in_filter": 1,
-   "label": "Is Telex Confirmed"
-  },
-  {
-   "fieldname": "telex_confirmed_date",
-   "fieldtype": "Date",
-   "in_filter": 1,
-   "label": "Telex Confirmed Date"
   },
   {
    "fieldname": "column_break_aqbr",
@@ -343,14 +336,6 @@
    "fieldname": "container_master_section",
    "fieldtype": "Section Break",
    "label": "Key Milestones"
-  },
-  {
-   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
-   "fieldname": "container_count",
-   "fieldtype": "Data",
-   "in_filter": 1,
-   "label": "Container Count",
-   "read_only": 1
   },
   {
    "fieldname": "etd",
@@ -718,13 +703,6 @@
    "label": "Containers Details"
   },
   {
-   "depends_on": "eval:doc.cargo_type!== \"Containerised\"",
-   "fieldname": "packages_count",
-   "fieldtype": "Data",
-   "in_filter": 1,
-   "label": "Packages Count"
-  },
-  {
    "fieldname": "shipment_details_tab",
    "fieldtype": "Tab Break",
    "label": "Shipment"
@@ -749,12 +727,110 @@
    "fieldname": "section_break_jufg",
    "fieldtype": "Section Break",
    "label": "Package Details"
+  },
+  {
+   "default": "In Progress",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Job Status",
+   "options": "In Progress\nCompleted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_bl_received",
+   "fieldtype": "Check",
+   "label": "Is BL Received"
+  },
+  {
+   "fieldname": "bl_received_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "label": "BL Received Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_bl_confirmed",
+   "fieldtype": "Check",
+   "in_filter": 1,
+   "label": "Is BL Confirmed"
+  },
+  {
+   "fieldname": "bl_confirmed_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "label": "BL Confirmed Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_port_release_confirmed",
+   "fieldtype": "Check",
+   "label": "Is Port Release Confirmed"
+  },
+  {
+   "fieldname": "port_release_confirmed_date",
+   "fieldtype": "Date",
+   "label": "Port Release Confirmed Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_vessel_arrived_at_port",
+   "fieldtype": "Check",
+   "label": "Is Vessel Arrived at Port"
+  },
+  {
+   "fieldname": "vessel_arrived_date",
+   "fieldtype": "Date",
+   "label": "Vessel Arrived Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_clearing_for_shipment_done",
+   "fieldtype": "Check",
+   "label": "Is Clearing for Shipment Done"
+  },
+  {
+   "fieldname": "shipment_cleared_date",
+   "fieldtype": "Date",
+   "label": "Shipment Cleared Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_loaded_on_vessel",
+   "fieldtype": "Check",
+   "label": "Is Loaded on Vessel"
+  },
+  {
+   "fieldname": "loaded_on_vessel_date",
+   "fieldtype": "Date",
+   "label": "Loaded on Vessel Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_vessel_sailed",
+   "fieldtype": "Check",
+   "label": "Is Vessel Sailed"
+  },
+  {
+   "fieldname": "vessel_sailed_date",
+   "fieldtype": "Date",
+   "label": "Vessel Sailed Date"
+  },
+  {
+   "fieldname": "vessel_loading_date",
+   "fieldtype": "Date",
+   "label": "Vessel Loading Date"
+  },
+  {
+   "fieldname": "cargo_count",
+   "fieldtype": "Data",
+   "label": "Cargo Count"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-11 10:55:07.566635",
+ "modified": "2025-05-27 23:21:43.295230",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

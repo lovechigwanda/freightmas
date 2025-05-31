@@ -1,142 +1,158 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-// frappe.ui.form.on("Clearing Job", {
-// 	refresh(frm) {
-
-// 	},
-// });
-
-// Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
-// For license information, please see license.txt
-
-// Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd
-// For license information, please see license.txt
-
+// ====================================================
+// This script controls the visibility and validation of fields in the Clearing Job form
+// based on the selected BL Type and other conditions.
+// ====================================================
 frappe.ui.form.on('Clearing Job', {
-
-  // When the form is refreshed
   refresh: function(frm) {
-    toggle_fields(frm);  // Control visibility of fields based on values
+    toggle_directional_fields(frm);
+    toggle_bl_fields(frm);
+    toggle_milestone_dates(frm);
   },
 
-  // Triggered when BL Type is changed
-  bl_type: function(frm) {
-    toggle_fields(frm);  // Reevaluate field visibility
+  direction: function(frm) {
+    toggle_directional_fields(frm);
   },
 
-  // Triggered when Telex checkbox is changed
-  is_telex_confirmed: function(frm) {
-    toggle_fields(frm);
+  is_bl_received: function(frm) {
+    toggle_bl_fields(frm);
   },
 
-  // Other field triggers (used to toggle date fields)
-  is_discharged_from_vessel: function(frm) {
-    toggle_fields(frm);
-  },
-  is_discharged_from_port: function(frm) {
-    toggle_fields(frm);
-  },
-  is_sl_invoice_received: function(frm) {
-    toggle_fields(frm);
-  },
-  is_do_received: function(frm) {
-    toggle_fields(frm);
-  },
-  is_booking_confirmed: function(frm) {
-    toggle_fields(frm);
-  },
-  is_sl_invoice_paid: function(frm) {
-    toggle_fields(frm);
-  },
-  is_do_requested: function(frm) {
-    toggle_fields(frm);
+  is_bl_confirmed: function(frm) {
+    toggle_bl_fields(frm);
   },
 
-  // Validation before saving the form
+  // Import Milestones
+  is_discharged_from_vessel: toggle_milestone_dates,
+  is_vessel_arrived_at_port: toggle_milestone_dates,
+  is_discharged_from_port: toggle_milestone_dates,
+  is_do_requested: toggle_milestone_dates,
+  is_do_received: toggle_milestone_dates,
+  is_port_release_confirmed: toggle_milestone_dates,
+  is_sl_invoice_received: toggle_milestone_dates,
+  is_sl_invoice_paid: toggle_milestone_dates,
+
+  // Export Milestones
+  is_booking_confirmed: toggle_milestone_dates,
+  is_clearing_for_shipment_done: toggle_milestone_dates,
+  is_loaded_on_vessel: toggle_milestone_dates,
+  is_vessel_sailed: toggle_milestone_dates,
+
   validate: function(frm) {
     let missing_fields = [];
-    const bl_type = (frm.doc.bl_type || '').trim();
 
-    // Check OBL requirement
-    if (bl_type === 'OBL' && !frm.doc.obl_received_date) {
-      missing_fields.push("OBL Received Date");
-    }
-
-    // Check Telex fields
-    if (bl_type === 'Telex Release') {
-      if (!frm.doc.is_telex_confirmed) {
-        missing_fields.push("Is Telex Confirmed");
+    // Helper to validate checkbox-date pairs
+    const check_date = (checkbox, date_field, label) => {
+      if (frm.doc[checkbox] && !frm.doc[date_field]) {
+        missing_fields.push(label);
       }
-      if (frm.doc.is_telex_confirmed && !frm.doc.telex_confirmed_date) {
-        missing_fields.push("Telex Confirmed Date");
+    };
+
+    if (frm.doc.direction === "Import") {
+      check_date("is_discharged_from_vessel", "date_discharged_from_vessel", "Date Discharged from Vessel");
+      check_date("is_vessel_arrived_at_port", "vessel_arrived_date", "Vessel Arrived Date");
+      check_date("is_discharged_from_port", "date_discharged_from_port", "Date Discharged from Port");
+      check_date("is_do_requested", "do_requested_date", "DO Requested Date");
+      check_date("is_do_received", "do_received_date", "DO Received Date");
+      check_date("is_port_release_confirmed", "port_release_confirmed_date", "Port Release Confirmed Date");
+      check_date("is_sl_invoice_received", "sl_invoice_received_date", "SL Invoice Received Date");
+      check_date("is_sl_invoice_paid", "sl_invoice_payment_date", "SL Invoice Payment Date");
+    }
+
+    if (frm.doc.direction === "Export") {
+      check_date("is_booking_confirmed", "booking_confirmation_date", "Booking Confirmation Date");
+      check_date("is_clearing_for_shipment_done", "shipment_cleared_date", "Shipment Cleared Date");
+      check_date("is_loaded_on_vessel", "loaded_on_vessel_date", "Loaded on Vessel Date");
+      check_date("is_vessel_sailed", "vessel_sailed_date", "Vessel Sailed Date");
+    }
+
+    // BL Validation
+    if (frm.doc.is_bl_received) {
+      if (!frm.doc.bl_type) missing_fields.push("BL Type");
+      if (!frm.doc.bl_received_date) missing_fields.push("BL Received Date");
+
+      if (frm.doc.is_bl_confirmed && !frm.doc.bl_confirmed_date) {
+        missing_fields.push("BL Confirmed Date");
       }
     }
 
-    // Check discharge and invoice-related flags and dates
-    if (frm.doc.is_discharged_from_vessel && !frm.doc.date_discharged_from_vessel) {
-      missing_fields.push("Date Discharged from Vessel");
-    }
-    if (frm.doc.is_discharged_from_port && !frm.doc.date_discharged_from_port) {
-      missing_fields.push("Date Discharged from Port");
-    }
-    if (frm.doc.is_sl_invoice_received && !frm.doc.sl_invoice_received_date) {
-      missing_fields.push("SL Invoice Received Date");
-    }
-    if (frm.doc.is_do_received && !frm.doc.do_received_date) {
-      missing_fields.push("DO Received Date");
-    }
-    if (frm.doc.is_booking_confirmed && !frm.doc.booking_confirmation_date) {
-      missing_fields.push("Booking Confirmation Date");
-    }
-    if (frm.doc.is_sl_invoice_paid && !frm.doc.sl_invoice_payment_date) {
-      missing_fields.push("SL Invoice Payment Date");
-    }
-    if (frm.doc.is_do_requested && !frm.doc.do_requested_date) {
-      missing_fields.push("DO Requested Date");
-    }
-
-    // Show error message if any required field is missing
     if (missing_fields.length > 0) {
-      frappe.msgprint({
-        title: __('Missing Information'),
-        indicator: 'orange',
-        message: __('Please fill in the following fields before saving:') +
-          '<ul><li>' + missing_fields.join('</li><li>') + '</li></ul>'
-      });
-      frappe.validated = false;  // Prevent form submission
+      frappe.throw(__("Please fill the following required fields:<br><ul><li>{0}</li></ul>", [missing_fields.join("</li><li>")]));
     }
   }
 });
 
+// ---------- Helper Functions -------------
 
-// Function to show/hide and enforce required fields dynamically
-function toggle_fields(frm) {
-  const bl_type = (frm.doc.bl_type || '').trim();
+function toggle_directional_fields(frm) {
+  const is_import = frm.doc.direction === "Import";
+  const is_export = frm.doc.direction === "Export";
 
-  // Show OBL Received Date only if BL Type is OBL
-  frm.set_df_property('obl_received_date', 'hidden', bl_type !== 'OBL');
+  // Import-specific fields
+  const import_checkboxes = [
+    "is_discharged_from_vessel", "is_vessel_arrived_at_port", "is_discharged_from_port", "is_do_requested",
+    "is_do_received", "is_port_release_confirmed", "is_sl_invoice_received", "is_sl_invoice_paid"
+  ];
+  const import_dates = [
+    "date_discharged_from_vessel", "vessel_arrived_date", "date_discharged_from_port", "do_requested_date",
+    "do_received_date", "port_release_confirmed_date", "sl_invoice_received_date", "sl_invoice_payment_date",
+    "discharge_date" // show for import
+  ];
 
-  // Show Telex fields only if BL Type is Telex Release
-  frm.set_df_property('is_telex_confirmed', 'hidden', bl_type !== 'Telex Release');
+  // Export-specific fields
+  const export_checkboxes = [
+    "is_booking_confirmed", "is_clearing_for_shipment_done", "is_loaded_on_vessel", "is_vessel_sailed"
+  ];
+  const export_dates = [
+    "booking_confirmation_date", "shipment_cleared_date", "loaded_on_vessel_date", "vessel_sailed_date",
+    "vessel_loading_date" // show for export
+  ];
 
-  // Show Telex Confirmed Date only if checkbox is ticked
-  frm.set_df_property('telex_confirmed_date', 'hidden', !(bl_type === 'Telex Release' && frm.doc.is_telex_confirmed));
+  [...import_checkboxes, ...import_dates].forEach(field => {
+    frm.set_df_property(field, "hidden", !is_import);
+  });
 
-  // Make Telex Confirmed Date mandatory only when visible
-  frappe.meta.get_docfield('Clearing Job', 'telex_confirmed_date', frm.doc.name).reqd = (bl_type === 'Telex Release' && frm.doc.is_telex_confirmed);
+  [...export_checkboxes, ...export_dates].forEach(field => {
+    frm.set_df_property(field, "hidden", !is_export);
+  });
 
-  // Show/hide date fields for other boolean flags
-  frm.set_df_property('date_discharged_from_vessel', 'hidden', !frm.doc.is_discharged_from_vessel);
-  frm.set_df_property('date_discharged_from_port', 'hidden', !frm.doc.is_discharged_from_port);
-  frm.set_df_property('sl_invoice_received_date', 'hidden', !frm.doc.is_sl_invoice_received);
-  frm.set_df_property('do_received_date', 'hidden', !frm.doc.is_do_received);
-  frm.set_df_property('booking_confirmation_date', 'hidden', !frm.doc.is_booking_confirmed);
-  frm.set_df_property('sl_invoice_payment_date', 'hidden', !frm.doc.is_sl_invoice_paid);
-  frm.set_df_property('do_requested_date', 'hidden', !frm.doc.is_do_requested);
+  frm.refresh_fields();
 }
 
-////////////////////////////////////////////////////////
+function toggle_bl_fields(frm) {
+  frm.set_df_property("bl_type", "hidden", !frm.doc.is_bl_received);
+  frm.set_df_property("bl_received_date", "hidden", !frm.doc.is_bl_received);
+  frm.set_df_property("is_bl_confirmed", "hidden", !frm.doc.is_bl_received);
+  frm.set_df_property("bl_confirmed_date", "hidden", !(frm.doc.is_bl_received && frm.doc.is_bl_confirmed));
+  frm.refresh_fields();
+}
+
+function toggle_milestone_dates(frm) {
+  const pairs = {
+    "is_discharged_from_vessel": "date_discharged_from_vessel",
+    "is_vessel_arrived_at_port": "vessel_arrived_date",
+    "is_discharged_from_port": "date_discharged_from_port",
+    "is_do_requested": "do_requested_date",
+    "is_do_received": "do_received_date",
+    "is_port_release_confirmed": "port_release_confirmed_date",
+    "is_sl_invoice_received": "sl_invoice_received_date",
+    "is_sl_invoice_paid": "sl_invoice_payment_date",
+
+    "is_booking_confirmed": "booking_confirmation_date",
+    "is_clearing_for_shipment_done": "shipment_cleared_date",
+    "is_loaded_on_vessel": "loaded_on_vessel_date",
+    "is_vessel_sailed": "vessel_sailed_date"
+  };
+
+  Object.entries(pairs).forEach(([checkbox, date_field]) => {
+    const show = frm.doc[checkbox] === 1;
+    frm.set_df_property(date_field, "hidden", !show);
+    frm.refresh_field(date_field);
+  });
+}
+
 
 //////////////HTML FOR MILESTONE TRACKER///////////////
 
@@ -670,172 +686,163 @@ frappe.ui.form.on('Clearing Job', {
   }
 });
 
-/////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
 // =============================================
 // D&D AND PORT STORAGE DAYS - AUTO CALCULATION
-// With support for to_be_returned toggle
+// Supports both Import and Export logic
 // =============================================
 
-// --- Parent field triggers ---
 frappe.ui.form.on('Clearing Job', {
-    discharge_date: function(frm) {
-        update_all_dnd_storage(frm);
-    },
-
-    dnd_free_days: function(frm) {
-        update_all_dnd_storage(frm);
-    },
-
-    port_free_days: function(frm) {
-        update_all_dnd_storage(frm);
-    },
-
-    onload: function(frm) {
-        update_all_dnd_storage(frm);
-    },
-
-    refresh: function(frm) {
-        update_all_dnd_storage(frm);
-    }
+    discharge_date: update_all_dnd_storage,
+    vessel_loading_date: update_all_dnd_storage,
+    dnd_free_days: update_all_dnd_storage,
+    port_free_days: update_all_dnd_storage,
+    onload: update_all_dnd_storage,
+    refresh: update_all_dnd_storage
 });
 
-// --- Container table triggers ---
 frappe.ui.form.on('Container Details', {
-    gate_out_full_date: function(frm, cdt, cdn) {
-        calculate_container_dnd_and_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    },
-    gate_in_empty_date: function(frm, cdt, cdn) {
-        calculate_container_dnd_and_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    },
-    to_be_returned: function(frm, cdt, cdn) {
-        calculate_container_dnd_and_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    }
+    gate_out_full_date: update_container_days,
+    pick_up_empty_date: update_container_days,
+    gate_in_empty_date: update_container_days,
+    gate_in_full_date: update_container_days,
+    to_be_returned: update_container_days
 });
 
-// --- General cargo table triggers ---
 frappe.ui.form.on('General Cargo Details', {
-    gate_out_date: function(frm, cdt, cdn) {
-        calculate_general_dnd_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    },
-    gate_in_date: function(frm, cdt, cdn) {
-        calculate_general_dnd_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    },
-    to_be_returned: function(frm, cdt, cdn) {
-        calculate_general_dnd_storage(frm, cdt, cdn);
-        update_total_dnd_days(frm);
-        update_total_storage_days(frm);
-    }
+    gate_out_date: update_general_days,
+    pick_up_empty_date: update_general_days,
+    gate_in_date: update_general_days,
+    gate_in_full_date: update_general_days,
+    to_be_returned: update_general_days
 });
 
-// --- Parent-level D&D + storage reference dates ---
+// Get appropriate base date depending on direction
+function get_base_date(doc) {
+    return doc.direction === "Export" ? doc.vessel_loading_date : doc.discharge_date;
+}
+
 function update_all_dnd_storage(frm) {
-    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const base_date = get_base_date(frm.doc);
     const today = frappe.datetime.get_today();
 
-    if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
-        const last_free_dnd_day = dnd_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
+    // Set DND start dates based on base date and free days
+    if (base_date && !isNaN(frm.doc.dnd_free_days)) {
+        const last_free_dnd_day = frm.doc.dnd_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.dnd_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
         frm.set_value('last_free_dnd_day', last_free_dnd_day);
         frm.set_value('dnd_start_date', frappe.datetime.add_days(last_free_dnd_day, 1));
+    } else {
+        frm.set_value('last_free_dnd_day', null);
+        frm.set_value('dnd_start_date', null);
     }
 
-    if (discharge_date && port_free_days !== null && !isNaN(port_free_days)) {
-        const port_last_free_day = port_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
-        frm.set_value('port_last_free_day', port_last_free_day);
-        frm.set_value('port_storage_start_date', frappe.datetime.add_days(port_last_free_day, 1));
+    // Set Port Storage start dates based on base date and free days
+    if (base_date && !isNaN(frm.doc.port_free_days)) {
+        const last_free_port_day = frm.doc.port_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.port_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
+        frm.set_value('port_last_free_day', last_free_port_day);
+        frm.set_value('port_storage_start_date', frappe.datetime.add_days(last_free_port_day, 1));
+    } else {
+        frm.set_value('port_last_free_day', null);
+        frm.set_value('port_storage_start_date', null);
     }
 
+    // Recalculate child rows if present
     (frm.doc.container_details || []).forEach(row => {
         calculate_container_dnd_and_storage(frm, null, row.name);
     });
+
     (frm.doc.general_cargo_details || []).forEach(row => {
         calculate_general_dnd_storage(frm, null, row.name);
     });
 
+    // Always update totals and refresh UI
+    update_total_dnd_days(frm);
+    update_total_storage_days(frm);
     frm.refresh_field('container_details');
     frm.refresh_field('general_cargo_details');
+}
+
+function update_container_days(frm, cdt, cdn) {
+    calculate_container_dnd_and_storage(frm, cdt, cdn);
     update_total_dnd_days(frm);
     update_total_storage_days(frm);
 }
 
-// --- Container-level logic with to_be_returned check ---
+function update_general_days(frm, cdt, cdn) {
+    calculate_general_dnd_storage(frm, cdt, cdn);
+    update_total_dnd_days(frm);
+    update_total_storage_days(frm);
+}
+
 function calculate_container_dnd_and_storage(frm, cdt, cdn) {
     const row = locals[cdt || "Container Details"][cdn];
-    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const base_date = get_base_date(frm.doc);
     const today = frappe.datetime.get_today();
+    const direction = frm.doc.direction;
 
-    // D&D
-    if (!discharge_date || dnd_free_days === null || isNaN(dnd_free_days)) {
-        row.dnd_days_accumulated = 0;
-    } else {
-        const last_free_dnd_day = dnd_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
-        const dnd_start_date = frappe.datetime.add_days(last_free_dnd_day, 1);
+    const out_date = direction === "Export" ? row.pick_up_empty_date : row.gate_out_full_date;
+    const return_date = direction === "Export" ? row.gate_in_full_date : row.gate_in_empty_date;
 
-        const dnd_end = row.to_be_returned
-            ? row.gate_in_empty_date || today
-            : row.gate_out_full_date || today;
+    // D&D Calculation
+    if (base_date && !isNaN(frm.doc.dnd_free_days)) {
+        const last_free_day = frm.doc.dnd_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.dnd_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
+        const dnd_start = frappe.datetime.add_days(last_free_day, 1);
+        const dnd_end = row.to_be_returned ? return_date || today : out_date || today;
 
-        if (row.gate_out_full_date === discharge_date) {
+        if (out_date === base_date) {
             row.dnd_days_accumulated = 0;
-        } else if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_dnd_day)) {
-            row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start_date) + 1;
+        } else if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_day)) {
+            row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start) + 1;
         } else {
             row.dnd_days_accumulated = 0;
         }
+    } else {
+        row.dnd_days_accumulated = 0;
     }
 
-    // Port Storage
-    if (!discharge_date || port_free_days === null || isNaN(port_free_days)) {
-        row.storage_days_accumulated = 0;
-    } else {
-        const port_last_free_day = port_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
-        const port_storage_start_date = frappe.datetime.add_days(port_last_free_day, 1);
-        const storage_end_date = row.gate_out_full_date || today;
+    // Port Storage Calculation
+    if (base_date && !isNaN(frm.doc.port_free_days)) {
+        const last_free_day = frm.doc.port_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.port_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
+        const storage_start = frappe.datetime.add_days(last_free_day, 1);
+        const storage_end = out_date || today;
 
-        if (frappe.datetime.obj_to_str(storage_end_date) >= frappe.datetime.obj_to_str(port_storage_start_date)) {
-            row.storage_days_accumulated = frappe.datetime.get_diff(storage_end_date, port_storage_start_date) + 1;
+        if (frappe.datetime.obj_to_str(storage_end) >= frappe.datetime.obj_to_str(storage_start)) {
+            row.storage_days_accumulated = frappe.datetime.get_diff(storage_end, storage_start) + 1;
         } else {
             row.storage_days_accumulated = 0;
         }
+    } else {
+        row.storage_days_accumulated = 0;
     }
 
     frm.refresh_field('container_details');
 }
 
-// --- General cargo logic with to_be_returned check ---
 function calculate_general_dnd_storage(frm, cdt, cdn) {
-    const row = locals[cdt || 'General Cargo Details'][cdn];
-    const { discharge_date, dnd_free_days, port_free_days } = frm.doc;
+    const row = locals[cdt || "General Cargo Details"][cdn];
+    const base_date = get_base_date(frm.doc);
     const today = frappe.datetime.get_today();
+    const direction = frm.doc.direction;
 
-    // D&D
-    if (discharge_date && dnd_free_days !== null && !isNaN(dnd_free_days)) {
-        const last_free_day = dnd_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, dnd_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
+    const out_date = direction === "Export" ? row.pick_up_empty_date : row.gate_out_date;
+    const return_date = direction === "Export" ? row.gate_in_full_date : row.gate_in_date;
+
+    // D&D Calculation
+    if (base_date && !isNaN(frm.doc.dnd_free_days)) {
+        const last_free_day = frm.doc.dnd_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.dnd_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
         const dnd_start = frappe.datetime.add_days(last_free_day, 1);
-
-        const dnd_end = row.to_be_returned
-            ? row.gate_in_date || today
-            : row.gate_out_date || today;
+        const dnd_end = row.to_be_returned ? return_date || today : out_date || today;
 
         if (frappe.datetime.obj_to_str(dnd_end) > frappe.datetime.obj_to_str(last_free_day)) {
             row.dnd_days_accumulated = frappe.datetime.get_diff(dnd_end, dnd_start) + 1;
@@ -846,13 +853,13 @@ function calculate_general_dnd_storage(frm, cdt, cdn) {
         row.dnd_days_accumulated = 0;
     }
 
-    // Port Storage
-    if (discharge_date && port_free_days !== null && !isNaN(port_free_days)) {
-        const last_free_day = port_free_days > 0
-            ? frappe.datetime.add_days(discharge_date, port_free_days - 1)
-            : frappe.datetime.add_days(discharge_date, -1);
+    // Port Storage Calculation
+    if (base_date && !isNaN(frm.doc.port_free_days)) {
+        const last_free_day = frm.doc.port_free_days > 0
+            ? frappe.datetime.add_days(base_date, frm.doc.port_free_days - 1)
+            : frappe.datetime.add_days(base_date, -1);
         const storage_start = frappe.datetime.add_days(last_free_day, 1);
-        const storage_end = row.gate_out_date || today;
+        const storage_end = out_date || today;
 
         if (frappe.datetime.obj_to_str(storage_end) >= frappe.datetime.obj_to_str(storage_start)) {
             row.storage_days_accumulated = frappe.datetime.get_diff(storage_end, storage_start) + 1;
@@ -866,7 +873,6 @@ function calculate_general_dnd_storage(frm, cdt, cdn) {
     frm.refresh_field('general_cargo_details');
 }
 
-// --- Aggregate totals for parent display ---
 function update_total_dnd_days(frm) {
     let total = 0;
     (frm.doc.container_details || []).forEach(row => {
@@ -889,68 +895,65 @@ function update_total_storage_days(frm) {
     frm.set_value('total_storage_days', total);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// ========================================
-// UPDATE CONTAINER & PACKAGE COUNT SUMMARY
-// ========================================
-// This block calculates:
-// - A summary of container types from the Container Details table (e.g. "4 x 20SD, 2 x 40HC")
-// - A count of rows from the General Cargo Details table (e.g. "3 x Packages")
-// The results are set on the parent fields: container_count and packages_count
-// ========================================
 
-function update_container_and_package_counts(frm) {
-    let container_summary = {};
-    let container_text = "";
-    let total_containers = 0;
+/////////////////////////////////////////////////////////////////////////
+// ========================================================
+// CARGO COUNT SUMMARY FIELD (cargo_count)
+// - Shows container breakdown or package count
+// - Depends on cargo_type = "Containerised" or "General Cargo"
+// ========================================================
+function update_cargo_count(frm) {
+    let cargo_type = frm.doc.cargo_type;
+    let summary = "";
 
-    // Count container types
-    (frm.doc.container_details || []).forEach(row => {
-        if (row.container_type) {
-            container_summary[row.container_type] = (container_summary[row.container_type] || 0) + 1;
-            total_containers++;
+    if (cargo_type === "Containerised") {
+        let container_summary = {};
+        (frm.doc.container_details || []).forEach(row => {
+            if (row.container_type) {
+                container_summary[row.container_type] = (container_summary[row.container_type] || 0) + 1;
+            }
+        });
+
+        let parts = [];
+        for (let type in container_summary) {
+            parts.push(`${container_summary[type]} x ${type}`);
         }
-    });
 
-    // Format like "4 x 20SD, 2 x 40HC"
-    let parts = [];
-    for (let type in container_summary) {
-        parts.push(`${container_summary[type]} x ${type}`);
-    }
-    if (parts.length) {
-        container_text = parts.join(", ");
+        summary = parts.join(", ");
     }
 
-    // Count general cargo packages
-    let general_count = frm.doc.general_cargo_details?.length || 0;
-    let package_text = general_count ? `${general_count} x Packages` : "";
+    if (cargo_type === "General Cargo") {
+        const count = frm.doc.general_cargo_details?.length || 0;
+        if (count > 0) {
+            summary = `${count} x Packages`;
+        }
+    }
 
-    // Set values
-    frm.set_value('container_count', container_text);
-    frm.set_value('packages_count', package_text);
+    frm.set_value("cargo_count", summary);
 }
 
-// Triggers when rows are added or edited
+// --- Triggers ---
 frappe.ui.form.on('Container Details', {
-    container_type: update_container_and_package_counts,
-    container_number: update_container_and_package_counts,
-    container_details_remove: update_container_and_package_counts
+    container_type: update_cargo_count,
+    container_details_remove: update_cargo_count
 });
 
 frappe.ui.form.on('General Cargo Details', {
-    item_description: update_container_and_package_counts,
-    general_cargo_details_remove: update_container_and_package_counts
+    item_description: update_cargo_count,
+    general_cargo_details_remove: update_cargo_count
 });
 
 frappe.ui.form.on('Clearing Job', {
     onload: function(frm) {
-        update_container_and_package_counts(frm);
+        update_cargo_count(frm);
     },
     refresh: function(frm) {
-        update_container_and_package_counts(frm);
+        update_cargo_count(frm);
+    },
+    cargo_type: function(frm) {
+        update_cargo_count(frm);
     }
 });
-
 
 ///////////////////////////////////////////////////////////////////////////
 

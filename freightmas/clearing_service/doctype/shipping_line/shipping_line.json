@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:sl_name",
+ "creation": "2025-05-28 08:59:21.416059",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sl_name",
+  "supplier_account",
+  "shipping_line_address",
+  "column_break_qsqp",
+  "is_active",
+  "free_days_import",
+  "free_days_export"
+ ],
+ "fields": [
+  {
+   "fieldname": "sl_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Shipping Line Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "supplier_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier Account",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "supplier_account.supplier_primary_address",
+   "fieldname": "shipping_line_address",
+   "fieldtype": "Read Only",
+   "label": "Shipping Line Address"
+  },
+  {
+   "fieldname": "column_break_qsqp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "free_days_import",
+   "fieldtype": "Int",
+   "label": "Free Days Import"
+  },
+  {
+   "fieldname": "free_days_export",
+   "fieldtype": "Int",
+   "label": "Free Days Export"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-05-28 20:51:53.602217",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Shipping Line",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
