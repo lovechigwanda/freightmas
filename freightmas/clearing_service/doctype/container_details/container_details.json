@@ -40,6 +40,7 @@
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "container_number",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -51,6 +52,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "fieldname": "container_type",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -70,8 +72,10 @@
    "label": "Driver Name"
   },
   {
+   "columns": 2,
    "fieldname": "seal_no",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Seal No"
   },
   {
@@ -106,17 +110,20 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.direction==\"Import\"",
    "fieldname": "is_loaded",
    "fieldtype": "Check",
    "label": "Is Loaded"
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.direction==\"Import\"",
    "fieldname": "is_returned",
    "fieldtype": "Check",
    "label": "Is Returned"
   },
   {
+   "depends_on": "eval:doc.is_loaded || doc.is_empty_picked",
    "fieldname": "loading_details_section",
    "fieldtype": "Section Break",
    "label": "Loading Details"
@@ -139,7 +146,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.is_loaded== 1",
+   "depends_on": "eval:doc.is_loaded",
    "description": "Actual date the full container was picked up from the port.",
    "fieldname": "gate_out_full_date",
    "fieldtype": "Date",
@@ -155,14 +162,18 @@
    "mandatory_depends_on": "eval:doc.is_returned"
   },
   {
+   "columns": 2,
    "fieldname": "dnd_days_accumulated",
    "fieldtype": "Int",
-   "label": "Demurrage Days Accumulated"
+   "in_list_view": 1,
+   "label": "DnD Days"
   },
   {
+   "columns": 2,
    "fieldname": "storage_days_accumulated",
    "fieldtype": "Int",
-   "label": "Storage Days Acculumulated",
+   "in_list_view": 1,
+   "label": "Storage Days",
    "read_only": 1
   },
   {
@@ -185,22 +196,26 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\"",
    "fieldname": "is_empty_picked",
    "fieldtype": "Check",
    "label": "Is Empty Picked"
   },
   {
+   "depends_on": "eval:doc.is_empty_picked",
    "fieldname": "pick_up_empty_date",
    "fieldtype": "Date",
    "label": "Pickup Empty Date"
   },
   {
    "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\"",
    "fieldname": "is_gated_in_port",
    "fieldtype": "Check",
    "label": "Is Gated In Port"
   },
   {
+   "depends_on": "eval:doc.is_gated_in_port",
    "fieldname": "gate_in_full_date",
    "fieldtype": "Date",
    "label": "Gated In Full Date"
@@ -209,12 +224,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-05-24 21:14:51.570745",
- "modified_by": "Administrator",
+ "modified": "2025-06-01 22:26:37.141847",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Container Details",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

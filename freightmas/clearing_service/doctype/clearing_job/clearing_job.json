@@ -54,6 +54,7 @@
   "column_break_iqhn",
   "port_free_days",
   "column_break_hark",
+  "is_discharged_from_vessel",
   "discharge_date",
   "vessel_loading_date",
   "section_break_xkiy",
@@ -72,43 +73,46 @@
   "general_cargo_details",
   "milestones_tab",
   "container_master_section",
-  "is_sl_invoice_received",
-  "sl_invoice_received_date",
-  "is_discharged_from_port",
-  "date_discharged_from_port",
-  "is_do_requested",
-  "do_requested_date",
-  "is_clearing_for_shipment_done",
-  "shipment_cleared_date",
-  "column_break_tocp",
-  "is_discharged_from_vessel",
-  "date_discharged_from_vessel",
-  "is_booking_confirmed",
-  "booking_confirmation_date",
-  "is_port_release_confirmed",
-  "port_release_confirmed_date",
-  "is_loaded_on_vessel",
-  "loaded_on_vessel_date",
-  "column_break_mfxb",
-  "is_do_received",
-  "do_received_date",
-  "is_sl_invoice_paid",
-  "sl_invoice_payment_date",
   "is_vessel_arrived_at_port",
   "vessel_arrived_date",
+  "is_booking_confirmed",
+  "booking_confirmation_date",
+  "column_break_tocp",
+  "is_sl_invoice_received",
+  "sl_invoice_received_date",
+  "is_clearing_for_shipment_done",
+  "shipment_cleared_date",
+  "column_break_mfxb",
+  "is_sl_invoice_paid",
+  "sl_invoice_payment_date",
+  "is_loaded_on_vessel",
+  "loaded_on_vessel_date",
+  "column_break_qfmh",
+  "is_do_requested",
+  "do_requested_date",
   "is_vessel_sailed",
   "vessel_sailed_date",
+  "section_break_wykq",
+  "column_break_cpio",
+  "is_do_received",
+  "do_received_date",
+  "column_break_nsdg",
+  "is_port_release_confirmed",
+  "port_release_confirmed_date",
+  "column_break_phlz",
+  "is_discharged_from_port",
+  "date_discharged_from_port",
+  "column_break_dltg",
   "section_break_zwiv",
   "milestone_tracker",
   "tracking_tab",
   "job_tracking_section",
   "clearing_tracking",
   "current_update_section",
-  "current_milestone",
-  "last_updated_by",
-  "column_break_dhrd",
   "current_comment",
   "status",
+  "column_break_dhrd",
+  "last_updated_by",
   "column_break_phud",
   "last_updated_on",
   "charges_tab",
@@ -161,6 +165,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
    "default": "Today",
    "fieldname": "date_created",
    "fieldtype": "Date",
@@ -179,10 +184,12 @@
    "set_only_once": 1
   },
   {
+   "columns": 2,
    "fieldname": "consignee",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Consignee",
    "options": "Customer",
    "reqd": 1
@@ -206,6 +213,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -229,6 +237,7 @@
    "label": "Shipment Information"
   },
   {
+   "columns": 2,
    "fieldname": "bl_number",
    "fieldtype": "Data",
    "in_global_search": 1,
@@ -273,6 +282,7 @@
    "reqd": 1
   },
   {
+   "columns": 1,
    "fieldname": "direction",
    "fieldtype": "Select",
    "in_filter": 1,
@@ -317,11 +327,6 @@
   {
    "fieldname": "column_break_tocp",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "date_discharged_from_vessel",
-   "fieldtype": "Date",
-   "label": "Date Discharged from Vessel"
   },
   {
    "fieldname": "date_discharged_from_port",
@@ -439,12 +444,6 @@
    "label": "Current Update"
   },
   {
-   "fieldname": "current_milestone",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Current Milestone"
-  },
-  {
    "fieldname": "column_break_dhrd",
    "fieldtype": "Column Break"
   },
@@ -483,27 +482,36 @@
    "fieldtype": "Section Break"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_revenue",
    "fieldtype": "Currency",
-   "label": "Total Estimated Revenue"
+   "label": "Total Estimated Revenue",
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_xggo",
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_cost",
    "fieldtype": "Currency",
-   "label": "Total Estimated Cost"
+   "label": "Total Estimated Cost",
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_axcz",
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_profit",
    "fieldtype": "Currency",
-   "label": "Total Estimated Profit"
+   "label": "Total Estimated Profit",
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_zwiv",
@@ -550,22 +558,28 @@
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_revenue_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Revenue",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_cost_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Cost",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
+   "bold": 1,
    "fieldname": "total_estimated_profit_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Profit",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_bfkl",
@@ -729,10 +743,11 @@
    "label": "Package Details"
   },
   {
+   "columns": 1,
    "default": "In Progress",
    "fieldname": "status",
    "fieldtype": "Select",
-   "label": "Job Status",
+   "label": "Status",
    "options": "In Progress\nCompleted\nCancelled",
    "read_only": 1
   },
@@ -825,13 +840,37 @@
    "fieldname": "cargo_count",
    "fieldtype": "Data",
    "label": "Cargo Count"
+  },
+  {
+   "fieldname": "section_break_wykq",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_cpio",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_nsdg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_qfmh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_phlz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_dltg",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-27 23:21:43.295230",
- "modified_by": "Administrator",
+ "modified": "2025-06-01 19:04:44.624259",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Clearing Job",
  "naming_rule": "By \"Naming Series\" field",
@@ -851,6 +890,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

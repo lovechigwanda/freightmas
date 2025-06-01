@@ -184,33 +184,35 @@ def validate_customer_and_supplier(self):
 
 ###PREVENT DELETION OF INVOICED CHARGES
 
-class ClearingJob(Document):
-    def validate(self):
-        self.prevent_editing_invoiced_rows()
+def prevent_editing_invoiced_rows(self):
+    for row in self.clearing_charges:
+        # Skip rows that are new (unsaved) or do not have references
+        if not row.name or row.name.startswith("NEW-"):
+            continue
 
-    def prevent_editing_invoiced_rows(self):
-        for row in self.clearing_charges:
-            if not row.name or row.idx is None:
-                continue  # new unsaved row
+        if not (row.sales_invoice_reference or row.purchase_invoice_reference):
+            continue  # nothing to protect
 
-            try:
-                original = frappe.get_doc("Clearing Charges", row.name)
-            except frappe.DoesNotExistError:
-                continue  # new row
+        # Attempt to load from DB only if invoiced
+        try:
+            original = frappe.get_doc("Clearing Charges", row.name)
+        except frappe.DoesNotExistError:
+            continue  # skip rows not in DB yet
 
-            # Sales Invoice lock
-            if row.sales_invoice_reference:
-                for field in ["sell_rate", "customer", "qty"]:
-                    if row.get(field) != original.get(field):
-                        frappe.throw(
-                            f"You cannot modify '{field}' on a charge already linked to Sales Invoice: {row.sales_invoice_reference}"
-                        )
+        # Lock sales invoice fields
+        if row.sales_invoice_reference:
+            for field in ["sell_rate", "customer", "qty"]:
+                if row.get(field) != original.get(field):
+                    frappe.throw(
+                        f"You cannot modify '{field}' on a charge already linked to Sales Invoice: {row.sales_invoice_reference}"
+                    )
 
-            # Purchase Invoice lock
-            if row.purchase_invoice_reference:
-                for field in ["buy_rate", "supplier", "qty"]:
-                    if row.get(field) != original.get(field):
-                        frappe.throw(
-                            f"You cannot modify '{field}' on a charge already linked to Purchase Invoice: {row.purchase_invoice_reference}"
-                        )
+        # Lock purchase invoice fields
+        if row.purchase_invoice_reference:
+            for field in ["buy_rate", "supplier", "qty"]:
+                if row.get(field) != original.get(field):
+                    frappe.throw(
+                        f"You cannot modify '{field}' on a charge already linked to Purchase Invoice: {row.purchase_invoice_reference}"
+                    )
+
 ########################################################################
