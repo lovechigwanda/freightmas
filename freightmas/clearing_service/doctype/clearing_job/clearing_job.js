@@ -18,7 +18,28 @@ frappe.ui.form.on('Clearing Job', {
     update_currency_labels(frm);
   },
 
+  shipping_line: function(frm) {
+    if (frm.doc.shipping_line) {
+      frappe.db.get_doc('Shipping Line', frm.doc.shipping_line)
+        .then(doc => {
+          // Set free days if present in Shipping Line
+          if (doc.free_days_import && frm.doc.direction === "Import") {
+            frm.set_value('dnd_free_days', doc.free_days_import);
+            frm.set_value('port_free_days', doc.free_days_import); // If you have a separate field for port, use doc.free_days_export if needed
+          }
+          if (doc.free_days_export && frm.doc.direction === "Export") {
+            frm.set_value('dnd_free_days', doc.free_days_export);
+            frm.set_value('port_free_days', doc.free_days_export);
+          }
+        });
+    }
+  },
+
   direction: function(frm) {
+    // Re-trigger shipping_line logic if direction changes
+    if (frm.doc.shipping_line) {
+      frappe.ui.form.trigger('Clearing Job', 'shipping_line', frm);
+    }
     toggle_directional_fields(frm);
   },
 
@@ -969,3 +990,83 @@ frappe.ui.form.on('Clearing Job', {
 });
 
 ///////////////////////////////////////////////
+
+///FETCH CHARGES FROM CHARGES TEMPLATE
+frappe.ui.form.on('Clearing Job', {
+    refresh(frm) {
+        frm.clear_custom_buttons();
+        if (!frm.is_new() && frm.doc.shipping_line && frm.doc.customer) {
+            frm.add_custom_button('Apply Charge Template', function() {
+                show_charge_template_dialog(frm);
+            });
+        }
+    }
+});
+
+function show_charge_template_dialog(frm) {
+    let d = new frappe.ui.Dialog({
+        title: 'Apply Clearing Charges Template',
+        fields: [
+            {
+                label: 'Charge Template',
+                fieldname: 'charge_template',
+                fieldtype: 'Link',
+                options: 'Clearing Charges Template',
+                reqd: 1,
+                get_query: () => ({
+                    filters: {
+                        shipping_line: frm.doc.shipping_line
+                    }
+                })
+            },
+            {
+                label: 'Quantity (applies to all rows)',
+                fieldname: 'quantity',
+                fieldtype: 'Float',
+                reqd: 1,
+                default: 1
+            }
+        ],
+        primary_action_label: 'Apply',
+        primary_action(values) {
+            apply_charge_template(frm, values.charge_template, values.quantity);
+            d.hide();
+        }
+    });
+    d.show();
+}
+
+function apply_charge_template(frm, template_name, quantity) {
+    frappe.call({
+        method: 'frappe.client.get',
+        args: {
+            doctype: 'Clearing Charges Template',
+            name: template_name
+        },
+        callback: function(r) {
+            if (r.message && r.message.charges && r.message.charges.length) {
+                frm.clear_table('charges');
+                r.message.charges.forEach(item => {
+                    let row = frm.add_child('charges');
+                    // Copy all fields except meta
+                    for (const key in item) {
+                        if (
+                            ![
+                                "name", "parent", "parentfield",
+                                "parenttype", "doctype"
+                            ].includes(key)
+                        ) {
+                            row[key] = item[key];
+                        }
+                    }
+                    row.quantity = quantity;
+                    row.customer = frm.doc.customer;
+                });
+                frm.refresh_field('charges');
+                frappe.msgprint(__('Charges table updated from template.'));
+            } else {
+                frappe.msgprint(__('No charges found in the selected template.'));
+            }
+        }
+    });
+}

@@ -216,3 +216,22 @@ def prevent_editing_invoiced_rows(self):
                     )
 
 ########################################################################
+
+# ============================================================
+# Auto-Update 'completed_on' Date on Completion
+# Doctype: Clearing Job
+# Purpose: Ensure that when the status changes to 'Completed',
+#          the 'completed_on' field is set to today's date
+# ============================================================
+
+import frappe
+from frappe.model.document import Document
+
+class ClearingJob(Document):
+    def validate(self):
+        # If status is changed to Completed and 'completed_on' is not set,
+        # then set 'completed_on' to today's date.
+        if self.status == "Completed" and not self.completed_on:
+            self.completed_on = frappe.utils.nowdate()
+
+##############################################################################

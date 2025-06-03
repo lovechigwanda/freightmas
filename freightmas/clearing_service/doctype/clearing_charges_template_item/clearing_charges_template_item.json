@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-03 21:42:28.600556",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge",
+  "column_break_fsxj",
+  "sell_rate",
+  "section_break_rjkj",
+  "buy_rate",
+  "column_break_pvgz",
+  "supplier"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "charge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Charge",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_fsxj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "sell_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Sell Rate",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_break_rjkj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "buy_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Buy Rate"
+  },
+  {
+   "fieldname": "column_break_pvgz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 4,
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Supplier",
+   "mandatory_depends_on": "eval:doc.buy_rate",
+   "options": "Supplier"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-03 23:35:57.809505",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Clearing Charges Template Item",
+ "owner": "lchigwanda@outlook.com",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

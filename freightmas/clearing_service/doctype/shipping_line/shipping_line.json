@@ -6,11 +6,12 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "sl_full_name",
   "sl_name",
-  "supplier_account",
   "shipping_line_address",
   "column_break_qsqp",
   "is_active",
+  "supplier_account",
   "free_days_import",
   "free_days_export"
  ],
@@ -18,15 +19,13 @@
   {
    "fieldname": "sl_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Shipping Line Name",
+   "label": "SL Short Name",
    "reqd": 1,
    "unique": 1
   },
   {
    "fieldname": "supplier_account",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Supplier Account",
    "options": "Supplier",
    "reqd": 1
@@ -48,20 +47,32 @@
    "label": "Is Active"
   },
   {
+   "columns": 2,
    "fieldname": "free_days_import",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Free Days Import"
   },
   {
+   "columns": 2,
    "fieldname": "free_days_export",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Free Days Export"
+  },
+  {
+   "columns": 6,
+   "fieldname": "sl_full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "SL Full Name",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-05-28 20:51:53.602217",
- "modified_by": "Administrator",
+ "modified": "2025-06-03 18:30:43.399330",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Shipping Line",
  "naming_rule": "By fieldname",
@@ -80,6 +91,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

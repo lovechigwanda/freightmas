@@ -14,8 +14,8 @@
   "unit",
   "section_break_oyey",
   "is_loaded",
-  "gate_out_date",
-  "is_packed",
+  "gate_out_full_date",
+  "is_empty_picked",
   "pick_up_empty_date",
   "column_break_rogo",
   "is_gated_in_port",
@@ -69,13 +69,6 @@
    "options": "Nos\nTons\nPackages\nKgs\nLitres"
   },
   {
-   "depends_on": "eval:doc.is_loaded",
-   "fieldname": "gate_out_date",
-   "fieldtype": "Date",
-   "label": "Gate Out Date",
-   "mandatory_depends_on": "eval:doc.is_loaded"
-  },
-  {
    "columns": 2,
    "fieldname": "storage_days_accumulated",
    "fieldtype": "Int",
@@ -113,13 +106,6 @@
    "fieldname": "is_loaded",
    "fieldtype": "Check",
    "label": "Is Loaded"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:parent.direction==\"Export\"",
-   "fieldname": "is_packed",
-   "fieldtype": "Check",
-   "label": "Is Packed"
   },
   {
    "depends_on": "eval:doc.is_packed",
@@ -195,12 +181,26 @@
    "fieldtype": "Date",
    "label": "Gate In Full Date",
    "mandatory_depends_on": "eval:doc.is_gated_in_port"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded",
+   "fieldname": "gate_out_full_date",
+   "fieldtype": "Date",
+   "label": "Gate Out Date",
+   "mandatory_depends_on": "eval:doc.is_loaded"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\"",
+   "fieldname": "is_empty_picked",
+   "fieldtype": "Check",
+   "label": "Is Empty Picked"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-01 22:56:45.821107",
+ "modified": "2025-06-02 21:56:31.970831",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "General Cargo Details",

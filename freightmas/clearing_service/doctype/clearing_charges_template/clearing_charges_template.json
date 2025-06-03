@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{shipping_line} - {container_type} - {direction}",
+ "creation": "2025-06-03 21:33:22.730055",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "shipping_line",
+  "column_break_btfp",
+  "container_type",
+  "column_break_uoqd",
+  "direction",
+  "section_break_hwwr",
+  "clearing_charges_template_item"
+ ],
+ "fields": [
+  {
+   "fieldname": "shipping_line",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shipping Line",
+   "options": "Shipping Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_btfp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "container_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Container Type",
+   "options": "Container Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_uoqd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Direction",
+   "options": "Import\nExport"
+  },
+  {
+   "fieldname": "section_break_hwwr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "clearing_charges_template_item",
+   "fieldtype": "Table",
+   "label": "Charge Items",
+   "options": "Clearing Charges Template Item"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-06-03 23:35:50.180653",
+ "modified_by": "Administrator",
+ "module": "Clearing Service",
+ "name": "Clearing Charges Template",
+ "naming_rule": "Expression",
+ "owner": "lchigwanda@outlook.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

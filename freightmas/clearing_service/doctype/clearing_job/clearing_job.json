@@ -26,9 +26,11 @@
   "shipment_information_section",
   "bl_number",
   "origin",
+  "origin_country",
   "column_break_wkgx",
   "shipping_line",
   "destination",
+  "destination_country",
   "column_break_cjvh",
   "eta",
   "etd",
@@ -110,11 +112,15 @@
   "clearing_tracking",
   "current_update_section",
   "current_comment",
-  "status",
   "column_break_dhrd",
   "last_updated_by",
   "column_break_phud",
   "last_updated_on",
+  "section_break_izze",
+  "status",
+  "column_break_uxze",
+  "completed_on",
+  "column_break_mktf",
   "charges_tab",
   "currency",
   "column_break_bfkl",
@@ -256,7 +262,7 @@
    "fieldtype": "Link",
    "in_filter": 1,
    "label": "Shipping Line",
-   "options": "Supplier",
+   "options": "Shipping Line",
    "reqd": 1
   },
   {
@@ -271,14 +277,16 @@
   },
   {
    "fieldname": "origin",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Origin",
+   "options": "Port",
    "reqd": 1
   },
   {
    "fieldname": "destination",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "label": "Destination",
+   "options": "Port",
    "reqd": 1
   },
   {
@@ -864,12 +872,42 @@
   {
    "fieldname": "column_break_dltg",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_izze",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uxze",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_mktf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "origin.country",
+   "fieldname": "origin_country",
+   "fieldtype": "Read Only",
+   "label": "Origin Country"
+  },
+  {
+   "fetch_from": "destination.country",
+   "fieldname": "destination_country",
+   "fieldtype": "Read Only",
+   "label": "Destination Country"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-01 19:04:44.624259",
+ "modified": "2025-06-03 20:30:29.544570",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Clearing Job",

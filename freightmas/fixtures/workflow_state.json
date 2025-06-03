@@ -106,5 +106,14 @@
   "name": "Booking",
   "style": "Warning",
   "workflow_state_name": "Booking"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-06-02 18:04:34.845113",
+  "name": "In Progress",
+  "style": "Warning",
+  "workflow_state_name": "In Progress"
  }
 ]
