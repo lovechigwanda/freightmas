@@ -4,6 +4,7 @@
 # import frappe
 
 import frappe
+from datetime import datetime
 
 def execute(filters=None):
     if not filters:
@@ -23,7 +24,7 @@ def execute(filters=None):
     if filters.get("job_no"):
         conditions += f" AND cj.name = '{filters['job_no']}'"
 
-    # Fetch data
+    # Fetch data (include only fields that exist)
     rows = frappe.db.sql(f"""
         SELECT
             cj.name AS job_no,
@@ -40,15 +41,19 @@ def execute(filters=None):
             cj.sl_invoice_payment_date,
             cj.do_requested_date,
             cj.port_storage_start_date,
+            cj.port_storage_end_date,
             cj.dnd_start_date,
-            cj.total_dnd_days,
-            cj.total_storage_days
+            cj.dnd_end_date
         FROM `tabClearing Job` cj
         WHERE {conditions}
         ORDER BY cj.date_created DESC
     """, as_dict=True)
 
     for row in rows:
+        # Calculate DND and Storage Days
+        dnd_days = days_between(row.dnd_start_date, row.dnd_end_date)
+        storage_days = days_between(row.port_storage_start_date, row.port_storage_end_date)
+
         data.append([
             row.job_no,
             row.date_created,
@@ -65,11 +70,23 @@ def execute(filters=None):
             row.do_requested_date,
             row.port_storage_start_date,
             row.dnd_start_date,
-            int(row.total_dnd_days or 0),
-            int(row.total_storage_days or 0),
+            dnd_days,
+            storage_days,
         ])
 
     return columns, data
+
+def days_between(start, end):
+    if start and end:
+        try:
+            if isinstance(start, str):
+                start = datetime.strptime(start, "%Y-%m-%d")
+            if isinstance(end, str):
+                end = datetime.strptime(end, "%Y-%m-%d")
+            return (end - start).days
+        except Exception:
+            return 0
+    return 0
 
 def get_columns():
     return [
@@ -88,6 +105,6 @@ def get_columns():
         {"label": "DO Received", "fieldname": "do_requested_date", "fieldtype": "Date", "width": 110},
         {"label": "Storage Starts", "fieldname": "port_storage_start_date", "fieldtype": "Date", "width": 110},
         {"label": "DnD Starts", "fieldname": "dnd_start_date", "fieldtype": "Date", "width": 110},
-        {"label": "DnD Days", "fieldname": "total_dnd_days", "fieldtype": "Int", "width": 90},
-        {"label": "Storage Days", "fieldname": "total_storage_days", "fieldtype": "Int", "width": 90},
+        {"label": "DnD Days", "fieldname": "dnd_days", "fieldtype": "Int", "width": 90},
+        {"label": "Storage Days", "fieldname": "storage_days", "fieldtype": "Int", "width": 90},
     ]

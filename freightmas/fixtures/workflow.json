@@ -389,7 +389,7 @@
   "doctype": "Workflow",
   "document_type": "Clearing Job",
   "is_active": 1,
-  "modified": "2025-06-02 18:07:57.957416",
+  "modified": "2025-06-02 18:41:54.694866",
   "name": "Clearing Job Workflow",
   "override_status": 0,
   "send_email_alert": 0,
@@ -407,7 +407,7 @@
     "send_email": 1,
     "state": "In Progress",
     "update_field": "status",
-    "update_value": null,
+    "update_value": "In Progress",
     "workflow_builder_id": null
    },
    {
@@ -423,7 +423,7 @@
     "send_email": 1,
     "state": "Completed",
     "update_field": "status",
-    "update_value": "Today",
+    "update_value": "Completed",
     "workflow_builder_id": null
    },
    {
@@ -439,7 +439,7 @@
     "send_email": 1,
     "state": "Cancelled",
     "update_field": "status",
-    "update_value": null,
+    "update_value": "Cancelled",
     "workflow_builder_id": null
    }
   ],

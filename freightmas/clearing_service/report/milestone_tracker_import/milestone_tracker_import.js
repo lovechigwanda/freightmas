@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["DND Exposure Imports"] = {
+frappe.query_reports["Milestone Tracker Import"] = {
     filters: [
         {
             fieldname: "date_range",
@@ -71,62 +71,37 @@ frappe.query_reports["DND Exposure Imports"] = {
         },
         {
             fieldname: "from_date",
-            label: __("From Date"),
+            label: "From Date",
             fieldtype: "Date",
-            default: frappe.datetime.month_start(),
-            reqd: 1
+            default: frappe.datetime.add_months(frappe.datetime.get_today(), -1)
         },
         {
             fieldname: "to_date",
-            label: __("To Date"),
+            label: "To Date",
             fieldtype: "Date",
-            default: frappe.datetime.get_today(),
-            reqd: 1
+            default: frappe.datetime.get_today()
         },
         {
             fieldname: "customer",
-            label: __("Customer"),
+            label: "Customer",
             fieldtype: "Link",
-            options: "Customer"
+            options: "Customer",
+            only_select: true
         },
         {
             fieldname: "job_no",
-            label: __("Job No"),
+            label: "Job No",
             fieldtype: "Link",
-            options: "Clearing Job"
-        },
-        {
-            fieldname: "bl_number",
-            label: __("BL No"),
-            fieldtype: "Data"
-        },
-        {
-            fieldname: "job_status",
-            label: __("Job Status"),
-            fieldtype: "Select",
-            options: [
-                "",
-                "In Progress",
-                "Completed",
-                "Cancelled"
-            ],
-            default: ""
+            options: "Clearing Job",
+            only_select: true
         }
     ],
 
     onload: function (report) {
-        // Excel Export Button (if you have the server-side API set up)
         report.page.add_inner_button("Export to Excel", function () {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            window.location.href = `/api/method/freightmas.api.download_dnd_exposure_excel?filters=${query}`;
-        });
-
-        // PDF Export Button (if you have the server-side API set up)
-        report.page.add_inner_button("Export to PDF", function () {
-            const filters = report.get_filter_values(true);
-            const query = encodeURIComponent(JSON.stringify(filters));
-            window.location.href = `/api/method/freightmas.api.download_dnd_exposure_pdf?filters=${query}`;
+            window.location.href = `/api/method/freightmas.api.download_milestone_tracker_import_excel?filters=${query}`;
         });
     }
 };

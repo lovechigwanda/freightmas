@@ -1384,5 +1384,194 @@
   "status": "Open",
   "user": null,
   "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-02 18:26:47.839443",
+  "name": "9ue7nlmr5p",
+  "permitted_roles": [
+   {
+    "parent": "9ue7nlmr5p",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00001-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-02 18:38:26.091529",
+  "name": "golp4bqlks",
+  "permitted_roles": [
+   {
+    "parent": "golp4bqlks",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00002-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-02 19:45:03.463480",
+  "name": "npqko8cpkd",
+  "permitted_roles": [
+   {
+    "parent": "npqko8cpkd",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00008-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-02 22:39:41.282195",
+  "name": "u4540nqu6d",
+  "permitted_roles": [
+   {
+    "parent": "u4540nqu6d",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00006-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-05 09:07:38.498408",
+  "name": "5i90mft6pi",
+  "permitted_roles": [
+   {
+    "parent": "5i90mft6pi",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00005-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-07 15:39:06.241104",
+  "name": "2e6tglka2i",
+  "permitted_roles": [
+   {
+    "parent": "2e6tglka2i",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00009-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-07 22:06:30.604052",
+  "name": "5e25gj9rt3",
+  "permitted_roles": [
+   {
+    "parent": "5e25gj9rt3",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00010-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-08 00:19:25.814000",
+  "name": "jaa2cv85jr",
+  "permitted_roles": [
+   {
+    "parent": "jaa2cv85jr",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00011-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-08 09:20:04.815103",
+  "name": "g3goqga1pb",
+  "permitted_roles": [
+   {
+    "parent": "g3goqga1pb",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00012-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
  }
 ]

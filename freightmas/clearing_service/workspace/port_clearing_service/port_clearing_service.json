@@ -1,7 +1,7 @@
 {
  "charts": [],
- "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"rtSfzSRBYJ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"zV00Via_pM\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"ehI2zZGIJ3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"x-ZOwVQXYM\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations Reports\",\"col\":4}}]",
- "creation": "2025-04-20 20:33:29.959551",
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"jxq9tbzwxl\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"WyaNdhjNo_\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Report\",\"col\":4}},{\"id\":\"8B6bY4gRg0\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}}]",
+ "creation": "2025-05-31 21:08:46.448015",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -35,8 +35,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Operations Reports",
-   "link_count": 6,
+   "label": "Financial Reports",
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -44,27 +44,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Clearing Job Profitability (Estimate)",
-   "link_count": 0,
-   "link_to": "Clearing Job Profitability Estimate",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Clearing Job Profitability (Actual)",
-   "link_count": 0,
-   "link_to": "Clearing Job Profitability Actual",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Clearing Job Profitability",
+   "label": "Job Profitability Report",
    "link_count": 0,
    "link_to": "Clearing Job Profitability Report",
    "link_type": "Report",
@@ -74,9 +54,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Milestone Tracker (Imports)",
+   "label": "Job Profitability (Actual)",
    "link_count": 0,
-   "link_to": "Job Milestone Tracker Imports",
+   "link_to": "Clearing Job Profitability Actual",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -84,9 +64,48 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Container Tracker",
+   "label": "Job Profitability (Estimate)",
    "link_count": 0,
-   "link_to": "Container Tracker",
+   "link_to": "Clearing Job Profitability Estimate",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unbilled Revenue Charges",
+   "link_count": 0,
+   "link_to": "Unbilled Job Revenue Charges",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unbilled Cost Charges",
+   "link_count": 0,
+   "link_to": "Unbilled Job Cost Charges",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operational Report",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Clearing Job Register",
+   "link_count": 0,
+   "link_to": "Clearing Job Register",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -100,22 +119,33 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Milestone Tracker Import",
+   "link_count": 0,
+   "link_to": "Milestone Tracker Import",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "DND Exposure Import",
+   "link_count": 0,
+   "link_to": "DND Exposure Import",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-05-19 23:47:20.621417",
+ "modified": "2025-06-10 21:57:04.703912",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",
- "number_cards": [
-  {
-   "label": "Active Jobs",
-   "number_card_name": "Total Active Jobs"
-  },
-  {
-   "label": "Completed Jobs",
-   "number_card_name": "Completed"
-  }
- ],
+ "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,

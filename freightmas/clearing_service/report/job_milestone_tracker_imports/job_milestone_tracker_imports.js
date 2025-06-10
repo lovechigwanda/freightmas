@@ -17,7 +17,7 @@ frappe.query_reports["Job Milestone Tracker Imports"] = {
         },
         {
             fieldname: "customer",
-            label: "Client",
+            label: "Customer",
             fieldtype: "Link",
             options: "Customer",
             only_select: true

@@ -291,7 +291,11 @@ fixtures = [
                 "Sales Invoice-custom_is_trip_invoice",
                 "Trip-workflow_state",
                 "Vehicle-custom_is_trailer",
-                "Vehicle-custom_is_horse"
+                "Vehicle-custom_is_horse",
+                "Sales Invoice-custom_clearing_job_reference",
+                "Sales Invoice-custom_is_clearing_invoice",
+                "Purchase Invoice-custom_clearing_job_reference",
+                "Purchase Invoice-custom_is_clearing_invoice"
             ]]
         ]
     },

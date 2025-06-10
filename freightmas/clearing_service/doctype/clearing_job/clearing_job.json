@@ -3,7 +3,9 @@
  "allow_rename": 1,
  "autoname": "naming_series:",
  "creation": "2025-04-15 18:33:37.185764",
+ "default_view": "List",
  "doctype": "DocType",
+ "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
   "shipment_details_tab",
@@ -44,35 +46,28 @@
   "is_bl_confirmed",
   "bl_confirmed_date",
   "cargo_tab",
-  "container_details_and_tracking_section",
+  "cargo_information_section",
   "cargo_description",
-  "is_hazardous",
   "column_break_vhmo",
-  "cargo_type",
+  "is_hazardous",
   "column_break_aoyq",
   "cargo_count",
   "section_break_oqsn",
   "dnd_free_days",
+  "dnd_start_date",
   "column_break_iqhn",
   "port_free_days",
+  "storage_start_date",
   "column_break_hark",
   "is_discharged_from_vessel",
   "discharge_date",
-  "vessel_loading_date",
-  "section_break_xkiy",
-  "last_free_dnd_day",
-  "dnd_start_date",
-  "column_break_pzmz",
-  "port_last_free_day",
-  "port_storage_start_date",
-  "column_break_rnlz",
-  "total_dnd_days",
-  "total_storage_days",
-  "container_details_section",
-  "container_details_column",
-  "container_details",
-  "section_break_jufg",
-  "general_cargo_details",
+  "stack_dates_section",
+  "stack_open_date",
+  "column_break_aamt",
+  "stack_close_date",
+  "column_break_qjql",
+  "cargo_package_details_section",
+  "cargo_package_details",
   "milestones_tab",
   "container_master_section",
   "is_vessel_arrived_at_port",
@@ -122,12 +117,14 @@
   "completed_on",
   "column_break_mktf",
   "charges_tab",
+  "currency_section",
   "currency",
   "column_break_bfkl",
   "conversion_rate",
   "column_break_jhwy",
   "base_currency",
-  "section_break_yrwe",
+  "clearing_charges_section",
+  "load_charges_from_template",
   "clearing_charges",
   "section_break_bcwy",
   "total_estimated_revenue",
@@ -190,11 +187,9 @@
    "set_only_once": 1
   },
   {
-   "columns": 2,
    "fieldname": "consignee",
    "fieldtype": "Link",
    "in_filter": 1,
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Consignee",
    "options": "Customer",
@@ -219,7 +214,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "columns": 2,
+   "columns": 4,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -294,7 +289,6 @@
    "fieldname": "direction",
    "fieldtype": "Select",
    "in_filter": 1,
-   "in_list_view": 1,
    "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Direction",
@@ -400,11 +394,6 @@
    "fieldname": "booking_confirmation_date",
    "fieldtype": "Date",
    "label": "Booking Confirmation Date"
-  },
-  {
-   "fieldname": "container_details_and_tracking_section",
-   "fieldtype": "Section Break",
-   "label": "Cargo Details"
   },
   {
    "fieldname": "column_break_vhmo",
@@ -598,17 +587,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_yrwe",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "cargo_type",
-   "fieldtype": "Select",
-   "in_filter": 1,
-   "label": "Cargo Type",
-   "options": "Containerised\nGeneral Cargo"
-  },
-  {
    "fieldname": "cargo_tab",
    "fieldtype": "Tab Break",
    "label": "Cargo",
@@ -637,26 +615,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_xkiy",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "port_last_free_day",
-   "fieldtype": "Date",
-   "label": "Port Last Free Day",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_rnlz",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "port_storage_start_date",
-   "fieldtype": "Date",
-   "label": "Port Storage Start Date",
-   "read_only": 1
-  },
-  {
    "fieldname": "section_break_oqsn",
    "fieldtype": "Section Break",
    "label": "Free Days & Discharge"
@@ -666,40 +624,10 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_pzmz",
-   "fieldtype": "Column Break"
-  },
-  {
    "description": "Demurrage and Detention free days allowed by SL.",
    "fieldname": "dnd_free_days",
    "fieldtype": "Int",
    "label": "D&D Free Days"
-  },
-  {
-   "fieldname": "last_free_dnd_day",
-   "fieldtype": "Date",
-   "label": "Last Free D&D Day",
-   "read_only": 1
-  },
-  {
-   "fieldname": "dnd_start_date",
-   "fieldtype": "Date",
-   "label": "D&D Start Date",
-   "read_only": 1
-  },
-  {
-   "bold": 1,
-   "fieldname": "total_dnd_days",
-   "fieldtype": "Int",
-   "label": "Total D&D Days",
-   "read_only": 1
-  },
-  {
-   "bold": 1,
-   "fieldname": "total_storage_days",
-   "fieldtype": "Int",
-   "label": "Total Storage Days",
-   "read_only": 1
   },
   {
    "default": "0",
@@ -707,22 +635,6 @@
    "fieldtype": "Check",
    "in_filter": 1,
    "label": "Is Hazardous"
-  },
-  {
-   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
-   "fieldname": "container_details",
-   "fieldtype": "Table",
-   "options": "Container Details"
-  },
-  {
-   "fieldname": "container_details_column",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
-   "fieldname": "container_details_section",
-   "fieldtype": "Section Break",
-   "label": "Containers Details"
   },
   {
    "fieldname": "shipment_details_tab",
@@ -738,17 +650,6 @@
    "fieldname": "basic_information_section",
    "fieldtype": "Section Break",
    "label": "Basic Information"
-  },
-  {
-   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
-   "fieldname": "general_cargo_details",
-   "fieldtype": "Table",
-   "options": "General Cargo Details"
-  },
-  {
-   "fieldname": "section_break_jufg",
-   "fieldtype": "Section Break",
-   "label": "Package Details"
   },
   {
    "columns": 1,
@@ -840,11 +741,6 @@
    "label": "Vessel Sailed Date"
   },
   {
-   "fieldname": "vessel_loading_date",
-   "fieldtype": "Date",
-   "label": "Vessel Loading Date"
-  },
-  {
    "fieldname": "cargo_count",
    "fieldtype": "Data",
    "label": "Cargo Count"
@@ -902,13 +798,89 @@
    "fieldname": "destination_country",
    "fieldtype": "Read Only",
    "label": "Destination Country"
+  },
+  {
+   "fieldname": "stack_open_date",
+   "fieldtype": "Date",
+   "label": "Stack Opening Date"
+  },
+  {
+   "fieldname": "stack_close_date",
+   "fieldtype": "Date",
+   "label": "Stack Closing Date"
+  },
+  {
+   "depends_on": "eval:doc.direction==\"Export\"",
+   "fieldname": "stack_dates_section",
+   "fieldtype": "Section Break",
+   "label": "Stack Dates"
+  },
+  {
+   "fieldname": "column_break_aamt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_qjql",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cargo_information_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Details"
+  },
+  {
+   "fieldname": "cargo_package_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Package Details"
+  },
+  {
+   "fieldname": "currency_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "clearing_charges_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "load_charges_from_template",
+   "fieldtype": "Button",
+   "label": "Load Charges from Template"
+  },
+  {
+   "fieldname": "cargo_package_details",
+   "fieldtype": "Table",
+   "options": "Cargo Package Details"
+  },
+  {
+   "depends_on": "eval:doc.is_discharged_from_vessel",
+   "fieldname": "dnd_start_date",
+   "fieldtype": "Date",
+   "label": "DND Start Date"
+  },
+  {
+   "depends_on": "eval:doc.is_discharged_from_vessel",
+   "fieldname": "storage_start_date",
+   "fieldtype": "Date",
+   "label": "Storage Start Date"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-06-03 20:30:29.544570",
- "modified_by": "lchigwanda@outlook.com",
+ "links": [
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "clearing_job_reference",
+   "table_fieldname": "Sales Invoices"
+  },
+  {
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "clearing_job_reference",
+   "table_fieldname": "Purchase Invoices"
+  }
+ ],
+ "make_attachments_public": 1,
+ "modified": "2025-06-10 21:30:41.740017",
+ "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",
  "naming_rule": "By \"Naming Series\" field",
@@ -928,9 +900,9 @@
    "write": 1
   }
  ],
+ "protect_attached_files": 1,
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+ "states": []
 }
