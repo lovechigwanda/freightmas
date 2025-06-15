@@ -1537,7 +1537,7 @@
   "completed_by_role": null,
   "docstatus": 0,
   "doctype": "Workflow Action",
-  "modified": "2025-06-08 00:19:25.814000",
+  "modified": "2025-06-13 21:51:23.475451",
   "name": "jaa2cv85jr",
   "permitted_roles": [
    {
@@ -1549,7 +1549,7 @@
   ],
   "reference_doctype": "Clearing Job",
   "reference_name": "CLJB-00011-25",
-  "status": "Open",
+  "status": "Completed",
   "user": null,
   "workflow_state": "In Progress"
  },

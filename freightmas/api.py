@@ -21,428 +21,222 @@ def get_fuel_rate(item_code, warehouse, posting_date=None):
 
 
 ################################################################################
-## Download Job Milestone Tracker Imports Excel
 import frappe
 import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
-from io import BytesIO
-from datetime import datetime
+from frappe.utils import now_datetime
+import re
 
 @frappe.whitelist()
-def download_job_milestone_excel(filters=None):
-    from freightmas.clearing_service.report.job_milestone_tracker_imports import job_milestone_tracker_imports
-
-    if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
-
-    columns, data = job_milestone_tracker_imports.execute(filters)
-
-    # Create workbook and worksheet
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Milestone Tracker Imports"
-
-    # Styling for header
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F81BD")
-    alignment = Alignment(horizontal="center", vertical="center")
-
-    # Write headers
-    for col_idx, col in enumerate(columns, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=col["label"])
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = alignment
-
-    # Write data rows
-    for row_idx, row in enumerate(data, start=2):
-        for col_idx, value in enumerate(row, start=1):
-            ws.cell(row=row_idx, column=col_idx, value=value)
-
-    # Auto-adjust column widths
-    for col_idx in range(1, len(columns) + 1):
-        col_letter = get_column_letter(col_idx)
-        max_length = max(
-            (len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(1, len(data) + 2)),
-            default=0
-        )
-        ws.column_dimensions[col_letter].width = max_length + 2
-
-    # Robust date formatting for filename
-    def fmt(date_str):
-        try:
-            return datetime.strptime(date_str, "%Y-%m-%d").strftime("%d-%b-%Y") if date_str else "All"
-        except Exception:
-            return "All"
-
-    from_date = fmt(filters.get("from_date"))
-    to_date = fmt(filters.get("to_date"))
-    filename = f"Job_Milestone_Tracker_Imports_{from_date}_to_{to_date}.xlsx"
-
-    # Return as binary file using Frappe's response object
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    frappe.local.response.filename = filename
-    frappe.local.response.filecontent = output.read()
-    frappe.local.response.type = "binary"
-
-
-    #################################################################
-## Download Container Tracker Excel
-@frappe.whitelist()
-def download_container_tracker_excel(filters=None):
-    from freightmas.clearing_service.report.container_tracker import container_tracker
+def export_report_to_excel(report_name, filters=None):
+    import json
     from io import BytesIO
-    import openpyxl
-    from openpyxl.styles import Font, Alignment, PatternFill
-    from openpyxl.utils import get_column_letter
-    from datetime import datetime
+    import importlib
 
     if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
+        filters = json.loads(filters)
 
-    columns, data = container_tracker.execute(filters)
+    # Get columns and data using the report's execute method
+    report = frappe.get_doc("Report", report_name)
+    if report.report_type != "Script Report":
+        frappe.throw("Only Script Reports are supported.")
+
+    module = importlib.import_module(
+        f"freightmas.{frappe.scrub(report.module)}.report.{frappe.scrub(report.name)}.{frappe.scrub(report.name)}"
+    )
+    columns, data = module.execute(filters)
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Container Tracker"
 
-    # Header styling
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F81BD")
-    align_center = Alignment(horizontal="center", vertical="center")
-
-    for col_idx, col in enumerate(columns, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=col["label"])
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = align_center
-
-    for row_idx, row in enumerate(data, start=2):
-        for col_idx, value in enumerate(row, start=1):
-            ws.cell(row=row_idx, column=col_idx, value=value)
-
-    for col_idx in range(1, len(columns) + 1):
-        col_letter = get_column_letter(col_idx)
-        max_len = max((len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(1, len(data) + 2)), default=0)
-        ws.column_dimensions[col_letter].width = max_len + 2
-
-    def fmt(d):
-        return datetime.strptime(d, "%Y-%m-%d").strftime("%d-%b-%Y") if d else "All"
-
-    from_date = fmt(filters.get("from_date"))
-    to_date = fmt(filters.get("to_date"))
-    filename = f"Container_Tracker_{from_date}_to_{to_date}.xlsx"
-
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    frappe.local.response.filename = filename
-    frappe.local.response.filecontent = output.read()
-    frappe.local.response.type = "binary"
-
-
-##################################################################
-## Download Container Status Excel
-@frappe.whitelist()
-def download_container_status_excel(filters=None):
-    from freightmas.clearing_service.report.container_status_tracker import container_status_tracker
-    from io import BytesIO
-    import openpyxl
-    from openpyxl.styles import Font, Alignment, PatternFill
-    from openpyxl.utils import get_column_letter
-    from datetime import datetime
-
-    if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
-
-    columns, data = container_status_tracker.execute(filters)
-
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Container Status"
+    sheet_title = re.sub(r'[\\/*?:\[\]]', '', report_name)[:31]
+    ws.title = sheet_title
 
     # Styles
-    title_font = Font(bold=True, size=14)
-    label_font = Font(bold=True)
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="305496")  # dark blue
-    align_left = Alignment(horizontal="left")
-    align_center = Alignment(horizontal="center")
+    bold_font = Font(bold=True, color="FFFFFF")
+    title_font = Font(bold=True, size=16)
+    subtitle_font = Font(bold=True, size=13)
+    filter_label_font = Font(bold=True)
+    header_fill = PatternFill("solid", fgColor="305496")  # Modern blue
+    zebra_fill = PatternFill("solid", fgColor="F2F2F2")  # Light gray for zebra
+    border = Border(
+        left=Side(style='thin', color='DDDDDD'),
+        right=Side(style='thin', color='DDDDDD'),
+        top=Side(style='thin', color='DDDDDD'),
+        bottom=Side(style='thin', color='DDDDDD')
+    )
+    center_align = Alignment(horizontal="center", vertical="center")
+    right_align = Alignment(horizontal="right", vertical="center")
+    left_align = Alignment(horizontal="left", vertical="center")
 
-    # === Report Title ===
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=len(columns))
-    ws.cell(row=1, column=1, value="Container Status Tracker").font = title_font
+    ncols = len(columns)
+    row_idx = 1
 
-    # === Filter Info ===
-    filter_row = 3
-    filter_map = {
-        "From Date": filters.get("from_date"),
-        "To Date": filters.get("to_date"),
-        "Client": filters.get("customer"),
-        "Job No": filters.get("job_no"),
-        "BL No": filters.get("bl_number"),
-        "Report Type": filters.get("report_type")
-    }
+    # Company Name (merged)
+    ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+    ws.cell(row=row_idx, column=1, value=frappe.defaults.get_user_default("Company")).font = title_font
+    row_idx += 1
 
-    def fmt_date(d):  # use dd-mmm-yy for consistency
-        try:
-            return datetime.strptime(d, "%Y-%m-%d").strftime("%d-%b-%y") if d else "All"
-        except Exception:
-            return d or "All"
+    # Report Title (merged)
+    ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+    ws.cell(row=row_idx, column=1, value=report_name).font = subtitle_font
+    row_idx += 1
 
-    for idx, (label, value) in enumerate(filter_map.items(), start=0):
-        ws.cell(row=filter_row + idx, column=1, value=label).font = label_font
-        if "Date" in label:
-            ws.cell(row=filter_row + idx, column=2, value=fmt_date(value))
-        else:
-            ws.cell(row=filter_row + idx, column=2, value=value or "All")
+    # Filters (merged label and value)
+    if filters:
+        for label, val in filters.items():
+            if val:
+                # Format date filters
+                if "date" in label and val:
+                    try:
+                        val = frappe.utils.formatdate(val, "dd-MMM-yy")
+                    except Exception:
+                        pass
+                ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=1)
+                ws.cell(row=row_idx, column=1, value=f"{label.replace('_', ' ').title()}:").font = filter_label_font
+                ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+                ws.cell(row=row_idx, column=2, value=val)
+                row_idx += 1
 
-    # === Table Headers ===
-    header_row = filter_row + len(filter_map) + 2
+    # Timestamp (label in first column, value in next column, merged across remaining columns)
+    ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+    ws.cell(row=row_idx, column=1, value="Exported:").font = filter_label_font
+    ws.cell(row=row_idx, column=1).alignment = left_align
+    export_time = now_datetime().strftime("%d-%b-%Y %H:%M")
+    ws.cell(row=row_idx, column=2, value=export_time)
+    ws.cell(row_idx, column=2).alignment = left_align
+    row_idx += 1
+
+    # Table Header
+    header_row = row_idx
     for col_idx, col in enumerate(columns, start=1):
         cell = ws.cell(row=header_row, column=col_idx, value=col["label"])
-        cell.font = header_font
+        cell.font = bold_font
+        cell.alignment = left_align
         cell.fill = header_fill
-        cell.alignment = align_center
+        cell.border = border
+    row_idx += 1
 
-    # === Data ===
-    for row_idx, row in enumerate(data, start=header_row + 1):
-        for col_idx, value in enumerate(row, start=1):
-            ws.cell(row=row_idx, column=col_idx, value=value)
+    # Freeze panes below the header row
+    ws.freeze_panes = ws[f"A{header_row+1}"]
 
-    # === Auto Column Widths ===
-    for col_idx in range(1, len(columns) + 1):
-        col_letter = get_column_letter(col_idx)
-        max_length = max(
-            (len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(1, ws.max_row + 1)),
-            default=0
-        )
-        ws.column_dimensions[col_letter].width = max_length + 2
+    # Table Data (zebra striping)
+    for i, row in enumerate(data, start=1):
+        fill = zebra_fill if i % 2 == 0 else None
+        for col_idx, col in enumerate(columns, start=1):
+            value = row.get(col["fieldname"], "")
+            # Format date columns
+            if "date" in col["fieldname"] and value:
+                try:
+                    value = frappe.utils.formatdate(value, "dd-MMM-yy")
+                except Exception:
+                    pass
+            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+            cell.border = border
+            if fill:
+                cell.fill = fill
+            # Alignment
+            if col.get("fieldtype") in ["Int", "Float", "Currency"]:
+                cell.alignment = right_align
+            else:
+                cell.alignment = left_align
+        row_idx += 1
 
-    # === Filename ===
-    filename = f"Container_Status_Tracker_{fmt_date(filters.get('from_date'))}_to_{fmt_date(filters.get('to_date'))}.xlsx"
+    # Auto-fit columns using only header and data rows
+    for col_idx, col in enumerate(columns, start=1):
+        max_length = 0
+        # Only check header and data rows
+        for row in ws.iter_rows(min_row=header_row, max_row=ws.max_row, min_col=col_idx, max_col=col_idx):
+            for cell in row:
+                try:
+                    cell_length = len(str(cell.value)) if cell.value else 0
+                    if cell_length > max_length:
+                        max_length = cell_length
+                except:
+                    pass
+        ws.column_dimensions[get_column_letter(col_idx)].width = max(12, min(max_length + 2, 40))
 
-    # === Return as Download ===
+    # Hide gridlines
+    ws.sheet_view.showGridLines = False
+
+    # Save to BytesIO and return as file
     output = BytesIO()
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = filename
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.xlsx"
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
 
-#################################################################################
-### Download Container Status PDF
+
+###################################################
+# Freightmas PDF Export for Script Reports
+# This module exports Script Reports to PDF format.
+# It uses Jinja templates for rendering the report
+import frappe
+import importlib
+from frappe.utils.pdf import get_pdf
+from frappe.utils.jinja import render_template
+from frappe.utils import now_datetime
+from frappe import _
+
 @frappe.whitelist()
-def download_container_status_pdf(filters=None):
-    from freightmas.clearing_service.report.container_status_tracker import container_status_tracker
-    from frappe.utils.pdf import get_pdf
-    from frappe import render_template
-    from datetime import datetime
+def export_report_to_pdf(report_name, filters):
+    import json
+    filters = json.loads(filters)
 
-    if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
+    # Dynamically import the report module and call its execute function
+    report = frappe.get_doc("Report", report_name)
+    if report.report_type != "Script Report":
+        frappe.throw("Only Script Reports are supported.")
 
-    columns, data = container_status_tracker.execute(filters)
+    module = importlib.import_module(
+        f"freightmas.{frappe.scrub(report.module)}.report.{frappe.scrub(report.name)}.{frappe.scrub(report.name)}"
+    )
+    columns, data = module.execute(filters)
 
-    user = frappe.session.user
-    company = frappe.defaults.get_user_default("Company")
-    printed_on = datetime.now().strftime("%d-%b-%Y %H:%M")
-
-    report_name = "Container Status Tracker"
-    filter_map = {
-        "From Date": filters.get("from_date"),
-        "To Date": filters.get("to_date"),
-        "Client": filters.get("customer"),
-        "Job No": filters.get("job_no"),
-        "BL No": filters.get("bl_number"),
-        "Report Type": filters.get("report_type")
-    }
-
-    def fmt_date(d):
+    # Format filter dates
+    def format_date(val):
+        if not val:
+            return ""
         try:
-            return datetime.strptime(d, "%Y-%m-%d").strftime("%d-%b-%y") if d else "All"
+            return frappe.utils.formatdate(val, "dd-MMM-yy")
         except Exception:
-            return d or "All"
+            return val
 
-    # Format filter dates for PDF heading
-    filter_map["From Date"] = fmt_date(filter_map.get("From Date"))
-    filter_map["To Date"] = fmt_date(filter_map.get("To Date"))
+    formatted_filters = {}
+    for k, v in filters.items():
+        if "date" in k and v:
+            formatted_filters[k] = format_date(v)
+        else:
+            formatted_filters[k] = v
 
     context = {
-        "company": company,
-        "report_name": report_name,
-        "filters": filter_map,
-        "columns": [col["label"] for col in columns],
+        "company": frappe.defaults.get_user_default("Company"),
+        "title": _(report_name),
+        "filters": formatted_filters,
+        "columns": columns,
         "data": data,
-        "printed_by": user,
-        "printed_on": printed_on
+        "frappe": frappe,
+        "exported_at": frappe.utils.now_datetime().strftime("%d-%b-%Y %H:%M"),
     }
 
-    html = render_template("freightmas/templates/container_status_pdf.html", context)
-    pdf = get_pdf(html, {"orientation": "Landscape"})
+    html = frappe.render_template(
+        "freightmas/templates/report_pdf_template.html", context
+    )
 
-    filename = f"{report_name.replace(' ', '_')}_{filter_map['From Date']}_to_{filter_map['To Date']}.pdf"
+    pdf = frappe.utils.pdf.get_pdf(
+        html,
+        options={
+            "orientation": "Landscape",
+            "footer-right": "Page [page] of [topage]",
+            "footer-font-size": "10",
+        }
+    )
 
-    frappe.local.response.filename = filename
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.pdf"
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
-#######################################################################
-### Download Clearing Job Register Excel
-
-import frappe
-from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import Font, Alignment
-
-@frappe.whitelist()
-def download_clearing_job_register_excel(date_from=None, date_to=None, direction=None, status=None):
-    from io import BytesIO
-    from freightmas.clearing_service.report.clearing_job_register import clearing_job_register
-
-    filters = {
-        "date_from": date_from,
-        "date_to": date_to,
-        "direction": direction,
-        "status": status,
-    }
-    # Remove None values
-    filters = {k: v for k, v in filters.items() if v}
-
-    columns, data = clearing_job_register.execute(filters=filters)
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Clearing Job Register"
-
-    # Header styling
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F81BD")
-    alignment = Alignment(horizontal="center", vertical="center")
-
-    # Write headers
-    for col_idx, col in enumerate(columns, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=col["label"])
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = alignment
-        ws.column_dimensions[get_column_letter(col_idx)].width = max(14, len(col["label"]) + 2)
-
-    # Write data rows
-    for row_idx, row in enumerate(data, start=2):
-        # If data is dicts
-        if isinstance(row, dict):
-            for col_idx, col in enumerate(columns, start=1):
-                ws.cell(row=row_idx, column=col_idx, value=row.get(col["fieldname"]))
-        # If data is lists/tuples
-        else:
-            for col_idx, value in enumerate(row, start=1):
-                ws.cell(row=row_idx, column=col_idx, value=value)
-
-    # Auto-adjust column widths
-    for col_idx in range(1, len(columns) + 1):
-        col_letter = get_column_letter(col_idx)
-        max_length = max(
-            (len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(1, ws.max_row + 1)),
-            default=0
-        )
-        ws.column_dimensions[col_letter].width = max(14, max_length + 2)
-
-    # Dynamic filename using date range
-    from datetime import datetime
-    def fmt(date_str):
-        try:
-            return datetime.strptime(date_str, "%Y-%m-%d").strftime("%d-%b-%Y") if date_str else "All"
-        except Exception:
-            return "All"
-
-    from_date = fmt(filters.get("date_from"))
-    to_date = fmt(filters.get("date_to"))
-    filename = f"Clearing_Job_Register_{from_date}_to_{to_date}.xlsx"
-
-    # Response
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-    frappe.local.response.filename = filename
-    frappe.local.response.filecontent = output.read()
-    frappe.local.response.type = "binary"
-
-##############################################################################
-## Download Milestone Tracker Import Excel
-import frappe
-import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill
-from openpyxl.utils import get_column_letter
-from io import BytesIO
-from datetime import datetime
-
-@frappe.whitelist()
-def download_milestone_tracker_import_excel(filters=None):
-    from freightmas.clearing_service.report.milestone_tracker_import import milestone_tracker_import
-
-    if isinstance(filters, str):
-        filters = frappe.parse_json(filters)
-
-    columns, data = milestone_tracker_import.execute(filters)
-
-    # Create workbook and worksheet
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Milestone Tracker Import"
-
-    # Styling for header
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F81BD")
-    alignment = Alignment(horizontal="center", vertical="center")
-
-    # Write headers
-    for col_idx, col in enumerate(columns, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=col["label"])
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = alignment
-
-    # Write data rows
-    for row_idx, row in enumerate(data, start=2):
-        for col_idx, value in enumerate(row, start=1):
-            ws.cell(row=row_idx, column=col_idx, value=value)
-
-    # Auto-adjust column widths
-    for col_idx in range(1, len(columns) + 1):
-        col_letter = get_column_letter(col_idx)
-        max_length = max(
-            (len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(1, len(data) + 2)),
-            default=0
-        )
-        ws.column_dimensions[col_letter].width = max_length + 2
-
-    # Robust date formatting for filename
-    def fmt(date_str):
-        try:
-            return datetime.strptime(date_str, "%Y-%m-%d").strftime("%d-%b-%Y") if date_str else "All"
-        except Exception:
-            return "All"
-
-    from_date = fmt(filters.get("from_date"))
-    to_date = fmt(filters.get("to_date"))
-    filename = f"Milestone_Tracker_Import_{from_date}_to_{to_date}.xlsx"
-
-    # Return as binary file using Frappe's response object
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    frappe.local.response.filename = filename
-    frappe.local.response.filecontent = output.read()
-    frappe.local.response.type = "binary"
-
-
-    ###########################################################################

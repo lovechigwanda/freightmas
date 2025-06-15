@@ -1,7 +1,7 @@
 {
  "charts": [],
- "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"jxq9tbzwxl\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"WyaNdhjNo_\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Report\",\"col\":4}},{\"id\":\"8B6bY4gRg0\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}}]",
- "creation": "2025-05-31 21:08:46.448015",
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"IQQMAWQ3yw\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
+ "creation": "2025-06-10 22:09:38.196768",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -35,7 +35,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Financial Reports",
+   "label": "Finance Reports",
    "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
@@ -54,7 +54,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Profitability (Actual)",
+   "label": "Job Profitability Actual",
    "link_count": 0,
    "link_to": "Clearing Job Profitability Actual",
    "link_type": "Report",
@@ -64,7 +64,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Profitability (Estimate)",
+   "label": "Job Profitability Estimate",
    "link_count": 0,
    "link_to": "Clearing Job Profitability Estimate",
    "link_type": "Report",
@@ -94,8 +94,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Operational Report",
-   "link_count": 4,
+   "label": "Operational Reports",
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -103,9 +103,29 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Clearing Job Register",
+   "label": "Job Register",
    "link_count": 0,
    "link_to": "Clearing Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "DND Exposure Imports",
+   "link_count": 0,
+   "link_to": "DND Exposure Import",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Milestone Tracker Imports",
+   "link_count": 0,
+   "link_to": "Milestone Tracker Import",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -123,9 +143,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Milestone Tracker Import",
+   "label": "DND and Storage Report",
    "link_count": 0,
-   "link_to": "Milestone Tracker Import",
+   "link_to": "DND and Storage Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -133,15 +153,15 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "DND Exposure Import",
+   "label": "DND and Storage Extended",
    "link_count": 0,
-   "link_to": "DND Exposure Import",
+   "link_to": "DND and Storage Report Extended",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-06-10 21:57:04.703912",
+ "modified": "2025-06-15 14:26:54.183892",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",

@@ -814,7 +814,7 @@ function fetch_and_append_template_charges(frm, template_name, quantity) {
 // CARGO PACKAGE COUNT SUMMARY LOGIC
 // ----------------------------------------------------------
 // This section automatically updates the 'cargo_count' field
-// with a summary like "3 x 40SD, 2 x Packages" whenever the
+// with a summary like "3 x 40SD, 2 x Pkgs" whenever the
 // Cargo Package Details child table is changed (add, remove,
 // or edit). It counts each containerised row by type and
 // sums up general cargo packages by quantity.
@@ -845,7 +845,7 @@ function update_cargo_count(frm) {
         summary.push(`${container_counts[type]} x ${type}`);
     });
     if (package_count > 0) {
-        summary.push(`${package_count} x Package${package_count > 1 ? "s" : ""}`);
+        summary.push(`${package_count} x PKG${package_count > 1 ? "s" : ""}`);
     }
     set_value_safe(frm, "cargo_count", summary.join(", "));
 }

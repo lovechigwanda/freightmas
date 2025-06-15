@@ -308,8 +308,11 @@ fixtures = [
     {
         "dt": "Workflow Action"
     },
-    {
-        "dt": "Workspace"
+   {
+        "dt": "Workspace",
+        "filters": [
+            ["name", "in", ["Port Clearing Service", "Trucking Service"]]
+        ]
     },
     {
         "dt": "Print Format"

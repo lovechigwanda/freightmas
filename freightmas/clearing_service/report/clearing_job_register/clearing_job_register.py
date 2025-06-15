@@ -33,6 +33,10 @@ def execute(filters=None):
         {"label": "DND Free Days", "fieldname": "dnd_free_days", "fieldtype": "Int", "width": 90},
         {"label": "Port Free Days", "fieldname": "port_free_days", "fieldtype": "Int", "width": 90},
         {"label": "Discharge Date", "fieldname": "discharge_date", "fieldtype": "Date", "width": 100},
+        {"label": "DND Start", "fieldname": "dnd_start_date", "fieldtype": "Date", "width": 100},
+        {"label": "Storage Start", "fieldname": "port_storage_start_date", "fieldtype": "Date", "width": 100},
+        {"label": "DND Days", "fieldname": "dnd_days", "fieldtype": "Int", "width": 80},
+        {"label": "Storage Days", "fieldname": "storage_days", "fieldtype": "Int", "width": 80},
         {"label": "Stack Open", "fieldname": "stack_open_date", "fieldtype": "Date", "width": 100},
         {"label": "Stack Close", "fieldname": "stack_close_date", "fieldtype": "Date", "width": 100},
         {"label": "Currency", "fieldname": "currency", "fieldtype": "Data", "width": 80},
@@ -66,16 +70,16 @@ def execute(filters=None):
 
     where_clause = " where " + " and ".join(conditions) if conditions else ""
 
-    # These are all the base doc fields, not calculated/summaries:
+    # Add new fields to base_fields
     base_fields = [
         "name", "date_created", "customer", "consignee", "customer_reference", "consignee_reference",
         "direction", "bl_number", "origin", "origin_country", "shipping_line", "destination",
         "destination_country", "eta", "etd", "cargo_description", "is_hazardous",
-        "dnd_free_days", "port_free_days", "discharge_date", "stack_open_date", "stack_close_date",
+        "dnd_free_days", "port_free_days", "discharge_date", "dnd_start_date", "port_storage_start_date",
+        "stack_open_date", "stack_close_date",
         "currency", "conversion_rate", "base_currency", "status", "completed_on", "company", "created_by"
     ]
 
-    # SQL to get jobs with filters
     jobs = frappe.db.sql(f"""
         SELECT {", ".join(base_fields)}
         FROM `tabClearing Job`
@@ -84,7 +88,10 @@ def execute(filters=None):
     """, values, as_dict=1)
 
     data = []
+    today = frappe.utils.nowdate()
+
     for job in jobs:
+        # Use cargo_count directly from the database, no calculation
         cargo_count = job.get("cargo_count", 0)
         total_revenue = total_cost = 0
         charges = frappe.db.get_all("Clearing Charges", filters={"parent": job["name"], "parenttype": "Clearing Job"},
@@ -98,12 +105,39 @@ def execute(filters=None):
         cost_base = total_cost * conv
         profit_base = revenue_base - cost_base
 
+        # DND and Storage Days Calculation (same logic as Milestone Tracker Imports)
+        discharge_date = job.get("discharge_date") or job.get("date_created")
+        dnd_free_days = int(job.get("dnd_free_days") or 0)
+        port_free_days = int(job.get("port_free_days") or 0)
+
+        # DND end_date logic (using stack_close_date as a proxy for gate_in_empty/gate_out_full if not available)
+        dnd_end_date = job.get("stack_close_date") or today
+        storage_end_date = job.get("stack_close_date") or today
+
+        dnd_days = calculate_days(discharge_date, dnd_end_date, dnd_free_days)
+        storage_days = calculate_days(discharge_date, storage_end_date, port_free_days)
+
         job.update({
             "cargo_count": cargo_count,
             "total_estimated_revenue_base": revenue_base,
             "total_estimated_cost_base": cost_base,
             "total_estimated_profit_base": profit_base,
+            "dnd_days": dnd_days,
+            "storage_days": storage_days,
         })
         data.append(job)
 
     return columns, data
+
+from datetime import datetime
+
+def calculate_days(start_date, end_date, free_days):
+    if not start_date or not end_date:
+        return 0
+    try:
+        start = datetime.strptime(str(start_date), "%Y-%m-%d")
+        end = datetime.strptime(str(end_date), "%Y-%m-%d")
+        days = (end - start).days + 1 - free_days
+        return days if days > 0 else 0
+    except Exception:
+        return 0

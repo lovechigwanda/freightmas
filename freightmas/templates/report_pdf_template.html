@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 20mm 15mm 25mm 15mm;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #222;
+        }
+
+        .print-heading {
+            margin-bottom: 10px;
+        }
+
+        .print-heading .print-heading-title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .print-heading .print-heading-sub {
+            font-size: 15px;
+            color: #555;
+        }
+
+        .print-heading .report-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .filters-table {
+            margin: 10px 0 20px 0;
+            font-size: 11px;
+        }
+
+        .filters-table td {
+            padding: 2px 8px 2px 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .table th, .table td {
+            border: 1px solid #bbb;
+            padding: 7px 8px;
+        }
+
+        .table th {
+            background: #f5f7fa;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .table-striped tbody tr:nth-child(even) td {
+            background: #f9f9f9;
+        }
+
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+
+        thead { display: table-header-group; }
+        tfoot { display: table-row-group; }
+    </style>
+</head>
+<body>
+
+    <div class="print-heading">
+        <div class="print-heading-title">{{ company }}</div>
+        <div class="print-heading-sub">{{ title }}</div>
+    </div>
+
+    {% if filters %}
+    <table class="filters-table">
+        <tbody>
+            {% for label, val in filters.items() %}
+                <tr>
+                    <td><b>{{ label|replace("_", " ")|title }}:</b></td>
+                    <td>{{ val }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div style="text-align:right; font-size:11px; color:#888; margin-bottom:8px;">
+        Exported: {{ exported_at }}
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th class="text-center">#</th>
+                {% for col in columns %}
+                    <th class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }}">
+                        {{ col.label }}
+                    </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    {% for col in columns %}
+                        {% set value = row.get(col.fieldname, "") %}
+                        <td class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }}">
+                            {{ "" if value == 0 else value }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
