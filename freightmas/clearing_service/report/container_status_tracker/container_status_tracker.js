@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["DND Exposure Imports"] = {
+frappe.query_reports["Container Status Tracker"] = {
     filters: [
         {
             fieldname: "date_range",
@@ -20,12 +20,12 @@ frappe.query_reports["DND Exposure Imports"] = {
                 "Custom"
             ],
             default: "This Month",
-            on_change: function() {
+            on_change: function () {
                 let date_range = frappe.query_report.get_filter_value('date_range');
                 let today = frappe.datetime.get_today();
                 let from_date, to_date;
 
-                switch(date_range) {
+                switch (date_range) {
                     case "Today":
                         from_date = to_date = today;
                         break;
@@ -71,62 +71,59 @@ frappe.query_reports["DND Exposure Imports"] = {
         },
         {
             fieldname: "from_date",
-            label: __("From Date"),
+            label: "From Date",
             fieldtype: "Date",
-            default: frappe.datetime.month_start(),
-            reqd: 1
+            default: frappe.datetime.add_months(frappe.datetime.get_today(), -1)
         },
         {
             fieldname: "to_date",
-            label: __("To Date"),
+            label: "To Date",
             fieldtype: "Date",
-            default: frappe.datetime.get_today(),
-            reqd: 1
+            default: frappe.datetime.get_today()
         },
         {
             fieldname: "customer",
-            label: __("Customer"),
+            label: "Customer",
             fieldtype: "Link",
-            options: "Customer"
+            options: "Customer",
+            only_select: true
+        },
+        {
+            fieldname: "direction",
+            label: "Direction",
+            fieldtype: "Select",
+            options: ["", "Import", "Export"]
         },
         {
             fieldname: "job_no",
-            label: __("Job No"),
+            label: "Job No",
             fieldtype: "Link",
-            options: "Clearing Job"
-        },
-        {
-            fieldname: "bl_number",
-            label: __("BL No"),
-            fieldtype: "Data"
-        },
-        {
-            fieldname: "job_status",
-            label: __("Job Status"),
-            fieldtype: "Select",
-            options: [
-                "",
-                "In Progress",
-                "Completed",
-                "Cancelled"
-            ],
-            default: ""
+            options: "Clearing Job",
+            only_select: true
         }
     ],
 
-    onload: function (report) {
-        // Excel Export Button (if you have the server-side API set up)
-        report.page.add_inner_button("Export to Excel", function () {
+    onload: function(report) {
+        report.page.add_inner_button('Export to Excel', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            window.location.href = `/api/method/freightmas.api.download_dnd_exposure_excel?filters=${query}`;
-        });
+            const url = `/api/method/freightmas.api.export_report_to_excel?report_name=DND and Storage Report&filters=${query}`;
+            window.open(url);
+        }, 'Export');
 
-        // PDF Export Button (if you have the server-side API set up)
-        report.page.add_inner_button("Export to PDF", function () {
+        report.page.add_inner_button('Export to PDF', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            window.location.href = `/api/method/freightmas.api.download_dnd_exposure_pdf?filters=${query}`;
+            const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=DND and Storage Report&filters=${query}`;
+            window.open(url);
+        }, 'Export');
+
+        // Add a stand-alone "Clear Filters" button
+        report.page.add_inner_button('Clear Filters', function() {
+            report.filters.forEach(filter => {
+                let default_value = filter.df.default || "";
+                report.set_filter_value(filter.df.fieldname, default_value);
+            });
         });
     }
 };
