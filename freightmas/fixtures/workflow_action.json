@@ -1,5 +1,26 @@
 [
  {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-18 15:37:12.383146",
+  "name": "2ijeuf2ms8",
+  "permitted_roles": [
+   {
+    "parent": "2ijeuf2ms8",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00013-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
   "completed_by": "Administrator",
   "completed_by_role": "All",
   "docstatus": 0,

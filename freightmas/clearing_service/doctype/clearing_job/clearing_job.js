@@ -14,6 +14,7 @@ frappe.ui.form.on('Clearing Job', {
     calculate_clearing_totals(frm);
     toggle_base_fields(frm);
     update_currency_labels(frm);
+    update_cargo_count(frm);
   },
 
   shipping_line: function(frm) {
@@ -21,12 +22,12 @@ frappe.ui.form.on('Clearing Job', {
       frappe.db.get_doc('Shipping Line', frm.doc.shipping_line)
         .then(doc => {
           if (doc.free_days_import && frm.doc.direction === "Import") {
-            frm.set_value('dnd_free_days', doc.free_days_import);
-            frm.set_value('port_free_days', doc.free_days_import);
+            set_main_value_safe(frm, 'dnd_free_days', doc.free_days_import);
+            set_main_value_safe(frm, 'port_free_days', doc.free_days_import);
           }
           if (doc.free_days_export && frm.doc.direction === "Export") {
-            frm.set_value('dnd_free_days', doc.free_days_export);
-            frm.set_value('port_free_days', doc.free_days_export);
+            set_main_value_safe(frm, 'dnd_free_days', doc.free_days_export);
+            set_main_value_safe(frm, 'port_free_days', doc.free_days_export);
           }
         });
     }
@@ -117,18 +118,14 @@ frappe.ui.form.on('Clearing Job', {
         },
         callback: function(r) {
           if (r.message) {
-            if (frm.doc.conversion_rate !== r.message) {
-              frm.set_value("conversion_rate", r.message);
-            }
+            set_main_value_safe(frm, "conversion_rate", r.message);
             calculate_clearing_totals(frm);
             toggle_base_fields(frm);
           }
         }
       });
     } else {
-      if (frm.doc.conversion_rate !== 1.0) {
-        frm.set_value("conversion_rate", 1.0);
-      }
+      set_main_value_safe(frm, "conversion_rate", 1.0);
       calculate_clearing_totals(frm);
       toggle_base_fields(frm);
     }
@@ -157,8 +154,7 @@ function toggle_directional_fields(frm) {
   ];
   const import_dates = [
     "discharge_date", "vessel_arrived_date", "date_discharged_from_port", "do_requested_date",
-    "do_received_date", "port_release_confirmed_date", "sl_invoice_received_date", "sl_invoice_payment_date",
-    "discharge_date"
+    "do_received_date", "port_release_confirmed_date", "sl_invoice_received_date", "sl_invoice_payment_date"
   ];
 
   // Export-specific fields
@@ -166,8 +162,7 @@ function toggle_directional_fields(frm) {
     "is_booking_confirmed", "is_clearing_for_shipment_done", "is_loaded_on_vessel", "is_vessel_sailed"
   ];
   const export_dates = [
-    "booking_confirmation_date", "shipment_cleared_date", "loaded_on_vessel_date", "vessel_sailed_date",
-    "vessel_loading_date"
+    "booking_confirmation_date", "shipment_cleared_date", "loaded_on_vessel_date", "vessel_sailed_date"
   ];
 
   [...import_checkboxes, ...import_dates].forEach(field => {
@@ -299,23 +294,17 @@ function calculate_clearing_totals(frm) {
   const profit = total_revenue - total_cost;
   const rate = frm.doc.conversion_rate || 1.0;
 
-  if (frm.doc.total_estimated_revenue !== total_revenue)
-    frm.set_value('total_estimated_revenue', total_revenue);
-  if (frm.doc.total_estimated_cost !== total_cost)
-    frm.set_value('total_estimated_cost', total_cost);
-  if (frm.doc.total_estimated_profit !== profit)
-    frm.set_value('total_estimated_profit', profit);
+  set_main_value_safe(frm, 'total_estimated_revenue', total_revenue);
+  set_main_value_safe(frm, 'total_estimated_cost', total_cost);
+  set_main_value_safe(frm, 'total_estimated_profit', profit);
 
   const revenue_base = total_revenue * rate;
   const cost_base = total_cost * rate;
   const profit_base = profit * rate;
 
-  if (frm.doc.total_estimated_revenue_base !== revenue_base)
-    frm.set_value('total_estimated_revenue_base', revenue_base);
-  if (frm.doc.total_estimated_cost_base !== cost_base)
-    frm.set_value('total_estimated_cost_base', cost_base);
-  if (frm.doc.total_estimated_profit_base !== profit_base)
-    frm.set_value('total_estimated_profit_base', profit_base);
+  set_main_value_safe(frm, 'total_estimated_revenue_base', revenue_base);
+  set_main_value_safe(frm, 'total_estimated_cost_base', cost_base);
+  set_main_value_safe(frm, 'total_estimated_profit_base', profit_base);
 }
 
 function toggle_base_fields(frm) {
@@ -404,12 +393,9 @@ frappe.ui.form.on('Clearing Job', {
     if (tracking && tracking.length > 0) {
       const last = tracking[tracking.length - 1];
 
-      if (frm.doc.current_comment !== last.comment)
-        frm.set_value('current_comment', last.comment);
-      if (frm.doc.last_updated_on !== last.updated_on)
-        frm.set_value('last_updated_on', last.updated_on);
-      if (frm.doc.last_updated_by !== last.updated_by)
-        frm.set_value('last_updated_by', last.updated_by);
+      set_main_value_safe(frm, 'current_comment', last.comment);
+      set_main_value_safe(frm, 'last_updated_on', last.updated_on);
+      set_main_value_safe(frm, 'last_updated_by', last.updated_by);
     }
   }
 });
@@ -669,32 +655,12 @@ frappe.ui.form.on('Clearing Job', {
 // ==========================================================
 // LOAD CHARGES FROM TEMPLATE - Clearing Job Doctype//
 
-// This block allows users to quickly populate the charges table
-// with pre-defined charge templates, saving time and ensuring
-// consistency across jobs. It includes quantity control, duplicate
-// prevention, automatic totals, and full user feedback.
-//
-// Requirements handled:
-// - Form button triggers dialog for template/quantity selection
-// - Filters templates by direction & shipping line
-// - Prevents duplicate charges (by charge name)
-// - Sets all fields as per mapping, quantity included
-// - Calculates row and total amounts
-// - User sees result messages
-// ==========================================================
-
 frappe.ui.form.on('Clearing Job', {
-  // This event is triggered when the button field (placed above the charges table) is clicked
   load_charges_from_template(frm) {
     open_charges_template_dialog(frm);
   }
 });
 
-/**
- * Opens a dialog to select a charge template and quantity.
- * Filters templates by current job direction and shipping line.
- * On selection, triggers loading/appending charges.
- */
 function open_charges_template_dialog(frm) {
   frappe.call({
     method: 'frappe.client.get_list',
@@ -709,13 +675,11 @@ function open_charges_template_dialog(frm) {
     },
     callback: function (r) {
       if (r.message && r.message.length > 0) {
-        // Build human-readable template options for the select field
         let template_options = r.message.map(tpl =>
           `${tpl.name} (${tpl.shipping_line || ''} / ${tpl.container_type || ''} / ${tpl.direction})`
         );
         let template_names = r.message.map(tpl => tpl.name);
 
-        // Show dialog to select template and quantity
         let d = new frappe.ui.Dialog({
           title: __('Load Charges from Template'),
           fields: [
@@ -753,16 +717,6 @@ function open_charges_template_dialog(frm) {
   });
 }
 
-/**
- * Appends charges from the selected template to the charges child table.
- * Prevents duplicate charge entries (by charge name).
- * Sets all required fields and computes revenue/cost per row.
- * Triggers recalculation of parent totals.
- *
- * @param {Object} frm - Frappe form object
- * @param {string} template_name - Selected template document name
- * @param {number} quantity - Quantity to apply to all rows
- */
 function fetch_and_append_template_charges(frm, template_name, quantity) {
   frappe.call({
     method: 'frappe.client.get',
@@ -774,12 +728,10 @@ function fetch_and_append_template_charges(frm, template_name, quantity) {
       if (r.message && r.message.clearing_charges_template_item) {
         let items = r.message.clearing_charges_template_item;
         let parent_customer = frm.doc.customer;
-        // Build list of existing charges to prevent duplicates
         let existing_charges = (frm.doc.clearing_charges || []).map(row => row.charge);
 
         let added_count = 0;
         items.forEach(row => {
-          // Prevent duplicate charges by charge name
           if (!existing_charges.includes(row.charge)) {
             let child = frm.add_child('clearing_charges', {
               charge: row.charge,
@@ -787,9 +739,8 @@ function fetch_and_append_template_charges(frm, template_name, quantity) {
               buy_rate: row.buy_rate,
               supplier: row.supplier,
               customer: parent_customer,
-              qty: quantity // User-specified quantity
+              qty: quantity
             });
-            // Calculate revenue and cost per row
             child.revenue_amount = (quantity || 0) * (row.sell_rate || 0);
             child.cost_amount = (quantity || 0) * (row.buy_rate || 0);
             added_count += 1;
@@ -797,9 +748,8 @@ function fetch_and_append_template_charges(frm, template_name, quantity) {
         });
 
         frm.refresh_field('clearing_charges');
-        calculate_clearing_totals(frm); // Always recalculate totals
+        calculate_clearing_totals(frm);
 
-        // Give user feedback
         if (added_count === 0) {
           frappe.msgprint(__('All template charges already exist in the charges table. No new charges added.'));
         } else {
@@ -813,18 +763,6 @@ function fetch_and_append_template_charges(frm, template_name, quantity) {
 // ==========================================================
 // CARGO PACKAGE COUNT SUMMARY LOGIC
 // ----------------------------------------------------------
-// This section automatically updates the 'cargo_count' field
-// with a summary like "3 x 40SD, 2 x Pkgs" whenever the
-// Cargo Package Details child table is changed (add, remove,
-// or edit). It counts each containerised row by type and
-// sums up general cargo packages by quantity.
-// ==========================================================
-
-function set_value_safe(frm, fieldname, value) {
-    // Always set for date fields to ensure triggers fire
-    frm.set_value(fieldname, value);
-}
-
 function update_cargo_count(frm) {
     let table = frm.doc.cargo_package_details || [];
     let container_counts = {};
@@ -835,7 +773,6 @@ function update_cargo_count(frm) {
             let ctype = row.container_type || "Unknown Type";
             container_counts[ctype] = (container_counts[ctype] || 0) + 1;
         } else {
-            // Use cargo_quantity if present, else count as 1 per row
             package_count += row.cargo_quantity ? row.cargo_quantity : 1;
         }
     });
@@ -847,7 +784,7 @@ function update_cargo_count(frm) {
     if (package_count > 0) {
         summary.push(`${package_count} x PKG${package_count > 1 ? "s" : ""}`);
     }
-    set_value_safe(frm, "cargo_count", summary.join(", "));
+    set_main_value_safe(frm, "cargo_count", summary.join(", "));
 }
 
 // Main form triggers
@@ -875,19 +812,17 @@ function update_dnd_and_storage_dates(frm) {
         const dnd_start = frappe.datetime.add_days(discharge_date, dnd_days + 1);
         const storage_start = frappe.datetime.add_days(discharge_date, port_days + 1);
 
-        set_value_safe(frm, "dnd_start_date", dnd_start);
-        set_value_safe(frm, "storage_start_date", storage_start);
+        set_main_value_safe(frm, "dnd_start_date", dnd_start);
+        set_main_value_safe(frm, "storage_start_date", storage_start);
     } else {
-        set_value_safe(frm, "dnd_start_date", null);
-        set_value_safe(frm, "storage_start_date", null);
-        // If is_discharged_from_vessel is cleared, also clear discharge_date
+        set_main_value_safe(frm, "dnd_start_date", null);
+        set_main_value_safe(frm, "storage_start_date", null);
         if (!is_discharged_from_vessel && discharge_date) {
-            set_value_safe(frm, "discharge_date", null);
+            set_main_value_safe(frm, "discharge_date", null);
         }
     }
 }
 
-// Triggers for the relevant fields
 frappe.ui.form.on('Clearing Job', {
     discharge_date: update_dnd_and_storage_dates,
     dnd_free_days: update_dnd_and_storage_dates,
@@ -895,3 +830,80 @@ frappe.ui.form.on('Clearing Job', {
     is_discharged_from_vessel: update_dnd_and_storage_dates
 });
 
+// --- Cargo Package Details - Conditional Logic ---
+frappe.ui.form.on('Cargo Package Details', {
+    is_empty_picked: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_empty_picked) {
+            set_child_value_safe(frm, cdt, cdn, 'is_gated_in_port', 0);
+            set_child_value_safe(frm, cdt, cdn, 'is_loaded_on_vessel', 0);
+            set_child_value_safe(frm, cdt, cdn, 'pick_up_empty_date', null);
+            set_child_value_safe(frm, cdt, cdn, 'gate_in_full_date', null);
+            set_child_value_safe(frm, cdt, cdn, 'loaded_on_vessel_date', null);
+        }
+    },
+    is_gated_in_port: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.is_gated_in_port && !row.is_empty_picked) {
+            frappe.msgprint(__('Please tick "Is Empty Picked" before "Is Gated In Port"'));
+            set_child_value_safe(frm, cdt, cdn, 'is_gated_in_port', 0);
+            return;
+        }
+        if (!row.is_gated_in_port) {
+            set_child_value_safe(frm, cdt, cdn, 'is_loaded_on_vessel', 0);
+            set_child_value_safe(frm, cdt, cdn, 'gate_in_full_date', null);
+            set_child_value_safe(frm, cdt, cdn, 'loaded_on_vessel_date', null);
+        }
+    },
+    is_loaded_on_vessel: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.is_loaded_on_vessel && (!row.is_empty_picked || !row.is_gated_in_port)) {
+            frappe.msgprint(__('Please tick prior steps before "Is Loaded On Vessel"'));
+            set_child_value_safe(frm, cdt, cdn, 'is_loaded_on_vessel', 0);
+            return;
+        }
+        if (!row.is_loaded_on_vessel) {
+            set_child_value_safe(frm, cdt, cdn, 'loaded_on_vessel_date', null);
+        }
+    },
+    pick_up_empty_date: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_empty_picked && row.pick_up_empty_date) {
+            set_child_value_safe(frm, cdt, cdn, 'pick_up_empty_date', null);
+        }
+    },
+    gate_in_full_date: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_gated_in_port && row.gate_in_full_date) {
+            set_child_value_safe(frm, cdt, cdn, 'gate_in_full_date', null);
+        }
+    },
+    loaded_on_vessel_date: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_loaded_on_vessel && row.loaded_on_vessel_date) {
+            set_child_value_safe(frm, cdt, cdn, 'loaded_on_vessel_date', null);
+        }
+    }
+});
+
+// --- Safe setters separated for main and child table ---
+function set_main_value_safe(frm, fieldname, value) {
+    const field = frm.fields_dict[fieldname];
+    if (!field) {
+        frm.set_value(fieldname, value);
+        return;
+    }
+    if (field.df.fieldtype === "Date" || field.df.fieldtype === "Datetime") {
+        frm.set_value(fieldname, value);
+        return;
+    }
+    if (frm.doc[fieldname] !== value) {
+        frm.set_value(fieldname, value);
+    }
+}
+function set_child_value_safe(frm, cdt, cdn, fieldname, value) {
+    const row = locals[cdt][cdn];
+    if (row && row[fieldname] !== value) {
+        frappe.model.set_value(cdt, cdn, fieldname, value);
+    }
+}

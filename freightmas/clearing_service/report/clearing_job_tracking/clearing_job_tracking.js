@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Container Tracker Imports"] = {
+frappe.query_reports["Clearing Job Tracking"] = {
     filters: [
         {
             fieldname: "date_range",
@@ -92,17 +92,6 @@ frappe.query_reports["Container Tracker Imports"] = {
             fieldname: "bl_number",
             label: "BL Number",
             fieldtype: "Data"
-        },
-        {
-            fieldname: "container_no",
-            label: "Container No",
-            fieldtype: "Data"
-        },
-        {
-            fieldname: "status",
-            label: __("Status"),
-            fieldtype: "Select",
-            options: "\nIn Port\nNot Returned\nReturned\nDelivered"
         }
     ],
 
@@ -110,14 +99,14 @@ frappe.query_reports["Container Tracker Imports"] = {
         report.page.add_inner_button('Export to Excel', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Container Tracker Imports&filters=${query}`;
+            const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Clearing Job Tracking&filters=${query}`;
             window.open(url);
         }, 'Export');
 
         report.page.add_inner_button('Export to PDF', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Container Tracker Imports&filters=${query}`;
+            const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Clearing Job Tracking&filters=${query}`;
             window.open(url);
         }, 'Export');
 

@@ -35,6 +35,8 @@
   "destination_country",
   "column_break_cjvh",
   "eta",
+  "ata",
+  "atd",
   "etd",
   "section_break_fkqn",
   "clearing_documents_checklist",
@@ -265,10 +267,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.direction==\"Import\"",
    "fieldname": "eta",
    "fieldtype": "Date",
    "in_filter": 1,
-   "label": "ETA"
+   "label": "Estimated Time of Arrival (ATA)"
   },
   {
    "fieldname": "origin",
@@ -345,10 +348,11 @@
    "label": "Key Milestones"
   },
   {
+   "depends_on": "eval:doc.direction==\"Export\"",
    "fieldname": "etd",
    "fieldtype": "Date",
    "in_filter": 1,
-   "label": "ETD"
+   "label": "Estimated Time of Departure (ETD)"
   },
   {
    "default": "0",
@@ -862,6 +866,18 @@
    "fieldname": "storage_start_date",
    "fieldtype": "Date",
    "label": "Storage Start Date"
+  },
+  {
+   "depends_on": "eval:doc.direction==\"Import\"",
+   "fieldname": "ata",
+   "fieldtype": "Date",
+   "label": "Actual Time of Arrival (ATA)"
+  },
+  {
+   "depends_on": "eval:doc.direction==\"Export\"",
+   "fieldname": "atd",
+   "fieldtype": "Date",
+   "label": "Actual Time of Departure (ATD)"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -879,7 +895,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-06-10 21:30:41.740017",
+ "modified": "2025-06-18 18:35:14.076840",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

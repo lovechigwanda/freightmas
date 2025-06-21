@@ -21,8 +21,21 @@ def get_columns():
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 210},
         {"label": "S Line", "fieldname": "shipping_line", "fieldtype": "Link", "options": "Shipping Line", "width": 90},
         {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 140},
+        {"label": "Cargo Desc", "fieldname": "cargo_description", "fieldtype": "Data", "width": 180},
         {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 140},
         {"label": "Type", "fieldname": "container_type", "fieldtype": "Data", "width": 90},
+        {"label": "D&D Free Dys", "fieldname": "dnd_free_days", "fieldtype": "Int", "width": 80},
+        {"label": "Port Free Dys", "fieldname": "port_free_days", "fieldtype": "Int", "width": 80},
+        {"label": "Disch Date", "fieldname": "discharge_date", "fieldtype": "Data", "width": 110},
+        {"label": "Returning", "fieldname": "to_be_returned", "fieldtype": "Data", "width": 60},
+        {"label": "Loaded", "fieldname": "is_loaded", "fieldtype": "Data", "width": 60},
+        {"label": "Out Date", "fieldname": "gate_out_full_date", "fieldtype": "Data", "width": 110},
+        {"label": "Returned", "fieldname": "is_returned", "fieldtype": "Data", "width": 60},
+        {"label": "In Date", "fieldname": "gate_in_empty_date", "fieldtype": "Data", "width": 110},
+        {"label": "Transporter", "fieldname": "transporter_name", "fieldtype": "Data", "width": 120},
+        {"label": "Truck Reg", "fieldname": "truck_reg_no", "fieldtype": "Data", "width": 100},
+        {"label": "Trailer Reg", "fieldname": "trailer_reg_no", "fieldtype": "Data", "width": 100},
+        {"label": "Driver Name", "fieldname": "driver_name", "fieldtype": "Data", "width": 100},
         {"label": "Status", "fieldname": "container_status", "fieldtype": "Data", "width": 120},
         {"label": "D Days", "fieldname": "dnd_days", "fieldtype": "Int", "width": 75},
         {"label": "S Days", "fieldname": "storage_days", "fieldtype": "Int", "width": 75},
@@ -65,7 +78,7 @@ def execute(filters=None):
         filters=job_filters,
         fields=[
             "name", "date_created", "customer", "direction",
-            "shipping_line", "bl_number", "discharge_date", "dnd_free_days", "port_free_days"
+            "shipping_line", "bl_number", "discharge_date", "dnd_free_days", "port_free_days", "cargo_description"
         ]
     )
 
@@ -83,8 +96,8 @@ def execute(filters=None):
             "Cargo Package Details",
             filters=container_filters,
             fields=[
-                "name", "container_number", "container_type", "is_loaded", "to_be_returned", "is_returned",
-                "gate_in_empty_date", "gate_out_full_date"
+                "name", "container_number", "container_type", "to_be_returned", "is_loaded", "gate_out_full_date",
+                "is_returned", "gate_in_empty_date", "transporter_name", "truck_reg_no", "trailer_reg_no", "driver_name"
             ]
         )
 
@@ -156,11 +169,24 @@ def execute(filters=None):
                 "customer": job["customer"],
                 "shipping_line": job.get("shipping_line", ""),
                 "bl_number": job.get("bl_number", ""),
+                "cargo_description": job.get("cargo_description", ""),
                 "container_number": cont.get("container_number", ""),
                 "container_type": cont.get("container_type", ""),
+                "dnd_free_days": job.get("dnd_free_days", 0),
+                "port_free_days": job.get("port_free_days", 0),
+                "discharge_date": format_date(job.get("discharge_date")),
+                "to_be_returned": "Yes" if cont.get("to_be_returned") else "No",
+                "is_loaded": "Yes" if cont.get("is_loaded") else "No",
+                "gate_out_full_date": format_date(cont.get("gate_out_full_date")),
+                "is_returned": "Yes" if cont.get("is_returned") else "No",
+                "gate_in_empty_date": format_date(cont.get("gate_in_empty_date")),
+                "transporter_name": cont.get("transporter_name", ""),
+                "truck_reg_no": cont.get("truck_reg_no", ""),
+                "trailer_reg_no": cont.get("trailer_reg_no", ""),
+                "driver_name": cont.get("driver_name", ""),
+                "container_status": container_status,
                 "dnd_days": dnd_days,
                 "storage_days": storage_days,
-                "container_status": container_status,
             })
 
     return columns, data
