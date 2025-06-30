@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ report_title }}</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #222;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #333;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            margin-top: 18px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+        }
+
+        .job-section {
+            page-break-after: always;
+            padding-bottom: 12px;
+        }
+
+        .job-header {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a237e;
+            margin-bottom: 8px;
+        }
+
+        .job-info-table,
+        .container-table,
+        .milestone-table,
+        .general-cargo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .job-info-table td,
+        .container-table th,
+        .container-table td,
+        .milestone-table th,
+        .milestone-table td,
+        .general-cargo-table th,
+        .general-cargo-table td {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        .job-info-table td {
+            vertical-align: top;
+            line-height: 1.4;
+        }
+
+        .container-table th,
+        .general-cargo-table th,
+        .milestone-table th {
+            background: #f5f5f5;
+        }
+
+        .milestone-table th,
+        .milestone-table td {
+            text-align: center;
+        }
+
+        .milestone-table th:first-child,
+        .milestone-table td:first-child {
+            text-align: left;
+        }
+
+        .container-table td,
+        .container-table th,
+        .general-cargo-table td,
+        .general-cargo-table th {
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-header">
+        <div style="font-size:1.3em;font-weight:bold;">{{ report_title }}</div>
+        <div style="font-size:1.1em;font-weight:bold;">{{ company }}</div>
+        <div style="font-size:1.1em;">Customer: <b>{{ customer_name }}</b></div>
+        <div>Exported: {{ export_date }}</div>
+    </div>
+
+    {% for job in jobs %}
+    <div class="job-section">
+        <div class="job-header">Job: {{ job.name }}</div>
+        <table class="job-info-table">
+            <tr>
+                <td><b>Date Created</b></td>
+                <td>{{ job.date_created }}</td>
+                <td><b>Direction</b></td>
+                <td>{{ job.direction or '-' }}</td>
+                <td><b>BL Number</b></td>
+                <td>{{ job.bl_number or '-' }}</td>
+            </tr>
+            <tr>
+                {% if job.direction == "Import" %}
+                    <td><b>ETA</b></td>
+                    <td>{{ job.eta }}</td>
+                {% else %}
+                    <td><b>ETD</b></td>
+                    <td>{{ job.etd }}</td>
+                {% endif %}
+                <td><b>Status</b></td>
+                <td>{{ job.status }}</td>
+                <td><b>Cargo</b></td>
+                <td>{{ job.cargo_count or '-' }}</td>
+            </tr>
+            {% if job.status == "Completed" and job.completed_on %}
+            <tr>
+                <td><b>Completed On</b></td>
+                <td colspan="5">{{ job.completed_on }}</td>
+            </tr>
+            {% endif %}
+        </table>
+
+        <div class="section-title">Milestone Checklist</div>
+        <table class="milestone-table">
+            <tr>
+                <th>Milestone</th>
+                <th>Done?</th>
+                <th>Date</th>
+            </tr>
+            {% for label, done, date in job.milestones %}
+            <tr>
+                <td>{{ label }}</td>
+                <td>{% if done %}YES{% else %}NO{% endif %}</td>
+                <td>{{ date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        {% if job.containers %}
+        <div class="section-title">Container Details</div>
+        <table class="container-table">
+            <tr>
+                <th>Container Number</th>
+                <th>Type</th>
+                {% if job.direction == "Import" %}
+                    <th>Gate Out Full</th>
+                    <th>Gate In Empty</th>
+                {% else %}
+                    <th>Pick Up Empty</th>
+                    <th>Gate In Full</th>
+                    <th>Loaded On Vessel</th>
+                {% endif %}
+                <th>D&D Days</th>
+                <th>Port Storage Days</th>
+            </tr>
+            {% for c in job.containers %}
+            <tr>
+                <td>{{ c.container_number or '-' }}</td>
+                <td>{{ c.container_type or '-' }}</td>
+                {% if job.direction == "Import" %}
+                    <td>{{ c.gate_out_full_date }}</td>
+                    <td>{{ c.gate_in_empty_date }}</td>
+                {% else %}
+                    <td>{{ c.pick_up_empty_date }}</td>
+                    <td>{{ c.gate_in_full_date }}</td>
+                    <td>{{ c.loaded_on_vessel_date }}</td>
+                {% endif %}
+                <td>{{ c.dnd_days }}</td>
+                <td>{{ c.storage_days }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        {% if job.general_cargo %}
+        <div class="section-title">General Cargo Details</div>
+        <table class="general-cargo-table">
+            <tr>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>UOM</th>
+                {% if job.direction == "Import" %}
+                    <th>Gate Out Full</th>
+                    <th>Gate In Empty</th>
+                {% else %}
+                    <th>Pick Up Empty</th>
+                    <th>Gate In Full</th>
+                    <th>Loaded On Vessel</th>
+                {% endif %}
+                <th>D&D Days</th>
+                <th>Port Storage Days</th>
+            </tr>
+            {% for g in job.general_cargo %}
+            <tr>
+                <td>{{ g.cargo_item_description or '-' }}</td>
+                <td>{{ g.cargo_quantity or '-' }}</td>
+                <td>{{ g.cargo_uom or '-' }}</td>
+                {% if job.direction == "Import" %}
+                    <td>{{ g.gate_out_full_date }}</td>
+                    <td>{{ g.gate_in_empty_date }}</td>
+                {% else %}
+                    <td>{{ g.pick_up_empty_date }}</td>
+                    <td>{{ g.gate_in_full_date }}</td>
+                    <td>{{ g.loaded_on_vessel_date }}</td>
+                {% endif %}
+                <td>{{ g.dnd_days }}</td>
+                <td>{{ g.storage_days }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        <div class="section-title">Notes & Tracking</div>
+        <table class="job-info-table">
+            <tr>
+                <th>Current Comment</th>
+                <th>Last Updated</th>
+            </tr>
+            <tr>
+                <td>{{ job.current_comment or '-' }}</td>
+                <td>{{ job.last_updated_on }}</td>
+            </tr>
+        </table>
+    </div>
+    {% endfor %}
+</body>
+</html>

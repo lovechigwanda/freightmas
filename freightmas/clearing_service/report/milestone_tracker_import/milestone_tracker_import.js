@@ -20,12 +20,12 @@ frappe.query_reports["Milestone Tracker Import"] = {
                 "Custom"
             ],
             default: "This Month",
-            on_change: function() {
+            on_change: function () {
                 let date_range = frappe.query_report.get_filter_value('date_range');
                 let today = frappe.datetime.get_today();
                 let from_date, to_date;
 
-                switch(date_range) {
+                switch (date_range) {
                     case "Today":
                         from_date = to_date = today;
                         break;
@@ -89,19 +89,33 @@ frappe.query_reports["Milestone Tracker Import"] = {
             only_select: true
         },
         {
-            fieldname: "job_no",
-            label: "Job No",
-            fieldtype: "Link",
-            options: "Clearing Job",
-            only_select: true
+            fieldname: "bl_number",
+            label: "BL Number",
+            fieldtype: "Data"
         }
     ],
 
-    onload: function (report) {
-        report.page.add_inner_button("Export to Excel", function () {
+    onload: function(report) {
+        report.page.add_inner_button('Export to Excel', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            window.location.href = `/api/method/freightmas.api.download_milestone_tracker_import_excel?filters=${query}`;
+            const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Milestone Tracker Import&filters=${query}`;
+            window.open(url);
+        }, 'Export');
+
+        report.page.add_inner_button('Export to PDF', function() {
+            const filters = report.get_filter_values(true);
+            const query = encodeURIComponent(JSON.stringify(filters));
+            const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Milestone Tracker Import&filters=${query}`;
+            window.open(url);
+        }, 'Export');
+
+        // Add a stand-alone "Clear Filters" button
+        report.page.add_inner_button('Clear Filters', function() {
+            report.filters.forEach(filter => {
+                let default_value = filter.df.default || "";
+                report.set_filter_value(filter.df.fieldname, default_value);
+            });
         });
     }
 };

@@ -180,7 +180,8 @@
    "depends_on": "eval:doc.is_empty_picked",
    "fieldname": "pick_up_empty_date",
    "fieldtype": "Date",
-   "label": "Pickup Empty Date"
+   "label": "Pickup Empty Date",
+   "mandatory_depends_on": "eval:doc.is_empty_picked"
   },
   {
    "default": "0",
@@ -193,7 +194,8 @@
    "depends_on": "eval:doc.is_gated_in_port",
    "fieldname": "gate_in_full_date",
    "fieldtype": "Date",
-   "label": "Gated In Full Date"
+   "label": "Gated In Full Date",
+   "mandatory_depends_on": "eval:doc.is_gated_in_port"
   },
   {
    "columns": 1,
@@ -251,13 +253,14 @@
    "depends_on": "eval:doc.is_loaded_on_vessel",
    "fieldname": "loaded_on_vessel_date",
    "fieldtype": "Date",
-   "label": "Loaded on Vessel Date"
+   "label": "Loaded on Vessel Date",
+   "mandatory_depends_on": "eval:doc.is_loaded_on_vessel"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-08 09:01:01.509684",
+ "modified": "2025-06-21 12:58:59.699799",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Cargo Package Details",

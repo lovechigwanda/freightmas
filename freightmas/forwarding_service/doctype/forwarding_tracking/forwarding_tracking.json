@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-06-29 20:51:23.441691",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "comment",
+  "column_break_swlk",
+  "updated_by",
+  "updated_on"
+ ],
+ "fields": [
+  {
+   "columns": 5,
+   "fieldname": "comment",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Comment",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_swlk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 3,
+   "default": "User",
+   "fieldname": "updated_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Updated By",
+   "options": "User",
+   "set_only_once": 1
+  },
+  {
+   "columns": 2,
+   "default": "Now",
+   "fieldname": "updated_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Updated On",
+   "set_only_once": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-06-29 20:51:23.441691",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Forwarding Tracking",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

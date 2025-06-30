@@ -1,0 +1,150 @@
+Customer Clearing Jobs PDF Report - Structure & Logic
+=====================================================
+
+1. Purpose of the Report
+------------------------
+- Audience: Customers/clients of the freight business.
+- Goal: Provide a detailed, client-friendly PDF summary of all “Clearing Job” records for a selected customer, with each job shown as a structured section (not a table of rows).
+- Export: Generated via Python and Jinja2 HTML template, exported as PDF.
+
+2. Filters (User Input)
+-----------------------
+- Customer (mandatory): Only jobs for this customer are included.
+- Direction (optional): Filter by Import/Export.
+- BL Number (optional): Filter by Bill of Lading number.
+-**Remove**  Job Date From / To (optional): Filter jobs by creation date range.
+3. Data Source and Logic
+------------------------
+- Parent DocType: Clearing Job
+- Child Table: Cargo Package Details (fieldname: cargo_package_details)
+- Fetch Logic:
+    - Query all Clearing Job records matching the filters.
+    - For each job, fetch all child rows from cargo_package_details.
+    - Prepare a context dictionary for each job, including all required fields for the template.
+**The report should only fetch jobs that are not yet complete or that were completed within the last 7 days.
+4. Report Structure (Per Job Section)
+-------------------------------------
+
+A. Job Header
+-------------
+- Job Number: name ** Should be part of the job Header in Bold and clearly visible and striking.
+- Date Created: date_created
+- Direction: direction
+- BL Number: bl_number
+- Shipping Line: shipping_line
+- **remove** Currency: currency
+- Status: status
+** add completed_date and only show if status="Completed"
+
+C. Container Details
+----------------------------
+** this section only shows if there are any rows. If not, hide whole section
+** also put this section after the Milestone Checklist section**
+For each row in cargo_package_details:
+- Container Number: container_number
+- Container Type: container_type
+- **remove** Seal Number: (not present in your child table, so leave blank or skip)
+- **remove** Gross Weight / Volume: (not present, so leave blank or skip)
+- ** only show if direction="Import"**Gate Out Full Date: gate_out_full_date
+- ** only show if direction="Import"**Gate In Empty Date: gate_in_empty_date
+- ** only show if direction="Export"**Pick Up Empty Date: pick_up_empty_date
+- ** only show if direction="Export"** Gate In Full Date: gate_in_full_date
+- ** only show if direction="Export"**Loaded On Vessel Date: loaded_on_vessel_date
+- **Fetch dnd days per container from the dnd_storage_days_per_container utils just like we do in other reports** D&D Days
+- **Fetch storage days per container from the dnd_storage_days_per_container utils just like we do in other reports**Port Storage Days
+** **Only show for cargo where cargo_type="Containerised". For General Cargo, add a section as below**
+
+C. Container Details
+----------------------------
+**Only show for cargo where cargo_type="General Cargo"
+For each row in cargo_package_details where cargo_type="General Cargo":
+cargo_item_description
+cargo_quantity
+cargo_uom
+- ** only show if direction="Import"**Gate Out Full Date: gate_out_full_date
+- ** only show if direction="Import"**Gate In Empty Date: gate_in_empty_date
+- ** only show if direction="Export"**Pick Up Empty Date: pick_up_empty_date
+- ** only show if direction="Export"** Gate In Full Date: gate_in_full_date
+- ** only show if direction="Export"**Loaded On Vessel Date: loaded_on_vessel_date
+- **Fetch dnd days per container from the dnd_storage_days_per_container utils just like we do in other reports** D&D Days: 
+- **Fetch storage days per container from the dnd_storage_days_per_container utils just like we do in other reports**Port Storage Days:
+
+B. Milestone Checklist
+----------------------
+** Milestone are grouped as Import and Export milestones. Use direction to determine which ones to show and hide those not of different direction.**
+Each milestone is a boolean field (checkbox) and a date field in the parent:
+- **Import** Is BL Received: is_bl_received → bl_received_date
+- **Import**  Is BL Confirmed: is_bl_confirmed → bl_confirmed_date
+- **Import**  Is DO Requested: is_do_requested → do_requested_date
+- **Import** Is DO Received: is_do_received → do_received_date
+- **Import** Is Port Release Confirmed: is_port_release_confirmed → port_release_confirmed_date
+- **Import** Is Discharged from Vessel: is_discharged_from_vessel → discharge_date
+- **Import** Is Discharged from Port: is_discharged_from_port → date_discharged_from_port
+- **Import**  Is SL Invoice Received: is_sl_invoice_received → sl_invoice_received_date
+- **Import** Is SL Invoice Paid: is_sl_invoice_paid → sl_invoice_payment_date
+- **Export** Is Booking Confirmed: is_booking_confirmed → booking_confirmation_date
+- **Export** Is Loaded on Vessel: is_loaded_on_vessel → loaded_on_vessel_date
+- **Import** Is Vessel Arrived at Port: is_vessel_arrived_at_port → vessel_arrived_date
+- **Export** Is Vessel Sailed: is_vessel_sailed → vessel_sailed_date
+- **Export** Is Clearing for Shipment Done: is_clearing_for_shipment_done → shipment_cleared_date
+
+Display:
+- **Tickboxes do not come out nice. Better to show YES or No** Show a checkbox or tick for each milestone.
+- Show the date if completed, or a dash if not.
+
+D. Comment / Tracking
+---------------------
+- Current Comment: current_comment
+- Last Updated By: last_updated_by
+- Last Updated On: last_updated_on
+
+
+
+5. Page Layout
+--------------
+- Header: Report title, company name, customer name, export date (no logo).
+- Sectioned: Each job is a separate section (with a page break after each).
+- Tables: Use tables for job info, container/cargo details, milestones, and notes.
+- Styling: Clean, readable, client-friendly (Bootstrap-like or simple CSS).
+
+6. Technical Flow
+-----------------
+1. User selects filters and clicks “Export PDF”.
+2. Backend Python fetches jobs and child table data, builds a context dictionary.
+3. Jinja2 HTML template renders the report using the context.
+4. Frappe PDF utility converts HTML to PDF and returns it as a download.
+
+7. Field Mapping Reference
+--------------------------
+| Section         | Field Label                | Fieldname (Parent/Child)         |
+|-----------------|---------------------------|----------------------------------|
+| Job Header      | Job Number                | name                             |
+|                 | Date Created              | date_created                     |
+|                 | Direction                 | direction                        |
+|                 | BL Number                 | bl_number                        |
+|                 | Shipping Line             | shipping_line                    |
+|                 | Currency                  | currency                         |
+|                 | Status                    | status                           |
+| Container/Cargo | Container Number          | cargo_package_details.container_number |
+|                 | Container Type            | cargo_package_details.container_type   |
+|                 | Gate In Full Date         | cargo_package_details.gate_in_full_date |
+|                 | Gate Out Full Date        | cargo_package_details.gate_out_full_date |
+|                 | Gate In Empty Date        | cargo_package_details.gate_in_empty_date |
+| Milestones      | Is BL Received            | is_bl_received, bl_received_date |
+|                 | ... (see above)           | ...                              |
+| Notes           | Current Comment           | current_comment                  |
+|                 | Last Updated By           | last_updated_by                  |
+|                 | Last Updated On           | last_updated_on                  |
+
+8. What You Can Edit
+--------------------
+- Add/remove fields in any section.
+- Change the layout or styling.
+- Add new milestones or cargo details.
+- Change which child table fields are shown.
+- Add summary or totals if needed.
+
+Instructions:
+-------------
+- Edit this file to add, remove, or change any fields, sections, or logic.
+- Send the updated file back for further

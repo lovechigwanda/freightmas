@@ -76,7 +76,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Operational Reports",
-   "link_count": 8,
+   "link_count": 10,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -153,20 +153,39 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
+   "is_query_report": 1,
    "label": "Container Tracker Imports Extended",
    "link_count": 0,
    "link_to": "Container Tracker Imports Extended",
    "link_type": "Report",
    "onboard": 0,
-   "report_ref_doctype": "Clearing Job",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Tracker Exports",
+   "link_count": 0,
+   "link_to": "Container Tracker Exports",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Tracker Exports Extended",
+   "link_count": 0,
+   "link_to": "Container Tracker Exports Extended",
+   "link_type": "Report",
+   "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
    "label": "Customer Reports",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -190,9 +209,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Customer Clearing Jobs",
+   "link_count": 0,
+   "link_to": "Customer Clearing Jobs",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-06-21 08:32:44.317827",
+ "modified": "2025-06-24 19:07:51.193257",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",

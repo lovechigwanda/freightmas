@@ -1,0 +1,549 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-06-29 09:39:02.613961",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_information_section",
+  "company",
+  "naming_series",
+  "shipment_mode",
+  "column_break_bxjm",
+  "created_by",
+  "direction",
+  "column_break_kbsu",
+  "date_created",
+  "shipment_type",
+  "amended_from",
+  "client_and_party_information_section",
+  "customer",
+  "notify_party",
+  "customer_reference",
+  "column_break_pdto",
+  "shipper",
+  "origin_agent",
+  "consignee_reference",
+  "column_break_tggg",
+  "consignee",
+  "routing_information_section",
+  "port_of_loading",
+  "origin_country",
+  "vessel_flight_no",
+  "column_break_utos",
+  "port_of_discharge",
+  "discharge_country",
+  "vessel_flight_date",
+  "column_break_alir",
+  "destination",
+  "destination_country",
+  "shipment_dates_section",
+  "booking_date",
+  "cargo_ready_date",
+  "column_break_ttcq",
+  "etd",
+  "atd",
+  "column_break_okym",
+  "eta",
+  "ata",
+  "delivery_date",
+  "cargo_tab",
+  "cargo_details_section",
+  "cargo_description",
+  "column_break_mwkt",
+  "cargo_count",
+  "cargo_parcel_details_section",
+  "cargo_parcel_details",
+  "charges_tab",
+  "currency",
+  "column_break_rrvw",
+  "conversion_rate",
+  "column_break_ieei",
+  "base_currency",
+  "section_break_xoqa",
+  "forwarding_charges",
+  "section_break_johw",
+  "total_estimated_revenue",
+  "total_estimated_revenue_base",
+  "column_break_ygyd",
+  "total_estimated_cost",
+  "total_estimated_cost_base",
+  "column_break_lpog",
+  "total_estimated_profit",
+  "total_estimated_profit_base",
+  "tracking_tab",
+  "forwarding_tracking",
+  "section_break_eooh",
+  "current_comment",
+  "column_break_hrnc",
+  "last_updated_by",
+  "column_break_afpk",
+  "last_updated_on",
+  "section_break_umkg",
+  "status",
+  "column_break_qlnm",
+  "completed_on",
+  "column_break_limi"
+ ],
+ "fields": [
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Forwarding Job",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_bxjm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "user",
+   "fieldname": "created_by",
+   "fieldtype": "Link",
+   "label": "Created By",
+   "options": "User"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FWJB-.#####.-.YY.",
+   "print_hide": 1,
+   "report_hide": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_created",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "label": "Date Created"
+  },
+  {
+   "fieldname": "shipment_mode",
+   "fieldtype": "Select",
+   "label": "Shipment Mode",
+   "options": "Sea\nAir",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Direction",
+   "options": "Import\nExport",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nBooked\nIn Transit\nDelivered\nCancelled"
+  },
+  {
+   "fieldname": "shipment_type",
+   "fieldtype": "Select",
+   "label": "Shipment Type",
+   "options": "FCL\nLCL",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "basic_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "column_break_kbsu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_pdto",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "shipper",
+   "fieldtype": "Link",
+   "label": "Shipper",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_tggg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "consignee",
+   "fieldtype": "Link",
+   "label": "Consignee",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "notify_party",
+   "fieldtype": "Link",
+   "label": "Notify Party",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "origin_agent",
+   "fieldtype": "Link",
+   "label": "Origin Agent",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "client_and_party_information_section",
+   "fieldtype": "Section Break",
+   "label": "Client & Party Information"
+  },
+  {
+   "fieldname": "routing_information_section",
+   "fieldtype": "Section Break",
+   "label": "Routing Information"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port of Loading",
+   "options": "Port"
+  },
+  {
+   "fieldname": "column_break_utos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_of_discharge",
+   "fieldtype": "Link",
+   "label": "Port of Discharge",
+   "options": "Port"
+  },
+  {
+   "fieldname": "column_break_alir",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Link",
+   "label": "Final Destination",
+   "options": "Port"
+  },
+  {
+   "fieldname": "vessel_flight_no",
+   "fieldtype": "Data",
+   "label": "Vessel / Flight No"
+  },
+  {
+   "fieldname": "vessel_flight_date",
+   "fieldtype": "Date",
+   "label": "Voyage / Flight Date"
+  },
+  {
+   "fetch_from": "port_of_loading.country",
+   "fieldname": "origin_country",
+   "fieldtype": "Read Only",
+   "label": "Origin Country"
+  },
+  {
+   "fetch_from": "port_of_discharge.country",
+   "fieldname": "discharge_country",
+   "fieldtype": "Read Only",
+   "label": "Discharge Country"
+  },
+  {
+   "fetch_from": "destination.country",
+   "fieldname": "destination_country",
+   "fieldtype": "Read Only",
+   "label": "Destination Country"
+  },
+  {
+   "fieldname": "shipment_dates_section",
+   "fieldtype": "Section Break",
+   "label": "Shipment Dates"
+  },
+  {
+   "fieldname": "booking_date",
+   "fieldtype": "Date",
+   "label": "Booking Date"
+  },
+  {
+   "fieldname": "cargo_ready_date",
+   "fieldtype": "Date",
+   "label": "Cargo Ready Date"
+  },
+  {
+   "fieldname": "column_break_ttcq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "etd",
+   "fieldtype": "Date",
+   "label": "Estimated Departure"
+  },
+  {
+   "fieldname": "atd",
+   "fieldtype": "Date",
+   "label": "Actual Departure"
+  },
+  {
+   "fieldname": "column_break_okym",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "eta",
+   "fieldtype": "Date",
+   "label": "Estimated Arrival"
+  },
+  {
+   "fieldname": "ata",
+   "fieldtype": "Date",
+   "label": "Actual Arrival"
+  },
+  {
+   "fieldname": "delivery_date",
+   "fieldtype": "Date",
+   "label": "Delivery Date"
+  },
+  {
+   "fieldname": "cargo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cargo"
+  },
+  {
+   "fieldname": "cargo_description",
+   "fieldtype": "Data",
+   "label": "Cargo Description"
+  },
+  {
+   "fieldname": "column_break_mwkt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cargo_count",
+   "fieldtype": "Data",
+   "label": "Cargo Count"
+  },
+  {
+   "fieldname": "cargo_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Details"
+  },
+  {
+   "fieldname": "cargo_parcel_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Parcel Details"
+  },
+  {
+   "fieldname": "cargo_parcel_details",
+   "fieldtype": "Table",
+   "options": "Cargo Parcel Details"
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "forwarding_charges",
+   "fieldtype": "Table",
+   "options": "Forwarding Charges"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "column_break_rrvw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate",
+   "precision": "4"
+  },
+  {
+   "fieldname": "column_break_ieei",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "company.default_currency",
+   "fieldname": "base_currency",
+   "fieldtype": "Read Only",
+   "label": "Base Currency"
+  },
+  {
+   "fieldname": "section_break_xoqa",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_johw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_ygyd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_cost_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_lpog",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_profit",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "precision": "2"
+  },
+  {
+   "fieldname": "tracking_tab",
+   "fieldtype": "Tab Break",
+   "label": "Tracking"
+  },
+  {
+   "fieldname": "forwarding_tracking",
+   "fieldtype": "Table",
+   "options": "Forwarding Tracking"
+  },
+  {
+   "fieldname": "section_break_eooh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "current_comment",
+   "fieldtype": "Read Only",
+   "label": "Current Comment"
+  },
+  {
+   "fieldname": "column_break_hrnc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_updated_by",
+   "fieldtype": "Read Only",
+   "label": "Last Updated By"
+  },
+  {
+   "fieldname": "column_break_afpk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_updated_on",
+   "fieldtype": "Date",
+   "label": "Last Updated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_umkg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qlnm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_limi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer_reference",
+   "fieldtype": "Data",
+   "label": "Customer Reference"
+  },
+  {
+   "fieldname": "consignee_reference",
+   "fieldtype": "Data",
+   "label": "Consignee Reference"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-06-30 08:03:40.963206",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Forwarding Job",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

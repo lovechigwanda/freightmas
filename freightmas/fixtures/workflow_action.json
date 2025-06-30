@@ -126,8 +126,8 @@
   "workflow_state": "Loading"
  },
  {
-  "completed_by": null,
-  "completed_by_role": null,
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
   "docstatus": 0,
   "doctype": "Workflow Action",
   "modified": "2025-03-02 09:20:15.796325",
@@ -142,7 +142,7 @@
   ],
   "reference_doctype": "Trip",
   "reference_name": "TRIP-00001-25",
-  "status": "Open",
+  "status": "Completed",
   "user": null,
   "workflow_state": "In Transit"
  },
@@ -1594,5 +1594,68 @@
   "status": "Open",
   "user": null,
   "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-28 20:13:10.351944",
+  "name": "povvregjo2",
+  "permitted_roles": [
+   {
+    "parent": "povvregjo2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-28 20:13:13.558795",
+  "name": "ppvttibk8c",
+  "permitted_roles": [
+   {
+    "parent": "ppvttibk8c",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Completed"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-06-28 20:13:17.266708",
+  "name": "pr417i247s",
+  "permitted_roles": [
+   {
+    "parent": "pr417i247s",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00001-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Closed"
  }
 ]

@@ -36,8 +36,8 @@
   "column_break_cjvh",
   "eta",
   "ata",
-  "atd",
   "etd",
+  "atd",
   "section_break_fkqn",
   "clearing_documents_checklist",
   "bill_of_lading_details_section",
@@ -271,7 +271,7 @@
    "fieldname": "eta",
    "fieldtype": "Date",
    "in_filter": 1,
-   "label": "Estimated Time of Arrival (ATA)"
+   "label": "Estimated Time of Arrival (ETA)"
   },
   {
    "fieldname": "origin",
@@ -895,7 +895,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-06-18 18:35:14.076840",
+ "modified": "2025-06-22 17:21:45.858514",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",
