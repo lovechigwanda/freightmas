@@ -221,13 +221,13 @@
    "type": "Link"
   }
  ],
- "modified": "2025-06-24 19:07:51.193257",
+ "modified": "2025-06-30 19:20:32.514930",
  "modified_by": "Administrator",
- "module": "Clearing Service",
+ "module": "FreightMas",
  "name": "Port Clearing Service",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "FreightMas",
  "public": 1,
  "quick_lists": [],
  "roles": [],

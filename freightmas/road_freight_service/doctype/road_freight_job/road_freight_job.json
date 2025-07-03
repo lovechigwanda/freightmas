@@ -36,6 +36,7 @@
   "drop_off_country",
   "instructions",
   "cargo_and_tracking_section",
+  "section_break_jzqi",
   "cargo_description",
   "load_by_date",
   "column_break_kcdu",
@@ -43,7 +44,26 @@
   "offload_by_date",
   "column_break_jpxt",
   "trucks_confirmed",
-  "return_empty_by_date"
+  "return_empty_by_date",
+  "section_break_wpyn",
+  "truck_loading_details",
+  "charges_tab",
+  "currency",
+  "column_break_xsgy",
+  "conversion_rate",
+  "column_break_oeck",
+  "base_currency",
+  "section_break_abvp",
+  "road_freight_charges",
+  "section_break_scbx",
+  "total_estimated_revenue",
+  "total_estimated_revenue_base",
+  "column_break_xwas",
+  "total_estimated_cost",
+  "total_estimated_cost_base",
+  "column_break_ddsp",
+  "total_estimated_profit",
+  "total_estimated_profit_base"
  ],
  "fields": [
   {
@@ -251,13 +271,136 @@
    "fieldname": "return_empty_by_date",
    "fieldtype": "Date",
    "label": "Return Empty By Date"
+  },
+  {
+   "fieldname": "section_break_jzqi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_wpyn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "truck_loading_details",
+   "fieldtype": "Table",
+   "label": "Truck Loading Details",
+   "options": "Truck Loading Details"
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Currency",
+   "options": "Currency",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xsgy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1.0",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate",
+   "precision": "4"
+  },
+  {
+   "fieldname": "column_break_oeck",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "company.default_currency",
+   "fieldname": "base_currency",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Base Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_scbx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_xwas",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_cost_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ddsp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_profit",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_abvp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "road_freight_charges",
+   "fieldtype": "Table",
+   "options": "Road Freight Charges"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-30 08:28:49.990965",
+ "modified": "2025-07-03 12:12:05.165481",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",
