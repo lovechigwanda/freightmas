@@ -1,90 +1,333 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-06-29 12:41:24.972139",
+ "creation": "2025-07-05 08:49:42.679931",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "cargo_package_section",
   "cargo_type",
+  "to_be_returned",
+  "length",
+  "height",
+  "column_break_lnrj",
+  "container_number",
   "cargo_item_description",
-  "weight",
-  "column_break_ujjh",
-  "container_no",
-  "cargo_quantity",
-  "volume",
-  "column_break_rggr",
+  "width",
+  "chargeable_weight",
+  "column_break_aoni",
   "container_type",
-  "uom",
-  "cargo_remarks"
+  "cargo_quantity",
+  "cargo_uom",
+  "column_break_fcrr",
+  "weight",
+  "volume",
+  "section_break_pfvm",
+  "cargo_remarks",
+  "section_break_qomc",
+  "is_loaded",
+  "gate_out_full_date",
+  "is_empty_picked",
+  "pick_up_empty_date",
+  "column_break_locf",
+  "is_returned",
+  "gate_in_empty_date",
+  "is_gated_in_port",
+  "gate_in_full_date",
+  "column_break_vyup",
+  "is_loaded_on_vessel",
+  "loaded_on_vessel_date",
+  "loading_details_section",
+  "transporter",
+  "driver_name",
+  "driver_contact_no",
+  "column_break_zqiu",
+  "truck_reg_no",
+  "driver_passport_no",
+  "driver_contact_no_2",
+  "column_break_gbhn",
+  "trailer_reg_no",
+  "driver_licence_no"
  ],
  "fields": [
   {
+   "fieldname": "cargo_package_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Package"
+  },
+  {
+   "columns": 2,
    "fieldname": "cargo_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Cargo Type",
-   "options": "Containerised\nGeneral Cargo"
+   "options": "Containerised\nGeneral Cargo",
+   "set_only_once": 1
   },
   {
-   "fieldname": "column_break_ujjh",
+   "fieldname": "column_break_lnrj",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "container_no",
+   "columns": 2,
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "container_number",
    "fieldtype": "Data",
-   "label": "Container No"
+   "in_list_view": 1,
+   "label": "Container Number",
+   "mandatory_depends_on": "eval:doc.cargo_type==\"Containerised\""
   },
   {
-   "fieldname": "column_break_rggr",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "container_type",
-   "fieldtype": "Link",
-   "label": "Container Type",
-   "options": "Container Type"
-  },
-  {
+   "columns": 2,
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
    "fieldname": "cargo_item_description",
    "fieldtype": "Data",
-   "label": "Cargo Item Description"
+   "in_list_view": 1,
+   "label": "Cargo Item Description",
+   "mandatory_depends_on": "eval:doc.cargo_type!==\"Containerised\""
   },
   {
    "default": "1",
-   "fieldname": "cargo_quantity",
-   "fieldtype": "Int",
-   "label": "Quantity",
-   "non_negative": 1
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "to_be_returned",
+   "fieldtype": "Check",
+   "label": "To be returned?"
   },
   {
-   "default": "Nos",
-   "fieldname": "uom",
+   "fieldname": "column_break_aoni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "container_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Container Type",
+   "mandatory_depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "options": "Container Type",
+   "remember_last_selected_value": 1
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "cargo_quantity",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Quantity"
+  },
+  {
+   "columns": 1,
+   "default": "unit",
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "cargo_uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "UOM",
-   "options": "UOM"
+   "options": "UOM",
+   "remember_last_selected_value": 1
+  },
+  {
+   "fieldname": "section_break_qomc",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Import\"",
+   "fieldname": "is_loaded",
+   "fieldtype": "Check",
+   "label": "Is Loaded"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded",
+   "description": "Actual date the full container was picked up from the port.",
+   "fieldname": "gate_out_full_date",
+   "fieldtype": "Date",
+   "label": "Gate Out Full Date",
+   "mandatory_depends_on": "eval:doc.is_loaded== 1"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\"",
+   "fieldname": "is_empty_picked",
+   "fieldtype": "Check",
+   "label": "Is Empty Picked"
+  },
+  {
+   "depends_on": "eval:doc.is_empty_picked",
+   "fieldname": "pick_up_empty_date",
+   "fieldtype": "Date",
+   "label": "Pickup Empty Date",
+   "mandatory_depends_on": "eval:doc.is_empty_picked"
+  },
+  {
+   "fieldname": "column_break_locf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned && doc.is_loaded\n",
+   "fieldname": "is_returned",
+   "fieldtype": "Check",
+   "label": "Is Returned"
+  },
+  {
+   "depends_on": "eval:doc.is_returned",
+   "description": "Actual date the empty container was returned to the designated depot.",
+   "fieldname": "gate_in_empty_date",
+   "fieldtype": "Date",
+   "label": "Gate In Empty Date",
+   "mandatory_depends_on": "eval:doc.is_returned"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\"",
+   "fieldname": "is_gated_in_port",
+   "fieldtype": "Check",
+   "label": "Is Gated In Port"
+  },
+  {
+   "depends_on": "eval:doc.is_gated_in_port",
+   "fieldname": "gate_in_full_date",
+   "fieldtype": "Date",
+   "label": "Gated In Full Date",
+   "mandatory_depends_on": "eval:doc.is_gated_in_port"
+  },
+  {
+   "fieldname": "column_break_vyup",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Export\" && doc.is_gated_in_port",
+   "fieldname": "is_loaded_on_vessel",
+   "fieldtype": "Check",
+   "label": "Is Loaded on Vessel"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded_on_vessel",
+   "fieldname": "loaded_on_vessel_date",
+   "fieldtype": "Date",
+   "label": "Loaded on Vessel Date",
+   "mandatory_depends_on": "eval:doc.is_loaded_on_vessel"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded || doc.is_empty_picked",
+   "fieldname": "loading_details_section",
+   "fieldtype": "Section Break",
+   "label": "Road Freight Details"
+  },
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "label": "Driver Name"
+  },
+  {
+   "fieldname": "driver_contact_no",
+   "fieldtype": "Data",
+   "label": "Driver Contact No"
+  },
+  {
+   "fieldname": "column_break_zqiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "truck_reg_no",
+   "fieldtype": "Data",
+   "label": "Truck Reg No"
+  },
+  {
+   "fieldname": "driver_passport_no",
+   "fieldtype": "Data",
+   "label": "Driver Passport No"
+  },
+  {
+   "fieldname": "driver_contact_no_2",
+   "fieldtype": "Data",
+   "label": "Driver Contact No 2"
+  },
+  {
+   "fieldname": "column_break_gbhn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trailer_reg_no",
+   "fieldtype": "Data",
+   "label": "Trailer Reg No"
+  },
+  {
+   "fieldname": "driver_licence_no",
+   "fieldtype": "Data",
+   "label": "Driver Licence No"
   },
   {
    "fieldname": "weight",
    "fieldtype": "Float",
    "label": "Weight (Kg)",
-   "non_negative": 1
+   "precision": "2"
   },
   {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
    "fieldname": "volume",
    "fieldtype": "Float",
-   "label": "Volume (CBM)"
+   "label": "Volume (CBM)",
+   "precision": "2"
   },
   {
    "fieldname": "cargo_remarks",
    "fieldtype": "Data",
    "label": "Remarks"
+  },
+  {
+   "fieldname": "transporter",
+   "fieldtype": "Link",
+   "label": "Transporter",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "section_break_pfvm",
+   "fieldtype": "Section Break",
+   "label": "Tracking"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "length",
+   "fieldtype": "Float",
+   "label": "Length (cm)",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "width",
+   "fieldtype": "Float",
+   "label": "Width (cm)",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "height",
+   "fieldtype": "Float",
+   "label": "Height (cm)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fcrr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
+   "fieldname": "chargeable_weight",
+   "fieldtype": "Float",
+   "label": "Chargeable Weight",
+   "precision": "2"
   }
  ],
- "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-29 12:54:59.974754",
+ "modified": "2025-07-05 16:20:32.915750",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

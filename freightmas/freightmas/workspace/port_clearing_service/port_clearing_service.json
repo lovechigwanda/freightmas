@@ -1,7 +1,7 @@
 {
  "charts": [],
  "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
- "creation": "2025-06-20 20:43:32.564264",
+ "creation": "2025-07-04 00:27:13.875677",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -221,7 +221,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-06-30 19:20:32.514930",
+ "modified": "2025-07-04 00:29:56.294123",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Port Clearing Service",
@@ -231,7 +231,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 39.0,
+ "sequence_id": 36.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -274,5 +274,5 @@
    "type": "DocType"
   }
  ],
- "title": "Port Clearing Service"
+ "title": "Port Clearing"
 }

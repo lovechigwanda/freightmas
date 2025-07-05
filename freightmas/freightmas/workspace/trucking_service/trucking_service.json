@@ -6,7 +6,7 @@
   }
  ],
  "content": "[{\"id\":\"19g37rIPrU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Trucking Service</span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7HA_a-xDn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips In Progress (Count)\",\"col\":4}},{\"id\":\"Bm0PcgpU-F\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips in Progress (Revenue)\",\"col\":4}},{\"id\":\"tUukWgU_6t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips Completed (Revenue)\",\"col\":4}},{\"id\":\"vjeTJmDxXE\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}}]",
- "creation": "2025-06-20 20:43:32.509189",
+ "creation": "2025-07-04 00:27:13.788539",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -198,7 +198,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-06-30 19:20:44.547985",
+ "modified": "2025-07-04 00:29:56.149851",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Trucking Service",
@@ -221,7 +221,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 28.0,
+ "sequence_id": 33.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -257,5 +257,5 @@
    "type": "DocType"
   }
  ],
- "title": "Trucking Service"
+ "title": "Trucking"
 }

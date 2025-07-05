@@ -295,7 +295,17 @@ fixtures = [
                 "Sales Invoice-custom_clearing_job_reference",
                 "Sales Invoice-custom_is_clearing_invoice",
                 "Purchase Invoice-custom_clearing_job_reference",
-                "Purchase Invoice-custom_is_clearing_invoice"
+                "Purchase Invoice-custom_is_clearing_invoice",
+                "Sales Invoice-custom_forwarding_job_reference",
+                "Sales Invoice-custom_is_forwarding_invoice",
+                "Purchase Invoice-custom_forwarding_job_reference",
+                "Purchase Invoice-custom_is_forwarding_invoice",
+                "Sales Invoice-custom_road_freight_job_reference",
+                "Sales Invoice-custom_is_road_freight_invoice",
+                "Purchase Invoice-custom_road_freight_job_reference",
+                "Purchase Invoice-custom_is_road_freight_invoice"
+
+
             ]]
         ]
     },
@@ -311,7 +321,7 @@ fixtures = [
    {
         "dt": "Workspace",
         "filters": [
-            ["name", "in", ["Port Clearing Service", "Trucking Service"]]
+            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service", "Trucking Service"]]
         ]
     },
     {

@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Forwarding Service",
  "links": [],
- "modified": "2025-06-30 19:20:19.447167",
+ "modified": "2025-07-04 00:29:56.251476",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Forwarding Service",
@@ -23,7 +23,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 40.0,
+ "sequence_id": 35.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -34,5 +34,5 @@
    "type": "DocType"
   }
  ],
- "title": "Forwarding Service"
+ "title": "Forwarding"
 }

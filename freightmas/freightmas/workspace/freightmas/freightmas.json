@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "FreightMas",
  "links": [],
- "modified": "2025-06-30 19:09:19.699910",
+ "modified": "2025-07-04 00:29:56.114176",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas",
@@ -23,7 +23,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 42.0,
+ "sequence_id": 32.0,
  "shortcuts": [],
- "title": "FreightMas"
+ "title": "FreightMas Services"
 }

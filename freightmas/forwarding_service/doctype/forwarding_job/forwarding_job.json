@@ -10,9 +10,11 @@
   "company",
   "naming_series",
   "shipment_mode",
+  "incoterms",
   "column_break_bxjm",
   "created_by",
   "direction",
+  "incoterm_place",
   "column_break_kbsu",
   "date_created",
   "shipment_type",
@@ -53,6 +55,19 @@
   "cargo_description",
   "column_break_mwkt",
   "cargo_count",
+  "column_break_rcwr",
+  "bill_of_lading_details_section",
+  "bl_number",
+  "is_bl_received",
+  "bl_received_date",
+  "column_break_csxl",
+  "bl_type",
+  "is_bl_confirmed",
+  "bl_confirmed_date",
+  "column_break_cosr",
+  "bl_issued_date",
+  "documents_checklist_section",
+  "documents_checklist",
   "cargo_parcel_details_section",
   "cargo_parcel_details",
   "charges_tab",
@@ -84,7 +99,8 @@
   "status",
   "column_break_qlnm",
   "completed_on",
-  "column_break_limi"
+  "column_break_limi",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -100,7 +116,6 @@
   {
    "fieldname": "company",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Company",
    "options": "Company",
    "reqd": 1
@@ -126,6 +141,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "default": "Today",
    "fieldname": "date_created",
    "fieldtype": "Date",
@@ -141,10 +157,11 @@
    "set_only_once": 1
   },
   {
+   "columns": 2,
    "fieldname": "direction",
    "fieldtype": "Select",
    "in_filter": 1,
-   "in_preview": 1,
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Direction",
    "options": "Import\nExport",
@@ -154,7 +171,8 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Draft\nBooked\nIn Transit\nDelivered\nCancelled"
+   "options": "Draft\nIn Progress\nDelivered\nCompleted\nCancelled",
+   "read_only": 1
   },
   {
    "fieldname": "shipment_type",
@@ -173,14 +191,15 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
-   "in_preview": 1,
    "in_standard_filter": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_pdto",
@@ -190,7 +209,8 @@
    "fieldname": "shipper",
    "fieldtype": "Link",
    "label": "Shipper",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_tggg",
@@ -200,7 +220,8 @@
    "fieldname": "consignee",
    "fieldtype": "Link",
    "label": "Consignee",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "notify_party",
@@ -228,7 +249,8 @@
    "fieldname": "port_of_loading",
    "fieldtype": "Link",
    "label": "Port of Loading",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_utos",
@@ -238,7 +260,8 @@
    "fieldname": "port_of_discharge",
    "fieldtype": "Link",
    "label": "Port of Discharge",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_alir",
@@ -248,17 +271,20 @@
    "fieldname": "destination",
    "fieldtype": "Link",
    "label": "Final Destination",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fieldname": "vessel_flight_no",
    "fieldtype": "Data",
-   "label": "Vessel / Flight No"
+   "label": "Vessel / Flight No",
+   "reqd": 1
   },
   {
    "fieldname": "vessel_flight_date",
    "fieldtype": "Date",
-   "label": "Voyage / Flight Date"
+   "label": "Voyage / Flight Date",
+   "reqd": 1
   },
   {
    "fetch_from": "port_of_loading.country",
@@ -286,12 +312,14 @@
   {
    "fieldname": "booking_date",
    "fieldtype": "Date",
-   "label": "Booking Date"
+   "label": "Booking Date",
+   "reqd": 1
   },
   {
    "fieldname": "cargo_ready_date",
    "fieldtype": "Date",
-   "label": "Cargo Ready Date"
+   "label": "Cargo Ready Date",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_ttcq",
@@ -300,7 +328,8 @@
   {
    "fieldname": "etd",
    "fieldtype": "Date",
-   "label": "Estimated Departure"
+   "label": "Estimated Departure",
+   "reqd": 1
   },
   {
    "fieldname": "atd",
@@ -314,7 +343,8 @@
   {
    "fieldname": "eta",
    "fieldtype": "Date",
-   "label": "Estimated Arrival"
+   "label": "Estimated Arrival",
+   "reqd": 1
   },
   {
    "fieldname": "ata",
@@ -509,19 +539,124 @@
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
-   "label": "Customer Reference"
+   "label": "Customer Reference",
+   "reqd": 1
   },
   {
    "fieldname": "consignee_reference",
    "fieldtype": "Data",
    "label": "Consignee Reference"
+  },
+  {
+   "fieldname": "bill_of_lading_details_section",
+   "fieldtype": "Section Break",
+   "label": "Bill of Lading Details"
+  },
+  {
+   "columns": 2,
+   "fieldname": "bl_number",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "BL Number"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_bl_received",
+   "fieldtype": "Check",
+   "label": "Is BL Received"
+  },
+  {
+   "depends_on": "eval:doc.is_bl_received",
+   "fieldname": "bl_received_date",
+   "fieldtype": "Date",
+   "label": "BL Received Date",
+   "mandatory_depends_on": "eval:doc.is_bl_received"
+  },
+  {
+   "fieldname": "column_break_csxl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bl_type",
+   "fieldtype": "Select",
+   "label": "BL Type",
+   "options": "OBL\nTelex\nExpress\nAWB"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_bl_confirmed",
+   "fieldtype": "Check",
+   "label": "Is BL Confirmed"
+  },
+  {
+   "depends_on": "eval:doc.is_bl_confirmed",
+   "fieldname": "bl_confirmed_date",
+   "fieldtype": "Date",
+   "label": "BL Confirmed Date",
+   "mandatory_depends_on": "eval:doc.is_bl_confirmed"
+  },
+  {
+   "fieldname": "column_break_cosr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bl_issued_date",
+   "fieldtype": "Date",
+   "label": "BL Issue Date"
+  },
+  {
+   "fieldname": "documents_checklist_section",
+   "fieldtype": "Section Break",
+   "label": "Documents Checklist"
+  },
+  {
+   "fieldname": "documents_checklist",
+   "fieldtype": "Table",
+   "options": "Forwarding Documents Checklist"
+  },
+  {
+   "fieldname": "incoterms",
+   "fieldtype": "Link",
+   "label": "Incoterms",
+   "options": "Incoterm",
+   "reqd": 1
+  },
+  {
+   "fieldname": "incoterm_place",
+   "fieldtype": "Data",
+   "label": "Incoterm Place",
+   "mandatory_depends_on": "eval:doc.incoterm"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "column_break_rcwr",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-06-30 08:03:40.963206",
+ "links": [
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "forwarding_job_reference",
+   "table_fieldname": "Sales Invoice"
+  },
+  {
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "forwarding_job_reference",
+   "table_fieldname": "Purchase Invoice"
+  }
+ ],
+ "make_attachments_public": 1,
+ "modified": "2025-07-05 18:13:59.169127",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
@@ -542,6 +677,7 @@
    "write": 1
   }
  ],
+ "protect_attached_files": 1,
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
