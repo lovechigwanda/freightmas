@@ -36,7 +36,7 @@
   "drop_off_country",
   "instructions",
   "cargo_and_tracking_section",
-  "section_break_jzqi",
+  "cargo_details_section",
   "cargo_description",
   "load_by_date",
   "column_break_kcdu",
@@ -45,7 +45,15 @@
   "column_break_jpxt",
   "trucks_confirmed",
   "return_empty_by_date",
-  "section_break_wpyn",
+  "terms_section",
+  "load_requirements",
+  "client_rate",
+  "column_break_mzpq",
+  "terms_and_conditions",
+  "transporter_rate",
+  "column_break_qoxl",
+  "payment_terms",
+  "loading_and_tracking_section",
   "truck_loading_details",
   "charges_tab",
   "currency",
@@ -55,6 +63,7 @@
   "base_currency",
   "section_break_abvp",
   "road_freight_charges",
+  "copy_charges_from_truck_loading",
   "section_break_scbx",
   "total_estimated_revenue",
   "total_estimated_revenue_base",
@@ -63,7 +72,8 @@
   "total_estimated_cost_base",
   "column_break_ddsp",
   "total_estimated_profit",
-  "total_estimated_profit_base"
+  "total_estimated_profit_base",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -80,7 +90,8 @@
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
-   "options": "Company"
+   "options": "Company",
+   "reqd": 1
   },
   {
    "fieldname": "naming_series",
@@ -139,7 +150,8 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_csei",
@@ -149,7 +161,8 @@
    "fieldname": "consignee",
    "fieldtype": "Link",
    "label": "Consignee",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_qfvc",
@@ -158,7 +171,8 @@
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
-   "label": "Customer Reference"
+   "label": "Customer Reference",
+   "reqd": 1
   },
   {
    "fieldname": "consignee_reference",
@@ -174,7 +188,8 @@
    "fieldname": "port_of_loading",
    "fieldtype": "Link",
    "label": "Port of Loading",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_tsnw",
@@ -184,7 +199,8 @@
    "fieldname": "port_of_discharge",
    "fieldtype": "Link",
    "label": "Port of Offloading",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_swsf",
@@ -194,7 +210,8 @@
    "fieldname": "empty_drop_off_at",
    "fieldtype": "Link",
    "label": "Empty Drop Off",
-   "options": "Port"
+   "options": "Port",
+   "reqd": 1
   },
   {
    "fetch_from": "port_of_loading.country",
@@ -271,14 +288,6 @@
    "fieldname": "return_empty_by_date",
    "fieldtype": "Date",
    "label": "Return Empty By Date"
-  },
-  {
-   "fieldname": "section_break_jzqi",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "section_break_wpyn",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "truck_loading_details",
@@ -394,13 +403,91 @@
    "fieldname": "road_freight_charges",
    "fieldtype": "Table",
    "options": "Road Freight Charges"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "load_requirements",
+   "fieldtype": "Data",
+   "label": "Load Requirements"
+  },
+  {
+   "fieldname": "column_break_mzpq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "terms_and_conditions",
+   "fieldtype": "Link",
+   "label": "Terms & Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fieldname": "column_break_qoxl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "payment_terms",
+   "fieldtype": "Link",
+   "label": "Payment Terms",
+   "options": "Payment Term"
+  },
+  {
+   "fieldname": "cargo_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Details"
+  },
+  {
+   "fieldname": "loading_and_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Loading & Tracking"
+  },
+  {
+   "fieldname": "terms_section",
+   "fieldtype": "Section Break",
+   "label": "Terms"
+  },
+  {
+   "fieldname": "copy_charges_from_truck_loading",
+   "fieldtype": "Button",
+   "label": "Copy Charges from Truck Loading"
+  },
+  {
+   "fieldname": "client_rate",
+   "fieldtype": "Float",
+   "label": "Client Rate",
+   "non_negative": 1,
+   "options": "currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "transporter_rate",
+   "fieldtype": "Float",
+   "label": "Transporter Rate",
+   "non_negative": 1,
+   "options": "currency",
+   "precision": "2"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-07-03 12:12:05.165481",
+ "links": [
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "road_freight_job_reference",
+   "table_fieldname": "Sales Invoice"
+  },
+  {
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "road_freight_job_reference",
+   "table_fieldname": "Purchase Invoice"
+  }
+ ],
+ "modified": "2025-07-05 22:54:46.735314",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",

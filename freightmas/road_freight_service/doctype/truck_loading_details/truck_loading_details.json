@@ -8,6 +8,7 @@
  "field_order": [
   "cargo_details_section",
   "cargo_type",
+  "copied_to_charge",
   "column_break_deti",
   "container_number",
   "cargo_item_description",
@@ -21,18 +22,20 @@
   "column_break_qyrv",
   "buying_rate",
   "column_break_qxiw",
+  "service_charge",
   "column_break_aiwr",
   "truck_details_section",
   "transporter",
-  "driver_passport_no",
+  "driver_name",
   "column_break_aczq",
+  "truck_type",
+  "driver_passport_no",
+  "column_break_loqm",
   "horse",
   "driver_cell_no",
-  "column_break_loqm",
+  "column_break_vkik",
   "trailer",
   "driver_other",
-  "column_break_vkik",
-  "driver_name",
   "cargo_tracking_section",
   "is_loaded",
   "date_loaded",
@@ -142,7 +145,8 @@
    "fieldname": "container_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Container No"
+   "label": "Container No",
+   "mandatory_depends_on": "eval:doc.cargo_type==\"Containerised\""
   },
   {
    "default": "1",
@@ -160,6 +164,7 @@
    "fieldname": "container_type",
    "fieldtype": "Link",
    "label": "Container Type",
+   "mandatory_depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "options": "Container Type"
   },
   {
@@ -284,7 +289,8 @@
    "fieldtype": "Float",
    "label": "Client Rate",
    "non_negative": 1,
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_qyrv",
@@ -295,7 +301,8 @@
    "fieldtype": "Float",
    "label": "Transporter Rate",
    "non_negative": 1,
-   "precision": "2"
+   "precision": "2",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_qxiw",
@@ -316,13 +323,33 @@
    "fieldname": "attach_pod",
    "fieldtype": "Attach",
    "label": "Attach POD"
+  },
+  {
+   "fieldname": "truck_type",
+   "fieldtype": "Select",
+   "label": "Truck Type",
+   "options": "Semi Flatdeck\nSemi Dropside\nSemi Tautliner\nLink Flatdeck\nLink Dropside\nLink Tautliner\nLowbed\nReefer\nTanker\nTipper\nOther"
+  },
+  {
+   "fieldname": "service_charge",
+   "fieldtype": "Link",
+   "label": "Service Charge",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "copied_to_charge",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Copied to Charge"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-03 14:20:36.208989",
+ "modified": "2025-07-06 00:07:06.902732",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Truck Loading Details",
