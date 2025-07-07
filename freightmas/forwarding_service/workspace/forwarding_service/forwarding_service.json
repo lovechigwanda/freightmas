@@ -1,29 +1,29 @@
 {
  "charts": [],
- "content": "[{\"id\":\"0iSgqPAI1C\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"GejGTHY827\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}}]",
- "creation": "2025-06-29 09:43:33.684859",
+ "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}}]",
+ "creation": "2025-07-06 18:56:56.295069",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
- "icon": "change",
+ "icon": "non-profit",
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Forwarding Service",
  "links": [],
- "modified": "2025-07-04 00:29:56.251476",
+ "modified": "2025-07-06 19:09:40.307551",
  "modified_by": "Administrator",
- "module": "FreightMas",
+ "module": "Forwarding Service",
  "name": "Forwarding Service",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "FreightMas",
+ "parent_page": "",
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 35.0,
+ "sequence_id": 36.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -34,5 +34,5 @@
    "type": "DocType"
   }
  ],
- "title": "Forwarding"
+ "title": "Forwarding Service"
 }

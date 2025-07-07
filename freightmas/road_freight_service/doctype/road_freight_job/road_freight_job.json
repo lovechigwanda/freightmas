@@ -55,6 +55,11 @@
   "payment_terms",
   "loading_and_tracking_section",
   "truck_loading_details",
+  "section_break_scpw",
+  "status",
+  "column_break_yobo",
+  "completed_on",
+  "column_break_iinb",
   "charges_tab",
   "currency",
   "column_break_xsgy",
@@ -470,6 +475,29 @@
    "non_negative": 1,
    "options": "currency",
    "precision": "2"
+  },
+  {
+   "fieldname": "section_break_scpw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nIn Progress\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "column_break_yobo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On"
+  },
+  {
+   "fieldname": "column_break_iinb",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -487,7 +515,7 @@
    "table_fieldname": "Purchase Invoice"
   }
  ],
- "modified": "2025-07-05 22:54:46.735314",
+ "modified": "2025-07-06 14:38:26.890484",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",
