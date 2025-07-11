@@ -413,5 +413,3 @@ def create_driver_party_type():
             "disabled": 0
         }).insert(ignore_permissions=True)
 
-
-###########################################################################
