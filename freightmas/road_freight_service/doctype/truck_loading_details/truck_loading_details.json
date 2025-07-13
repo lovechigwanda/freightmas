@@ -24,6 +24,7 @@
   "column_break_qxiw",
   "service_charge",
   "column_break_aiwr",
+  "loading_charge_per",
   "truck_details_section",
   "transporter",
   "driver_name",
@@ -343,13 +344,20 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Copied to Charge"
+  },
+  {
+   "fieldname": "loading_charge_per",
+   "fieldtype": "Link",
+   "label": "Charge Per",
+   "mandatory_depends_on": "eval:doc.selling_rate || doc.buying_rate\n",
+   "options": "UOM"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-06 00:07:06.902732",
+ "modified": "2025-07-13 17:51:30.725612",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Truck Loading Details",

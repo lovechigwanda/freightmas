@@ -53,6 +53,7 @@
   "transporter_rate",
   "column_break_qoxl",
   "payment_terms",
+  "charge_per",
   "loading_and_tracking_section",
   "truck_loading_details",
   "section_break_scpw",
@@ -498,6 +499,13 @@
   {
    "fieldname": "column_break_iinb",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.client_rate || doc.transport_rate",
+   "fieldname": "charge_per",
+   "fieldtype": "Link",
+   "label": "Charge Per",
+   "options": "UOM"
   }
  ],
  "grid_page_length": 50,
@@ -515,7 +523,7 @@
    "table_fieldname": "Purchase Invoice"
   }
  ],
- "modified": "2025-07-13 11:24:10.013972",
+ "modified": "2025-07-13 17:43:55.109484",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",
