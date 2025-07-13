@@ -1,0 +1,26 @@
+[
+ {
+  "align": "Left",
+  "content": "<table style='width: 100%; margin: 0; padding: 0; border-collapse: collapse; font-family: \"Inter\", sans-serif; margin-bottom: 8px;'>\n  <tbody><tr>\n    <td style=\"width: 130px; margin: 0; padding: 0; vertical-align: top;\">\n      {% set custom_logo = frappe.db.get_value('Letter Head', letter_head, 'custom_logo') %}\n      {% if custom_logo %}\n        <img src=\"{{ custom_logo }}\" style=\"width: 130px; height: 50px; object-fit: contain; display: block; margin: 0; padding: 0;\">\n      {% endif %}\n    </td>\n    <td style=\"text-align: right; margin: 0; padding: 0; vertical-align: top; line-height: 1.2;\">\n      <div style=\"font-size: 13px; font-weight: 700; margin: 0 0 2px 0; color: #3f51b5;\">\n        {{ doc.company }}\n      </div>\n\n      {% set address = frappe.get_all(\"Address\", filters={\"link_doctype\": \"Company\", \"link_name\": doc.company}, fields=[\"address_line1\", \"address_line2\", \"city\", \"country\"], limit=1) or [] %}\n      {% if address %}\n        <div style=\"margin: 0 0 2px 0; font-size: 11px; line-height: 1.2; color: #444;\">\n          {{ address[0].address_line1 or \"\" }}{% if address[0].address_line2 %}, {{ address[0].address_line2 }}{% endif %}<br>\n          {{ address[0].city or \"\" }}{% if address[0].country %}, {{ address[0].country }}{% endif %}\n        </div>\n      {% endif %}\n\n      <div style=\"margin: 0; font-size: 11px; line-height: 1.2; color: #444;\">\n        {% set phone = frappe.db.get_value(\"Company\", doc.company, \"phone_no\") %}\n        {% set email = frappe.db.get_value(\"Company\", doc.company, \"email\") %}\n        {% set tax_id = frappe.db.get_value(\"Company\", doc.company, \"tax_id\") %}\n        \n        {% if phone %}{{ phone }}{% endif %}{% if phone and email %} | {% endif %}{% if email %}{{ email }}{% endif %}<br>\n        {% if tax_id %}Tax ID: {{ tax_id }}{% endif %}\n      </div>\n    </td>\n  </tr>\n</tbody></table>",
+  "custom_logo": "/files/Logisys Logo1.png",
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Letter Head",
+  "footer": null,
+  "footer_align": "Left",
+  "footer_image": null,
+  "footer_image_height": 0.0,
+  "footer_image_width": 0.0,
+  "footer_script": null,
+  "footer_source": "HTML",
+  "header_script": null,
+  "image": null,
+  "image_height": 0.0,
+  "image_width": 0.0,
+  "is_default": 1,
+  "letter_head_name": "Main Letterhead",
+  "modified": "2025-07-13 22:43:46.555349",
+  "name": "Main Letterhead",
+  "source": "HTML"
+ }
+]

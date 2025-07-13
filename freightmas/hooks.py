@@ -304,7 +304,8 @@ fixtures = [
                 "Sales Invoice-custom_is_road_freight_invoice",
                 "Purchase Invoice-custom_road_freight_job_reference",
                 "Purchase Invoice-custom_is_road_freight_invoice",
-                "Sales Invoice-custom_banking_details"
+                "Sales Invoice-custom_banking_details",
+                "Letter Head-custom_logo"
             ]]
         ]
     },
@@ -343,6 +344,12 @@ fixtures = [
     },
     {
         "dt": "Print Format"
+    },
+    {
+        "dt": "Letter Head",
+        "filters": [
+            ["name", "in", ["Main Letterhead"]]
+        ]
     }
 ]
 
