@@ -1,7 +1,7 @@
 {
  "charts": [],
- "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
- "creation": "2025-07-06 01:00:23.335085",
+ "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"VirFN49Wo8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charges Template\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
+ "creation": "2025-07-13 18:04:38.987189",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -221,7 +221,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-07-06 19:09:40.110198",
+ "modified": "2025-07-13 18:45:42.529156",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",
@@ -238,6 +238,14 @@
    "doc_view": "List",
    "label": "Clearing Job",
    "link_to": "Clearing Job",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Charges Template",
+   "link_to": "Clearing Charges Template",
    "stats_filter": "[]",
    "type": "DocType"
   },

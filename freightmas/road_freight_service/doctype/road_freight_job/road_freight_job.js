@@ -239,4 +239,302 @@ function copy_charges_from_truck_loading(frm) {
   }
 }
 
+function create_sales_invoice_from_charges(frm) {
+  const all_rows = frm.doc.road_freight_charges || [];
+  const eligible_rows = all_rows.filter(row => 
+    row.sell_rate && row.customer && !row.sales_invoice_reference
+  );
+
+  if (!eligible_rows.length) {
+    frappe.msgprint(__("No eligible charges found for invoicing."));
+    return;
+  }
+
+  let selected_customer = eligible_rows[0].customer;
+
+  const get_unique_customers = () => [...new Set(eligible_rows.map(r => r.customer))];
+
+  const render_dialog_ui = (dialog, customer) => {
+    const customers = get_unique_customers();
+    const rows = customer ? eligible_rows.filter(r => r.customer === customer) : eligible_rows;
+
+    const customer_filter = `
+      <div style="margin-bottom: 15px;">
+        <label for="customer-filter" style="font-weight: bold; margin-bottom: 5px; display: block;">Customer:</label>
+        <select id="customer-filter" class="form-control" style="width: 100%;">
+          <option value="">-- All Customers --</option>
+          ${customers.map(c =>
+            `<option value="${c}" ${c === customer ? 'selected' : ''}>${c}</option>`
+          ).join('')}
+        </select>
+      </div>
+    `;
+
+    const table = `
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+        <table class="table table-bordered table-sm" style="margin: 0;">
+          <thead style="background-color: #f8f9fa; position: sticky; top: 0; z-index: 10;">
+            <tr>
+              <th style="width: 40px; text-align: center;">
+                <input type="checkbox" id="select-all-charges" title="Select All">
+              </th>
+              <th style="min-width: 150px;">Customer</th>
+              <th style="min-width: 200px;">Description</th>
+              <th style="width: 80px; text-align: right;">Qty</th>
+              <th style="width: 100px; text-align: right;">Sell Rate</th>
+              <th style="width: 100px; text-align: right;">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td style="text-align: center;">
+                  <input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+                </td>
+                <td>${row.customer || ''}</td>
+                <td>${row.charge || ''}</td>
+                <td style="text-align: right;">${row.qty || 0}</td>
+                <td style="text-align: right;">${frappe.format(row.sell_rate || 0, { 
+                  fieldtype: 'Currency', 
+                  currency: frm.doc.currency 
+                })}</td>
+                <td style="text-align: right;">${frappe.format(row.revenue_amount || 0, { 
+                  fieldtype: 'Currency', 
+                  currency: frm.doc.currency 
+                })}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${rows.length === 0 ? '<p style="text-align: center; color: #999; margin-top: 20px;">No charges available for the selected customer.</p>' : ''}
+    `;
+
+    dialog.fields_dict.charge_rows_html.$wrapper.html(customer_filter + table);
+
+    // Customer filter change handler
+    dialog.$wrapper.find('#customer-filter').on('change', function() {
+      selected_customer = this.value;
+      render_dialog_ui(dialog, selected_customer);
+    });
+
+    // Select all checkbox handler
+    dialog.$wrapper.find('#select-all-charges').on('change', function() {
+      const isChecked = this.checked;
+      dialog.$wrapper.find('.charge-row-check').prop('checked', isChecked);
+    });
+
+    // Individual checkbox handler
+    dialog.$wrapper.find('.charge-row-check').on('change', function() {
+      const total = dialog.$wrapper.find('.charge-row-check').length;
+      const checked = dialog.$wrapper.find('.charge-row-check:checked').length;
+      dialog.$wrapper.find('#select-all-charges').prop('checked', total === checked);
+    });
+  };
+
+  const dialog = new frappe.ui.Dialog({
+    title: __('Select Charges for Sales Invoice'),
+    size: 'large',
+    fields: [
+      {
+        fieldtype: 'HTML',
+        fieldname: 'charge_rows_html',
+        options: ''
+      }
+    ],
+    primary_action_label: __('Create Sales Invoice'),
+    primary_action() {
+      const selected = Array.from(
+        dialog.$wrapper.find('.charge-row-check:checked')
+      ).map(el => el.dataset.rowName);
+
+      if (!selected.length) {
+        frappe.msgprint(__("Please select at least one charge."));
+        return;
+      }
+
+      const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+      const unique_customers = [...new Set(selected_rows.map(r => r.customer))];
+
+      if (unique_customers.length > 1) {
+        frappe.msgprint(__("You can only create an invoice for one customer at a time."));
+        return;
+      }
+
+      frappe.call({
+        method: "freightmas.road_freight_service.doctype.road_freight_job.road_freight_job.create_sales_invoice_with_rows",
+        args: {
+          docname: frm.doc.name,
+          row_names: selected
+        },
+        callback(r) {
+          if (r.message) {
+            frappe.msgprint({
+              title: __('Sales Invoice Created'),
+              message: __('Sales Invoice {0} has been created successfully', [r.message]),
+              indicator: 'green'
+            });
+            
+            frappe.set_route("Form", "Sales Invoice", r.message);
+            frm.reload_doc();
+            dialog.hide();
+          }
+        }
+      });
+    }
+  });
+
+  dialog.show();
+  render_dialog_ui(dialog, selected_customer);
+}
+
+function create_purchase_invoice_from_charges(frm) {
+  const all_rows = frm.doc.road_freight_charges || [];
+  const eligible_rows = all_rows.filter(row => 
+    row.buy_rate && row.supplier && !row.purchase_invoice_reference
+  );
+
+  if (!eligible_rows.length) {
+    frappe.msgprint(__("No eligible charges found for purchase invoicing."));
+    return;
+  }
+
+  let selected_supplier = eligible_rows[0].supplier;
+
+  const get_unique_suppliers = () => [...new Set(eligible_rows.map(r => r.supplier))];
+
+  const render_dialog_ui = (dialog, supplier) => {
+    const suppliers = get_unique_suppliers();
+    const rows = supplier ? eligible_rows.filter(r => r.supplier === supplier) : eligible_rows;
+
+    const supplier_filter = `
+      <div style="margin-bottom: 15px;">
+        <label for="supplier-filter" style="font-weight: bold; margin-bottom: 5px; display: block;">Supplier:</label>
+        <select id="supplier-filter" class="form-control" style="width: 100%;">
+          <option value="">-- All Suppliers --</option>
+          ${suppliers.map(s =>
+            `<option value="${s}" ${s === supplier ? 'selected' : ''}>${s}</option>`
+          ).join('')}
+        </select>
+      </div>
+    `;
+
+    const table = `
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+        <table class="table table-bordered table-sm" style="margin: 0;">
+          <thead style="background-color: #f8f9fa; position: sticky; top: 0; z-index: 10;">
+            <tr>
+              <th style="width: 40px; text-align: center;">
+                <input type="checkbox" id="select-all-charges" title="Select All">
+              </th>
+              <th style="min-width: 150px;">Supplier</th>
+              <th style="min-width: 200px;">Description</th>
+              <th style="width: 80px; text-align: right;">Qty</th>
+              <th style="width: 100px; text-align: right;">Buy Rate</th>
+              <th style="width: 100px; text-align: right;">Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                <td style="text-align: center;">
+                  <input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+                </td>
+                <td>${row.supplier || ''}</td>
+                <td>${row.charge || ''}</td>
+                <td style="text-align: right;">${row.qty || 0}</td>
+                <td style="text-align: right;">${frappe.format(row.buy_rate || 0, { 
+                  fieldtype: 'Currency', 
+                  currency: frm.doc.currency 
+                })}</td>
+                <td style="text-align: right;">${frappe.format(row.cost_amount || 0, { 
+                  fieldtype: 'Currency', 
+                  currency: frm.doc.currency 
+                })}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${rows.length === 0 ? '<p style="text-align: center; color: #999; margin-top: 20px;">No charges available for the selected supplier.</p>' : ''}
+    `;
+
+    dialog.fields_dict.charge_rows_html.$wrapper.html(supplier_filter + table);
+
+    // Supplier filter change handler
+    dialog.$wrapper.find('#supplier-filter').on('change', function() {
+      selected_supplier = this.value;
+      render_dialog_ui(dialog, selected_supplier);
+    });
+
+    // Select all checkbox handler
+    dialog.$wrapper.find('#select-all-charges').on('change', function() {
+      const isChecked = this.checked;
+      dialog.$wrapper.find('.charge-row-check').prop('checked', isChecked);
+    });
+
+    // Individual checkbox handler
+    dialog.$wrapper.find('.charge-row-check').on('change', function() {
+      const total = dialog.$wrapper.find('.charge-row-check').length;
+      const checked = dialog.$wrapper.find('.charge-row-check:checked').length;
+      dialog.$wrapper.find('#select-all-charges').prop('checked', total === checked);
+    });
+  };
+
+  const dialog = new frappe.ui.Dialog({
+    title: __('Select Charges for Purchase Invoice'),
+    size: 'large',
+    fields: [
+      {
+        fieldtype: 'HTML',
+        fieldname: 'charge_rows_html',
+        options: ''
+      }
+    ],
+    primary_action_label: __('Create Purchase Invoice'),
+    primary_action() {
+      const selected = Array.from(
+        dialog.$wrapper.find('.charge-row-check:checked')
+      ).map(el => el.dataset.rowName);
+
+      if (!selected.length) {
+        frappe.msgprint(__("Please select at least one charge."));
+        return;
+      }
+
+      const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+      const unique_suppliers = [...new Set(selected_rows.map(r => r.supplier))];
+
+      if (unique_suppliers.length > 1) {
+        frappe.msgprint(__("You can only create an invoice for one supplier at a time."));
+        return;
+      }
+
+      frappe.call({
+        method: "freightmas.road_freight_service.doctype.road_freight_job.road_freight_job.create_purchase_invoice_with_rows",
+        args: {
+          docname: frm.doc.name,
+          row_names: selected
+        },
+        callback(r) {
+          if (r.message) {
+            frappe.msgprint({
+              title: __('Purchase Invoice Created'),
+              message: __('Purchase Invoice {0} has been created successfully', [r.message]),
+              indicator: 'green'
+            });
+            
+            frappe.set_route("Form", "Purchase Invoice", r.message);
+            frm.reload_doc();
+            dialog.hide();
+          }
+        }
+      });
+    }
+  });
+
+  dialog.show();
+  render_dialog_ui(dialog, selected_supplier);
+}
+
 

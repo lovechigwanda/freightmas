@@ -485,7 +485,8 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Draft\nIn Progress\nCompleted\nCancelled"
+   "options": "Draft\nIn Progress\nCompleted\nCancelled",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_yobo",
@@ -523,7 +524,7 @@
    "table_fieldname": "Purchase Invoice"
   }
  ],
- "modified": "2025-07-13 17:43:55.109484",
+ "modified": "2025-07-13 18:28:29.669653",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",

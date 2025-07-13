@@ -747,7 +747,8 @@
   {
    "fieldname": "cargo_count",
    "fieldtype": "Data",
-   "label": "Cargo Count"
+   "label": "Cargo Count",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_wykq",
@@ -895,7 +896,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-07-13 11:16:02.334157",
+ "modified": "2025-07-13 18:42:35.424383",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",
