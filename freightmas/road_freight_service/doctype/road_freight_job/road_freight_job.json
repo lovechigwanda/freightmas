@@ -515,7 +515,7 @@
    "table_fieldname": "Purchase Invoice"
   }
  ],
- "modified": "2025-07-06 14:38:26.890484",
+ "modified": "2025-07-13 11:24:10.013972",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job",
@@ -531,6 +531,34 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Road Freight Operator",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1

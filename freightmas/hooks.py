@@ -304,8 +304,21 @@ fixtures = [
                 "Sales Invoice-custom_is_road_freight_invoice",
                 "Purchase Invoice-custom_road_freight_job_reference",
                 "Purchase Invoice-custom_is_road_freight_invoice"
-
-
+            ]]
+        ]
+    },
+    {
+        "dt": "Custom DocPerm"
+    },
+    {
+        "dt": "Role",
+        "filters": [
+            ["name", "in", [
+                "Fleet Controller",
+                "Road Freight Operator",
+                "Forwarding Operator",
+                "Clearing Operator",
+                "FreightMas Manager"
             ]]
         ]
     },
@@ -318,7 +331,7 @@ fixtures = [
     {
         "dt": "Workflow Action"
     },
-   {
+    {
         "dt": "Workspace",
         "filters": [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service", "Trucking Service"]]
@@ -328,7 +341,6 @@ fixtures = [
         "dt": "Print Format"
     }
 ]
-
 
 #############################################################################
 

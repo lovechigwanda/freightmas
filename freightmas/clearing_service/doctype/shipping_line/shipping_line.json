@@ -71,8 +71,8 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-03 18:30:43.399330",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2025-07-13 11:17:45.434457",
+ "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Shipping Line",
  "naming_rule": "By fieldname",
@@ -87,6 +87,30 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Clearing Operator",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   }
