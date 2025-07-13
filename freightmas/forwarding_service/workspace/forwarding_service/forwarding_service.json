@@ -1,7 +1,7 @@
 {
  "charts": [],
- "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}}]",
- "creation": "2025-07-06 18:56:56.295069",
+ "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"ZGl32lunep\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PpvKHqt_3Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+ "creation": "2025-07-13 18:04:39.128838",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -12,8 +12,98 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Forwarding Service",
- "links": [],
- "modified": "2025-07-06 19:09:40.307551",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Links",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quotation",
+   "link_count": 0,
+   "link_to": "Quotation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Invoice",
+   "link_count": 0,
+   "link_to": "Purchase Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Charge",
+   "link_count": 0,
+   "link_to": "Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Port",
+   "link_count": 0,
+   "link_to": "Port",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Banking Details",
+   "link_count": 0,
+   "link_to": "Banking Profile",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-07-13 14:50:44.787475",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Service",

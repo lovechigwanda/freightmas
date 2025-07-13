@@ -303,21 +303,25 @@ fixtures = [
                 "Sales Invoice-custom_road_freight_job_reference",
                 "Sales Invoice-custom_is_road_freight_invoice",
                 "Purchase Invoice-custom_road_freight_job_reference",
-                "Purchase Invoice-custom_is_road_freight_invoice"
+                "Purchase Invoice-custom_is_road_freight_invoice",
+                "Sales Invoice-custom_banking_details"
             ]]
         ]
     },
     {
-        "dt": "Custom DocPerm"
+        "dt": "Custom DocPerm",
+        "filters": [
+            ["role", "in", [
+                "FreightMas Operator",
+                "FreightMas Manager"
+            ]]
+        ]
     },
     {
         "dt": "Role",
         "filters": [
             ["name", "in", [
-                "Fleet Controller",
-                "Road Freight Operator",
-                "Forwarding Operator",
-                "Clearing Operator",
+                "FreightMas Operator",
                 "FreightMas Manager"
             ]]
         ]
