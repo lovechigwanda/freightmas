@@ -327,6 +327,24 @@ fixtures = [
             ]]
         ]
     },
+    # Add Role Profile fixture
+    {
+        "dt": "Role Profile",
+        "filters": [
+            ["name", "in", [
+                "FreightMas User Profile"
+            ]]
+        ]
+    },
+    # Add Module Profile fixture
+    {
+        "dt": "Module Profile",
+        "filters": [
+            ["name", "in", [
+                "FreightMas User Profile"
+            ]]
+        ]
+    },
     {
         "dt": "Workflow"
     },
