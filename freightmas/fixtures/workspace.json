@@ -451,7 +451,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"VirFN49Wo8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charges Template\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
+  "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"VirFN49Wo8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charges Template\",\"col\":3}},{\"id\":\"1A3hlXKeBw\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Banking Details\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -841,7 +841,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-07-13 18:45:42.529156",
+  "modified": "2025-07-16 11:02:28.276270",
   "module": "Clearing Service",
   "name": "Port Clearing Service",
   "number_cards": [],
@@ -860,6 +860,23 @@
     "kanban_board": null,
     "label": "Clearing Job",
     "link_to": "Clearing Job",
+    "parent": "Port Clearing Service",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Banking Details",
+    "link_to": "Banking Profile",
     "parent": "Port Clearing Service",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",
@@ -1031,7 +1048,7 @@
     "icon": null,
     "is_query_report": 0,
     "label": "Quick Links",
-    "link_count": 8,
+    "link_count": 9,
     "link_to": null,
     "link_type": "DocType",
     "onboard": 0,
@@ -1185,9 +1202,27 @@
     "parenttype": "Workspace",
     "report_ref_doctype": null,
     "type": "Link"
+   },
+   {
+    "dependencies": null,
+    "description": null,
+    "hidden": 0,
+    "icon": null,
+    "is_query_report": 0,
+    "label": "Banking Details",
+    "link_count": 0,
+    "link_to": "Banking Profile",
+    "link_type": "DocType",
+    "onboard": 0,
+    "only_for": null,
+    "parent": "Road Freight Service",
+    "parentfield": "links",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "type": "Link"
    }
   ],
-  "modified": "2025-07-06 19:40:47.127851",
+  "modified": "2025-07-16 11:01:44.339457",
   "module": "Road Freight Service",
   "name": "Road Freight Service",
   "number_cards": [],
@@ -1237,7 +1272,7 @@
  },
  {
   "charts": [],
-  "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"ZGl32lunep\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PpvKHqt_3Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+  "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"ZGl32lunep\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"4gGM0QpcbX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"sAoSYFL6dI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"aDxCna4uLR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"WIP Revenue\",\"col\":3}},{\"id\":\"sC2LPDTTjC\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Closed Revenue\",\"col\":3}},{\"id\":\"y-DAag7Oj9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PpvKHqt_3Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -1411,10 +1446,39 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-07-13 14:50:44.787475",
+  "modified": "2025-07-15 19:19:41.234432",
   "module": "Forwarding Service",
   "name": "Forwarding Service",
-  "number_cards": [],
+  "number_cards": [
+   {
+    "label": "Completed Jobs",
+    "number_card_name": "Completed Forwarding Jobs",
+    "parent": "Forwarding Service",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   },
+   {
+    "label": "Closed Revenue",
+    "number_card_name": "Forwarding Job Closed Revenue",
+    "parent": "Forwarding Service",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   },
+   {
+    "label": "WIP Revenue",
+    "number_card_name": "Forwarding Job WIP Revenue",
+    "parent": "Forwarding Service",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   },
+   {
+    "label": "Active Jobs",
+    "number_card_name": "Active Forwarding Jobs",
+    "parent": "Forwarding Service",
+    "parentfield": "number_cards",
+    "parenttype": "Workspace"
+   }
+  ],
   "parent_page": "",
   "public": 1,
   "quick_lists": [],

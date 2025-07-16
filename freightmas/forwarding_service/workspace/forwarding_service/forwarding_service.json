@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"ZGl32lunep\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PpvKHqt_3Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
+ "content": "[{\"id\":\"p7yjFJJQP7\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"NoztKamfSS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"ZGl32lunep\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"4gGM0QpcbX\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"sAoSYFL6dI\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"aDxCna4uLR\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"WIP Revenue\",\"col\":3}},{\"id\":\"sC2LPDTTjC\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Closed Revenue\",\"col\":3}},{\"id\":\"y-DAag7Oj9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"PpvKHqt_3Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}}]",
  "creation": "2025-07-13 18:04:39.128838",
  "custom_blocks": [],
  "docstatus": 0,
@@ -103,11 +103,28 @@
    "type": "Link"
   }
  ],
- "modified": "2025-07-13 14:50:44.787475",
+ "modified": "2025-07-15 19:19:41.234432",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Service",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Completed Jobs",
+   "number_card_name": "Completed Forwarding Jobs"
+  },
+  {
+   "label": "Closed Revenue",
+   "number_card_name": "Forwarding Job Closed Revenue"
+  },
+  {
+   "label": "WIP Revenue",
+   "number_card_name": "Forwarding Job WIP Revenue"
+  },
+  {
+   "label": "Active Jobs",
+   "number_card_name": "Active Forwarding Jobs"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
