@@ -305,7 +305,6 @@ fixtures = [
                 "Purchase Invoice-custom_road_freight_job_reference",
                 "Purchase Invoice-custom_is_road_freight_invoice",
                 "Sales Invoice-custom_banking_details",
-                "Letter Head-custom_letterhead_image",
                 "Quotation-custom_job_description",
                 "Quotation-custom_destination", 
                 "Quotation-custom_origin",
