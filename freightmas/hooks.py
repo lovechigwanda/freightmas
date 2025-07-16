@@ -305,7 +305,12 @@ fixtures = [
                 "Purchase Invoice-custom_road_freight_job_reference",
                 "Purchase Invoice-custom_is_road_freight_invoice",
                 "Sales Invoice-custom_banking_details",
-                "Letter Head-custom_letterhead_image"
+                "Letter Head-custom_letterhead_image",
+                "Quotation-custom_job_description",
+                "Quotation-custom_destination", 
+                "Quotation-custom_origin",
+                "Quotation-custom_job_type",
+                "Quotation-custom_is_freight_quote"
             ]]
         ]
     },
@@ -327,7 +332,6 @@ fixtures = [
             ]]
         ]
     },
-    # Add Role Profile fixture
     {
         "dt": "Role Profile",
         "filters": [
@@ -336,7 +340,6 @@ fixtures = [
             ]]
         ]
     },
-    # Add Module Profile fixture
     {
         "dt": "Module Profile",
         "filters": [
@@ -361,7 +364,10 @@ fixtures = [
         ]
     },
     {
-        "dt": "Print Format"
+        "dt": "Print Format",
+        "filters": [
+            ["name", "in", ["FreightMas Quotation", "FreightMas Sales Invoice"]]
+        ]
     },
     {
         "dt": "Letter Head",
