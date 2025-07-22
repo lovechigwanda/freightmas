@@ -409,19 +409,3 @@ def create_child_account(account_type, driver_name, settings_account, field_to_s
 
 #############################################################################
 
-after_install = "freightmas.hooks.create_driver_party_type"
-
-#############################################################################
-
-
-def create_driver_party_type():
-    import frappe
-
-    if not frappe.db.exists("Party Type", "Driver"):
-        frappe.get_doc({
-            "doctype": "Party Type",
-            "party_type": "Driver",
-            "reference_doctype": "Driver",
-            "disabled": 0
-        }).insert(ignore_permissions=True)
-
