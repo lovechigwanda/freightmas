@@ -20,7 +20,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-13 11:18:46.802457",
+ "modified": "2025-07-22 09:27:18.693123",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Milestone",
@@ -36,28 +36,6 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Clearing Operator",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "FreightMas Manager",
    "share": 1,
    "write": 1
   }

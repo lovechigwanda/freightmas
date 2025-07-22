@@ -657,7 +657,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-07-13 18:25:18.953553",
+ "modified": "2025-07-22 09:19:52.837208",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
@@ -673,34 +673,6 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Forwarding Operator",
-   "select": 1,
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "FreightMas Manager",
-   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1
