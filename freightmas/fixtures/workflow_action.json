@@ -1783,5 +1783,26 @@
   "status": "Open",
   "user": null,
   "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-18 11:30:52.720037",
+  "name": "invj17uqh0",
+  "permitted_roles": [
+   {
+    "parent": "invj17uqh0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Forwarding Job",
+  "reference_name": "FWJB-00002-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Draft"
  }
 ]

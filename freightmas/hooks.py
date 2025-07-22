@@ -314,40 +314,6 @@ fixtures = [
         ]
     },
     {
-        "dt": "Custom DocPerm",
-        "filters": [
-            ["role", "in", [
-                "FreightMas Operator",
-                "FreightMas Manager"
-            ]]
-        ]
-    },
-    {
-        "dt": "Role",
-        "filters": [
-            ["name", "in", [
-                "FreightMas Operator",
-                "FreightMas Manager"
-            ]]
-        ]
-    },
-    {
-        "dt": "Role Profile",
-        "filters": [
-            ["name", "in", [
-                "FreightMas User Profile"
-            ]]
-        ]
-    },
-    {
-        "dt": "Module Profile",
-        "filters": [
-            ["name", "in", [
-                "FreightMas User Profile"
-            ]]
-        ]
-    },
-    {
         "dt": "Workflow"
     },
     {
