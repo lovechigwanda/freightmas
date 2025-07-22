@@ -65,8 +65,6 @@
   "other_trip_expenses_section",
   "trip_fuel_allocation",
   "trip_other_costs",
-  "trip_commissions_section",
-  "trip_commissions",
   "section_break_lftw",
   "total_estimated_revenue",
   "column_break_mcia",
@@ -284,17 +282,17 @@
   {
    "fieldname": "cargo_tab",
    "fieldtype": "Tab Break",
-   "label": "CARGO"
+   "label": "Cargo"
   },
   {
    "fieldname": "charges_tab",
    "fieldtype": "Tab Break",
-   "label": "CHARGES"
+   "label": "Charges"
   },
   {
    "fieldname": "tracking_tab",
    "fieldtype": "Tab Break",
-   "label": "TRACKING"
+   "label": "Tracking"
   },
   {
    "fieldname": "cargo_description",
@@ -506,7 +504,7 @@
   {
    "fieldname": "connections_tab",
    "fieldtype": "Tab Break",
-   "label": "CONNECTIONS",
+   "label": "Connections",
    "show_dashboard": 1
   },
   {
@@ -523,19 +521,9 @@
    "options": "Trip Other Costs"
   },
   {
-   "fieldname": "trip_commissions",
-   "fieldtype": "Table",
-   "label": "Commissions",
-   "options": "Trip Commissions"
-  },
-  {
-   "fieldname": "trip_commissions_section",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "details_tab",
    "fieldtype": "Tab Break",
-   "label": "DETAILS"
+   "label": "Details"
   },
   {
    "fieldname": "important_dates_section",
@@ -588,7 +576,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-22 09:21:26.907988",
+ "modified": "2025-07-22 20:54:26.994766",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
