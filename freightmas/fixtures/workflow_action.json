@@ -1722,8 +1722,8 @@
   "workflow_state": "Draft"
  },
  {
-  "completed_by": null,
-  "completed_by_role": null,
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
   "docstatus": 0,
   "doctype": "Workflow Action",
   "modified": "2025-07-13 19:14:37.687125",
@@ -1738,7 +1738,7 @@
   ],
   "reference_doctype": "Forwarding Job",
   "reference_name": "FWJB-00001-25",
-  "status": "Open",
+  "status": "Completed",
   "user": null,
   "workflow_state": "Draft"
  },
@@ -1804,5 +1804,47 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-23 13:47:27.412701",
+  "name": "tgq05pap1o",
+  "permitted_roles": [
+   {
+    "parent": "tgq05pap1o",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Forwarding Job",
+  "reference_name": "FWJB-00001-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Progress"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-23 13:47:29.234604",
+  "name": "thc5qrchln",
+  "permitted_roles": [
+   {
+    "parent": "thc5qrchln",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Forwarding Job",
+  "reference_name": "FWJB-00001-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Delivered"
  }
 ]

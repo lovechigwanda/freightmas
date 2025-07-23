@@ -425,7 +425,7 @@
   {
    "bold": 1,
    "fieldname": "total_estimated_revenue",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "label": "Total Estimated Revenue",
    "precision": "2",
    "read_only": 1
@@ -437,7 +437,7 @@
   {
    "bold": 1,
    "fieldname": "total_estimated_cost",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "label": "Total Estimated Cost",
    "precision": "2",
    "read_only": 1
@@ -449,7 +449,7 @@
   {
    "bold": 1,
    "fieldname": "estimated_profit",
-   "fieldtype": "Float",
+   "fieldtype": "Currency",
    "label": "Estimated Profit",
    "precision": "2",
    "read_only": 1
@@ -513,10 +513,9 @@
    "label": "Expenses"
   },
   {
-   "description": "Record all other trip expenses paid to the driver",
    "fieldname": "trip_other_costs",
    "fieldtype": "Table",
-   "label": "Other Trip Charges",
+   "label": "Other Trip Expenses  **paid to the driver",
    "options": "Trip Other Costs"
   },
   {
@@ -574,7 +573,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-23 10:43:45.520045",
+ "modified": "2025-07-23 12:03:49.959454",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",

@@ -17,11 +17,9 @@
   "assigned_driver_name",
   "license_number",
   "cell_number2",
-  "driver_bonus_account",
   "column_break_cpjg",
   "passport_number",
-  "cell_number",
-  "driver_advance_account"
+  "cell_number"
  ],
  "fields": [
   {
@@ -127,23 +125,11 @@
    "label": "Cost Centre",
    "options": "Cost Center",
    "reqd": 1
-  },
-  {
-   "fetch_from": "assigned_driver.driver_advance_account",
-   "fieldname": "driver_advance_account",
-   "fieldtype": "Data",
-   "label": "Driver Advance Account"
-  },
-  {
-   "fetch_from": "assigned_driver.driver_bonus_account",
-   "fieldname": "driver_bonus_account",
-   "fieldtype": "Data",
-   "label": "Driver Bonus Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-22 20:58:04.511868",
+ "modified": "2025-07-23 16:19:09.879075",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Truck",

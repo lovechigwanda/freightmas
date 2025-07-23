@@ -15,8 +15,8 @@
   "is_invoiced",
   "column_break_csmz",
   "item_name",
-  "driver_advance_account",
   "expense_account",
+  "contra_account",
   "cost_centre",
   "description"
  ],
@@ -106,14 +106,6 @@
    "width": "1"
   },
   {
-   "fetch_from": "truck.driver_advance_account",
-   "fieldname": "driver_advance_account",
-   "fieldtype": "Link",
-   "label": "Driver Account",
-   "options": "Account",
-   "set_only_once": 1
-  },
-  {
    "columns": 2,
    "fieldname": "expense_account",
    "fieldtype": "Link",
@@ -129,12 +121,19 @@
    "fieldname": "item_name",
    "fieldtype": "Read Only",
    "label": "Charge Name"
+  },
+  {
+   "fieldname": "contra_account",
+   "fieldtype": "Link",
+   "label": "Contra Account",
+   "options": "Account",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-23 11:23:11.644947",
+ "modified": "2025-07-23 16:18:01.291869",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Other Costs",

@@ -93,15 +93,6 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-11-07 21:55:00.918971",
-  "name": "In Transit",
-  "style": "Info",
-  "workflow_state_name": "In Transit"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
   "modified": "2024-11-07 21:54:04.053444",
   "name": "Loading",
   "style": "Warning",
@@ -111,18 +102,27 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-11-07 21:58:17.834163",
-  "name": "Booking",
-  "style": "Warning",
-  "workflow_state_name": "Booking"
+  "modified": "2025-07-05 16:57:28.291165",
+  "name": "Delivered",
+  "style": "",
+  "workflow_state_name": "Delivered"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-05 16:57:28.291165",
-  "name": "Delivered",
-  "style": "",
-  "workflow_state_name": "Delivered"
+  "modified": "2024-11-07 21:55:00.918971",
+  "name": "In Transit",
+  "style": "Info",
+  "workflow_state_name": "In Transit"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2024-11-07 21:58:17.834163",
+  "name": "Booking",
+  "style": "Warning",
+  "workflow_state_name": "Booking"
  }
 ]
