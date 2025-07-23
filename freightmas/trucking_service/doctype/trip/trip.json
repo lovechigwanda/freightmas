@@ -508,7 +508,6 @@
    "show_dashboard": 1
   },
   {
-   "description": "Record Trip Expenses, Fuel, Trip Bonuses and Other Costs under this section.",
    "fieldname": "other_trip_expenses_section",
    "fieldtype": "Section Break",
    "label": "Expenses"
@@ -546,10 +545,9 @@
    "label": "Date Offloaded"
   },
   {
-   "description": "Allocate fuel for this trip only",
    "fieldname": "trip_fuel_allocation",
    "fieldtype": "Table",
-   "label": "Fuel Allocation",
+   "label": "Fuel Allocation **for this trip only",
    "options": "Trip Fuel Allocation"
   },
   {
@@ -576,7 +574,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-22 20:54:26.994766",
+ "modified": "2025-07-23 10:43:45.520045",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",

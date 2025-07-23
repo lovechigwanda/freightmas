@@ -9,18 +9,19 @@
   "item",
   "truck",
   "qty",
-  "amount",
+  "rate",
   "stock_entry_reference",
   "is_invoiced",
   "column_break_fhel",
   "item_name",
   "s_warehouse",
-  "rate",
   "cost_centre",
+  "amount",
   "remarks"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "item",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -30,23 +31,29 @@
    "set_only_once": 1
   },
   {
+   "columns": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Rate",
    "set_only_once": 1
   },
   {
+   "columns": 1,
    "fieldname": "truck",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Truck",
    "options": "Truck",
    "reqd": 1,
    "set_only_once": 1
   },
   {
+   "columns": 2,
    "fetch_from": "truck.warehouse",
    "fieldname": "s_warehouse",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Source Warehouse",
    "options": "Warehouse"
   },
@@ -65,17 +72,22 @@
    "set_only_once": 1
   },
   {
+   "columns": 1,
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "Qty",
    "non_negative": 1,
    "precision": "0",
    "set_only_once": 1
   },
   {
+   "bold": 1,
+   "columns": 2,
    "fieldname": "amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Total"
   },
   {
@@ -106,12 +118,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-03-30 20:41:51.655377",
+ "modified": "2025-07-23 10:38:59.925189",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Fuel Allocation",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
