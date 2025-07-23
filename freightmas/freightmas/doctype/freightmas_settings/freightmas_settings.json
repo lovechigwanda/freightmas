@@ -7,7 +7,7 @@
  "field_order": [
   "trucking_service_tab",
   "driver_commission_mode",
-  "driver_bonus_account",
+  "driver_bonus_parent_account",
   "column_break_chsz",
   "driver_advance_parent_account",
   "port_clearing_tab"
@@ -40,7 +40,7 @@
    "options": "Account"
   },
   {
-   "fieldname": "driver_bonus_account",
+   "fieldname": "driver_bonus_parent_account",
    "fieldtype": "Link",
    "label": "Driver Bonus Parent Account",
    "options": "Account"
@@ -49,7 +49,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-22 09:22:56.469610",
+ "modified": "2025-07-23 08:20:23.321658",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Settings",
