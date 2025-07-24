@@ -314,6 +314,12 @@ fixtures = [
         ]
     },
     {
+        "dt": "Role",
+        "filters": [
+            ["name", "in", ["FreightMas Manager", "FreightMas User"]]
+        ]
+    },
+    {
         "dt": "Workflow"
     },
     {
@@ -341,5 +347,3 @@ fixtures = [
         ]
     }
 ]
-
-#############################################################################
