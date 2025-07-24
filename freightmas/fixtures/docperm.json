@@ -56,7 +56,7 @@
  {
   "amend": 0,
   "cancel": 0,
-  "create": 0,
+  "create": 1,
   "delete": 0,
   "docstatus": 0,
   "doctype": "DocPerm",
@@ -65,7 +65,7 @@
   "if_owner": 0,
   "import": 0,
   "match": null,
-  "modified": "2025-07-24 08:36:05.719957",
+  "modified": "2025-07-24 16:57:16.179978",
   "name": "iqp5pdlokl",
   "parent": "Truck",
   "parentfield": "permissions",
@@ -78,7 +78,7 @@
   "select": 1,
   "share": 1,
   "submit": 0,
-  "write": 0
+  "write": 1
  },
  {
   "amend": 0,
@@ -524,7 +524,7 @@
   "if_owner": 0,
   "import": 0,
   "match": null,
-  "modified": "2025-07-24 08:36:05.719957",
+  "modified": "2025-07-24 16:57:16.179978",
   "name": "iqpd97fnsp",
   "parent": "Truck",
   "parentfield": "permissions",
