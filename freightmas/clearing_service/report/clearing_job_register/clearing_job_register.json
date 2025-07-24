@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-06-08 18:35:36.489550",
+ "modified": "2025-07-24 16:40:23.794098",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job Register",
@@ -22,6 +22,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

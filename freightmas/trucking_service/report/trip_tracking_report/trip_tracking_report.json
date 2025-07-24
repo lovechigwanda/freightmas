@@ -18,7 +18,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-07-23 20:57:21.252151",
+ "modified": "2025-07-24 16:45:52.115916",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Tracking Report",
@@ -31,6 +31,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

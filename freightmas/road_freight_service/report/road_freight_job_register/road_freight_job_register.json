@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-07-06 14:52:10.456587",
+ "modified": "2025-07-24 16:42:59.129289",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Job Register",
@@ -22,6 +22,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-06-10 09:46:19.944836",
+ "modified": "2025-07-24 16:39:37.708110",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Job Milestone Tracker Imports",
@@ -23,6 +23,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

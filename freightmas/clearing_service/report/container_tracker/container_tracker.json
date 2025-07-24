@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-06-10 09:46:56.510018",
+ "modified": "2025-07-24 16:39:01.590198",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Container Tracker",
@@ -23,6 +23,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

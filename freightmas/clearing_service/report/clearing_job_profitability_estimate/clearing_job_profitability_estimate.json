@@ -1,5 +1,6 @@
 {
  "add_total_row": 1,
+ "add_translate_data": 0,
  "columns": [],
  "creation": "2025-05-13 22:47:10.526420",
  "disabled": 0,
@@ -10,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-05-13 22:47:10.526420",
+ "modified": "2025-07-24 16:42:32.936037",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job Profitability Estimate",
@@ -22,6 +23,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

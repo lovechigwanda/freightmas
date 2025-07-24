@@ -11,7 +11,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-07-22 09:27:41.060932",
+ "modified": "2025-07-24 16:44:53.909137",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job Register Extended",
@@ -23,6 +23,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

@@ -28,7 +28,7 @@
  "is_standard": "Yes",
  "letter_head": "",
  "letterhead": null,
- "modified": "2025-06-10 09:46:32.452410",
+ "modified": "2025-07-24 16:39:18.263594",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Job Lifecycle Tracker Imports (HTML)",
@@ -41,6 +41,12 @@
  "roles": [
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0
