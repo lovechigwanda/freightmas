@@ -320,6 +320,12 @@ fixtures = [
         ]
     },
     {
+        "dt": "Custom DocPerm",
+        "filters": [
+            ["role", "in", ["FreightMas Manager", "FreightMas User"]]
+        ]
+    },
+    {
         "dt": "Workflow"
     },
     {
