@@ -23,10 +23,12 @@
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "horse",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Horse",
    "link_filters": "[[\"Vehicle\",\"is_horse\",\"=\",1]]",
    "options": "Vehicle",
@@ -41,8 +43,10 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "warehouse",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Fuel Warehouse",
    "options": "Warehouse",
    "reqd": 1
@@ -52,17 +56,19 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "fieldname": "assigned_trailer",
    "fieldtype": "Link",
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Assigned Trailer",
+   "label": "Trailer",
    "link_filters": "[[\"Vehicle\",\"is_trailer\",\"=\",1]]",
    "options": "Vehicle",
    "reqd": 1
   },
   {
+   "columns": 2,
    "default": "Available",
    "fieldname": "truck_status",
    "fieldtype": "Select",
@@ -77,6 +83,7 @@
    "label": "Driver Details"
   },
   {
+   "columns": 2,
    "fetch_from": "assigned_driver.full_name",
    "fieldname": "assigned_driver_name",
    "fieldtype": "Data",
@@ -129,7 +136,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 16:57:16.179978",
+ "modified": "2025-07-24 21:15:59.970875",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Truck",

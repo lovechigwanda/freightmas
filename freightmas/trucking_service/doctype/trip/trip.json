@@ -79,10 +79,8 @@
   "trip_tracking_update_section",
   "trip_tracking_update",
   "current_tracking_update_section",
-  "current_trip_milestone",
-  "column_break_xqoe",
   "current_milestone_comment",
-  "column_break_hipq",
+  "column_break_xqoe",
   "updated_on",
   "connections_tab"
  ],
@@ -112,9 +110,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 2,
    "default": "Today",
    "fieldname": "date_created",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Date Created",
    "reqd": 1,
    "set_only_once": 1
@@ -138,6 +138,7 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "customer",
    "fieldtype": "Link",
    "in_filter": 1,
@@ -148,8 +149,10 @@
    "reqd": 1
   },
   {
+   "columns": 2,
    "fieldname": "truck",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Truck",
    "options": "Truck",
    "reqd": 1
@@ -177,8 +180,10 @@
    "label": "Driver"
   },
   {
+   "columns": 2,
    "fieldname": "route",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Route",
    "options": "Route",
    "reqd": 1
@@ -455,18 +460,7 @@
    "read_only": 1
   },
   {
-   "fieldname": "current_trip_milestone",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Current Trip Milestone",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_xqoe",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_hipq",
    "fieldtype": "Column Break"
   },
   {
@@ -573,7 +567,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-24 08:37:17.837346",
+ "modified": "2025-07-25 09:19:25.649584",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",

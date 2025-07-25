@@ -5,7 +5,7 @@
    "label": "Truck Revenue"
   }
  ],
- "content": "[{\"id\":\"19g37rIPrU\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Trucking Service</span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7HA_a-xDn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips In Progress (Count)\",\"col\":4}},{\"id\":\"Bm0PcgpU-F\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips in Progress (Revenue)\",\"col\":4}},{\"id\":\"tUukWgU_6t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips Completed (Revenue)\",\"col\":4}},{\"id\":\"vjeTJmDxXE\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"7HA_a-xDn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips In Progress (Count)\",\"col\":4}},{\"id\":\"tUukWgU_6t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips Completed (Revenue)\",\"col\":4}},{\"id\":\"Bm0PcgpU-F\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips in Progress (Revenue)\",\"col\":4}},{\"id\":\"oMN1KoqWIk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"eXscXtml_i\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Shortcuts</b></span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"CHYEP3bDEO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Driver\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"5MN-rKxIst\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"s06KCocZRZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"_Pf45hpNov\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"vjeTJmDxXE\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}}]",
  "creation": "2025-07-23 08:24:39.640862",
  "custom_blocks": [],
  "docstatus": 0,
@@ -38,55 +38,6 @@
    "link_type": "Report",
    "onboard": 0,
    "report_ref_doctype": "Fuel Order",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Fuel Reports",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Fuel Orders",
-   "link_count": 0,
-   "link_to": "Fuel Order",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Fuel Orders Report",
-   "link_count": 0,
-   "link_to": "Fuel Orders Summary Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Pending Fuel Orders",
-   "link_count": 0,
-   "link_to": "Pending Fuel Orders",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Approved Fuel Orders",
-   "link_count": 0,
-   "link_to": "Approved Fuel Orders",
-   "link_type": "Report",
-   "onboard": 0,
    "type": "Link"
   },
   {
@@ -132,7 +83,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Trucking Masters",
-   "link_count": 6,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -180,9 +131,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Milestones",
+   "label": "Trip Directions",
    "link_count": 0,
-   "link_to": "Trip Milestone",
+   "link_to": "Trip Direction",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -190,15 +141,64 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Trip Directions",
-   "link_count": 0,
-   "link_to": "Trip Direction",
+   "label": "Fuel Reports",
+   "link_count": 5,
    "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Fuel Orders",
+   "link_count": 0,
+   "link_to": "Fuel Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Fuel Orders Report",
+   "link_count": 0,
+   "link_to": "Fuel Orders Summary Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Pending Fuel Orders",
+   "link_count": 0,
+   "link_to": "Pending Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Approved Fuel Orders",
+   "link_count": 0,
+   "link_to": "Approved Fuel Orders",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Stock Balance",
+   "link_count": 0,
+   "link_to": "Stock Balance FreightMas",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-07-23 19:52:13.731966",
+ "modified": "2025-07-25 22:36:34.192000",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",
@@ -225,35 +225,68 @@
  "shortcuts": [
   {
    "color": "Grey",
-   "doc_view": "New",
+   "doc_view": "List",
+   "label": "Quotation",
+   "link_to": "Quotation",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Driver",
+   "link_to": "Driver",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "format": "",
    "label": "Trip",
    "link_to": "Trip",
-   "stats_filter": "[]",
+   "stats_filter": "",
    "type": "DocType"
   },
   {
    "color": "Grey",
-   "doc_view": "New",
-   "label": "Fuel Order",
-   "link_to": "Fuel Order",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "New",
-   "format": "{}Open",
+   "doc_view": "List",
+   "format": "",
    "label": "Truck",
    "link_to": "Truck",
-   "stats_filter": "[]",
+   "stats_filter": "",
    "type": "DocType"
   },
   {
    "color": "Grey",
-   "doc_view": "New",
+   "doc_view": "List",
+   "label": "Customer",
+   "link_to": "Customer",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Supplier",
+   "link_to": "Supplier",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Fuel Order",
+   "link_to": "Fuel Order",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
    "label": "Route",
    "link_to": "Route",
-   "stats_filter": "[]",
+   "stats_filter": "",
    "type": "DocType"
   }
  ],

@@ -29,6 +29,15 @@ frappe.ui.form.on('Trip', {
     },
     validate: function(frm) {
         calculate_totals(frm);
+    },
+    before_save: function(frm) {
+        // Update tracking information (simplified - no milestone field)
+        var lastRow = frm.doc.trip_tracking_update.slice(-1)[0];
+        if (lastRow) {
+            frm.set_value('current_milestone_comment', lastRow.trip_milestone_comment);
+            frm.set_value('updated_on', lastRow.trip_milestone_date);
+            frm.refresh();
+        }
     }
 });
 
@@ -144,7 +153,6 @@ frappe.ui.form.on('Trip', {
     before_save: function(frm) {
         var lastRow = frm.doc.trip_tracking_update.slice(-1)[0];
         if (lastRow) {
-            frm.set_value('current_trip_milestone', lastRow.trip_milestone);
             frm.set_value('current_milestone_comment', lastRow.trip_milestone_comment);
             frm.set_value('updated_on', lastRow.trip_milestone_date);
             frm.refresh();
