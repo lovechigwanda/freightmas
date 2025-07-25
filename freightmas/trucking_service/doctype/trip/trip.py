@@ -42,6 +42,8 @@ def create_sales_invoice(trip_name, selected_charges, receivable_party):
                 "description": charge.charge_description,
                 "qty": charge.quantity or 1,
                 "rate": flt(charge.rate),
+                "amount": charge.total_amount or 0,
+                "cost_center": charge.cost_centre  # Add this line
             })
 
         # Create a Sales Invoice
