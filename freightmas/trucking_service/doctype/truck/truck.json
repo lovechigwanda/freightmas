@@ -9,10 +9,12 @@
   "horse",
   "assigned_driver",
   "truck_status",
+  "loaded_fuel_consumption",
   "column_break_eyun",
   "assigned_trailer",
   "warehouse",
   "cost_centre",
+  "empty_fuel_consumption",
   "section_break_higb",
   "assigned_driver_name",
   "license_number",
@@ -33,7 +35,8 @@
    "link_filters": "[[\"Vehicle\",\"is_horse\",\"=\",1]]",
    "options": "Vehicle",
    "reqd": 1,
-   "set_only_once": 1
+   "set_only_once": 1,
+   "unique": 1
   },
   {
    "fieldname": "assigned_driver",
@@ -126,17 +129,28 @@
    "label": "Truck Details"
   },
   {
-   "description": "Create a cost centre with the same name as the truck for easy tracking",
    "fieldname": "cost_centre",
    "fieldtype": "Link",
    "label": "Cost Centre",
    "options": "Cost Center",
    "reqd": 1
+  },
+  {
+   "fieldname": "loaded_fuel_consumption",
+   "fieldtype": "Float",
+   "label": "Loaded Fuel Consumption (km/L)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "empty_fuel_consumption",
+   "fieldtype": "Float",
+   "label": "Empty Fuel Consumption (km/L)",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 21:15:59.970875",
+ "modified": "2025-07-26 22:08:28.202464",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Truck",

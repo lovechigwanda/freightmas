@@ -10,11 +10,12 @@
   "route_details_section",
   "origin",
   "drop_off_at",
-  "distance_empty",
+  "distance_loaded",
+  "standard_transit_time",
   "column_break_pxtu",
   "destination",
   "trip_direction",
-  "distance_loaded"
+  "distance_empty"
  ],
  "fields": [
   {
@@ -82,11 +83,17 @@
    "non_negative": 1,
    "precision": "0",
    "reqd": 1
+  },
+  {
+   "fieldname": "standard_transit_time",
+   "fieldtype": "Int",
+   "label": "Standard Transit Time (Days)",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 08:43:37.443591",
+ "modified": "2025-07-26 18:56:56.745762",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Route",
