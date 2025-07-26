@@ -5,6 +5,16 @@ app_description = "Freight Management System"
 app_email = "info@zvomaita.co.zw"
 app_license = "mit"
 
+import frappe
+
+def clear_old_workspaces():
+    """Delete only FreightMas-related Workspace records before importing fixtures"""
+    frappe.db.sql("""
+        DELETE FROM `tabWorkspace`
+        WHERE name IN ('Port Clearing Service', 'Road Freight Service', 'Forwarding Service', 'Trucking Service')
+    """)
+    frappe.db.commit()
+
 # Apps
 # ------------------
 
