@@ -488,7 +488,8 @@
   {
    "fieldname": "trip_tracking_update_section",
    "fieldtype": "Section Break",
-   "label": "Tracking"
+   "label": "Tracking",
+   "no_copy": 1
   },
   {
    "fieldname": "revenue_charges_section",
@@ -567,7 +568,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-28 21:17:01.889354",
+ "modified": "2025-07-28 21:44:16.674233",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
