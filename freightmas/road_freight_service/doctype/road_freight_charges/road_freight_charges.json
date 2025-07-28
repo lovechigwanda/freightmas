@@ -104,12 +104,14 @@
    "fieldname": "is_invoiced",
    "fieldtype": "Check",
    "label": "Is Invoiced",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "sales_invoice_reference",
    "fieldtype": "Link",
    "label": "Sales Invoice",
+   "no_copy": 1,
    "options": "Sales Invoice",
    "read_only": 1
   },
@@ -151,12 +153,14 @@
    "fieldname": "is_purchased",
    "fieldtype": "Check",
    "label": "Is Purchased",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "purchase_invoice_reference",
    "fieldtype": "Link",
    "label": "Purchase Invoice",
+   "no_copy": 1,
    "options": "Purchase Invoice",
    "read_only": 1
   }
@@ -164,7 +168,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-03 11:56:24.906595",
+ "modified": "2025-07-28 21:20:09.442853",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Charges",
