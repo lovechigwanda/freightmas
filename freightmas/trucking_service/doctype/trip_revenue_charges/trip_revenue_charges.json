@@ -82,6 +82,7 @@
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
    "label": "Sales Invoice",
+   "no_copy": 1,
    "options": "Sales Invoice",
    "read_only": 1,
    "set_only_once": 1
@@ -92,6 +93,7 @@
    "fieldname": "is_invoiced",
    "fieldtype": "Check",
    "label": "Is Invoiced",
+   "no_copy": 1,
    "read_only": 1,
    "set_only_once": 1
   },
@@ -105,6 +107,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Truck",
+   "no_copy": 1,
    "options": "Truck",
    "reqd": 1
   },
@@ -118,7 +121,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-25 23:09:10.451931",
+ "modified": "2025-07-28 19:27:20.155273",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Revenue Charges",
