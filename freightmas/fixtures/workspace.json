@@ -350,7 +350,7 @@
     "hidden": 0,
     "icon": null,
     "is_query_report": 1,
-    "label": "Trip Pritability Actual",
+    "label": "Trip Profitability Actual",
     "link_count": 0,
     "link_to": "Trip Profitability Actual",
     "link_type": "Report",
@@ -363,7 +363,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2025-07-30 22:11:26.101384",
+  "modified": "2025-07-30 22:13:17.918980",
   "module": "Trucking Service",
   "name": "Trucking Service",
   "number_cards": [
