@@ -1890,8 +1890,8 @@
   "workflow_state": "In Transit"
  },
  {
-  "completed_by": null,
-  "completed_by_role": null,
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
   "docstatus": 0,
   "doctype": "Workflow Action",
   "modified": "2025-07-29 21:20:46.798332",
@@ -1906,8 +1906,29 @@
   ],
   "reference_doctype": "Trip",
   "reference_name": "TRIP-00003-25",
-  "status": "Open",
+  "status": "Completed",
   "user": null,
   "workflow_state": "Offloading"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-30 20:52:23.738438",
+  "name": "8od9dffmuj",
+  "permitted_roles": [
+   {
+    "parent": "8od9dffmuj",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00003-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Completed"
  }
 ]

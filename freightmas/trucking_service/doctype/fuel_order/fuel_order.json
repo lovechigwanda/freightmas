@@ -58,6 +58,7 @@
    "search_index": 1
   },
   {
+   "columns": 2,
    "default": "Today",
    "fieldname": "order_date",
    "fieldtype": "Date",
@@ -66,6 +67,7 @@
    "label": "Order Date"
   },
   {
+   "columns": 2,
    "fieldname": "truck",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -84,6 +86,7 @@
   },
   {
    "bold": 1,
+   "columns": 2,
    "fieldname": "required_litres",
    "fieldtype": "Float",
    "in_list_view": 1,
@@ -94,8 +97,10 @@
   },
   {
    "allow_on_submit": 1,
+   "columns": 2,
    "fieldname": "actual_litres",
    "fieldtype": "Float",
+   "in_list_view": 1,
    "label": "Actual Litres",
    "non_negative": 1,
    "precision": "0"
@@ -161,6 +166,7 @@
   },
   {
    "allow_on_submit": 1,
+   "columns": 2,
    "fieldname": "status",
    "fieldtype": "Select",
    "in_standard_filter": 1,
@@ -263,7 +269,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-24 08:45:10.843204",
+ "modified": "2025-07-30 19:19:04.537685",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Fuel Order",
@@ -284,6 +290,7 @@
    "write": 1
   },
   {
+   "amend": 1,
    "create": 1,
    "email": 1,
    "export": 1,

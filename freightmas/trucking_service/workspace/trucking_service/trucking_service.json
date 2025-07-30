@@ -21,45 +21,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Trip Reports",
-   "link_count": 3,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trips",
-   "link_count": 0,
-   "link_to": "Trip",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Tracking",
-   "link_count": 0,
-   "link_to": "Trip Tracking Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Tracking (Active)",
-   "link_count": 0,
-   "link_to": "Trip Tracking Report (Active)",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Trucking Masters",
    "link_count": 5,
    "link_type": "DocType",
@@ -183,9 +144,68 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trip Reports",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trips",
+   "link_count": 0,
+   "link_to": "Trip",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Tracking",
+   "link_count": 0,
+   "link_to": "Trip Tracking Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability",
+   "link_count": 0,
+   "link_to": "Trip Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability Estimate",
+   "link_count": 0,
+   "link_to": "Trip Profitability Estimate",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability Actual",
+   "link_count": 0,
+   "link_to": "Trip Profitability Actual",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-07-30 08:25:36.700619",
+ "modified": "2025-07-30 22:13:17.918980",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

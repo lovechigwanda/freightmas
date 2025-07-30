@@ -3,14 +3,14 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt, fmt_money
+from frappe.utils import flt
 
 def execute(filters=None):
     if not filters:
         filters = {}
 
     columns = get_columns()
-    data = get_data(filters)
+    data = get_simple_data(filters)
     return columns, data
 
 def get_columns():
@@ -27,7 +27,7 @@ def get_columns():
         {"fieldname": "workflow_state", "label": _("Status"), "fieldtype": "Data", "width": 90}
     ]
 
-def get_data(filters):
+def get_simple_data(filters):
     conditions = get_conditions(filters)
     
     data = frappe.db.sql(f"""
@@ -46,53 +46,15 @@ def get_data(filters):
         ORDER BY t.truck, t.date_loaded DESC
     """, filters, as_dict=True)
 
-    result = []
-    current_truck = None
-    truck_total = 0
-    truck_trips = 0
-
     for row in data:
         # Format dates
         row.date_loaded = frappe.utils.formatdate(row.date_loaded, "dd-MMM-yy")
         row.date_offloaded = frappe.utils.formatdate(row.date_offloaded, "dd-MMM-yy")
 
-        if row.truck != current_truck:
-            if current_truck:
-                # Add total row for Excel/PDF export formatting
-                result.append({
-                    "truck": "",
-                    "driver": "",
-                    "trip_id": "",
-                    "route": "Total for " + current_truck,
-                    "customer": f"Total Trips: {truck_trips}",
-                    "estimated_revenue": truck_total,
-                    "is_total": 1,
-                    "bold": 1  # Add bold flag for export formats
-                })
-                result.append({})
-            
-            current_truck = row.truck
-            truck_total = 0
-            truck_trips = 0
+        # Format revenue as currency
+        row.estimated_revenue = frappe.format_value(row.estimated_revenue, {"fieldtype": "Currency"})
 
-        result.append(row)
-        truck_total += flt(row.estimated_revenue)
-        truck_trips += 1
-
-    if current_truck:
-        # Add final total row
-        result.append({
-            "truck": "",
-            "driver": "",
-            "trip_id": "",
-            "route": "Total for " + current_truck,
-            "customer": f"Trip(s): {truck_trips}",
-            "estimated_revenue": truck_total,
-            "is_total": 1,
-            "bold": 1  # Add bold flag for export formats
-        })
-
-    return result
+    return data
 
 def get_conditions(filters):
     conditions = []

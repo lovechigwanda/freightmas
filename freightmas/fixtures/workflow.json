@@ -211,7 +211,7 @@
   "doctype": "Workflow",
   "document_type": "Fuel Order",
   "is_active": 1,
-  "modified": "2025-02-19 21:46:51.184076",
+  "modified": "2025-07-30 19:28:10.080472",
   "name": "Fuel Order Workflow",
   "override_status": 0,
   "send_email_alert": 0,
@@ -233,7 +233,7 @@
     "workflow_builder_id": null
    },
    {
-    "allow_edit": "Fleet Manager",
+    "allow_edit": "FreightMas Manager",
     "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
@@ -249,7 +249,7 @@
     "workflow_builder_id": null
    },
    {
-    "allow_edit": "Fleet Manager",
+    "allow_edit": "FreightMas Manager",
     "avoid_status_override": 0,
     "doc_status": "0",
     "is_optional_state": 0,
@@ -265,7 +265,7 @@
     "workflow_builder_id": null
    },
    {
-    "allow_edit": "Fleet Manager",
+    "allow_edit": "FreightMas Manager",
     "avoid_status_override": 0,
     "doc_status": "1",
     "is_optional_state": 0,
@@ -330,7 +330,7 @@
    {
     "action": "Reject",
     "allow_self_approval": 1,
-    "allowed": "Fleet Manager",
+    "allowed": "FreightMas Manager",
     "condition": null,
     "next_state": "Rejected",
     "parent": "Fuel Order Workflow",
@@ -343,7 +343,7 @@
    {
     "action": "Approve",
     "allow_self_approval": 1,
-    "allowed": "Fleet Manager",
+    "allowed": "FreightMas Manager",
     "condition": null,
     "next_state": "Approved",
     "parent": "Fuel Order Workflow",

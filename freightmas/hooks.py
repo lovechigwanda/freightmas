@@ -342,9 +342,7 @@ fixtures = [
     {
         "dt": "Workflow"
     },
-    {
-        "dt": "Workflow State"
-    },
+
     {
         "dt": "Workflow Action"
     },
