@@ -159,7 +159,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Other Reports",
-   "link_count": 1,
+   "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -173,9 +173,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Trip Summary",
+   "link_count": 0,
+   "link_to": "Truck Trip Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-07-26 23:09:52.777267",
+ "modified": "2025-07-30 08:25:36.700619",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

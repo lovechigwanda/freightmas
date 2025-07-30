@@ -462,8 +462,8 @@
   "workflow_state": "Closed"
  },
  {
-  "completed_by": null,
-  "completed_by_role": null,
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
   "docstatus": 0,
   "doctype": "Workflow Action",
   "modified": "2025-03-02 19:48:15.890871",
@@ -478,7 +478,7 @@
   ],
   "reference_doctype": "Trip",
   "reference_name": "TRIP-00003-25",
-  "status": "Open",
+  "status": "Completed",
   "user": null,
   "workflow_state": "Booking"
  },
@@ -1846,5 +1846,68 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Delivered"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-29 21:20:30.655290",
+  "name": "dfi5gcf619",
+  "permitted_roles": [
+   {
+    "parent": "dfi5gcf619",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00003-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Loading"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "All",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-29 21:20:44.905487",
+  "name": "dk1hios6ic",
+  "permitted_roles": [
+   {
+    "parent": "dk1hios6ic",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00003-25",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "In Transit"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-29 21:20:46.798332",
+  "name": "dkkc697lcg",
+  "permitted_roles": [
+   {
+    "parent": "dkkc697lcg",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Trip",
+  "reference_name": "TRIP-00003-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Offloading"
  }
 ]

@@ -279,7 +279,7 @@
     "icon": null,
     "is_query_report": 0,
     "label": "Other Reports",
-    "link_count": 1,
+    "link_count": 2,
     "link_to": null,
     "link_type": "DocType",
     "onboard": 0,
@@ -307,9 +307,27 @@
     "parenttype": "Workspace",
     "report_ref_doctype": null,
     "type": "Link"
+   },
+   {
+    "dependencies": null,
+    "description": null,
+    "hidden": 0,
+    "icon": null,
+    "is_query_report": 1,
+    "label": "Truck Trip Summary",
+    "link_count": 0,
+    "link_to": "Truck Trip Summary",
+    "link_type": "Report",
+    "onboard": 0,
+    "only_for": null,
+    "parent": "Trucking Service",
+    "parentfield": "links",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "type": "Link"
    }
   ],
-  "modified": "2025-07-26 23:09:52.777267",
+  "modified": "2025-07-30 08:25:36.700619",
   "module": "Trucking Service",
   "name": "Trucking Service",
   "number_cards": [
