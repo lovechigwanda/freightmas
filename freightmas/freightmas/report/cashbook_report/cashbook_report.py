@@ -34,25 +34,25 @@ def get_columns():
             "fieldname": "remarks",
             "label": _("Remarks"),
             "fieldtype": "Text",
-            "width": 520  # Increased width since we removed contra account
+            "width": 500 
         },
         {
             "fieldname": "debit",
             "label": _("Debit"),
             "fieldtype": "Currency",
-            "width": 130
+            "width": 140
         },
         {
             "fieldname": "credit",
             "label": _("Credit"),
             "fieldtype": "Currency",
-            "width": 130
+            "width": 140
         },
         {
             "fieldname": "balance",
             "label": _("Balance"),
             "fieldtype": "Currency",
-            "width": 130
+            "width": 140
         }
     ]
 
