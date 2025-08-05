@@ -15,9 +15,9 @@ def execute(filters=None):
 
 def get_columns():
     return [
-        {"fieldname": "truck", "label": _("Truck"), "fieldtype": "Link", "options": "Truck", "width": 130},
-        {"fieldname": "driver", "label": _("Driver"), "fieldtype": "Data", "width": 150},
-        {"fieldname": "trip_id", "label": _("Trip ID"), "fieldtype": "Link", "options": "Trip", "width": 100},
+        {"fieldname": "trip_id", "label": _("Trip ID"), "fieldtype": "Link", "options": "Trip", "width": 130},
+        {"fieldname": "truck", "label": _("Truck"), "fieldtype": "Link", "options": "Truck", "width": 100},
+        {"fieldname": "driver", "label": _("Driver"), "fieldtype": "Data", "width": 170},
         {"fieldname": "route", "label": _("Route"), "fieldtype": "Link", "options": "Route", "width": 170},
         {"fieldname": "customer", "label": _("Customer"), "fieldtype": "Link", "options": "Customer", "width": 150},
         {"fieldname": "estimated_revenue", "label": _("Revenue"), "fieldtype": "Currency", "width": 110},

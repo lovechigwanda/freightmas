@@ -107,15 +107,28 @@ frappe.query_reports["Cashbook Report"] = {
     ],
     
     onload: function(report) {
-        report.page.add_inner_button(__('Clear Filters'), function() {
-            // Reset filters to default values
-            report.set_filter_value('company', frappe.defaults.get_user_default("Company"));
-            report.set_filter_value('date_range', 'This Month');
-            report.set_filter_value('from_date', frappe.datetime.month_start());
-            report.set_filter_value('to_date', frappe.datetime.month_end());
-            report.set_filter_value('account', '');
+        report.page.add_inner_button('Export to Excel', function() {
+            const filters = report.get_filter_values(true);
+            const query = encodeURIComponent(JSON.stringify(filters));
+            const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Cashbook Report&filters=${query}`;
+            window.open(url);
+        }, 'Export');
+
+        report.page.add_inner_button('Export to PDF', function() {
+            const filters = report.get_filter_values(true);
+            const query = encodeURIComponent(JSON.stringify(filters));
+            const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Cashbook Report&filters=${query}`;
+            window.open(url);
+        }, 'Export');
+
+        report.page.add_inner_button('Clear Filters', function() {
+            // Clear each filter to its default value
+            report.filters.forEach(filter => {
+                let default_value = filter.df.default || "";
+                report.set_filter_value(filter.df.fieldname, default_value);
+            });
             
-            // Refresh the report
+            // Trigger report refresh after clearing filters
             report.refresh();
         });
     }

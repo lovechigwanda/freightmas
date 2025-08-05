@@ -65,9 +65,24 @@
             background: #f9f9f9;
         }
 
-        .text-right { text-align: right; }
+        .text-right {
+            text-align: right;
+            white-space: nowrap; /* Prevent line breaks */
+        }
+
         .text-left { text-align: left; }
         .text-center { text-align: center; }
+
+        .table td {
+            border: 1px solid #bbb;
+            padding: 7px 8px;
+            white-space: nowrap; /* Prevent wrapping for numeric cells */
+        }
+
+        /* For remarks column that should wrap */
+        .table td.wrap-text {
+            white-space: normal;
+        }
 
         thead { display: table-header-group; }
         tfoot { display: table-row-group; }
@@ -114,8 +129,18 @@
                     <td class="text-center">{{ loop.index }}</td>
                     {% for col in columns %}
                         {% set value = row.get(col.fieldname, "") %}
-                        <td class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }}">
-                            {{ "" if value == 0 else value }}
+                        <td class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }} 
+                                   {{ 'wrap-text' if col.fieldname == 'remarks' else '' }}">
+                            {% if col.fieldtype in ['Int', 'Float', 'Currency'] and value != "" %}
+                                {% if value == 0 %}
+                                    {{ "" }}
+                                {% else %}
+                                    {% set num_value = value|float %}
+                                    {{ "{:,.2f}".format(num_value) if num_value >= 0 else "({:,.2f})".format(abs(num_value)) }}
+                                {% endif %}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
                         </td>
                     {% endfor %}
                 </tr>

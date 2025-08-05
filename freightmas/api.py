@@ -126,13 +126,25 @@ def export_report_to_excel(report_name, filters=None):
         fill = zebra_fill if i % 2 == 0 else None
         for col_idx, col in enumerate(columns, start=1):
             value = row.get(col["fieldname"], "")
-            # Format date columns
-            if "date" in col["fieldname"] and value:
+            cell = ws.cell(row=row_idx, column=col_idx)
+            
+            # Format numbers and currency
+            if col.get("fieldtype") in ["Int", "Float", "Currency"]:
+                if isinstance(value, (int, float)):
+                    cell.value = value
+                    cell.number_format = '#,##0.00'
+                else:
+                    cell.value = 0
+                    cell.number_format = '#,##0.00'
+            # Format dates
+            elif "date" in col["fieldname"] and value:
                 try:
-                    value = frappe.utils.formatdate(value, "dd-MMM-yy")
+                    cell.value = frappe.utils.formatdate(value, "dd-MMM-yy")
                 except Exception:
-                    pass
-            cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                    cell.value = value
+            else:
+                cell.value = value
+                
             cell.border = border
             if fill:
                 cell.fill = fill
