@@ -34,7 +34,7 @@ def get_columns():
             "fieldname": "remarks",
             "label": _("Remarks"),
             "fieldtype": "Text",
-            "width": 530  # Increased width since we removed contra account
+            "width": 520  # Increased width since we removed contra account
         },
         {
             "fieldname": "debit",
