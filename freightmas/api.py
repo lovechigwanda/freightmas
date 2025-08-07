@@ -458,14 +458,16 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     grand_total = 0
     total_trips = 0
     total_trucks = len(grouped_data)
+    truck_number = 1
 
     for truck, truck_data in grouped_data.items():
         # Truck header
         ws.merge_cells(f'A{current_row}:I{current_row}')
-        ws[f'A{current_row}'] = f"Truck: {truck}"
+        ws[f'A{current_row}'] = f"{truck_number}. Truck: {truck}"
         ws[f'A{current_row}'].font = truck_header_font
         ws[f'A{current_row}'].fill = header_fill
         current_row += 1
+        truck_number += 1
 
         # Column headers
         headers = ['Driver', 'Trip ID', 'Route', 'Customer', 'Revenue', 'Load', 'Offload', 'Days', 'Status']

@@ -45,6 +45,7 @@
     {% set grand_total = namespace(value=0) %}
     {% set total_trips = namespace(value=0) %}
     {% set total_trucks = namespace(value=0) %}
+    {% set truck_number = namespace(value=1) %}
 
     {% for truck_id, truck_data in trucks.items() %}
         {% set total_trips.value = total_trips.value + truck_data.trips|length %}
@@ -62,7 +63,7 @@
                 <col width="90">   <!-- Status -->
             </colgroup>
             <tr class="truck-header">
-                <td colspan="9">Truck: {{ truck_id }}</td>
+                <td colspan="9">{{ truck_number.value }}. Truck: {{ truck_id }}</td>
             </tr>
             <tr>
                 <th>Driver</th>
@@ -96,7 +97,7 @@
                 <td colspan="4"></td>
             </tr>
         </table>
-
+        {% set truck_number.value = truck_number.value + 1 %}
         {% set grand_total.value = grand_total.value + truck_data.total %}
     {% endfor %}
 
