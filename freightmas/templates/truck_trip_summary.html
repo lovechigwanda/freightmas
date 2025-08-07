@@ -44,9 +44,11 @@
 
     {% set grand_total = namespace(value=0) %}
     {% set total_trips = namespace(value=0) %}
+    {% set total_trucks = namespace(value=0) %}
 
     {% for truck_id, truck_data in trucks.items() %}
         {% set total_trips.value = total_trips.value + truck_data.trips|length %}
+        {% set total_trucks.value = total_trucks.value + 1 %}
         <table class="report-table">
             <colgroup>
                 <col width="170">  <!-- Driver -->
@@ -112,10 +114,22 @@
                 <col width="90">
             </colgroup>
             <tr class="grand-total">
-                <td colspan="4">Total Revenue ({{ total_trips.value }} {{ 'trip' if total_trips.value == 1 else 'trips' }})</td>
+                <td colspan="4">Total Revenue ({{ total_trips.value }} {{ 'trip' if total_trips.value == 1 else 'trips' }} | {{ total_trucks.value }} {{ 'truck' if total_trucks.value == 1 else 'trucks' }})</td>
                 <td colspan="5" class="amount">{{ frappe.format_value(grand_total.value, {"fieldtype": "Currency"}) }}</td>
             </tr>
         </table>
+
+        {% if available_trucks %}
+        <table class="report-table">
+            <tr>
+                <td colspan="9">
+                    Available trucks not contributing: 
+                    {{ available_trucks|map(attribute='name')|join(', ') }}
+                    (Total available but not contributing = {{ available_trucks|length }} {{ 'truck' if available_trucks|length == 1 else 'trucks' }})
+                </td>
+            </tr>
+        </table>
+        {% endif %}
     {% endif %}
 </body>
 </html>
