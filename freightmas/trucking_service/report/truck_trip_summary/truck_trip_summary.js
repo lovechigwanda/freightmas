@@ -6,14 +6,14 @@ frappe.query_reports["Truck Trip Summary"] = {
 		report.page.add_inner_button('Export to Excel', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Truck Trip Summary&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_truck_trip_summary_to_excel?report_name=Truck Trip Summary&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 
 		report.page.add_inner_button('Export to PDF', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Truck Trip Summary&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_truck_trip_summary_to_pdf?report_name=Truck Trip Summary&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 

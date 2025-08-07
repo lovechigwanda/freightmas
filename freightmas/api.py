@@ -252,3 +252,294 @@ def export_report_to_pdf(report_name, filters):
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
+
+########################################################
+## Freightmas Truck Trip Summary PDF Export
+# This module exports the Truck Trip Summary report to PDF format.
+@frappe.whitelist()
+def export_truck_trip_summary_to_pdf(report_name, filters):
+    import json
+    filters = json.loads(filters)
+
+    # Get report document first
+    report = frappe.get_doc("Report", report_name)
+    if report.report_type != "Script Report":
+        frappe.throw("Only Script Reports are supported.")
+
+    # Get report data
+    module = importlib.import_module(
+        f"freightmas.{frappe.scrub(report.module)}.report.{frappe.scrub(report.name)}.{frappe.scrub(report.name)}"
+    )
+    columns, data = module.execute(filters)
+
+    # Helper function to parse currency values
+    def parse_currency(value):
+        if not value:
+            return 0
+        if isinstance(value, (int, float)):
+            return float(value)
+        # Remove currency symbol, commas and spaces
+        clean_value = str(value).replace('$', '').replace(',', '').replace(' ', '')
+        try:
+            return float(clean_value)
+        except ValueError:
+            return 0
+
+    # Pre-process data to convert currency values
+    for row in data:
+        row['estimated_revenue'] = parse_currency(row.get('estimated_revenue', 0))
+
+    # Group data by truck
+    grouped_data = {}
+    for row in data:
+        truck = row.get('truck')
+        if truck not in grouped_data:
+            grouped_data[truck] = {
+                'trips': [],
+                'total': 0
+            }
+        grouped_data[truck]['trips'].append(row)
+        grouped_data[truck]['total'] += row['estimated_revenue']
+
+    # Format filters for display
+    filters_list = []
+    for key, value in filters.items():
+        if value:
+            label = key.replace('_', ' ').title()
+            # Skip formatting for date_range filter
+            if key == 'date_range':
+                filters_list.append(f"{label}: {value}")
+            # Format only actual dates
+            elif 'date' in key.lower() and not isinstance(value, str):
+                formatted_date = frappe.utils.formatdate(value)
+                filters_list.append(f"{label}: {formatted_date}")
+            else:
+                filters_list.append(f"{label}: {value}")
+    
+    filters_html = " | ".join(filters_list)
+
+    context = {
+        "report_title": report_name,
+        "filters_html": filters_html,
+        "trucks": grouped_data,
+        "frappe": frappe,
+        "company": frappe.defaults.get_user_default("Company"),
+        "exported_at": frappe.utils.now_datetime().strftime("%d-%b-%Y %H:%M")
+    }
+
+    html = frappe.render_template(
+        "freightmas/templates/truck_trip_summary.html", context
+    )
+
+    pdf = frappe.utils.pdf.get_pdf(
+        html,
+        options={
+            "orientation": "Landscape",
+            "footer-right": "Page [page] of [topage]",
+            "footer-font-size": "10",
+        }
+    )
+
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.pdf"
+    frappe.local.response.filecontent = pdf
+    frappe.local.response.type = "download"
+
+
+########################################################
+## Freightmas Truck Trip Summary Excel Export
+# This module exports the Truck Trip Summary report to Excel format.
+@frappe.whitelist()
+def export_truck_trip_summary_to_excel(report_name, filters):
+    import json
+    from io import BytesIO
+    
+    filters = json.loads(filters)
+
+    # Get report document first
+    report = frappe.get_doc("Report", report_name)
+    if report.report_type != "Script Report":
+        frappe.throw("Only Script Reports are supported.")
+
+    # Get report data
+    module = importlib.import_module(
+        f"freightmas.{frappe.scrub(report.module)}.report.{frappe.scrub(report.name)}.{frappe.scrub(report.name)}"
+    )
+    columns, data = module.execute(filters)
+
+    # Helper function to parse currency values
+    def parse_currency(value):
+        if not value:
+            return 0
+        if isinstance(value, (int, float)):
+            return float(value)
+        clean_value = str(value).replace('$', '').replace(',', '').replace(' ', '')
+        try:
+            return float(clean_value)
+        except ValueError:
+            return 0
+
+    # Pre-process and group data
+    grouped_data = {}
+    for row in data:
+        row['estimated_revenue'] = parse_currency(row.get('estimated_revenue', 0))
+        truck = row.get('truck')
+        if truck not in grouped_data:
+            grouped_data[truck] = {
+                'trips': [],
+                'total': 0
+            }
+        grouped_data[truck]['trips'].append(row)
+        grouped_data[truck]['total'] += row['estimated_revenue']
+
+    # Create workbook and styles
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Trip Summary"
+
+    # Styles
+    header_font = Font(bold=True)
+    truck_header_font = Font(bold=True, size=12)
+    total_font = Font(bold=True)
+    currency_format = '#,##0.00'
+    date_format = 'DD-MMM-YY'
+    
+    center_align = Alignment(horizontal="center")
+    right_align = Alignment(horizontal="right")
+    
+    header_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+    
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # Column widths
+    column_widths = {
+        'Driver': 25,
+        'Trip ID': 15,
+        'Route': 25,
+        'Customer': 20,
+        'Revenue': 15,
+        'Load': 12,
+        'Offload': 12,
+        'Days': 8,
+        'Status': 12
+    }
+
+    # Start writing data
+    current_row = 1
+
+    # Report title
+    ws.merge_cells(f'A{current_row}:I{current_row}')
+    ws['A1'] = report_name
+    ws['A1'].font = Font(bold=True, size=14)
+    current_row += 1
+
+    # Filters
+    filters_text = []
+    for key, value in filters.items():
+        if value:
+            label = key.replace('_', ' ').title()
+            if 'date' in key.lower() and not isinstance(value, str):
+                value = frappe.utils.formatdate(value)
+            filters_text.append(f"{label}: {value}")
+    
+    ws.merge_cells(f'A{current_row}:I{current_row}')
+    ws['A' + str(current_row)] = ' | '.join(filters_text)
+    current_row += 2  # Add extra space after filters
+
+    # Write data for each truck
+    grand_total = 0
+    total_trips = 0
+
+    for truck, truck_data in grouped_data.items():
+        # Truck header
+        ws.merge_cells(f'A{current_row}:I{current_row}')
+        ws[f'A{current_row}'] = f"Truck: {truck}"
+        ws[f'A{current_row}'].font = truck_header_font
+        ws[f'A{current_row}'].fill = header_fill
+        current_row += 1
+
+        # Column headers
+        headers = ['Driver', 'Trip ID', 'Route', 'Customer', 'Revenue', 'Load', 'Offload', 'Days', 'Status']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=current_row, column=col, value=header)
+            cell.font = header_font
+            cell.border = thin_border
+            cell.fill = header_fill
+            ws.column_dimensions[get_column_letter(col)].width = column_widths[header]
+
+        current_row += 1
+
+        # Write trips
+        for trip in truck_data['trips']:
+            ws.cell(row=current_row, column=1, value=trip.get('driver'))
+            ws.cell(row=current_row, column=2, value=trip.get('trip_id'))
+            ws.cell(row=current_row, column=3, value=trip.get('route'))
+            ws.cell(row=current_row, column=4, value=trip.get('customer'))
+            
+            revenue_cell = ws.cell(row=current_row, column=5, value=trip.get('estimated_revenue'))
+            revenue_cell.number_format = currency_format
+            revenue_cell.alignment = right_align
+
+            load_cell = ws.cell(row=current_row, column=6, value=trip.get('date_loaded'))
+            load_cell.alignment = center_align
+            
+            offload_cell = ws.cell(row=current_row, column=7, value=trip.get('date_offloaded'))
+            offload_cell.alignment = center_align
+            
+            days_cell = ws.cell(row=current_row, column=8, value=trip.get('transit_days'))
+            days_cell.alignment = center_align
+            
+            ws.cell(row=current_row, column=9, value=trip.get('workflow_state'))
+
+            # Apply borders to all cells in the row
+            for col in range(1, 10):
+                ws.cell(row=current_row, column=col).border = thin_border
+
+            current_row += 1
+
+        # Truck total
+        total_text = f"Total for {truck} ({len(truck_data['trips'])} {'trip' if len(truck_data['trips']) == 1 else 'trips'})"
+        ws.merge_cells(f'A{current_row}:D{current_row}')
+        ws[f'A{current_row}'] = total_text
+        ws[f'A{current_row}'].font = total_font
+        
+        total_cell = ws.cell(row=current_row, column=5, value=truck_data['total'])
+        total_cell.number_format = currency_format
+        total_cell.font = total_font
+        total_cell.alignment = right_align
+
+        # Apply borders to total row
+        for col in range(1, 10):
+            ws.cell(row=current_row, column=col).border = thin_border
+
+        grand_total += truck_data['total']
+        total_trips += len(truck_data['trips'])
+        current_row += 2  # Add space between trucks
+
+    # Grand total
+    ws.merge_cells(f'A{current_row}:D{current_row}')
+    ws[f'A{current_row}'] = f"Total Revenue ({total_trips} {'trip' if total_trips == 1 else 'trips'})"
+    ws[f'A{current_row}'].font = Font(bold=True, size=12)
+    
+    grand_total_cell = ws.cell(row=current_row, column=5, value=grand_total)
+    grand_total_cell.number_format = currency_format
+    grand_total_cell.font = Font(bold=True, size=12)
+    grand_total_cell.alignment = right_align
+
+    # Apply borders to grand total row
+    for col in range(1, 10):
+        ws.cell(row=current_row, column=col).border = thin_border
+
+    # Save to BytesIO and return as file
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.xlsx"
+    frappe.local.response.filecontent = output.read()
+    frappe.local.response.type = "binary"
+

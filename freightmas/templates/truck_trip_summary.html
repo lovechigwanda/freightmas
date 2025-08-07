@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 12px;
+            table-layout: fixed;
+        }
+        .report-table th, .report-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .truck-header {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .truck-total {
+            font-weight: bold;
+            border-top: 2px solid #000;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 14px;
+            border-top: 3px double #000;
+        }
+        .amount {
+            text-align: right;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ report_title }}</h2>
+    <p>{{ filters_html }}</p>
+
+    {% set grand_total = namespace(value=0) %}
+    {% set total_trips = namespace(value=0) %}
+
+    {% for truck_id, truck_data in trucks.items() %}
+        {% set total_trips.value = total_trips.value + truck_data.trips|length %}
+        <table class="report-table">
+            <colgroup>
+                <col width="170">  <!-- Driver -->
+                <col width="130">  <!-- Trip ID -->
+                <col width="170">  <!-- Route -->
+                <col width="150">  <!-- Customer -->
+                <col width="110">  <!-- Revenue -->
+                <col width="100">  <!-- Load -->
+                <col width="100">  <!-- Offload -->
+                <col width="80">   <!-- Days -->
+                <col width="90">   <!-- Status -->
+            </colgroup>
+            <tr class="truck-header">
+                <td colspan="9">Truck: {{ truck_id }}</td>
+            </tr>
+            <tr>
+                <th>Driver</th>
+                <th>Trip ID</th>
+                <th>Route</th>
+                <th>Customer</th>
+                <th>Revenue</th>
+                <th>Load</th>
+                <th>Offload</th>
+                <th>Days</th>
+                <th>Status</th>
+            </tr>
+
+            {% for row in truck_data.trips %}
+                <tr>
+                    <td>{{ row.driver }}</td>
+                    <td>{{ row.trip_id }}</td>
+                    <td>{{ row.route }}</td>
+                    <td>{{ row.customer }}</td>
+                    <td class="amount">{{ frappe.format_value(row.estimated_revenue, {"fieldtype": "Currency"}) }}</td>
+                    <td class="center">{{ row.date_loaded }}</td>
+                    <td class="center">{{ row.date_offloaded or '' }}</td>
+                    <td class="center">{{ row.transit_days }}</td>
+                    <td>{{ row.workflow_state }}</td>
+                </tr>
+            {% endfor %}
+
+            <tr class="truck-total">
+                <td colspan="4">Total for {{ truck_id }} ({{ truck_data.trips|length }} {{ 'trip' if truck_data.trips|length == 1 else 'trips' }})</td>
+                <td class="amount">{{ frappe.format_value(truck_data.total, {"fieldtype": "Currency"}) }}</td>
+                <td colspan="4"></td>
+            </tr>
+        </table>
+
+        {% set grand_total.value = grand_total.value + truck_data.total %}
+    {% endfor %}
+
+    {% if trucks %}
+        <table class="report-table">
+            <colgroup>
+                <col width="170">
+                <col width="130">
+                <col width="170">
+                <col width="150">
+                <col width="110">
+                <col width="100">
+                <col width="100">
+                <col width="80">
+                <col width="90">
+            </colgroup>
+            <tr class="grand-total">
+                <td colspan="4">Total Revenue ({{ total_trips.value }} {{ 'trip' if total_trips.value == 1 else 'trips' }})</td>
+                <td colspan="5" class="amount">{{ frappe.format_value(grand_total.value, {"fieldtype": "Currency"}) }}</td>
+            </tr>
+        </table>
+    {% endif %}
+</body>
+</html>
