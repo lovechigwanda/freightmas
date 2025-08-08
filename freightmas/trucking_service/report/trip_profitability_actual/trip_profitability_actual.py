@@ -44,15 +44,15 @@ def execute(filters=None):
 
         actual_profit = flt(actual_revenue) - flt(actual_cost)
 
-        # Format currency fields
+        # Append raw values without currency formatting
         data.append({
             "name": trip.name,
             "customer": trip.customer,
             "truck": trip.truck,
             "route": trip.route,
-            "actual_revenue": frappe.format_value(actual_revenue, {"fieldtype": "Currency"}),
-            "actual_cost": frappe.format_value(actual_cost, {"fieldtype": "Currency"}),
-            "actual_profit": frappe.format_value(actual_profit, {"fieldtype": "Currency"})
+            "actual_revenue": actual_revenue,
+            "actual_cost": actual_cost,
+            "actual_profit": actual_profit
         })
 
     return columns, data
@@ -63,7 +63,7 @@ def get_columns():
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
         {"label": "Truck", "fieldname": "truck", "fieldtype": "Link", "options": "Truck", "width": 120},
         {"label": "Route", "fieldname": "route", "fieldtype": "Link", "options": "Route", "width": 200},
-        {"label": "Actual Revenue", "fieldname": "actual_revenue", "fieldtype": "Currency", "width": 130},
-        {"label": "Actual Cost", "fieldname": "actual_cost", "fieldtype": "Currency", "width": 130},
-        {"label": "Actual Profit", "fieldname": "actual_profit", "fieldtype": "Currency", "width": 130}
+        {"label": "Actual Revenue", "fieldname": "actual_revenue", "fieldtype": "Float", "width": 130},
+        {"label": "Actual Cost", "fieldname": "actual_cost", "fieldtype": "Float", "width": 130},
+        {"label": "Actual Profit", "fieldname": "actual_profit", "fieldtype": "Float", "width": 130}
     ]

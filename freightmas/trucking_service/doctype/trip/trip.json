@@ -116,8 +116,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Date Created",
-   "reqd": 1,
-   "set_only_once": 1
+   "reqd": 1
   },
   {
    "default": "user",
@@ -569,7 +568,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-07-30 19:14:18.045399",
+ "modified": "2025-08-08 11:29:34.192011",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
@@ -620,7 +619,6 @@
    "amend": 1,
    "cancel": 1,
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

@@ -59,21 +59,21 @@ def execute(filters=None):
 
         actual_profit = flt(actual_revenue) - flt(actual_cost)
 
-        # Format currency fields
+        # Append raw values without currency formatting
         data.append({
             "name": trip.name,
             "customer": trip.customer,
             "truck": trip.truck,
             "route": trip.route,
-            "est_revenue": frappe.format_value(est_revenue, {"fieldtype": "Currency"}),
-            "est_cost": frappe.format_value(est_cost, {"fieldtype": "Currency"}),
-            "est_profit": frappe.format_value(est_profit, {"fieldtype": "Currency"}),
-            "draft_revenue": frappe.format_value(draft_revenue, {"fieldtype": "Currency"}),
-            "draft_cost": frappe.format_value(draft_cost, {"fieldtype": "Currency"}),
-            "draft_profit": frappe.format_value(draft_profit, {"fieldtype": "Currency"}),
-            "actual_revenue": frappe.format_value(actual_revenue, {"fieldtype": "Currency"}),
-            "actual_cost": frappe.format_value(actual_cost, {"fieldtype": "Currency"}),
-            "actual_profit": frappe.format_value(actual_profit, {"fieldtype": "Currency"})
+            "est_revenue": est_revenue,
+            "est_cost": est_cost,
+            "est_profit": est_profit,
+            "draft_revenue": draft_revenue,
+            "draft_cost": draft_cost,
+            "draft_profit": draft_profit,
+            "actual_revenue": actual_revenue,
+            "actual_cost": actual_cost,
+            "actual_profit": actual_profit
         })
 
     return columns, data
@@ -84,13 +84,13 @@ def get_columns():
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
         {"label": "Truck", "fieldname": "truck", "fieldtype": "Link", "options": "Truck", "width": 100},
         {"label": "Route", "fieldname": "route", "fieldtype": "Link", "options": "Route", "width": 180},
-        {"label": "Est. Revenue", "fieldname": "est_revenue", "fieldtype": "Currency", "width": 120},
-        {"label": "Est. Cost", "fieldname": "est_cost", "fieldtype": "Currency", "width": 120},
-        {"label": "Est. Profit", "fieldname": "est_profit", "fieldtype": "Currency", "width": 120},
-        {"label": "Draft Revenue", "fieldname": "draft_revenue", "fieldtype": "Currency", "width": 120},
-        {"label": "Draft Cost", "fieldname": "draft_cost", "fieldtype": "Currency", "width": 120},
-        {"label": "Draft Profit", "fieldname": "draft_profit", "fieldtype": "Currency", "width": 120},
-        {"label": "Actual Revenue", "fieldname": "actual_revenue", "fieldtype": "Currency", "width": 130},
-        {"label": "Actual Cost", "fieldname": "actual_cost", "fieldtype": "Currency", "width": 120},
-        {"label": "Actual Profit", "fieldname": "actual_profit", "fieldtype": "Currency", "width": 120}
+        {"label": "Est. Revenue", "fieldname": "est_revenue", "fieldtype": "Float", "width": 120},
+        {"label": "Est. Cost", "fieldname": "est_cost", "fieldtype": "Float", "width": 120},
+        {"label": "Est. Profit", "fieldname": "est_profit", "fieldtype": "Float", "width": 120},
+        {"label": "Draft Revenue", "fieldname": "draft_revenue", "fieldtype": "Float", "width": 120},
+        {"label": "Draft Cost", "fieldname": "draft_cost", "fieldtype": "Float", "width": 120},
+        {"label": "Draft Profit", "fieldname": "draft_profit", "fieldtype": "Float", "width": 120},
+        {"label": "Actual Revenue", "fieldname": "actual_revenue", "fieldtype": "Float", "width": 130},
+        {"label": "Actual Cost", "fieldname": "actual_cost", "fieldtype": "Float", "width": 120},
+        {"label": "Actual Profit", "fieldname": "actual_profit", "fieldtype": "Float", "width": 120}
     ]

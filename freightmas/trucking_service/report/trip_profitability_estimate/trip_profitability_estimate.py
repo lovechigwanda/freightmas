@@ -35,15 +35,15 @@ def execute(filters=None):
         est_cost = flt(trip.total_estimated_cost)
         est_profit = est_revenue - est_cost
 
-        # Format currency fields
+        # Append raw values without currency formatting
         data.append({
             "name": trip.name,
             "customer": trip.customer,
             "truck": trip.truck,
             "route": trip.route,
-            "est_revenue": frappe.format_value(est_revenue, {"fieldtype": "Currency"}),
-            "est_cost": frappe.format_value(est_cost, {"fieldtype": "Currency"}),
-            "est_profit": frappe.format_value(est_profit, {"fieldtype": "Currency"})
+            "est_revenue": est_revenue,
+            "est_cost": est_cost,
+            "est_profit": est_profit
         })
 
     return columns, data
@@ -54,7 +54,7 @@ def get_columns():
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
         {"label": "Truck", "fieldname": "truck", "fieldtype": "Link", "options": "Truck", "width": 120},
         {"label": "Route", "fieldname": "route", "fieldtype": "Link", "options": "Route", "width": 200},
-        {"label": "Est. Revenue", "fieldname": "est_revenue", "fieldtype": "Currency", "width": 130},
-        {"label": "Est. Cost", "fieldname": "est_cost", "fieldtype": "Currency", "width": 130},
-        {"label": "Est. Profit", "fieldname": "est_profit", "fieldtype": "Currency", "width": 130}
+        {"label": "Est. Revenue", "fieldname": "est_revenue", "fieldtype": "Float", "width": 130},
+        {"label": "Est. Cost", "fieldname": "est_cost", "fieldtype": "Float", "width": 130},
+        {"label": "Est. Profit", "fieldname": "est_profit", "fieldtype": "Float", "width": 130}
     ]
