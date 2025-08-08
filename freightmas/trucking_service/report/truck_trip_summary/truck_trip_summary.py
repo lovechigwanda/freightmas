@@ -11,6 +11,15 @@ def execute(filters=None):
 
     columns = get_columns()
     data = get_simple_data(filters)
+    
+    for row in data:
+        # Ensure revenue is always a numeric value
+        if row.get('estimated_revenue'):
+            try:
+                row['estimated_revenue'] = float(str(row['estimated_revenue']).replace('$', '').replace(',', ''))
+            except (ValueError, TypeError):
+                row['estimated_revenue'] = 0.0
+    
     return columns, data
 
 def get_columns():

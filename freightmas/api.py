@@ -275,39 +275,24 @@ def export_truck_trip_summary_to_pdf(report_name, filters):
     # Helper function to parse currency values
     def parse_currency(value):
         if not value:
-            return 0
+            return 0.0
         if isinstance(value, (int, float)):
             return float(value)
-        clean_value = str(value).replace('$', '').replace(',', '').replace(' ', '')
+        # Handle currency string formatting
         try:
-            return float(clean_value)
-        except ValueError:
-            return 0
+            if isinstance(value, str):
+                # Remove currency symbol, commas, spaces and handle negative values
+                clean_value = value.replace('$', '').replace(',', '').replace(' ', '')
+                if '(' in clean_value and ')' in clean_value:  # Handle parentheses negative numbers
+                    clean_value = '-' + clean_value.replace('(', '').replace(')', '')
+                return float(clean_value)
+            return float(value)
+        except (ValueError, TypeError):
+            return 0.0
 
-    # Get list of trucks that appear in the report
-    used_trucks = list(set([row.get('truck') for row in data if row.get('truck')]))
-    
-    # Get available trucks that are not in the report
-    available_trucks = frappe.get_all(
-        "Truck",
-        filters={
-            "truck_status": "Available",
-            "name": ["not in", used_trucks] if used_trucks else ["!=", ""]
-        },
-        fields=["name"],
-        order_by="name"
-    )
-
-    # Format filters for display
-    filters_list = []
-    for key, value in filters.items():
-        if value:
-            label = key.replace('_', ' ').title()
-            if 'date' in key.lower() and not isinstance(value, str):
-                value = frappe.utils.formatdate(value)
-            filters_list.append(f"{label}: {value}")
-    
-    filters_html = " | ".join(filters_list)
+    # Pre-process data to convert currency values
+    for row in data:
+        row['estimated_revenue'] = parse_currency(row.get('estimated_revenue'))
 
     # Group data by truck
     grouped_data = {}
@@ -316,16 +301,47 @@ def export_truck_trip_summary_to_pdf(report_name, filters):
         if truck not in grouped_data:
             grouped_data[truck] = {
                 'trips': [],
-                'total': 0
+                'total': 0.0
             }
         grouped_data[truck]['trips'].append(row)
-        grouped_data[truck]['total'] += parse_currency(row.get('estimated_revenue', 0))
+        grouped_data[truck]['total'] += row['estimated_revenue']
+
+    # Helper function to format filter values for display
+    def format_filter_value(key, value):
+        if 'date' in key and not isinstance(value, str):
+            return frappe.utils.formatdate(value, "dd-MMM-yy")
+        return value
+
+    # Format filters for display
+    filters_list = []
+    for key, value in filters.items():
+        if value:
+            label = key.replace('_', ' ').title()
+            formatted_value = format_filter_value(key, value)
+            filters_list.append(f"{label}: {formatted_value}")
+    
+    filters_html = " | ".join(filters_list)
+
+    # Get available trucks only if no truck filter is applied
+    available_trucks = []
+    if not filters.get('truck'):  # Only get available trucks if no truck filter
+        used_trucks = list(set([row.get('truck') for row in data if row.get('truck')]))
+        available_trucks = frappe.get_all(
+            "Truck",
+            filters={
+                "truck_status": "Available",
+                "name": ["not in", used_trucks] if used_trucks else ["!=", ""]
+            },
+            fields=["name"],
+            order_by="name"
+        )
 
     context = {
         "report_title": report_name,
-        "filters_html": filters_html,  # Now filters_html is defined
+        "filters_html": filters_html,
         "trucks": grouped_data,
         "available_trucks": available_trucks,
+        "show_available_trucks": not filters.get('truck'),  # Add flag to control display
         "frappe": frappe,
         "company": frappe.defaults.get_user_default("Company"),
         "exported_at": frappe.utils.now_datetime().strftime("%d-%b-%Y %H:%M")
@@ -525,7 +541,7 @@ def export_truck_trip_summary_to_excel(report_name, filters):
 
         grand_total += truck_data['total']
         total_trips += len(truck_data['trips'])
-        current_row += 2  # Add space between trucks
+        current_row += 2 # Add space between trucks
 
     # Grand total
     ws.merge_cells(f'A{current_row}:D{current_row}')
@@ -543,28 +559,29 @@ def export_truck_trip_summary_to_excel(report_name, filters):
 
     current_row += 2  # Add space after grand total
 
-    # Add available trucks section
-    used_trucks = list(set([row.get('truck') for row in data if row.get('truck')]))
-    available_trucks = frappe.get_all(
-        "Truck",
-        filters={
-            "truck_status": "Available",
-            "name": ["not in", used_trucks] if used_trucks else ["!=", ""]
-        },
-        fields=["name"],
-        order_by="name"
-    )
+    # Add available trucks section only if no truck filter is applied
+    if not filters.get('truck'):
+        used_trucks = list(set([row.get('truck') for row in data if row.get('truck')]))
+        available_trucks = frappe.get_all(
+            "Truck",
+            filters={
+                "truck_status": "Available",
+                "name": ["not in", used_trucks] if used_trucks else ["!=", ""]
+            },
+            fields=["name"],
+            order_by="name"
+        )
 
-    if available_trucks:
-        ws.merge_cells(f'A{current_row}:I{current_row}')
-        truck_list = ", ".join([t.name for t in available_trucks])
-        ws[f'A{current_row}'] = f"Available trucks not contributing: {truck_list}"
-        ws[f'A{current_row}'].font = Font(italic=True)
-        current_row += 1
-        
-        ws.merge_cells(f'A{current_row}:I{current_row}')
-        ws[f'A{current_row}'] = f"Total available but not contributing = {len(available_trucks)} {'truck' if len(available_trucks) == 1 else 'trucks'}"
-        ws[f'A{current_row}'].font = Font(italic=True)
+        if available_trucks:
+            ws.merge_cells(f'A{current_row}:I{current_row}')
+            truck_list = ", ".join([t.name for t in available_trucks])
+            ws[f'A{current_row}'] = f"Available trucks not contributing: {truck_list}"
+            ws[f'A{current_row}'].font = Font(italic=True)
+            current_row += 1
+            
+            ws.merge_cells(f'A{current_row}:I{current_row}')
+            ws[f'A{current_row}'] = f"Total available but not contributing = {len(available_trucks)} {'truck' if len(available_trucks) == 1 else 'trucks'}"
+            ws[f'A{current_row}'].font = Font(italic=True)
 
     # Save to BytesIO and return as file
     output = BytesIO()
