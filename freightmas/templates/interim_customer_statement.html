@@ -116,6 +116,10 @@
         .balance-bold {
             font-weight: bold;
         }
+
+        .closing-row {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +151,7 @@
             <tr>
                 <th style="width: 65px;">Date</th>
                 <th style="width: 100px;">Voucher Type</th>
-                <th style="width: 130px;">Voucher No</th>
+                <th style="width: 135px;">Voucher No</th>
                 <th style="width: 80px;" class="text-right">Debit</th>
                 <th style="width: 80px;" class="text-right">Credit</th>
                 <th style="width: 80px;" class="text-right">Balance</th>
@@ -156,15 +160,13 @@
         </thead>
         <tbody>
             {% for row in data %}
-            <tr>
+            <tr {% if row.voucher_type == 'Closing Balance' %}class="closing-row"{% endif %}>
                 <td>{{ frappe.utils.formatdate(row.posting_date, "dd-MMM-yy") }}</td>
                 <td>{{ row.voucher_type }}</td>
                 <td>{{ row.voucher_no }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.debit) if row.debit else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.credit) if row.credit else "" }}</td>
-                <td class="amount {% if row.voucher_type == 'Closing Balance' %}balance-bold{% endif %}">
-                    {{ frappe.utils.fmt_money(row.balance) }}
-                </td>
+                <td class="amount">{{ frappe.utils.fmt_money(row.balance) }}</td>
                 <td>{{ row.remarks or "" }}</td>
             </tr>
             {% endfor %}

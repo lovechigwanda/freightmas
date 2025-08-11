@@ -672,3 +672,131 @@ def export_interim_customer_statement_to_pdf(report_name, filters):
     
     return pdf
 
+
+########################################################
+## Freightmas Interim Customer Statement Excel Export
+@frappe.whitelist()
+def export_interim_customer_statement_to_excel(report_name, filters):
+    import json
+    from io import BytesIO
+    import importlib
+    
+    filters = json.loads(filters)
+
+    # Get report document first
+    report = frappe.get_doc("Report", report_name)
+    if report.report_type != "Script Report":
+        frappe.throw("Only Script Reports are supported.")
+
+    # Get report data
+    module = importlib.import_module(
+        f"freightmas.freightmas.report.interim_customer_statement.interim_customer_statement"
+    )
+    columns, data = module.execute(filters)
+
+    # Create workbook and styles
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Customer Statement"
+
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF")
+    title_font = Font(bold=True, size=14)
+    subtitle_font = Font(bold=True, size=12)
+    total_font = Font(bold=True)
+    header_fill = PatternFill("solid", fgColor="305496")
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    right_align = Alignment(horizontal="right")
+    left_align = Alignment(horizontal="left")
+
+    # Start writing
+    current_row = 1
+
+    # Company name
+    ws.merge_cells(f'A{current_row}:G{current_row}')
+    ws[f'A{current_row}'] = frappe.defaults.get_user_default("Company")
+    ws[f'A{current_row}'].font = title_font
+    current_row += 1
+
+    # Report title
+    ws.merge_cells(f'A{current_row}:G{current_row}')
+    ws[f'A{current_row}'] = "Interim Customer Statement"
+    ws[f'A{current_row}'].font = subtitle_font
+    current_row += 1
+
+    # Customer info
+    customer_name = frappe.db.get_value("Customer", filters.get("customer"), "customer_name")
+    ws.merge_cells(f'A{current_row}:G{current_row}')
+    ws[f'A{current_row}'] = f"Customer: {customer_name or filters.get('customer')}"
+    ws[f'A{current_row}'].font = subtitle_font
+    current_row += 1
+
+    # Statement period
+    period_text = f"Statement Period: {frappe.utils.formatdate(filters.get('from_date'))} to {frappe.utils.formatdate(filters.get('to_date'))}"
+    ws.merge_cells(f'A{current_row}:G{current_row}')
+    ws[f'A{current_row}'] = period_text
+    current_row += 2
+
+    # Headers
+    headers = ['Date', 'Voucher Type', 'Voucher No', 'Debit', 'Credit', 'Balance', 'Remarks']
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=current_row, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+    current_row += 1
+
+    # Data
+    for row in data:
+        ws.cell(row=current_row, column=1, value=row.get('posting_date'))
+        ws.cell(row=current_row, column=2, value=row.get('voucher_type'))
+        ws.cell(row=current_row, column=3, value=row.get('voucher_no'))
+        
+        debit_cell = ws.cell(row=current_row, column=4, value=row.get('debit'))
+        debit_cell.number_format = '#,##0.00'
+        debit_cell.alignment = right_align
+        
+        credit_cell = ws.cell(row=current_row, column=5, value=row.get('credit'))
+        credit_cell.number_format = '#,##0.00'
+        credit_cell.alignment = right_align
+        
+        balance_cell = ws.cell(row=current_row, column=6, value=row.get('balance'))
+        balance_cell.number_format = '#,##0.00'
+        balance_cell.alignment = right_align
+        
+        ws.cell(row=current_row, column=7, value=row.get('remarks'))
+
+        # Bold for Opening/Closing Balance rows
+        if row.get('voucher_type') in ['Opening Balance', 'Closing Balance']:
+            for col in range(1, 8):
+                ws.cell(row=current_row, column=col).font = total_font
+
+        # Apply borders
+        for col in range(1, 8):
+            ws.cell(row=current_row, column=col).border = thin_border
+
+        current_row += 1
+
+    # Column widths
+    ws.column_dimensions['A'].width = 12  # Date
+    ws.column_dimensions['B'].width = 15  # Voucher Type
+    ws.column_dimensions['C'].width = 20  # Voucher No
+    ws.column_dimensions['D'].width = 15  # Debit
+    ws.column_dimensions['E'].width = 15  # Credit
+    ws.column_dimensions['F'].width = 15  # Balance
+    ws.column_dimensions['G'].width = 40  # Remarks
+
+    # Save to BytesIO and return as file
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    frappe.local.response.filename = f"Statement_{filters.get('customer', 'Unknown').replace(' ', '_')}.xlsx"
+    frappe.local.response.filecontent = output.read()
+    frappe.local.response.type = "binary"
+
