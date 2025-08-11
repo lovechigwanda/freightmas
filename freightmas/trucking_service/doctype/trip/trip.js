@@ -216,6 +216,7 @@ function create_sales_invoice_from_charges(frm) {
             </div>
         `;
 
+        // In the render_dialog_ui function, update the table structure:
         const table = `
             <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
                 <table class="table table-bordered table-sm" style="margin: 0;">
@@ -224,12 +225,11 @@ function create_sales_invoice_from_charges(frm) {
                             <th style="width: 40px; text-align: center;">
                                 <input type="checkbox" id="select-all-charges" title="Select All">
                             </th>
-                            <th style="min-width: 150px;">Customer</th>
-                            <th style="min-width: 200px;">Charge</th>
-                            <th style="min-width: 200px;">Description</th>
+                            <th style="width: 200px;">Customer</th>
+                            <th style="width: 150px;">Charge</th>
                             <th style="width: 80px; text-align: right;">Qty</th>
-                            <th style="width: 100px; text-align: right;">Rate</th>
-                            <th style="width: 100px; text-align: right;">Total</th>
+                            <th style="width: 120px; text-align: right;">Rate</th>
+                            <th style="width: 120px; text-align: right;">Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -240,10 +240,9 @@ function create_sales_invoice_from_charges(frm) {
                                 </td>
                                 <td>${row.receivable_party || ''}</td>
                                 <td>${row.charge || ''}</td>
-                                <td>${row.charge_description || ''}</td>
-                                <td style="text-align: right;">${row.quantity || 0}</td>
-                                <td style="text-align: right;">${frappe.format(row.rate || 0, { fieldtype: 'Currency' })}</td>
-                                <td style="text-align: right;">${frappe.format(row.total_amount || 0, { fieldtype: 'Currency' })}</td>
+                                <td style="text-align: right;">${frappe.format(row.quantity || 0, { fieldtype: 'Float', precision: 2 })}</td>
+                                <td style="text-align: right;">${frappe.format(row.rate || 0, { fieldtype: 'Currency', precision: 2 })}</td>
+                                <td style="text-align: right;">${frappe.format(row.total_amount || 0, { fieldtype: 'Currency', precision: 2 })}</td>
                             </tr>
                         `).join('')}
                     </tbody>
