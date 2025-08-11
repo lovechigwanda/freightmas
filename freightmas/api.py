@@ -1,8 +1,23 @@
 ## Freightmas API Endpoints
 ###################################
+from typing import Optional, Dict, List, Any
+import json
+from io import BytesIO
+
 import frappe
+from frappe import _
+from frappe.utils import now_datetime, formatdate
+from frappe.utils.pdf import get_pdf
+from frappe.utils.jinja import render_template
+
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.utils import get_column_letter
+from openpyxl.workbook import Workbook
+
 from erpnext.stock.utils import get_incoming_rate
 
+#########################################################
+# Fuel Rate
 @frappe.whitelist()
 def get_fuel_rate(item_code, warehouse, posting_date=None):
     if not posting_date:
@@ -19,15 +34,29 @@ def get_fuel_rate(item_code, warehouse, posting_date=None):
     rate = get_incoming_rate(args)
     return rate or 0
 
+##################################################
+# Report Filename Generation
+def get_report_filename(report_name: str, file_type: str, party: Optional[str] = None) -> str:
+    """Generate standardized filename for report exports
+    
+    Args:
+        report_name (str): Name of the report
+        file_type (str): File extension (pdf/xlsx)
+        party (str, optional): Party name for statement reports
+        
+    Returns:
+        str: Formatted filename with timestamp
+    """
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    
+    if party:
+        return f"{report_name.replace(' ', '_')}_{party or 'Unknown'}_{timestamp}.{file_type}"
+    else:
+        return f"{report_name.replace(' ', '_')}_{timestamp}.{file_type}"
+
 
 ################################################################################
-import frappe
-import openpyxl
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-from openpyxl.utils import get_column_letter
-from frappe.utils import now_datetime
-import re
-
+# Export Report to Excel
 @frappe.whitelist()
 def export_report_to_excel(report_name, filters=None):
     import json
@@ -178,7 +207,7 @@ def export_report_to_excel(report_name, filters=None):
     output.seek(0)
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.xlsx"
+    frappe.local.response.filename = get_report_filename(report_name, "xlsx")
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
@@ -188,13 +217,6 @@ def export_report_to_excel(report_name, filters=None):
 # Freightmas PDF Export for Script Reports
 # This module exports Script Reports to PDF format.
 # It uses Jinja templates for rendering the report
-import frappe
-import importlib
-from frappe.utils.pdf import get_pdf
-from frappe.utils.jinja import render_template
-from frappe.utils import now_datetime
-from frappe import _
-
 @frappe.whitelist()
 def export_report_to_pdf(report_name, filters):
     import json
@@ -250,7 +272,7 @@ def export_report_to_pdf(report_name, filters):
     )
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.pdf"
+    frappe.local.response.filename = get_report_filename(report_name, "pdf")
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -363,7 +385,7 @@ def export_truck_trip_summary_to_pdf(report_name, filters):
     )
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.pdf"
+    frappe.local.response.filename = get_report_filename(report_name, "pdf")
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -471,7 +493,7 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     
     ws.merge_cells(f'A{current_row}:I{current_row}')
     ws['A' + str(current_row)] = ' | '.join(filters_text)
-    current_row += 2  # Add extra space after filters
+    current_row += 2 # Add extra space after filters
 
     # Write data for each truck
     grand_total = 0
@@ -592,7 +614,7 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     output.seek(0)
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.xlsx"
+    frappe.local.response.filename = get_report_filename(report_name, "xlsx")
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
@@ -675,7 +697,7 @@ def export_statement_of_accounts_to_pdf(filters):
     )
     
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}_{timestamp}.pdf"
+    frappe.local.response.filename = get_report_filename("Statement_of_Accounts", "pdf", party)
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -774,7 +796,7 @@ def export_statement_of_accounts_to_excel(filters):
     output.seek(0)
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}_{timestamp}.xlsx"
+    frappe.local.response.filename = get_report_filename("Statement_of_Accounts", "xlsx", party)
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 ##########################################################
