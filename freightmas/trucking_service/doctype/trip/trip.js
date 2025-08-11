@@ -184,7 +184,7 @@ frappe.ui.form.on('Trip', {
 });
 
 //////////////////////////////////////////////////////////////////////////////
-// MODERN SALES INVOICE CREATION
+// SALES INVOICE CREATION
 function create_sales_invoice_from_charges(frm) {
     const all_rows = frm.doc.trip_revenue_charges || [];
     const eligible_rows = all_rows.filter(row => 
@@ -332,7 +332,7 @@ function create_sales_invoice_from_charges(frm) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-// MODERN PURCHASE INVOICE CREATION
+// PURCHASE INVOICE CREATION
 function create_purchase_invoice_from_charges(frm) {
     const all_rows = frm.doc.trip_cost_charges || [];
     const eligible_rows = all_rows.filter(row => 
@@ -480,7 +480,7 @@ function create_purchase_invoice_from_charges(frm) {
 }
 
 //////////////////////////////////////////////////////////////
-// MODERN FUEL ISSUE CREATION
+// FUEL ISSUE CREATION
 function create_fuel_issue_from_allocation(frm) {
     const all_rows = frm.doc.trip_fuel_allocation || [];
     const eligible_rows = all_rows.filter(row => 

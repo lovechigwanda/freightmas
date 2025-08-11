@@ -27,6 +27,15 @@ def create_sales_invoice(trip_name, selected_charges, receivable_party):
             frappe.throw("No charges selected for invoicing.")
 
         trip = frappe.get_doc("Trip", trip_name)
+        
+        # Create single line remark from trip details
+        remark = f"{trip.name}"
+        if trip.truck:
+            remark += f" {trip.truck}"
+        if trip.route:
+            remark += f" {trip.route}"
+        if trip.cargo_description:
+            remark += f" {trip.cargo_description}"
 
         # Prepare invoice items from selected charges
         items = []
@@ -53,6 +62,7 @@ def create_sales_invoice(trip_name, selected_charges, receivable_party):
             "is_trip_invoice": 1,
             "trip_reference": trip_name,
             "items": items,
+            "remarks": remark
         })
 
         # Save as draft
@@ -267,60 +277,6 @@ def create_journal_entry_from_other_costs(trip_name, selected_charges):
     except Exception as e:
         frappe.log_error(f"Journal Entry Creation Error: {str(e)}")
         frappe.throw(f"Failed to create Journal Entry: {str(e)}")
-
-
-########################################################################
-@frappe.whitelist()
-def create_additional_salary_from_trip_commissions(docname, row_names):
-    try:
-        row_names = json.loads(row_names) if isinstance(row_names, str) else row_names
-        trip = frappe.get_doc("Trip", docname)
-
-        if not trip.company:
-            frappe.throw("Please set the Company on the Trip before posting to payroll.")
-
-        posted_rows = []
-
-        for row in trip.trip_commissions:
-            if row.name not in row_names:
-                continue
-
-            if not (row.employee and row.salary_component and row.amount):
-                continue
-
-            if flt(row.amount) <= 0:
-                continue
-
-            # Safely handle remarks with proper length limit
-            remarks = cstr(row.description or "").strip()
-            if len(remarks) > 100:
-                remarks = remarks[:97] + "..."
-
-            additional_salary = frappe.get_doc({
-                "doctype": "Additional Salary",
-                "employee": row.employee,
-                "salary_component": row.salary_component,
-                "amount": row.amount,
-                "payroll_date": trip.end_date or today(),
-                "company": trip.company,
-                "remarks": f"Trip Bonus for {trip.name}: {remarks}",
-                "reference_doctype": "Trip",
-                "reference_name": trip.name
-            })
-
-            additional_salary.insert(ignore_permissions=True)
-            additional_salary.submit()
-
-            row.is_posted_to_payroll = 1
-            row.payroll_entry = additional_salary.name
-            posted_rows.append(row.name)
-
-        trip.save(ignore_permissions=True)
-        return posted_rows
-    
-    except Exception as e:
-        frappe.log_error(f"Additional Salary Creation Error: {str(e)}")
-        frappe.throw(f"Failed to create Additional Salary: {str(e)}")
 
 
 #####################################################
