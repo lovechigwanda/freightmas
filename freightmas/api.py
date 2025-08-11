@@ -592,3 +592,83 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
+
+########################################################
+## Freightmas Interim Customer Statement PDF Export
+@frappe.whitelist()
+def export_interim_customer_statement_to_pdf(report_name, filters):
+    import json
+    import importlib
+    
+    filters = json.loads(filters)
+    
+    # Get report document
+    report = frappe.get_doc("Report", report_name)
+    
+    # Import report module
+    module = importlib.import_module(
+        f"freightmas.freightmas.report.interim_customer_statement.interim_customer_statement"
+    )
+    
+    # Get report data
+    columns, data = module.execute(filters)
+    
+    # Calculate totals
+    total_debit = sum(row.get('debit', 0) for row in data if row.get('debit'))
+    total_credit = sum(row.get('credit', 0) for row in data if row.get('credit'))
+    closing_balance = data[-1].get('balance', 0) if data else 0
+    
+    # Get customer name
+    customer_name = frappe.db.get_value("Customer", filters.get("customer"), "customer_name")
+    
+    # Format dates for display
+    def format_date(date_str):
+        if date_str:
+            return frappe.utils.formatdate(date_str, "dd-MMM-yy")
+        return ""
+    
+    # Prepare template context
+    context = {
+        "company": filters.get('company'),
+        "customer": customer_name or filters.get("customer"),  # Changed from customer_name
+        "from_date": format_date(filters.get('from_date')),
+        "to_date": format_date(filters.get('to_date')),
+        "include_draft": filters.get('include_draft_invoices', False),
+        "data": data,
+        "totals": {
+            "debit": total_debit,
+            "credit": total_credit,
+            "balance": closing_balance
+        },
+        "frappe": frappe
+    }
+    
+    # Generate HTML from template
+    html = frappe.render_template(
+        "freightmas/templates/interim_customer_statement.html", 
+        context
+    )
+    
+    # Convert to PDF with landscape orientation
+    pdf = frappe.utils.pdf.get_pdf(
+        html,
+        {
+            "orientation": "Landscape",  # This ensures landscape mode
+            "page-size": "A4",
+            "margin-top": "15mm",
+            "margin-right": "15mm",
+            "margin-bottom": "15mm",
+            "margin-left": "15mm",
+            "footer-right": "Page [page] of [topage]",
+            "footer-font-size": "8",
+            "print-media-type": True  # This helps ensure CSS is applied correctly
+        }
+    )
+    
+    # Return PDF as download
+    frappe.local.response.filename = f"Statement_{filters.get('customer', 'Unknown').replace(' ', '_')}.pdf"
+    frappe.local.response.filecontent = pdf
+    frappe.local.response.type = "download"
+    
+    return pdf
+
