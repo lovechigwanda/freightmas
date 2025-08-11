@@ -125,8 +125,8 @@
 <body>
     <div class="header">
         <div class="company-name">{{ company }}</div>
-        <div class="report-title">Interim Customer Statement</div>
-        <div class="customer-name">Customer: {{ customer }}</div>
+        <div class="report-title">{{ report_name }}</div>
+        <div class="customer-name">{{ party_type }}: {{ party_name }}</div>
     </div>
 
     <table class="statement-info">
@@ -134,11 +134,11 @@
             <td class="info-label">Statement Period:</td>
             <td>{{ from_date }} to {{ to_date }}</td>
             <td class="info-label">Statement Date:</td>
-            <td>{{ frappe.utils.formatdate(frappe.utils.today(), "dd-MMM-yy") }}</td>
+            <td>{{ frappe.utils.formatdate(today, "dd-MMM-yy") }}</td>
         </tr>
         <tr>
             <td class="info-label">Statement Currency:</td>
-            <td>{{ frappe.db.get_value("Company", company, "default_currency") or "USD" }}</td>
+            <td>{{ currency }}</td>
             <td class="info-label">Include Draft Invoices:</td>
             <td>{{ "Yes" if include_draft else "No" }}</td>
         </tr>
@@ -187,7 +187,11 @@
     </div>
 
     <div class="note">
-        Please note: This is an interim statement and may include proforma (draft) invoices. Amounts on proforma invoices are subject to change until the final invoices are issued.
+        {% if party_type == 'Customer' %}
+        Please note: This statement may include proforma invoices. Amounts on proforma invoices are subject to change until the final invoices are issued.
+        {% else %}
+        Please note: This statement may include draft purchase invoices. Amounts on draft invoices are subject to change until the final invoices are issued.
+        {% endif %}
     </div>
 </body>
 </html>

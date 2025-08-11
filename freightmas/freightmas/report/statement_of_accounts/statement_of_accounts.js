@@ -1,19 +1,19 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Interim Customer Statement"] = {
+frappe.query_reports["Statement of Accounts"] = {
     onload: function(report) {
         report.page.add_inner_button('Export to Excel', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            const url = `/api/method/freightmas.api.export_interim_customer_statement_to_excel?report_name=Interim Customer Statement&filters=${query}`;
+            const url = `/api/method/freightmas.api.export_statement_of_accounts_to_excel?filters=${query}`;
             window.open(url);
         }, 'Export');
 
         report.page.add_inner_button('Export to PDF', function() {
             const filters = report.get_filter_values(true);
             const query = encodeURIComponent(JSON.stringify(filters));
-            const url = `/api/method/freightmas.api.export_interim_customer_statement_to_pdf?report_name=Interim Customer Statement&filters=${query}`;
+            const url = `/api/method/freightmas.api.export_statement_of_accounts_to_pdf?filters=${query}`;
             window.open(url);
         }, 'Export');
 
@@ -36,11 +36,40 @@ frappe.query_reports["Interim Customer Statement"] = {
             "reqd": 1
         },
         {
-            "fieldname": "customer",
-            "label": __("Customer"),
+            "fieldname": "party_type",
+            "label": __("Party Type"),
+            "fieldtype": "Select",
+            "options": ["Customer", "Supplier"],
+            "default": "Customer",
+            "reqd": 1,
+            "on_change": function() {
+                let party_type = frappe.query_report.get_filter_value('party_type');
+                frappe.query_report.toggle_filter_display('party', true);
+                frappe.query_report.set_filter_value('party', '');
+                
+                let party_field = frappe.query_report.get_filter('party');
+                party_field.df.options = party_type;
+                party_field.df.label = __(party_type);
+                party_field.refresh();
+            }
+        },
+        {
+            "fieldname": "party",
+            "label": __("Party"), // This will change dynamically based on party_type
             "fieldtype": "Link",
-            "options": "Customer",
-            "reqd": 1
+            "options": "Customer", // This will change dynamically based on party_type
+            "reqd": 1,
+            "get_query": function() {
+                let party_type = frappe.query_report.get_filter_value('party_type');
+                if (!party_type) {
+                    frappe.throw(__("Please select Party Type first"));
+                }
+                return {
+                    filters: {
+                        'disabled': 0
+                    }
+                };
+            }
         },
         {
             "fieldname": "date_range",

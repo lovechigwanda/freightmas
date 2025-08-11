@@ -227,15 +227,15 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Interim Customer Statement",
+   "label": "Statement of Accounts",
    "link_count": 0,
-   "link_to": "Interim Customer Statement",
+   "link_to": "Statement of Accounts",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-08-11 19:21:13.764227",
+ "modified": "2025-08-11 22:42:56.643648",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

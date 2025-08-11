@@ -79,7 +79,7 @@ def get_data(filters):
     
     conditions = get_conditions(filters)
     
-    # Get GL entries for the customer
+    # Get GL entries for the party
     gl_entries = frappe.db.sql("""
         SELECT 
             posting_date,
@@ -91,7 +91,7 @@ def get_data(filters):
             credit,
             remarks
         FROM `tabGL Entry`
-        WHERE party_type = 'Customer'
+        WHERE party_type = %(party_type)s
         AND {conditions}
         ORDER BY posting_date, creation
     """.format(conditions=conditions), filters, as_dict=1)
@@ -99,8 +99,6 @@ def get_data(filters):
     # Get draft invoices if requested
     if filters.get("include_draft_invoices"):
         draft_invoices = get_draft_invoices(filters)
-        
-        # Combine and sort by posting date
         all_entries = gl_entries + draft_invoices
         all_entries = sorted(all_entries, key=lambda x: x.posting_date)
     else:
@@ -133,23 +131,25 @@ def get_data(filters):
     return data
 
 def get_opening_balance(filters):
-    # Get balance before from_date for the specific customer
     balance = frappe.db.sql("""
         SELECT SUM(debit) - SUM(credit) as balance
         FROM `tabGL Entry`
-        WHERE party_type = 'Customer'
+        WHERE party_type = %(party_type)s
         AND posting_date < %(from_date)s
         AND company = %(company)s
-        {customer_condition}
-    """.format(
-        customer_condition="AND party = %(customer)s" if filters.get("customer") else ""
-    ), filters, as_dict=1)[0].balance
+        AND party = %(party)s
+    """, filters, as_dict=1)[0].balance
     
     return balance or 0
 
 def get_draft_invoices(filters):
-    # Get draft sales invoices for the customer
-    draft_invoices = frappe.db.sql("""
+    if filters.get("party_type") == "Customer":
+        return get_draft_sales_invoices(filters)
+    else:
+        return get_draft_purchase_invoices(filters)
+
+def get_draft_sales_invoices(filters):
+    return frappe.db.sql("""
         SELECT 
             posting_date,
             'Sales Invoice' as voucher_type,
@@ -161,13 +161,30 @@ def get_draft_invoices(filters):
             CONCAT('Draft Invoice - ', name) as remarks
         FROM `tabSales Invoice`
         WHERE docstatus = 0
-        AND customer = %(customer)s
+        AND customer = %(party)s
         AND company = %(company)s
         AND posting_date >= %(from_date)s
         AND posting_date <= %(to_date)s
     """, filters, as_dict=1)
-    
-    return draft_invoices
+
+def get_draft_purchase_invoices(filters):
+    return frappe.db.sql("""
+        SELECT 
+            posting_date,
+            'Purchase Invoice' as voucher_type,
+            name as voucher_no,
+            '' as account,
+            supplier as party,
+            0 as debit,
+            grand_total as credit,
+            CONCAT('Draft Invoice - ', name) as remarks
+        FROM `tabPurchase Invoice`
+        WHERE docstatus = 0
+        AND supplier = %(party)s
+        AND company = %(company)s
+        AND posting_date >= %(from_date)s
+        AND posting_date <= %(to_date)s
+    """, filters, as_dict=1)
 
 def get_conditions(filters):
     conditions = []
@@ -178,7 +195,7 @@ def get_conditions(filters):
         conditions.append("posting_date >= %(from_date)s")
     if filters.get("to_date"):
         conditions.append("posting_date <= %(to_date)s")
-    if filters.get("customer"):
-        conditions.append("party = %(customer)s")
+    if filters.get("party"):
+        conditions.append("party = %(party)s")
         
     return " AND ".join(conditions)

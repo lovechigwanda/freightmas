@@ -594,23 +594,16 @@ def export_truck_trip_summary_to_excel(report_name, filters):
 
 
 ########################################################
-## Freightmas Interim Customer Statement PDF Export
+## Freightmas Statement of Accounts PDF Export
 @frappe.whitelist()
-def export_interim_customer_statement_to_pdf(report_name, filters):
+def export_statement_of_accounts_to_pdf(filters):
+    """Export Statement of Accounts to PDF"""
     import json
-    import importlib
     
     filters = json.loads(filters)
     
-    # Get report document
-    report = frappe.get_doc("Report", report_name)
-    
-    # Import report module
-    module = importlib.import_module(
-        f"freightmas.freightmas.report.interim_customer_statement.interim_customer_statement"
-    )
-    
     # Get report data
+    module = frappe.get_module("freightmas.freightmas.report.statement_of_accounts.statement_of_accounts")
     columns, data = module.execute(filters)
     
     # Calculate totals
@@ -618,8 +611,12 @@ def export_interim_customer_statement_to_pdf(report_name, filters):
     total_credit = sum(row.get('credit', 0) for row in data if row.get('credit'))
     closing_balance = data[-1].get('balance', 0) if data else 0
     
-    # Get customer name
-    customer_name = frappe.db.get_value("Customer", filters.get("customer"), "customer_name")
+    # Get party details
+    party_type = filters.get('party_type')
+    party = filters.get('party')
+    party_name = frappe.db.get_value(party_type, party, 
+        'customer_name' if party_type == 'Customer' else 'supplier_name'
+    ) if party else None
     
     # Format dates for display
     def format_date(date_str):
@@ -627,12 +624,19 @@ def export_interim_customer_statement_to_pdf(report_name, filters):
             return frappe.utils.formatdate(date_str, "dd-MMM-yy")
         return ""
     
+    # Get company currency
+    company_currency = frappe.db.get_value("Company", filters.get('company'), 
+        "default_currency") or "USD"
+    
     # Prepare template context
     context = {
         "company": filters.get('company'),
-        "customer": customer_name or filters.get("customer"),  # Changed from customer_name
+        "party_type": party_type,
+        "party_name": party_name or party,
+        "report_name": "Statement of Accounts",
         "from_date": format_date(filters.get('from_date')),
         "to_date": format_date(filters.get('to_date')),
+        "currency": company_currency,
         "include_draft": filters.get('include_draft_invoices', False),
         "data": data,
         "totals": {
@@ -640,20 +644,21 @@ def export_interim_customer_statement_to_pdf(report_name, filters):
             "credit": total_credit,
             "balance": closing_balance
         },
-        "frappe": frappe
+        "frappe": frappe,
+        "today": frappe.utils.today()
     }
     
     # Generate HTML from template
     html = frappe.render_template(
-        "freightmas/templates/interim_customer_statement.html", 
+        "freightmas/templates/statement_of_accounts.html", 
         context
     )
     
-    # Convert to PDF with landscape orientation
+    # Convert to PDF
     pdf = frappe.utils.pdf.get_pdf(
         html,
         {
-            "orientation": "Landscape",  # This ensures landscape mode
+            "orientation": "Landscape",
             "page-size": "A4",
             "margin-top": "15mm",
             "margin-right": "15mm",
@@ -661,43 +666,33 @@ def export_interim_customer_statement_to_pdf(report_name, filters):
             "margin-left": "15mm",
             "footer-right": "Page [page] of [topage]",
             "footer-font-size": "8",
-            "print-media-type": True  # This helps ensure CSS is applied correctly
+            "print-media-type": True
         }
     )
     
-    # Return PDF as download
-    frappe.local.response.filename = f"Statement_{filters.get('customer', 'Unknown').replace(' ', '_')}.pdf"
+    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}.pdf"
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
-    
-    return pdf
 
 
-########################################################
-## Freightmas Interim Customer Statement Excel Export
+####################################################
+# Export Statement of Accounts to Excel
 @frappe.whitelist()
-def export_interim_customer_statement_to_excel(report_name, filters):
+def export_statement_of_accounts_to_excel(filters):
+    """Export Statement of Accounts to Excel"""
     import json
     from io import BytesIO
-    import importlib
     
     filters = json.loads(filters)
-
-    # Get report document first
-    report = frappe.get_doc("Report", report_name)
-    if report.report_type != "Script Report":
-        frappe.throw("Only Script Reports are supported.")
-
+    
     # Get report data
-    module = importlib.import_module(
-        f"freightmas.freightmas.report.interim_customer_statement.interim_customer_statement"
-    )
+    module = frappe.get_module("freightmas.freightmas.report.statement_of_accounts.statement_of_accounts")
     columns, data = module.execute(filters)
 
-    # Create workbook and styles
+    # Create workbook
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Customer Statement"
+    ws.title = "Statement"
 
     # Styles
     header_font = Font(bold=True, color="FFFFFF")
@@ -711,92 +706,70 @@ def export_interim_customer_statement_to_excel(report_name, filters):
         top=Side(style='thin'),
         bottom=Side(style='thin')
     )
-    right_align = Alignment(horizontal="right")
-    left_align = Alignment(horizontal="left")
 
     # Start writing
     current_row = 1
 
     # Company name
     ws.merge_cells(f'A{current_row}:G{current_row}')
-    ws[f'A{current_row}'] = frappe.defaults.get_user_default("Company")
+    ws[f'A{current_row}'] = filters.get('company')
     ws[f'A{current_row}'].font = title_font
     current_row += 1
 
-    # Report title
+    # Report title and party info
+    party_type = filters.get('party_type')
+    party = filters.get('party')
+    party_name = frappe.db.get_value(party_type, party, 
+        'customer_name' if party_type == 'Customer' else 'supplier_name'
+    ) or party
+
     ws.merge_cells(f'A{current_row}:G{current_row}')
-    ws[f'A{current_row}'] = "Interim Customer Statement"
+    ws[f'A{current_row}'] = "Statement of Accounts"
     ws[f'A{current_row}'].font = subtitle_font
     current_row += 1
 
-    # Customer info
-    customer_name = frappe.db.get_value("Customer", filters.get("customer"), "customer_name")
     ws.merge_cells(f'A{current_row}:G{current_row}')
-    ws[f'A{current_row}'] = f"Customer: {customer_name or filters.get('customer')}"
+    ws[f'A{current_row}'] = f"{party_type}: {party_name}"
     ws[f'A{current_row}'].font = subtitle_font
     current_row += 1
-
-    # Statement period
-    period_text = f"Statement Period: {frappe.utils.formatdate(filters.get('from_date'))} to {frappe.utils.formatdate(filters.get('to_date'))}"
-    ws.merge_cells(f'A{current_row}:G{current_row}')
-    ws[f'A{current_row}'] = period_text
-    current_row += 2
 
     # Headers
-    headers = ['Date', 'Voucher Type', 'Voucher No', 'Debit', 'Credit', 'Balance', 'Remarks']
-    for col, header in enumerate(headers, 1):
-        cell = ws.cell(row=current_row, column=col, value=header)
+    for col_idx, col in enumerate(columns, 1):
+        cell = ws.cell(row=current_row, column=col_idx, value=col.get('label'))
         cell.font = header_font
         cell.fill = header_fill
         cell.border = thin_border
+        
     current_row += 1
 
     # Data
     for row in data:
-        ws.cell(row=current_row, column=1, value=row.get('posting_date'))
-        ws.cell(row=current_row, column=2, value=row.get('voucher_type'))
-        ws.cell(row=current_row, column=3, value=row.get('voucher_no'))
-        
-        debit_cell = ws.cell(row=current_row, column=4, value=row.get('debit'))
-        debit_cell.number_format = '#,##0.00'
-        debit_cell.alignment = right_align
-        
-        credit_cell = ws.cell(row=current_row, column=5, value=row.get('credit'))
-        credit_cell.number_format = '#,##0.00'
-        credit_cell.alignment = right_align
-        
-        balance_cell = ws.cell(row=current_row, column=6, value=row.get('balance'))
-        balance_cell.number_format = '#,##0.00'
-        balance_cell.alignment = right_align
-        
-        ws.cell(row=current_row, column=7, value=row.get('remarks'))
-
-        # Bold for Opening/Closing Balance rows
-        if row.get('voucher_type') in ['Opening Balance', 'Closing Balance']:
-            for col in range(1, 8):
-                ws.cell(row=current_row, column=col).font = total_font
-
-        # Apply borders
-        for col in range(1, 8):
-            ws.cell(row=current_row, column=col).border = thin_border
-
+        for col_idx, col in enumerate(columns, 1):
+            field = col.get('fieldname')
+            cell = ws.cell(row=current_row, column=col_idx, value=row.get(field))
+            
+            if col.get('fieldtype') in ['Currency', 'Float']:
+                cell.number_format = '#,##0.00'
+                cell.alignment = Alignment(horizontal='right')
+            
+            cell.border = thin_border
+            
+            if row.get('voucher_type') in ['Opening Balance', 'Closing Balance']:
+                cell.font = total_font
+                
         current_row += 1
 
-    # Column widths
-    ws.column_dimensions['A'].width = 12  # Date
-    ws.column_dimensions['B'].width = 15  # Voucher Type
-    ws.column_dimensions['C'].width = 20  # Voucher No
-    ws.column_dimensions['D'].width = 15  # Debit
-    ws.column_dimensions['E'].width = 15  # Credit
-    ws.column_dimensions['F'].width = 15  # Balance
-    ws.column_dimensions['G'].width = 40  # Remarks
+    # Auto-adjust columns
+    for col in range(1, len(columns) + 1):
+        ws.column_dimensions[get_column_letter(col)].width = 15
 
-    # Save to BytesIO and return as file
+    # Save to BytesIO
     output = BytesIO()
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = f"Statement_{filters.get('customer', 'Unknown').replace(' ', '_')}.xlsx"
+    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}.xlsx"
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
+##########################################################
 
