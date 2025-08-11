@@ -177,7 +177,8 @@ def export_report_to_excel(report_name, filters=None):
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.xlsx"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.xlsx"
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
@@ -248,7 +249,8 @@ def export_report_to_pdf(report_name, filters):
         }
     )
 
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.pdf"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.pdf"
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -360,7 +362,8 @@ def export_truck_trip_summary_to_pdf(report_name, filters):
         }
     )
 
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.pdf"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.pdf"
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -588,7 +591,8 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = f"{report_name.replace(' ', '_')}.xlsx"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"{report_name.replace(' ', '_')}_{timestamp}.xlsx"
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 
@@ -670,7 +674,8 @@ def export_statement_of_accounts_to_pdf(filters):
         }
     )
     
-    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}.pdf"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}_{timestamp}.pdf"
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
@@ -768,7 +773,8 @@ def export_statement_of_accounts_to_excel(filters):
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}.xlsx"
+    timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
+    frappe.local.response.filename = f"Statement_of_Accounts_{party or 'Unknown'}_{timestamp}.xlsx"
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 ##########################################################
