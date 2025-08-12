@@ -37,7 +37,6 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Rate",
-   "read_only": 1,
    "set_only_once": 1
   },
   {
@@ -126,7 +125,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-30 19:17:41.153862",
+ "modified": "2025-08-12 11:09:33.776827",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Fuel Allocation",

@@ -452,6 +452,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "bold": 1,
    "fieldname": "estimated_profit",
    "fieldtype": "Currency",
@@ -568,7 +569,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-08-08 11:29:34.192011",
+ "modified": "2025-08-12 08:02:10.451753",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
