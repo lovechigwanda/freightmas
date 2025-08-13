@@ -830,6 +830,7 @@ frappe.ui.form.on('Trip Revenue Charges', {
 frappe.ui.form.on('Trip Fuel Allocation', {
     trip_fuel_allocation_add: function(frm, cdt, cdn) {
         frappe.model.set_value(cdt, cdn, 'truck', frm.doc.truck);
+        frappe.model.set_value(cdt, cdn, 's_warehouse', frm.doc.s_warehouse);
     }
 });
 

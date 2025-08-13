@@ -25,6 +25,7 @@
   "driver",
   "column_break_aazz",
   "trailer",
+  "s_warehouse",
   "route_information_section",
   "trip_direction",
   "destination",
@@ -550,6 +551,12 @@
    "fieldname": "drop_off_at",
    "fieldtype": "Read Only",
    "label": "Drop Off At"
+  },
+  {
+   "fetch_from": "truck.warehouse",
+   "fieldname": "s_warehouse",
+   "fieldtype": "Read Only",
+   "label": "Fuel Warehouse"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -569,7 +576,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-08-12 08:02:10.451753",
+ "modified": "2025-08-13 14:58:27.065314",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
