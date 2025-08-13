@@ -759,6 +759,7 @@ function fetch_fuel_rate(frm, cdt, cdn) {
     }
 }
 
+
 //////////////////////////////////////////////////////////////
 //Prevent Deletion of Issued Rows
 frappe.ui.form.on('Trip Fuel Allocation', {
@@ -816,3 +817,27 @@ function set_account_filters(frm) {
     });
 }
 ////////////////////////////////////////////////////////
+//Set Truck field in Child Tables from Parent Doctype
+
+// Revenue Charges
+frappe.ui.form.on('Trip Revenue Charges', {
+    trip_revenue_charges_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, 'truck', frm.doc.truck);
+    }
+});
+
+// Fuel Allocation
+frappe.ui.form.on('Trip Fuel Allocation', {
+    trip_fuel_allocation_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, 'truck', frm.doc.truck);
+    }
+});
+
+// Other Costs
+frappe.ui.form.on('Trip Other Costs', {
+    trip_other_costs_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, 'truck', frm.doc.truck);
+    }
+});
+
+//////////////////////////////////////////////////
