@@ -538,3 +538,16 @@ function create_purchase_invoice_from_charges(frm) {
 }
 
 
+////////////////////////////////////////////////////////
+//Set Sell Rate, Buy Rate and UOM fields in Child Tables from Parent Doctype
+
+// Truck Loading Details
+frappe.ui.form.on('Truck Loading Details', {
+    truck_loading_details_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, 'selling_rate', frm.doc.client_rate);
+        frappe.model.set_value(cdt, cdn, 'buying_rate', frm.doc.transporter_rate);
+        frappe.model.set_value(cdt, cdn, 'loading_charge_per', frm.doc.charge_per);
+    }
+});
+
+///////////////////////////////////////////////////////////////////

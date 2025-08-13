@@ -52,9 +52,6 @@
   "section_break_zbdf",
   "tracking_comment",
   "column_break_khnl",
-  "updated_by",
-  "updated_on",
-  "column_break_noms",
   "load_status",
   "completed_on"
  ],
@@ -166,7 +163,8 @@
    "fieldtype": "Link",
    "label": "Container Type",
    "mandatory_depends_on": "eval:doc.cargo_type==\"Containerised\"",
-   "options": "Container Type"
+   "options": "Container Type",
+   "remember_last_selected_value": 1
   },
   {
    "default": "Nos",
@@ -236,23 +234,6 @@
   },
   {
    "fieldname": "column_break_khnl",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "user",
-   "fieldname": "updated_by",
-   "fieldtype": "Link",
-   "label": "Updated By",
-   "options": "User"
-  },
-  {
-   "default": "Now",
-   "fieldname": "updated_on",
-   "fieldtype": "Datetime",
-   "label": "Updated On"
-  },
-  {
-   "fieldname": "column_break_noms",
    "fieldtype": "Column Break"
   },
   {
@@ -336,6 +317,7 @@
    "fieldtype": "Link",
    "label": "Service Charge",
    "options": "Item",
+   "remember_last_selected_value": 1,
    "reqd": 1
   },
   {
@@ -357,7 +339,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-13 17:51:30.725612",
+ "modified": "2025-08-13 18:15:53.578637",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Truck Loading Details",
