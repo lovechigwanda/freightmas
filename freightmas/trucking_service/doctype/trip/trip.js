@@ -986,6 +986,7 @@ function show_bulk_invoice_dialog(frm) {
                                 <input type="checkbox" id="select-all-charges" title="Select All">
                             </th>
                             <th>Trip</th>
+                            <th>Truck</th>
                             <th>Charge</th>
                             <th>Qty</th>
                             <th>Rate</th>
@@ -1003,6 +1004,7 @@ function show_bulk_invoice_dialog(frm) {
                                                 <input type="checkbox" class="charge-row-check" data-trip-name="${trip.name}" data-charge-name="${charge.name}">
                                             </td>
                                             <td>${trip.name}</td>
+                                            <td>${charge.truck || ''}</td> <!-- Corrected line -->
                                             <td>${charge.charge || ''}</td>
                                             <td>${frappe.format(charge.quantity || 0, { fieldtype: 'Float', precision: 2 })}</td>
                                             <td>${frappe.format(charge.rate || 0, { fieldtype: 'Currency', precision: 2 })}</td>

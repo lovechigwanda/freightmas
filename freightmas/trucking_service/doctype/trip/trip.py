@@ -359,6 +359,7 @@ def create_bulk_invoices(selected_charges, group_invoice=0):
                 continue
             bulk_items.append({
                 "trip": trip_name,
+                "truck": charge.truck,  # <-- Fetch truck from the charge row
                 "sales_invoice": charge_invoice_map.get((trip_name, charge_id)),
                 "charge": charge.charge,
                 "description": charge.charge_description,
@@ -418,7 +419,10 @@ def get_uninvoiced_trips(filters):
                 "is_invoiced": 0,
                 "receivable_party": customer
             },
-            fields=["name", "charge", "quantity", "rate", "total_amount", "receivable_party"]
+            fields=[
+                "name", "charge", "quantity", "rate", "total_amount", "receivable_party",
+                "truck"  # <-- Add this!
+            ]
         )
         if charges:
             trip["revenue_charges"] = charges
