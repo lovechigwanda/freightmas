@@ -6,7 +6,7 @@
   }
  ],
  "content": "[{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"7HA_a-xDn2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips In Progress (Count)\",\"col\":4}},{\"id\":\"tUukWgU_6t\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips Completed (Revenue)\",\"col\":4}},{\"id\":\"Bm0PcgpU-F\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Trips in Progress (Revenue)\",\"col\":4}},{\"id\":\"oMN1KoqWIk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"eXscXtml_i\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Shortcuts</b></span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"CHYEP3bDEO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Driver\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"5MN-rKxIst\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"s06KCocZRZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"_Pf45hpNov\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}},{\"id\":\"N2XvVWCzVd\",\"type\":\"card\",\"data\":{\"card_name\":\"Other Reports\",\"col\":4}}]",
- "creation": "2025-07-23 08:24:39.640862",
+ "creation": "2025-08-17 09:46:54.426712",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -60,8 +60,116 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Trip Reports",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Trips",
+   "link_count": 0,
+   "link_to": "Trip",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Tracking",
+   "link_count": 0,
+   "link_to": "Trip Tracking Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability",
+   "link_count": 0,
+   "link_to": "Trip Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability Estimate",
+   "link_count": 0,
+   "link_to": "Trip Profitability Estimate",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Profitability Actual",
+   "link_count": 0,
+   "link_to": "Trip Profitability Actual",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Other Reports",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Driver Register",
+   "link_count": 0,
+   "link_to": "Truck Driver Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Trip Summary",
+   "link_count": 0,
+   "link_to": "Truck Trip Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cashbook Report",
+   "link_count": 0,
+   "link_to": "Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Statement of Accounts",
+   "link_count": 0,
+   "link_to": "Statement of Accounts",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Trucking Masters",
-   "link_count": 6,
+   "link_count": 7,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -129,123 +237,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Other Reports",
-   "link_count": 4,
+   "label": "Trip Bulk Sales Invoice",
+   "link_count": 0,
+   "link_to": "Trip Bulk Sales Invoice",
    "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Driver Register",
-   "link_count": 0,
-   "link_to": "Truck Driver Register",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Truck Trip Summary",
-   "link_count": 0,
-   "link_to": "Truck Trip Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cashbook Report",
-   "link_count": 0,
-   "link_to": "Cashbook Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Statement of Accounts",
-   "link_count": 0,
-   "link_to": "Statement of Accounts",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trip Reports",
-   "link_count": 6,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trips",
-   "link_count": 0,
-   "link_to": "Trip",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Tracking",
-   "link_count": 0,
-   "link_to": "Trip Tracking Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Profitability",
-   "link_count": 0,
-   "link_to": "Trip Profitability",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Profitability Estimate",
-   "link_count": 0,
-   "link_to": "Trip Profitability Estimate",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Profitability Actual",
-   "link_count": 0,
-   "link_to": "Trip Profitability Actual",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Fuel Consumption",
-   "link_count": 0,
-   "link_to": "Trip Fuel Consumption",
-   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-08-12 14:11:45.911901",
+ "modified": "2025-08-17 20:58:17.268479",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

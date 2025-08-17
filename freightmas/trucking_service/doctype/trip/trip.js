@@ -25,6 +25,10 @@ frappe.ui.form.on('Trip', {
             frm.add_custom_button(__('Journal Entry'), function() {
                 create_journal_entry_from_other_costs(frm);
             }, __('Create'));
+
+            frm.add_custom_button(__('Bulk Sales Invoice'), function() {
+                show_bulk_invoice_dialog(frm);
+            }, __('Create'));
         }
     },
     validate: function(frm) {
@@ -494,7 +498,7 @@ function create_fuel_issue_from_allocation(frm) {
     const table = `
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
             <table class="table table-bordered table-sm" style="margin: 0;">
-                <thead style="background-color: #f8f9fa; position: sticky; top: 0; z-index: 10;">
+                <thead style="background-color: #f8f9fa; position: sticky;
                     <tr>
                         <th style="width: 40px; text-align: center;">
                             <input type="checkbox" id="select-all-fuel" title="Select All">
@@ -842,3 +846,196 @@ frappe.ui.form.on('Trip Other Costs', {
 });
 
 //////////////////////////////////////////////////
+// Create Bulk Sales Invoice
+
+
+function show_bulk_invoice_dialog(frm) {
+    let dialog = new frappe.ui.Dialog({
+        title: __('Bulk Sales Invoice Creation'),
+        size: 'large',
+        fields: [
+            { fieldtype: 'Section Break', label: __('Filters') },
+
+            // Row 1
+            {
+                fieldtype: 'Link',
+                fieldname: 'customer',
+                label: 'Customer',
+                options: 'Customer',
+                default: frm.doc.customer,
+                onchange: () => fetch_trips()
+            },
+            { fieldtype: 'Column Break' },
+            {
+                fieldtype: 'Link',
+                fieldname: 'route',
+                label: 'Route',
+                options: 'Route',
+                default: frm.doc.route,
+                onchange: () => fetch_trips()
+            },
+            { fieldtype: 'Column Break' },
+            {
+                fieldtype: 'Link',
+                fieldname: 'cargo_type',
+                label: 'Cargo Type',
+                options: 'Cargo Type',
+                default: frm.doc.cargo_type,
+                onchange: () => fetch_trips()
+            },
+
+            // Row 2
+            { fieldtype: 'Section Break' },
+            {
+                fieldtype: 'Link',
+                fieldname: 'trip_direction',
+                label: 'Trip Direction',
+                options: 'Trip Direction',
+                default: frm.doc.trip_direction,
+                onchange: () => fetch_trips()
+            },
+            { fieldtype: 'Column Break' },
+            {
+                fieldtype: 'Date',
+                fieldname: 'from_date',
+                label: 'From Date',
+                default: frappe.datetime.add_days(frappe.datetime.get_today(), -29),
+                onchange: () => fetch_trips()
+            },
+            { fieldtype: 'Column Break' },
+            {
+                fieldtype: 'Date',
+                fieldname: 'to_date',
+                label: 'To Date',
+                default: frappe.datetime.get_today(),
+                onchange: () => fetch_trips()
+            },
+
+            { fieldtype: 'Section Break' },
+            { fieldtype: 'HTML', fieldname: 'trips_html' },
+            {
+                fieldtype: 'Check',
+                fieldname: 'group_invoice',
+                label: 'Group into Single Invoice',
+                default: 1
+            }
+        ],
+        primary_action_label: __('Create Invoices'),
+        primary_action: function() {
+            // Collect selected charges
+            let selected = Array.from(dialog.$wrapper.find('.charge-row-check:checked')).map(el => ({
+                trip: el.dataset.tripName,
+                charge: el.dataset.chargeName
+            }));
+
+            if (!selected.length) {
+                frappe.msgprint(__("Please select at least one charge."));
+                return;
+            }
+
+            frappe.call({
+                method: "freightmas.trucking_service.doctype.trip.trip.create_bulk_invoices",
+                args: {
+                    selected_charges: selected,
+                    group_invoice: dialog.get_value('group_invoice') ? 1 : 0
+                },
+                freeze: true,
+                freeze_message: __("Creating Invoices..."),
+                callback: function(r) {
+                    if (r.message) {
+                        let msg = `Created and submitted ${r.message.invoices.length} invoice(s).`;
+                        if (r.message.bulk_invoice) {
+                            msg += `<br>Created Bulk Invoice: ${r.message.bulk_invoice}`;
+                            frappe.set_route("Form", "Trip Bulk Sales Invoice", r.message.bulk_invoice);
+                        }
+                        frappe.show_alert({ message: msg, indicator: 'green' });
+                        frm.reload_doc();
+                        dialog.hide();
+                    }
+                }
+            });
+        }
+    });
+
+    function fetch_trips() {
+        let filters = {
+            customer: dialog.get_value('customer'),
+            route: dialog.get_value('route'),
+            trip_direction: dialog.get_value('trip_direction'),
+            cargo_type: dialog.get_value('cargo_type'),
+            from_date: dialog.get_value('from_date'),
+            to_date: dialog.get_value('to_date')
+        };
+
+        frappe.call({
+            method: "freightmas.trucking_service.doctype.trip.trip.get_uninvoiced_trips",
+            args: { filters },
+            callback: function(r) {
+                render_trips_table(r.message || []);
+            }
+        });
+    }
+
+    function render_trips_table(trips) {
+        let html = `
+            <div style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+                <table class="table table-bordered table-sm" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">
+                                <input type="checkbox" id="select-all-charges" title="Select All">
+                            </th>
+                            <th>Trip</th>
+                            <th>Charge</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${
+                            trips.map(trip => {
+                                if (!trip.revenue_charges || !trip.revenue_charges.length) return '';
+                                return trip.revenue_charges
+                                    .map(charge => `
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <input type="checkbox" class="charge-row-check" data-trip-name="${trip.name}" data-charge-name="${charge.name}">
+                                            </td>
+                                            <td>${trip.name}</td>
+                                            <td>${charge.charge || ''}</td>
+                                            <td>${frappe.format(charge.quantity || 0, { fieldtype: 'Float', precision: 2 })}</td>
+                                            <td>${frappe.format(charge.rate || 0, { fieldtype: 'Currency', precision: 2 })}</td>
+                                            <td>${frappe.format(charge.total_amount || 0, { fieldtype: 'Currency', precision: 2 })}</td>
+                                        </tr>
+                                    `).join('');
+                            }).join('')
+                        }
+                    </tbody>
+                </table>
+            </div>
+            ${
+                trips.every(trip => !trip.revenue_charges || !trip.revenue_charges.length)
+                ? '<p style="text-align: center; color: #999; margin-top: 20px;">No eligible charges found for the selected filters.</p>'
+                : ''
+            }
+        `;
+        dialog.fields_dict.trips_html.$wrapper.html(html);
+
+        // Select all handler
+        dialog.$wrapper.find('#select-all-charges').on('change', function() {
+            const isChecked = this.checked;
+            dialog.$wrapper.find('.charge-row-check').prop('checked', isChecked);
+        });
+
+        // Individual checkbox handler
+        dialog.$wrapper.find('.charge-row-check').on('change', function() {
+            const total = dialog.$wrapper.find('.charge-row-check').length;
+            const checked = dialog.$wrapper.find('.charge-row-check:checked').length;
+            dialog.$wrapper.find('#select-all-charges').prop('checked', total === checked);
+        });
+    }
+
+    fetch_trips();
+    dialog.show();
+}

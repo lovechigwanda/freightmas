@@ -7,16 +7,18 @@
  "engine": "InnoDB",
  "field_order": [
   "trip",
-  "qty",
+  "charge",
   "rate",
-  "sales_invoice",
-  "column_break_igem",
-  "item",
   "description",
-  "amount"
+  "column_break_igem",
+  "truck",
+  "qty",
+  "amount",
+  "sales_invoice"
  ],
  "fields": [
   {
+   "columns": 2,
    "fieldname": "trip",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -24,11 +26,14 @@
    "options": "Trip"
   },
   {
+   "columns": 1,
    "fieldname": "qty",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Qty"
   },
   {
+   "columns": 1,
    "fieldname": "rate",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -36,8 +41,10 @@
    "precision": "2"
   },
   {
+   "columns": 1,
    "fieldname": "sales_invoice",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Sales Invoice",
    "options": "Sales Invoice"
   },
@@ -46,29 +53,42 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "item",
+   "allow_on_submit": 1,
+   "columns": 2,
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "columns": 1,
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "precision": "2"
+  },
+  {
+   "columns": 1,
+   "fieldname": "charge",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Charge",
    "options": "Item"
   },
   {
-   "fieldname": "description",
-   "fieldtype": "Data",
-   "label": "Description"
-  },
-  {
-   "fieldname": "amount",
-   "fieldtype": "Currency",
-   "label": "Amount",
-   "precision": "2"
+   "columns": 1,
+   "fieldname": "truck",
+   "fieldtype": "Link",
+   "label": "Truck",
+   "options": "Truck"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-17 08:03:10.337444",
+ "modified": "2025-08-17 21:23:57.708666",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Bulk Sales Invoice Item",

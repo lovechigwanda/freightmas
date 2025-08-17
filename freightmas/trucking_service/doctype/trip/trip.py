@@ -44,7 +44,7 @@ def create_sales_invoice(trip_name, selected_charges, receivable_party):
             if not charge:
                 frappe.throw(f"Charge with ID {charge_id} not found.")
             if charge.is_invoiced:
-                frappe.throw(f"Charge '{charge.charge}' has already been invoiced.")
+                frappe.throw(f"Charge '{charge.charge}' has already been invoiced. Please refresh and try again.")
 
             items.append({
                 "item_code": charge.charge,
@@ -300,4 +300,129 @@ class TripCostCharges(Document):
     def before_delete(self):
         if self.is_invoiced or self.purchase_invoice:
             frappe.throw(f"Cannot delete cost charge '{self.charge}' because it has been invoiced. Associated Invoice: {self.purchase_invoice or 'N/A'}.")
+################################################
+# Bulk Invoice Creation
+@frappe.whitelist()
+def create_bulk_invoices(selected_charges, group_invoice=0):
+    import json
+    if isinstance(selected_charges, str):
+        selected_charges = json.loads(selected_charges)
+    group_invoice = int(group_invoice)
+
+    # Group charges by (trip, receivable_party)
+    trip_charge_map = {}
+    charge_invoice_map = {}
+    created_invoices = []
+
+    for entry in selected_charges:
+        trip_name = entry['trip']
+        charge_id = entry['charge']
+        trip = frappe.get_doc("Trip", trip_name)
+        charge = next((c for c in trip.trip_revenue_charges if c.name == charge_id), None)
+        if not charge:
+            continue
+        receivable_party = charge.receivable_party
+        key = (trip_name, receivable_party)
+        trip_charge_map.setdefault(key, []).append(charge_id)
+
+    # Create individual invoices per (trip, receivable_party)
+    for (trip_name, receivable_party), charge_ids in trip_charge_map.items():
+        invoice_result = create_sales_invoice(
+            trip_name=trip_name,
+            selected_charges=charge_ids,
+            receivable_party=receivable_party
+        )
+        if invoice_result.get("success"):
+            invoice = frappe.get_doc("Sales Invoice", invoice_result["invoice_name"])
+            invoice.submit()
+            created_invoices.append(invoice.name)
+            # Map each charge to its invoice for bulk invoice item rows
+            for charge_id in charge_ids:
+                charge_invoice_map[(trip_name, charge_id)] = invoice.name
+
+    # If group_invoice, create a Trip Bulk Sales Invoice with per-charge details
+    bulk_invoice = None
+    if group_invoice and created_invoices:
+        # Use the first trip and receivable_party for header info
+        first_key = next(iter(trip_charge_map))
+        sample_trip = frappe.get_doc("Trip", first_key[0])
+        customer = first_key[1]
+
+        # Build per-charge item rows
+        bulk_items = []
+        for entry in selected_charges:
+            trip_name = entry['trip']
+            charge_id = entry['charge']
+            trip = frappe.get_doc("Trip", trip_name)
+            charge = next((c for c in trip.trip_revenue_charges if c.name == charge_id), None)
+            if not charge:
+                continue
+            bulk_items.append({
+                "trip": trip_name,
+                "sales_invoice": charge_invoice_map.get((trip_name, charge_id)),
+                "charge": charge.charge,
+                "description": charge.charge_description,
+                "qty": charge.quantity,
+                "rate": charge.rate,
+                "amount": charge.total_amount
+            })
+
+        bulk_invoice = frappe.get_doc({
+            "doctype": "Trip Bulk Sales Invoice",
+            "customer": customer,
+            "date_created": frappe.utils.today(),
+            "trip_direction": sample_trip.trip_direction,
+            "route": sample_trip.route,
+            "cargo_type": sample_trip.cargo_type,
+            "trip_bulk_sales_invoice_item": bulk_items
+        })
+        bulk_invoice.insert()
+
+    return {
+        "invoices": created_invoices,
+        "bulk_invoice": bulk_invoice.name if bulk_invoice else None
+    }
+
+@frappe.whitelist()
+def get_uninvoiced_trips(filters):
+    filters = frappe.parse_json(filters) if isinstance(filters, str) else filters
+    trip_conditions = []
+    values = {}
+
+    for field in ["route", "trip_direction", "cargo_type"]:
+        if filters.get(field):
+            trip_conditions.append(f"{field} = %({field})s")
+            values[field] = filters[field]
+    if filters.get("from_date"):
+        trip_conditions.append("date_created >= %(from_date)s")
+        values["from_date"] = filters["from_date"]
+    if filters.get("to_date"):
+        trip_conditions.append("date_created <= %(to_date)s")
+        values["to_date"] = filters["to_date"]
+
+    trip_query = f"""
+        SELECT name, customer, route, trip_direction, cargo_type, date_created
+        FROM `tabTrip`
+        WHERE 1=1
+        {'AND ' + ' AND '.join(trip_conditions) if trip_conditions else ''}
+    """
+    trips = frappe.db.sql(trip_query, values, as_dict=True)
+
+    customer = filters.get("customer")
+    result = []
+    for trip in trips:
+        charges = frappe.db.get_all(
+            "Trip Revenue Charges",
+            filters={
+                "parent": trip["name"],
+                "is_invoiced": 0,
+                "receivable_party": customer
+            },
+            fields=["name", "charge", "quantity", "rate", "total_amount", "receivable_party"]
+        )
+        if charges:
+            trip["revenue_charges"] = charges
+            result.append(trip)
+
+    return result
 
