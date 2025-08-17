@@ -316,9 +316,9 @@
   },
   {
    "fieldname": "cargo_type",
-   "fieldtype": "Select",
+   "fieldtype": "Link",
    "label": "Cargo Type",
-   "options": "\nContainerised\nBulk\nLoose\nOther"
+   "options": "Cargo Type"
   },
   {
    "fieldname": "column_break_xeuy",
@@ -584,7 +584,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-08-17 06:06:42.281598",
+ "modified": "2025-08-17 08:20:02.715042",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip",
