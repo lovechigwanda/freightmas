@@ -42,6 +42,18 @@ frappe.ui.form.on('Trip', {
             frm.set_value('updated_on', lastRow.trip_milestone_date);
             frm.refresh();
         }
+    },
+    onload: function(frm) {
+        if (!frm.doc.company) {
+            frappe.call({
+                method: "frappe.defaults.get_defaults",
+                callback: function(r) {
+                    if (r.message && r.message.company) {
+                        frm.set_value("company", r.message.company);
+                    }
+                }
+            });
+        }
     }
 });
 

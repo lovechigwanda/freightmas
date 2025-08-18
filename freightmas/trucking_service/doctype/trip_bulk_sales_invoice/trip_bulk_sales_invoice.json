@@ -13,6 +13,7 @@
   "trip_direction",
   "column_break_somm",
   "amended_from",
+  "company",
   "date_created",
   "status",
   "cargo_type",
@@ -146,13 +147,20 @@
    "fieldtype": "Link",
    "label": "Banking Details",
    "options": "Banking Profile"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "remember_last_selected_value": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-17 21:21:06.596954",
+ "modified": "2025-08-18 21:41:49.174292",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Bulk Sales Invoice",

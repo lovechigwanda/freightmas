@@ -352,12 +352,7 @@ fixtures = [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service", "Trucking Service"]]
         ]
     },
-    {
-        "dt": "Print Format",
-        "filters": [
-            ["name", "in", ["FreightMas Quotation", "FreightMas Sales Invoice", "FreightMas Sales Invoice 2"]]
-        ]
-    },
+   
     {
         "dt": "Letter Head",
         "filters": [

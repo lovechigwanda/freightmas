@@ -19,6 +19,21 @@ frappe.ui.form.on('Road Freight Job', {
     }
   },
 
+  onload(frm) {
+    if (!frm.doc.company) {
+      frappe.call({
+        method: "frappe.defaults.get_defaults",
+        callback: function(r) {
+          if (r.message && r.message.company) {
+            frm.set_value("company", r.message.company);
+          }
+        }
+      });
+    }
+
+    update_trucks_confirmed(frm);
+  },
+
   onload_post_render(frm) {
     update_trucks_confirmed(frm);
   },
