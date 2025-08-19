@@ -323,7 +323,17 @@ fixtures = [
                 "Quotation-custom_destination", 
                 "Quotation-custom_origin",
                 "Quotation-custom_job_type",
-                "Quotation-custom_is_freight_quote"
+                "Quotation-custom_is_freight_quote",
+                "Quotation Item-custom_supplier",
+                "Quotation Item-custom_cost_amount",
+                "Quotation-custom_est_cost",
+                "Quotation-custom_est_revenue",
+                "Quotation-custom_est_profit",
+                "Quotation-custom_quotation_cost_col_break",
+                "Quotation-custom_quotation_cost_col_break_2",
+                "Quotation-custom_quotation_costing_totals",
+                "Quotation Item-custom_buy_rate",
+                "Quotation Item-custom_job_reference"
             ]]
         ]
     },
@@ -360,3 +370,8 @@ fixtures = [
         ]
     }
 ]
+
+
+doctype_js = {
+    "Quotation": "public/js/quotation.js"
+}
