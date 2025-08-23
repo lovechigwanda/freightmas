@@ -425,6 +425,15 @@ frappe.ui.form.on('Clearing Job', {
       frm.add_custom_button(__('Create Purchase Invoice'), function() {
         create_purchase_invoice_from_charges(frm);
       }, __('Create'));
+
+      // --- Add View > Cost Sheet button ---
+      frm.add_custom_button(__('Cost Sheet'), function() {
+        window.open(
+          `/printview?doctype=Clearing%20Job&name=${frm.doc.name}&format=Clearing%20Job%20Cost%20Sheet&no_letterhead=1`,
+          '_blank'
+        );
+      }, __('View'));
+      // --- End View > Cost Sheet button ---
     }
   }
 });
