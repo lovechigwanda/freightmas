@@ -126,8 +126,11 @@
   "column_break_jhwy",
   "base_currency",
   "clearing_charges_section",
-  "load_charges_from_template",
   "clearing_charges",
+  "section_break_lcxm",
+  "load_charges_from_template",
+  "column_break_vbei",
+  "fetch_from_quotation",
   "section_break_bcwy",
   "total_estimated_revenue",
   "total_estimated_revenue_base",
@@ -879,6 +882,19 @@
    "fieldname": "atd",
    "fieldtype": "Date",
    "label": "Actual Time of Departure (ATD)"
+  },
+  {
+   "fieldname": "section_break_lcxm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vbei",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fetch_from_quotation",
+   "fieldtype": "Button",
+   "label": "Fetch Charges from Quotation"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -896,7 +912,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-07-24 08:55:11.367115",
+ "modified": "2025-08-23 21:15:41.499974",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Job",

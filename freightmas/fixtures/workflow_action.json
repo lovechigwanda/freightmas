@@ -2287,5 +2287,26 @@
   "status": "Open",
   "user": null,
   "workflow_state": "Booking"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-08-23 16:31:14.702167",
+  "name": "9nripdlmpi",
+  "permitted_roles": [
+   {
+    "parent": "9nripdlmpi",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "All"
+   }
+  ],
+  "reference_doctype": "Clearing Job",
+  "reference_name": "CLJB-00002-25",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "In Progress"
  }
 ]

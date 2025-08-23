@@ -72,7 +72,7 @@ frappe.ui.form.on('Forwarding Job', {
       set_main_value_safe(frm, 'last_updated_on', last.updated_on);
       set_main_value_safe(frm, 'last_updated_by', last.updated_by);
     }
-  }
+  },
 });
 
 // ==========================================================
@@ -545,3 +545,120 @@ function create_purchase_invoice_from_charges(frm) {
   dialog.show();
   render_dialog_ui(dialog, selected_supplier);
 }
+
+//////////////////////////////////////////////
+// Fetch Charges from Quotation   ///////////
+
+frappe.ui.form.on('Forwarding Job', {
+    fetch_from_quotation(frm) {
+        open_fetch_charges_from_quotation_dialog(frm);
+    }
+});
+
+function open_fetch_charges_from_quotation_dialog(frm) {
+    if (!frm.doc.customer) {
+        frappe.msgprint(__('Please select a Customer first.'));
+        return;
+    }
+    frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+            doctype: 'Quotation',
+            filters: [
+                ['docstatus', '=', 1],
+                ['job_type', '=', "Forwarding"],
+                ['customer_name', '=', frm.doc.customer],
+                ['valid_till', '>=', frappe.datetime.nowdate()]
+            ],
+            fields: ['name', 'customer_name', 'origin_port', 'destination_port', 'valid_till'],
+            limit_page_length: 50,
+        },
+        callback: function (r) {
+            if (r.message && r.message.length > 0) {
+                let quotation_options = r.message.map(q =>
+                    `${q.name} (${q.customer_name || ''} / ${q.origin_port || ''} → ${q.destination_port || ''})`
+                );
+                let quotation_names = r.message.map(q => q.name);
+
+                let d = new frappe.ui.Dialog({
+                    title: __('Fetch Charges from Quotation'),
+                    fields: [
+                        {
+                            fieldname: 'quotation',
+                            label: 'Quotation',
+                            fieldtype: 'Select',
+                            options: quotation_options,
+                            reqd: 1
+                        }
+                    ],
+                    primary_action_label: 'Fetch Charges',
+                    primary_action(values) {
+                        let idx = quotation_options.indexOf(values.quotation);
+                        if (idx >= 0) {
+                            let quotation_name = quotation_names[idx];
+                            fetch_and_append_quotation_charges(frm, quotation_name);
+                        }
+                        d.hide();
+                    }
+                });
+                d.show();
+            } else {
+                frappe.msgprint(__('No valid Forwarding Quotations found for this customer.'));
+            }
+        }
+    });
+}
+
+function fetch_and_append_quotation_charges(frm, quotation_name) {
+    frappe.call({
+        method: 'frappe.client.get',
+        args: {
+            doctype: 'Quotation',
+            name: quotation_name
+        },
+        callback: function (r) {
+            if (r.message && r.message.items) {
+                let items = r.message.items;
+                let parent_customer = r.message.customer_name;
+                let existing_charges = (frm.doc.forwarding_charges || []).map(row => row.charge);
+
+                let added_count = 0;
+                items.forEach(item => {
+                    if (!existing_charges.includes(item.item_code)) {
+                        let child = frm.add_child('forwarding_charges', {
+                            charge: item.item_code,
+                            description: strip_html_tags(item.description),
+                            qty: item.qty,
+                            sell_rate: item.rate,
+                            buy_rate: item.buy_rate,
+                            supplier: item.supplier,
+                            customer: parent_customer
+                        });
+                        child.revenue_amount = (item.qty || 0) * (item.rate || 0);
+                        child.cost_amount = (item.qty || 0) * (item.buy_rate || 0);
+                        added_count += 1;
+                    }
+                });
+
+                frm.refresh_field('forwarding_charges');
+                // If you have a totals calculation, call it here
+                // calculate_forwarding_totals(frm);
+
+                if (added_count === 0) {
+                    frappe.msgprint(__('All quotation charges already exist in the charges table. No new charges added.'));
+                } else {
+                    frappe.msgprint(__(`${added_count} charge(s) loaded from quotation.`));
+                }
+            }
+        }
+    });
+}
+
+// Strip HTML tags from a description string
+function strip_html_tags(html) {
+    let tmp = document.createElement("DIV");
+    tmp.innerHTML = html || "";
+    return tmp.textContent || tmp.innerText || "";
+}
+
+////////////////////////////////////////////////////////////

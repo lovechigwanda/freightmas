@@ -78,6 +78,7 @@
   "base_currency",
   "section_break_xoqa",
   "forwarding_charges",
+  "fetch_from_quotation",
   "section_break_johw",
   "total_estimated_revenue",
   "total_estimated_revenue_base",
@@ -277,14 +278,12 @@
   {
    "fieldname": "vessel_flight_no",
    "fieldtype": "Data",
-   "label": "Vessel / Flight No",
-   "reqd": 1
+   "label": "Vessel / Flight No"
   },
   {
    "fieldname": "vessel_flight_date",
    "fieldtype": "Date",
-   "label": "Voyage / Flight Date",
-   "reqd": 1
+   "label": "Voyage / Flight Date"
   },
   {
    "fetch_from": "port_of_loading.country",
@@ -639,6 +638,11 @@
   {
    "fieldname": "column_break_rcwr",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fetch_from_quotation",
+   "fieldtype": "Button",
+   "label": "Fetch Charges from Quotation"
   }
  ],
  "grid_page_length": 50,
@@ -657,7 +661,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-07-24 08:50:44.638529",
+ "modified": "2025-08-23 20:44:26.287618",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

@@ -10,6 +10,16 @@ frappe.ui.form.on('Quotation', {
     },
     refresh(frm) {
         calculate_totals(frm);
+
+        // Only show the button if the document is saved (not new)
+        if (!frm.is_new()) {
+            frm.add_custom_button('View Cost Sheet', function() {
+                window.open(
+                    `/printview?doctype=Quotation&name=${frm.doc.name}&format=Quotation%20Cost%20Sheet&no_letterhead=1`,
+                    '_blank'
+                );
+            });
+        }
     },
     validate(frm) {
         calculate_totals(frm);
