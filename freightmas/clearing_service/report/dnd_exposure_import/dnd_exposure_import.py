@@ -45,7 +45,6 @@ def execute(filters=None):
             cj.bl_number,
             cj.shipping_line,
             cj.cargo_count,
-            cj.port_storage_start_date,
             cj.dnd_free_days,
             cj.port_free_days,
             cj.dnd_start_date,
@@ -122,7 +121,6 @@ def execute(filters=None):
             job.bl_number,
             job.shipping_line,
             job.cargo_count,
-            format_ddmmmyy(job.port_storage_start_date),
             format_ddmmmyy(dnd_start_date),      # Use stored DND Start Date
             format_ddmmmyy(storage_start_date),  # Use stored Storage Start Date
             dnd_days_total,
@@ -151,7 +149,6 @@ def get_columns():
         {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 100},
         {"label": "S Line", "fieldname": "shipping_line", "fieldtype": "Link", "options": "Supplier", "width": 110},
         {"label": "Cargo Count", "fieldname": "cargo_count", "fieldtype": "Int", "width": 70},
-        {"label": "Sto Start", "fieldname": "port_storage_start_date", "fieldtype": "Data", "width": 95},
         {"label": "DND Start", "fieldname": "dnd_start_date", "fieldtype": "Data", "width": 95},
         {"label": "Sto Start", "fieldname": "storage_start_date", "fieldtype": "Data", "width": 95},
         {"label": "DND Days", "fieldname": "dnd_days", "fieldtype": "Int", "width": 60},

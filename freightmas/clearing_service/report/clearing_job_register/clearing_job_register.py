@@ -34,7 +34,6 @@ def execute(filters=None):
         {"label": "Port Free Days", "fieldname": "port_free_days", "fieldtype": "Int", "width": 90},
         {"label": "Discharge Date", "fieldname": "discharge_date", "fieldtype": "Date", "width": 100},
         {"label": "DND Start", "fieldname": "dnd_start_date", "fieldtype": "Date", "width": 100},
-        {"label": "Storage Start", "fieldname": "port_storage_start_date", "fieldtype": "Date", "width": 100},
         {"label": "DND Days", "fieldname": "dnd_days", "fieldtype": "Int", "width": 80},
         {"label": "Storage Days", "fieldname": "storage_days", "fieldtype": "Int", "width": 80},
         {"label": "Stack Open", "fieldname": "stack_open_date", "fieldtype": "Date", "width": 100},
@@ -75,7 +74,7 @@ def execute(filters=None):
         "name", "date_created", "customer", "consignee", "customer_reference", "consignee_reference",
         "direction", "bl_number", "origin", "origin_country", "shipping_line", "destination",
         "destination_country", "eta", "etd", "cargo_description", "is_hazardous",
-        "dnd_free_days", "port_free_days", "discharge_date", "dnd_start_date", "port_storage_start_date",
+        "dnd_free_days", "port_free_days", "discharge_date", "dnd_start_date",
         "stack_open_date", "stack_close_date",
         "currency", "conversion_rate", "base_currency", "status", "completed_on", "company", "created_by"
     ]
