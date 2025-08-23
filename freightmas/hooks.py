@@ -376,7 +376,10 @@ fixtures = [
                 "Quotation Cost Sheet",
                 "FreightMas TBSI",
                 "FreightMas Sales Invoice",
-                "FreightMas Quotation"
+                "FreightMas Quotation",
+                "Forwarding Job Cost Sheet",
+                "Road Freight Job Cost Sheet",
+                "Clearing Job Cost Sheet"
             ]]
         ]
     }
