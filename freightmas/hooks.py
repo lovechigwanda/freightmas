@@ -368,6 +368,17 @@ fixtures = [
         "filters": [
             ["name", "in", ["Main Letterhead"]]
         ]
+    },
+    {
+        "dt": "Print Format",
+        "filters": [
+            ["name", "in", [
+                "Quotation Cost Sheet",
+                "FreightMas TBSI",
+                "FreightMas Sales Invoice",
+                "FreightMas Quotation"
+            ]]
+        ]
     }
 ]
 
