@@ -120,7 +120,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Other Reports",
-   "link_count": 4,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -161,6 +161,16 @@
    "label": "Statement of Accounts",
    "link_count": 0,
    "link_to": "Statement of Accounts",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Quotation Report",
+   "link_count": 0,
+   "link_to": "Quotation Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -236,16 +246,16 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trip Bulk Sales Invoice",
+   "is_query_report": 1,
+   "label": "Bulk Sales Invoice",
    "link_count": 0,
-   "link_to": "Trip Bulk Sales Invoice",
-   "link_type": "DocType",
+   "link_to": "Trip Bulk Sales Invoice Report",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2025-08-17 20:58:17.268479",
+ "modified": "2025-08-24 12:34:53.697049",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking Service",

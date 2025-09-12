@@ -1,0 +1,41 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-08-24 11:56:00.254912",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Main Letterhead",
+ "letterhead": null,
+ "modified": "2025-08-24 11:56:00.254912",
+ "modified_by": "Administrator",
+ "module": "Trucking Service",
+ "name": "Trip Bulk Sales Invoice Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Trip Bulk Sales Invoice",
+ "report_name": "Trip Bulk Sales Invoice Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ],
+ "timeout": 0
+}
