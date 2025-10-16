@@ -74,21 +74,42 @@ def add_truck_booking(job, cargo_idx, transporter, truck_reg_no, trailer_reg_no=
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     
-    # Send notification
-    try:
-        frappe.sendmail(
-            recipients=[doc.owner],
-            subject=f"New Truck Booking - {doc.name}",
-            message=f"""
-                <p>A new truck booking has been added for {cargo.container_number or cargo.cargo_item_description}</p>
-                <p><strong>Transporter:</strong> {transporter}</p>
-                <p><strong>Truck:</strong> {truck_reg_no}</p>
-                <p><strong>Driver:</strong> {driver_name}</p>
-                <p><a href="{frappe.utils.get_url()}/truck_portal?job={doc.name}">View Details</a></p>
-            """
-        )
-    except Exception as e:
-        frappe.log_error(f"Email notification failed: {str(e)}")
+    # ✅ SEND EMAIL - Only for new bookings
+    send_email_notification(
+        doc=doc,
+        cargo=cargo,
+        subject=f"New Truck Booking - {doc.name}",
+        message=f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                    <h2 style="margin: 0;">🚛 New Truck Booking</h2>
+                </div>
+                <div style="background: white; padding: 30px; border: 1px solid #e0e6ed; border-radius: 0 0 8px 8px;">
+                    <p><strong>Job:</strong> {doc.name}</p>
+                    <p><strong>Container/Cargo:</strong> {cargo.container_number or cargo.cargo_item_description}</p>
+                    
+                    <div style="background: #f8f9fb; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">Booking Details</h3>
+                        <p><strong>🏢 Transporter:</strong> {transporter}</p>
+                        <p><strong>🚚 Truck:</strong> {truck_reg_no}</p>
+                        <p><strong>👤 Driver:</strong> {driver_name}</p>
+                        <p><strong>📞 Contact:</strong> {driver_contact_no}</p>
+                    </div>
+                    
+                    <p style="background: #fef3c7; padding: 12px; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                        <strong>⚠️ Action Required:</strong> Please review and approve this booking.
+                    </p>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="{frappe.utils.get_url()}/truck_portal?job={doc.name}" 
+                           style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                            View Portal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        """
+    )
     
     return {"success": True, "message": _("Booking added successfully")}
 
@@ -116,6 +137,8 @@ def approve_booking(job, cargo_idx):
     # Save
     doc.save(ignore_permissions=True)
     frappe.db.commit()
+    
+    # ❌ NO EMAIL - Too frequent
     
     return {"success": True}
 
@@ -145,6 +168,8 @@ def reject_booking(job, cargo_idx, reason):
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     
+    # ❌ NO EMAIL - Rejection is final, user is already on portal
+    
     return {"success": True}
 
 
@@ -172,6 +197,8 @@ def mark_booked(job, cargo_idx):
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     
+    # ❌ NO EMAIL - Internal status change
+    
     return {"success": True}
 
 
@@ -190,6 +217,9 @@ def update_tracking(job, cargo_idx, status, location, comment):
     cargo_idx = int(cargo_idx)
     cargo = doc.cargo_parcel_details[cargo_idx]
     
+    # Store previous status
+    previous_status = cargo.booking_status
+    
     # Update tracking
     cargo.booking_status = status
     cargo.truck_location = location
@@ -201,20 +231,61 @@ def update_tracking(job, cargo_idx, status, location, comment):
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     
-    # Send notification to owner
-    try:
-        frappe.sendmail(
-            recipients=[doc.owner],
-            subject=f"Tracking Update - {doc.name}",
+    # ✅ SEND EMAIL - Only when delivered (final status)
+    if status == "Delivered" and previous_status != "Delivered":
+        send_email_notification(
+            doc=doc,
+            cargo=cargo,
+            subject=f"✅ Delivery Complete - {doc.name}",
             message=f"""
-                <p><strong>Status:</strong> {status}</p>
-                <p><strong>Location:</strong> {location}</p>
-                <p><strong>Comment:</strong> {comment}</p>
-                <p><strong>Container/Cargo:</strong> {cargo.container_number or cargo.cargo_item_description}</p>
-                <p><a href="{frappe.utils.get_url()}/truck_portal?job={doc.name}">View Details</a></p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+                        <h2 style="margin: 0;">✅ Cargo Delivered</h2>
+                    </div>
+                    <div style="background: white; padding: 30px; border: 1px solid #e0e6ed; border-radius: 0 0 8px 8px;">
+                        <p><strong>Job:</strong> {doc.name}</p>
+                        <p><strong>Container/Cargo:</strong> {cargo.container_number or cargo.cargo_item_description}</p>
+                        
+                        <div style="background: #d1fae5; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981;">
+                            <h3 style="margin-top: 0; color: #065f46;">Final Status</h3>
+                            <p><strong>📍 Location:</strong> {location}</p>
+                            <p><strong>💬 Comment:</strong> {comment}</p>
+                            <p><strong>🚚 Truck:</strong> {cargo.truck_reg_no or '-'}</p>
+                            <p><strong>👤 Driver:</strong> {cargo.driver_name or '-'}</p>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="{frappe.utils.get_url()}/truck_portal?job={doc.name}" 
+                               style="background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
             """
         )
-    except Exception as e:
-        frappe.log_error(f"Email notification failed: {str(e)}")
     
     return {"success": True}
+
+
+# ========================================================
+# HELPER FUNCTION - EMAIL NOTIFICATION
+# ========================================================
+
+def send_email_notification(doc, cargo, subject, message):
+    """Send email notification to job owner only"""
+    
+    try:
+        # Only send to job owner
+        frappe.sendmail(
+            recipients=[doc.owner],
+            subject=subject,
+            message=message,
+            now=True  # Send immediately
+        )
+    except Exception as e:
+        # Log error but don't fail the transaction
+        frappe.log_error(
+            message=f"Email notification failed: {str(e)}",
+            title=f"Truck Portal Email Error - {doc.name}"
+        )

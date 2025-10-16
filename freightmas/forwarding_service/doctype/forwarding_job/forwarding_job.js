@@ -9,6 +9,102 @@
 
 frappe.ui.form.on('Forwarding Job', {
   refresh(frm) {
+    // ========================================
+    // ADD PORTAL BUTTONS UNDER "VIEW" DROPDOWN
+    // ========================================
+    if (frm.doc.share_with_road_freight && !frm.is_new()) {
+        
+        // Add "Open Web Portal" button
+        frm.page.add_inner_button(__('Open Web Portal'), function() {
+            const url = `${window.location.origin}/truck_portal?job=${frm.doc.name}`;
+            window.open(url, '_blank');
+        }, __('View'));
+        
+        // Add "Copy Portal Link" button
+        frm.page.add_inner_button(__('Copy Portal Link'), function() {
+            const url = `${window.location.origin}/truck_portal?job=${frm.doc.name}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(url).then(() => {
+                frappe.show_alert({
+                    message: __('Portal link copied to clipboard! 📋'),
+                    indicator: 'green'
+                }, 5);
+            }).catch(() => {
+                // Fallback for older browsers
+                const tempInput = document.createElement('input');
+                tempInput.value = url;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                
+                frappe.show_alert({
+                    message: __('Portal link copied! 📋'),
+                    indicator: 'green'
+                }, 5);
+            });
+            
+            // Show the link in a dialog
+            frappe.msgprint({
+                title: __('🚛 Web Portal Link'),
+                indicator: 'blue',
+                message: `
+                    <div style="padding: 15px;">
+                        <p style="margin-bottom: 15px; font-size: 14px;">
+                            <strong>Share this link with road freight suppliers:</strong>
+                        </p>
+                        <div style="background: #f8f9fb; padding: 15px; border-radius: 8px; border: 2px solid #667eea; font-family: monospace; word-break: break-all; font-size: 13px; margin-bottom: 15px;">
+                            ${url}
+                        </div>
+                        <div style="background: #e0e7ff; padding: 12px; border-radius: 6px; border-left: 4px solid #667eea;">
+                            <p style="margin: 0; font-size: 13px; color: #1e293b;">
+                                <i class="fa fa-info-circle"></i> 
+                                <strong>Note:</strong> Users must be logged in to access the portal.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                primary_action_label: __('Open Portal'),
+                primary_action: () => {
+                    window.open(url, '_blank');
+                }
+            });
+        }, __('View'));
+        
+        // Add separator line in dropdown for better organization
+        frm.page.add_inner_button(__('─────────'), function() {
+          // This is just a visual separator, does nothing
+        }, __('View')).prop('disabled', true).css({
+            'pointer-events': 'none',
+            'opacity': '0.5',
+            'cursor': 'default'
+        });
+    }
+    
+    // ========================================
+    // SHOW INFO MESSAGE WHEN SHARING IS ENABLED
+    // ========================================
+    if (frm.doc.share_with_road_freight && !frm.is_new()) {
+        frm.dashboard.add_comment(
+            `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                <i class="fa fa-globe" style="font-size: 18px; margin-right: 8px;"></i>
+                <strong>Web Portal Active</strong> - 
+                This job is accessible to road freight suppliers via the web portal.
+                <a href="${window.location.origin}/truck_portal?job=${frm.doc.name}" 
+                   target="_blank" 
+                   style="color: white; text-decoration: underline; margin-left: 10px;">
+                    View Portal →
+                </a>
+            </div>`,
+            'blue',
+            true
+        );
+    }
+    
+    // ========================================
+    // YOUR EXISTING CODE BELOW
+    // ========================================
     calculate_forwarding_totals(frm);
     toggle_base_fields(frm);
     update_currency_labels(frm);
@@ -85,6 +181,21 @@ frappe.ui.form.on('Forwarding Job', {
 
   fetch_from_quotation(frm) {
     open_fetch_charges_from_quotation_dialog(frm);
+  },
+  
+  share_with_road_freight: function(frm) {
+    // Show message when checkbox is checked/unchecked
+    if (frm.doc.share_with_road_freight) {
+        frappe.show_alert({
+            message: __('🌐 Job will be accessible via web portal after saving'),
+            indicator: 'blue'
+        }, 5);
+    } else {
+        frappe.show_alert({
+            message: __('Web portal access will be disabled after saving'),
+            indicator: 'orange'
+        }, 5);
+    }
   }
 });
 
