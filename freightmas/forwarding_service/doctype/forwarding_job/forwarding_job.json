@@ -70,6 +70,8 @@
   "documents_checklist",
   "cargo_parcel_details_section",
   "cargo_parcel_details",
+  "share_with_road_freight",
+  "route",
   "charges_tab",
   "currency",
   "column_break_rrvw",
@@ -643,9 +645,24 @@
    "fieldname": "fetch_from_quotation",
    "fieldtype": "Button",
    "label": "Fetch Charges from Quotation"
+  },
+  {
+   "default": "0",
+   "fieldname": "share_with_road_freight",
+   "fieldtype": "Check",
+   "label": "Share with Road Freight"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Route",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
+ "has_web_view": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [
@@ -661,7 +678,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-08-23 20:44:26.287618",
+ "modified": "2025-10-16 22:07:36.498831",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
@@ -669,14 +686,16 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "FreightMas Manager",
+   "select": 1,
    "share": 1,
    "submit": 1,
    "write": 1
@@ -693,22 +712,21 @@
    "write": 1
   },
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "FreightMas Manager",
-   "select": 1,
+   "role": "System Manager",
    "share": 1,
    "submit": 1,
    "write": 1
   }
  ],
  "protect_attached_files": 1,
+ "route": "forwarding-job",
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",

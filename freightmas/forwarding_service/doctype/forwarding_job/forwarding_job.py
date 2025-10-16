@@ -7,6 +7,7 @@ from frappe.utils import flt, nowdate
 from frappe import _
 
 class ForwardingJob(Document):
+    
     def validate(self):
         self.set_base_currency()
         self.calculate_totals()

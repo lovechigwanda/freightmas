@@ -82,6 +82,10 @@ frappe.ui.form.on('Forwarding Job', {
       set_main_value_safe(frm, 'last_updated_by', last.updated_by);
     }
   },
+
+  fetch_from_quotation(frm) {
+    open_fetch_charges_from_quotation_dialog(frm);
+  }
 });
 
 // ==========================================================
@@ -159,6 +163,11 @@ function update_currency_labels(frm) {
 // ==========================================================
 
 frappe.ui.form.on('Forwarding Charges', {
+  forwarding_charges_add(frm, cdt, cdn) {
+    // Default customer from parent customer field
+    frappe.model.set_value(cdt, cdn, 'customer', frm.doc.customer);
+  },
+  
   form_render(frm, cdt, cdn) {
     const row = locals[cdt][cdn];
     const grid_row = frm.fields_dict.forwarding_charges.grid.grid_rows_by_docname[cdn];
@@ -210,13 +219,6 @@ function set_main_value_safe(frm, fieldname, value) {
 }
 
 // ==========================================================
-// Invoicing Handlers (Sales & Purchase)
-// ==========================================================
-
-// Calls reusable dialog logic (already well-written) for both invoice types
-// Included in full above, kept modular for maintainability
-
-// ==========================================================
 // Cargo Count Summary Logic (Containerised + Packages)
 // ==========================================================
 
@@ -250,12 +252,19 @@ function update_cargo_count_forwarding(frm) {
 // ==========================================================
 
 frappe.ui.form.on('Cargo Parcel Details', {
+  cargo_parcel_details_add(frm, cdt, cdn) {
+    // Default cargo item description from parent cargo description
+    frappe.model.set_value(cdt, cdn, 'cargo_item_description', frm.doc.cargo_description);
+  },
   cargo_type: update_cargo_count_forwarding,
   container_type: update_cargo_count_forwarding,
   cargo_quantity: update_cargo_count_forwarding,
-  cargo_parcel_details_add: update_cargo_count_forwarding,
   cargo_parcel_details_remove: update_cargo_count_forwarding
 });
+
+// ==========================================================
+// Invoicing Dialog Logic
+// ==========================================================
 
 function create_sales_invoice_from_charges(frm) {
   const all_rows = frm.doc.forwarding_charges || [];
@@ -555,14 +564,9 @@ function create_purchase_invoice_from_charges(frm) {
   render_dialog_ui(dialog, selected_supplier);
 }
 
-//////////////////////////////////////////////
-// Fetch Charges from Quotation   ///////////
-
-frappe.ui.form.on('Forwarding Job', {
-    fetch_from_quotation(frm) {
-        open_fetch_charges_from_quotation_dialog(frm);
-    }
-});
+// ==========================================================
+// Fetch Charges from Quotation
+// ==========================================================
 
 function open_fetch_charges_from_quotation_dialog(frm) {
     if (!frm.doc.customer) {
@@ -650,8 +654,7 @@ function fetch_and_append_quotation_charges(frm, quotation_name) {
                 });
 
                 frm.refresh_field('forwarding_charges');
-                // If you have a totals calculation, call it here
-                // calculate_forwarding_totals(frm);
+                calculate_forwarding_totals(frm);
 
                 if (added_count === 0) {
                     frappe.msgprint(__('All quotation charges already exist in the charges table. No new charges added.'));
@@ -669,5 +672,3 @@ function strip_html_tags(html) {
     tmp.innerHTML = html || "";
     return tmp.textContent || tmp.innerText || "";
 }
-
-////////////////////////////////////////////////////////////
