@@ -383,7 +383,7 @@
    "fieldname": "booking_status",
    "fieldtype": "Select",
    "label": "Booking Status",
-   "options": "Draft\nIn Progress\nBooking Confirmed"
+   "options": "Draft\nIn Progress\nBooking Confirmed\nPending\nApproved\nBooked\nLoading\nIn Transit\nDelivered"
   },
   {
    "fieldname": "column_break_fowj",
@@ -436,7 +436,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-16 21:10:07.227918",
+ "modified": "2025-10-16 23:32:45.331500",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

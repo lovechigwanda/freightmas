@@ -1,0 +1,471 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ doc.name }} - Truck Portal{% endblock %}
+
+{% block page_content %}
+<style>
+  .cargo-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+  }
+  .status-badge {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .status-pending { background: #ffc107; color: #000; }
+  .status-approved { background: #28a745; color: #fff; }
+  .status-rejected { background: #dc3545; color: #fff; }
+  .status-booked { background: #17a2b8; color: #fff; }
+  .status-loading { background: #6610f2; color: #fff; }
+  .status-in-transit { background: #007bff; color: #fff; }
+  .status-delivered { background: #6c757d; color: #fff; }
+  
+  .truck-info-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 15px;
+  }
+  .btn-action {
+    margin-right: 10px;
+    margin-top: 10px;
+  }
+</style>
+
+<div class="container mt-4">
+  
+  <!-- Header -->
+  <div class="card mb-4">
+    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <h3 class="mb-0">
+        <i class="fa fa-ship"></i> {{ doc.name }}
+      </h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong>Customer:</strong> {{ doc.customer }}</p>
+          <p><strong>Direction:</strong> {{ doc.direction }}</p>
+          <p><strong>Cargo:</strong> {{ doc.cargo_description or '-' }}</p>
+        </div>
+        <div class="col-md-6">
+          <p><strong>From:</strong> {{ doc.port_of_loading }}</p>
+          <p><strong>To:</strong> {{ doc.port_of_discharge }}</p>
+          <p><strong>ETA:</strong> {{ frappe.format_date(doc.eta) if doc.eta else '-' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cargo Details with Truck Bookings -->
+  <h4 class="mb-3"><i class="fa fa-boxes"></i> Cargo & Truck Bookings</h4>
+  
+  {% if doc.cargo_parcel_details %}
+    {% for cargo in doc.cargo_parcel_details %}
+    <div class="cargo-card">
+      
+      <!-- Cargo Header -->
+      <div class="row mb-3">
+        <div class="col-md-8">
+          <h5>
+            {% if cargo.cargo_type == 'Containerised' %}
+              <i class="fa fa-box"></i> 
+              Container: <strong>{{ cargo.container_number }}</strong> ({{ cargo.container_type }})
+            {% else %}
+              <i class="fa fa-boxes"></i> 
+              {{ cargo.cargo_quantity }} x {{ cargo.cargo_item_description }}
+            {% endif %}
+          </h5>
+          {% if cargo.weight %}
+          <small class="text-muted">Weight: {{ cargo.weight }} kg</small>
+          {% endif %}
+        </div>
+        <div class="col-md-4 text-right">
+          {% if cargo.is_truck_required %}
+            <span class="status-badge status-{{ (cargo.booking_status or 'pending')|lower|replace(' ', '-') }}">
+              {{ cargo.booking_status or 'No Booking' }}
+            </span>
+          {% else %}
+            <span class="badge badge-secondary">No Truck Required</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if cargo.is_truck_required %}
+        
+        <!-- Existing Truck Booking -->
+        {% if cargo.transporter %}
+        <div class="truck-info-box">
+          <h6><i class="fa fa-truck"></i> Truck Details</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <p><strong>Supplier:</strong> {{ cargo.transporter }}</p>
+              <p><strong>Truck:</strong> {{ cargo.truck_reg_no or '-' }}</p>
+              <p><strong>Trailer:</strong> {{ cargo.trailer_reg_no or '-' }}</p>
+            </div>
+            <div class="col-md-4">
+              <p><strong>Driver:</strong> {{ cargo.driver_name or '-' }}</p>
+              <p><strong>Contact:</strong> {{ cargo.driver_contact_no or '-' }}</p>
+              {% if cargo.driver_contact_no_2 %}
+              <p><strong>Alt Contact:</strong> {{ cargo.driver_contact_no_2 }}</p>
+              {% endif %}
+              <p><strong>Passport:</strong> {{ cargo.driver_passport_no or '-' }}</p>
+            </div>
+            <div class="col-md-4">
+              {% if cargo.truck_location %}
+              <p><strong>Current Location:</strong></p>
+              <p><i class="fa fa-map-marker-alt text-primary"></i> {{ cargo.truck_location }}</p>
+              <small class="text-muted">{{ frappe.utils.format_datetime(cargo.updated_on) if cargo.updated_on else '' }}</small>
+              {% endif %}
+              {% if cargo.tracking_comment %}
+              <p><strong>Latest Update:</strong></p>
+              <p><small>{{ cargo.tracking_comment }}</small></p>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="mt-3">
+            {% if cargo.booking_status == 'Pending' and frappe.session.user == doc.owner %}
+              <button class="btn btn-sm btn-success btn-action approve-btn" 
+                      data-cargo-idx="{{ loop.index0 }}">
+                <i class="fa fa-check"></i> Approve
+              </button>
+              <button class="btn btn-sm btn-danger btn-action reject-btn" 
+                      data-cargo-idx="{{ loop.index0 }}">
+                <i class="fa fa-times"></i> Reject
+              </button>
+            {% endif %}
+
+            {% if cargo.booking_status == 'Approved' and frappe.session.user == doc.owner %}
+              <button class="btn btn-sm btn-primary btn-action book-btn" 
+                      data-cargo-idx="{{ loop.index0 }}">
+                <i class="fa fa-check-circle"></i> Mark as Booked
+              </button>
+            {% endif %}
+
+            {% if cargo.booking_status in ['Booked', 'Loading', 'In Transit'] %}
+              <button class="btn btn-sm btn-info btn-action update-tracking-btn" 
+                      data-cargo-idx="{{ loop.index0 }}">
+                <i class="fa fa-route"></i> Update Tracking
+              </button>
+            {% endif %}
+          </div>
+        </div>
+
+        {% else %}
+          <!-- No Booking Yet -->
+          <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle"></i> 
+            Truck required but not yet booked.
+            <button class="btn btn-sm btn-success float-right add-booking-btn" 
+                    data-cargo-idx="{{ loop.index0 }}">
+              <i class="fa fa-plus"></i> Add Truck Booking
+            </button>
+          </div>
+        {% endif %}
+
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">
+      <i class="fa fa-info-circle"></i> No cargo details available
+    </div>
+  {% endif %}
+</div>
+
+<!-- Add Booking Modal -->
+<div class="modal fade" id="addBookingModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Truck Booking</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="booking-cargo-idx">
+        
+        <div class="form-group">
+          <label>Transporter *</label>
+          <input type="text" class="form-control" id="booking-transporter" required>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Truck Registration *</label>
+              <input type="text" class="form-control" id="booking-truck-reg" 
+                     placeholder="e.g., ABC-123-GP" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Trailer Registration</label>
+              <input type="text" class="form-control" id="booking-trailer-reg"
+                     placeholder="e.g., XYZ-456-GP">
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Driver Name *</label>
+              <input type="text" class="form-control" id="booking-driver-name" required>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Driver Contact *</label>
+              <input type="text" class="form-control" id="booking-driver-contact" 
+                     placeholder="0771234567" required>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Driver Passport</label>
+              <input type="text" class="form-control" id="booking-driver-passport">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Driver Licence</label>
+              <input type="text" class="form-control" id="booking-driver-licence">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="submit-booking">Submit Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Tracking Modal -->
+<div class="modal fade" id="updateTrackingModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Tracking</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tracking-cargo-idx">
+        
+        <div class="form-group">
+          <label>Status *</label>
+          <select class="form-control" id="tracking-status" required>
+            <option value="Loading">Loading</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Location *</label>
+          <input type="text" class="form-control" id="tracking-location" required 
+                 placeholder="e.g., Durban Port">
+        </div>
+        
+        <div class="form-group">
+          <label>Comment *</label>
+          <textarea class="form-control" id="tracking-comment" rows="3" required
+                    placeholder="e.g., Loaded and departed from port"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submit-tracking">Update</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() {
+  const doc_name = '{{ doc.name }}';
+
+  // Load transporters/suppliers
+  function loadTransporters() {
+    frappe.call({
+      method: 'frappe.client.get_list',
+      args: {
+        doctype: 'Supplier',
+        filters: {
+          disabled: 0
+        },
+        fields: ['name', 'supplier_name'],
+        limit_page_length: 500,
+        order_by: 'supplier_name asc'
+      },
+      callback: (r) => {
+        if (r.message) {
+          const $select = $('#booking-transporter');
+          $select.empty();
+          $select.append('<option value="">Select Transporter...</option>');
+          
+          r.message.forEach(supplier => {
+            const displayName = supplier.supplier_name || supplier.name;
+            $select.append(`<option value="${supplier.name}">${displayName}</option>`);
+          });
+        }
+      }
+    });
+  }
+
+  // Add Booking Button Click
+  $('.add-booking-btn').click(function() {
+    const idx = $(this).data('cargo-idx');
+    $('#booking-cargo-idx').val(idx);
+    
+    // Load transporters when modal opens
+    loadTransporters();
+    
+    $('#addBookingModal').modal('show');
+  });
+
+  // Submit Booking
+  $('#submit-booking').click(function() {
+    const idx = $('#booking-cargo-idx').val();
+    const data = {
+      transporter: $('#booking-transporter').val(),
+      truck_reg_no: $('#booking-truck-reg').val(),
+      trailer_reg_no: $('#booking-trailer-reg').val(),
+      driver_name: $('#booking-driver-name').val(),
+      driver_contact_no: $('#booking-driver-contact').val(),
+      driver_passport_no: $('#booking-driver-passport').val(),
+      driver_licence_no: $('#booking-driver-licence').val()
+    };
+
+    if (!data.transporter || !data.truck_reg_no || !data.driver_name || !data.driver_contact_no) {
+      frappe.msgprint('Please fill all required fields');
+      return;
+    }
+
+    frappe.call({
+      method: 'freightmas.www.truck_portal.add_truck_booking',
+      args: {
+        job: doc_name,
+        cargo_idx: idx,
+        ...data
+      },
+      callback: (r) => {
+        if (r.message && r.message.success) {
+          $('#addBookingModal').modal('hide');
+          frappe.show_alert({message: 'Booking added successfully', indicator: 'green'});
+          setTimeout(() => location.reload(), 1000);
+        }
+      }
+    });
+  });
+
+  // Approve Button
+  $('.approve-btn').click(function() {
+    const idx = $(this).data('cargo-idx');
+    if (confirm('Approve this truck booking?')) {
+      frappe.call({
+        method: 'freightmas.www.truck_portal.approve_booking',
+        args: { job: doc_name, cargo_idx: idx },
+        callback: (r) => {
+          if (r.message && r.message.success) {
+            frappe.show_alert({message: 'Booking approved', indicator: 'green'});
+            setTimeout(() => location.reload(), 1000);
+          }
+        }
+      });
+    }
+  });
+
+  // Reject Button
+  $('.reject-btn').click(function() {
+    const idx = $(this).data('cargo-idx');
+    const reason = prompt('Reason for rejection:');
+    if (reason) {
+      frappe.call({
+        method: 'freightmas.www.truck_portal.reject_booking',
+        args: { job: doc_name, cargo_idx: idx, reason: reason },
+        callback: (r) => {
+          if (r.message && r.message.success) {
+            frappe.show_alert({message: 'Booking rejected', indicator: 'red'});
+            setTimeout(() => location.reload(), 1000);
+          }
+        }
+      });
+    }
+  });
+
+  // Mark as Booked Button
+  $('.book-btn').click(function() {
+    const idx = $(this).data('cargo-idx');
+    if (confirm('Mark this truck as booked for loading?')) {
+      frappe.call({
+        method: 'freightmas.www.truck_portal.mark_booked',
+        args: { job: doc_name, cargo_idx: idx },
+        callback: (r) => {
+          if (r.message && r.message.success) {
+            frappe.show_alert({message: 'Marked as booked', indicator: 'blue'});
+            setTimeout(() => location.reload(), 1000);
+          }
+        }
+      });
+    }
+  });
+
+  // Update Tracking Button
+  $('.update-tracking-btn').click(function() {
+    const idx = $(this).data('cargo-idx');
+    $('#tracking-cargo-idx').val(idx);
+    $('#updateTrackingModal').modal('show');
+  });
+
+  // Submit Tracking
+  $('#submit-tracking').click(function() {
+    const idx = $('#tracking-cargo-idx').val();
+    const data = {
+      status: $('#tracking-status').val(),
+      location: $('#tracking-location').val(),
+      comment: $('#tracking-comment').val()
+    };
+
+    if (!data.location || !data.comment) {
+      frappe.msgprint('Please fill all fields');
+      return;
+    }
+
+    frappe.call({
+      method: 'freightmas.www.truck_portal.update_tracking',
+      args: {
+        job: doc_name,
+        cargo_idx: idx,
+        ...data
+      },
+      callback: (r) => {
+        if (r.message && r.message.success) {
+          $('#updateTrackingModal').modal('hide');
+          frappe.show_alert({message: 'Tracking updated', indicator: 'green'});
+          setTimeout(() => location.reload(), 1000);
+        }
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

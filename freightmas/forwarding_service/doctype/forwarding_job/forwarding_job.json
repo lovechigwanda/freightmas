@@ -664,6 +664,7 @@
  "grid_page_length": 50,
  "has_web_view": 1,
  "index_web_pages_for_search": 1,
+ "is_published_field": "share_with_road_freight",
  "is_submittable": 1,
  "links": [
   {
@@ -678,7 +679,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-16 22:07:36.498831",
+ "modified": "2025-10-16 22:53:23.961410",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
