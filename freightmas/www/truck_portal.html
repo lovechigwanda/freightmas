@@ -883,17 +883,27 @@ $(document).ready(function() {
   let allSuppliers = [];
 
   // ========================================
-  // TOGGLE DETAILS - Handler for Details button
+  // TOGGLE DETAILS - Handler for Details button with auto-collapse
   // ========================================
   $(document).on('click', '.toggle-details-btn', function(e) {
     e.stopPropagation();
     const cargoRow = $(this).closest('.cargo-row');
     const panel = cargoRow.find('.detail-panel');
+    const isCurrentlyExpanded = cargoRow.hasClass('expanded');
     
-    if (cargoRow.hasClass('expanded')) {
+    // First, collapse ALL other cards
+    $('.cargo-row.expanded').not(cargoRow).each(function() {
+      $(this).find('.detail-panel').removeClass('show');
+      $(this).removeClass('expanded');
+    });
+    
+    // Then toggle the clicked card
+    if (isCurrentlyExpanded) {
+      // If it was already expanded, collapse it
       panel.removeClass('show');
       cargoRow.removeClass('expanded');
     } else {
+      // If it was collapsed, expand it
       panel.addClass('show');
       cargoRow.addClass('expanded');
     }
