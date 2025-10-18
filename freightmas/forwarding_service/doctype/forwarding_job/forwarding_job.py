@@ -13,6 +13,7 @@ class ForwardingJob(Document):
         self.calculate_totals()
         self.validate_customer_and_supplier()
         self.prevent_editing_invoiced_rows()
+        self.calculate_trucks_required()
 
     def set_base_currency(self):
         if not self.base_currency and self.company:
@@ -80,6 +81,15 @@ class ForwardingJob(Document):
                         frappe.throw(
                             f"You cannot modify '{field}' on a charge already linked to Purchase Invoice: {row.purchase_invoice_reference}"
                         )
+
+    def calculate_trucks_required(self):
+        """Calculate the number of trucks required based on cargo parcel details"""
+        trucks_count = 0
+        for row in self.cargo_parcel_details:
+            if row.is_truck_required:
+                trucks_count += 1
+        
+        self.trucks_required = str(trucks_count) if trucks_count > 0 else ""
 
 
 # ========================================================

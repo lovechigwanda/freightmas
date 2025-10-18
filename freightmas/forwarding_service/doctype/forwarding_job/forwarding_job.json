@@ -56,6 +56,7 @@
   "column_break_mwkt",
   "cargo_count",
   "column_break_rcwr",
+  "trucks_required",
   "bill_of_lading_details_section",
   "bl_number",
   "is_bl_received",
@@ -659,6 +660,12 @@
    "label": "Route",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "trucks_required",
+   "fieldtype": "Data",
+   "label": "Trucks Required",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -679,7 +686,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-16 22:53:23.961410",
+ "modified": "2025-10-18 10:16:22.519646",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

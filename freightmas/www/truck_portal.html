@@ -4,721 +4,744 @@
 
 {% block page_content %}
 <style>
+  html {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) fixed;
+    background-attachment: fixed;
+    min-height: 100%;
+  }
+  
   body {
-    background-color: #f5f7fa;
+    background: transparent;
+    min-height: 100vh;
   }
   
-  .page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  /* Hide any default navigation elements and footer */
+  .page-header-actions-block,
+  .page-head-content,
+  .standard-sidebar,
+  nav.navbar,
+  footer,
+  .web-footer,
+  .footer-powered,
+  .page-footer {
+    display: none !important;
   }
   
-  .page-header h1 {
-    margin: 0;
-    font-size: 28px;
-    font-weight: 600;
+  /* Force container positioning - Remove all top spacing */
+  .container-fluid {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
   
-  .page-header .meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
-  
-  .page-header .meta-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .page-header .meta-item i {
-    font-size: 20px;
-    opacity: 0.9;
-  }
-  
-  /* Search and Filter Bar */
-  .toolbar {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  
-  .search-box {
-    flex: 1;
-    min-width: 250px;
-    position: relative;
-  }
-  
-  .search-box input {
-    width: 100%;
-    padding: 10px 40px 10px 15px;
-    border: 2px solid #e0e6ed;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.3s;
-  }
-  
-  .search-box input:focus {
-    border-color: #667eea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-  
-  .search-box i {
-    position: absolute;
+  /* Back to Desk Link */
+  .back-to-desk {
+    position: fixed;
+    top: 15px;
     right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8897aa;
-  }
-  
-  .filter-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  
-  .filter-select {
-    padding: 10px 15px;
-    border: 2px solid #e0e6ed;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .filter-select:focus {
-    border-color: #667eea;
-    outline: none;
-  }
-  
-  /* Cargo Cards */
-  .cargo-card {
-    background: white;
-    border-radius: 12px;
-    padding: 0;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    overflow: hidden;
-    transition: all 0.3s;
-  }
-  
-  .cargo-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-  }
-  
-  .cargo-header {
-    background: #f8f9fb;
-    padding: 20px;
-    border-bottom: 2px solid #e0e6ed;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  
-  .cargo-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-  }
-  
-  .cargo-title h5 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-  }
-  
-  .cargo-title .cargo-icon {
-    font-size: 24px;
-    color: #667eea;
-  }
-  
-  .cargo-meta {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: 5px;
-  }
-  
-  /* Status Badges */
-  .status-badge {
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    color: white;
     padding: 8px 16px;
-    border-radius: 20px;
+    border-radius: 8px;
+    text-decoration: none;
     font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s;
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
   
-  .status-badge i {
-    font-size: 10px;
+  .back-to-desk:hover {
+    background: rgba(255, 255, 255, 0.35);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
-  .status-pending { 
-    background: #fef3c7; 
-    color: #92400e; 
-    border: 1px solid #fcd34d;
+  /* Glass Container */
+  .glass-container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-bottom: 15px;
   }
   
-  .status-approved { 
-    background: #d1fae5; 
-    color: #065f46; 
-    border: 1px solid #6ee7b7;
+  /* Page Header - Compressed - Start very close to top */
+  .page-header {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(15px);
+    color: white !important;
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    margin-top: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   }
   
-  .status-rejected { 
-    background: #fee2e2; 
-    color: #991b1b; 
-    border: 1px solid #fca5a5;
+  .page-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    color: white !important;
   }
   
-  .status-booked { 
-    background: #dbeafe; 
-    color: #1e40af; 
-    border: 1px solid #93c5fd;
+  .page-header .meta {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
   }
   
-  .status-loading { 
-    background: #e9d5ff; 
-    color: #6b21a8; 
-    border: 1px solid #c084fc;
+  .meta-item {
+    font-size: 14px;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    color: white;
   }
   
-  .status-in-transit { 
-    background: #fed7aa; 
-    color: #9a3412; 
-    border: 1px solid #fdba74;
+  .meta-item .label {
+    opacity: 0.85;
+    font-size: 12px;
   }
   
-  .status-offloaded { 
-    background: #d6d3d1; 
-    color: #44403c; 
-    border: 1px solid #a8a29e;
+  .meta-item .value {
+    font-weight: 600;
+    font-size: 14px;
   }
   
-  .status-delivered { 
-    background: #e2e8f0; 
-    color: #334155; 
-    border: 1px solid #cbd5e1;
+  /* Search Toolbar */
+  .toolbar {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 12px 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
   }
   
-  /* Truck Info - Always Visible */
-  .truck-info-visible {
+  .search-box {
+    flex: 1;
+    min-width: 250px;
+  }
+  
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+  }
+  
+  .search-box input:focus {
+    outline: none;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+  }
+  
+  .filter-select {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  
+  .btn-clear {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+  }
+  
+  .btn-clear:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  
+  /* Cargo Table */
+  .cargo-table {
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 15px;
+    overflow: visible;
+    border: none;
+  }
+  
+  .cargo-row {
+    background: rgba(255, 255, 255, 0.95);
+    margin-bottom: 10px;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .cargo-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 1);
+  }
+  
+  /* Row Header */
+  .row-header {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1.2fr 2fr 1.3fr 180px;
+    gap: 15px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    align-items: center;
+  }
+  
+  .row-header .col {
+    font-weight: 700;
+    color: #1e293b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+  }
+  
+  /* Data Row */
+  .data-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1.2fr 2fr 1.3fr 180px;
+    gap: 15px;
+    padding: 15px 20px;
+    font-size: 13px;
+    align-items: center;
+  }
+  
+  .data-row .col {
+    color: #334155;
+  }
+  
+  .col-container {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .col-type {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  
+  /* Actions Column */
+  .actions-column {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+  
+  /* Action Buttons - All White/Outlined Style */
+  .btn-action {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: white;
+    color: #2e3338;
+    border: 1px solid #d1d5db;
+  }
+  
+  .btn-action:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-action:active {
+    transform: translateY(0);
+  }
+  
+  /* Add/Update buttons with slightly darker border for emphasis */
+  .add-booking-btn,
+  .update-tracking-btn {
+    border-color: #9ca3af;
+  }
+  
+  .add-booking-btn:hover,
+  .update-tracking-btn:hover {
+    border-color: #6b7280;
+  }
+  
+  /* Details Button icon rotation */
+  .btn-details i {
+    transition: transform 0.3s;
+  }
+  
+  .cargo-row.expanded .btn-details i {
+    transform: rotate(180deg);
+  }
+  
+  /* Status Badge - Enhanced for better visibility */
+  .status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  .status-pending { background: #fef3c7; color: #92400e; }
+  .status-approved { background: #d1fae5; color: #065f46; }
+  .status-booked { background: #dbeafe; color: #1e40af; }
+  .status-in-transit { background: #fed7aa; color: #9a3412; }
+  .status-delivered { background: #e0e7ff; color: #3730a3; }
+  .status-draft { background: #fee2e2; color: #991b1b; }
+  .status-loading { background: #fbcfe8; color: #831843; }
+  
+  /* Detail Panel */
+  .detail-panel {
+    display: none;
+    background: #f8f9fb;
     padding: 20px;
+    border-top: 2px solid #e5e7eb;
+  }
+  
+  .detail-panel.show {
+    display: block;
+  }
+  
+  .detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
   }
   
-  .info-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    background: #f8f9fb;
-    border-radius: 8px;
-    border-left: 3px solid #667eea;
-  }
-  
-  .info-item i {
-    font-size: 20px;
-    color: #667eea;
-    width: 24px;
-    text-align: center;
-  }
-  
-  .info-item .label {
-    font-size: 12px;
-    color: #64748b;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .info-item .value {
-    font-size: 15px;
-    color: #1e293b;
-    font-weight: 600;
-    margin-top: 2px;
-  }
-  
-  /* Collapsible Section */
-  .details-toggle {
-    padding: 15px 20px;
-    background: #fafbfc;
-    border-top: 1px solid #e0e6ed;
-    border-bottom: 1px solid #e0e6ed;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s;
-  }
-  
-  .details-toggle:hover {
-    background: #f1f3f5;
-  }
-  
-  .details-toggle .toggle-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .details-toggle .toggle-icon {
-    transition: transform 0.3s;
-    color: #667eea;
-  }
-  
-  .details-toggle.active .toggle-icon {
-    transform: rotate(180deg);
-  }
-  
-  .details-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-  }
-  
-  .details-content.show {
-    max-height: 800px;
-  }
-  
-  .details-body {
-    padding: 20px;
-    background: white;
-  }
-  
-  .details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-  
   .detail-item {
-    padding: 12px;
-    background: #f8f9fb;
-    border-radius: 6px;
+    background: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
   }
   
   .detail-item .label {
-    font-size: 12px;
+    font-size: 11px;
     color: #64748b;
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
     margin-bottom: 4px;
   }
   
   .detail-item .value {
     font-size: 14px;
     color: #1e293b;
-    font-weight: 600;
-  }
-  
-  /* Action Buttons */
-  .action-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    padding-top: 15px;
-    border-top: 1px solid #e0e6ed;
-  }
-  
-  .btn-action {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .btn-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  }
-  
-  .btn-success {
-    background: #10b981;
-    color: white;
-  }
-  
-  .btn-success:hover {
-    background: #059669;
-  }
-  
-  .btn-danger {
-    background: #ef4444;
-    color: white;
-  }
-  
-  .btn-danger:hover {
-    background: #dc2626;
-  }
-  
-  .btn-primary {
-    background: #3b82f6;
-    color: white;
-  }
-  
-  .btn-primary:hover {
-    background: #2563eb;
-  }
-  
-  .btn-info {
-    background: #06b6d4;
-    color: white;
-  }
-  
-  .btn-info:hover {
-    background: #0891b2;
-  }
-  
-  /* No Booking Alert */
-  .no-booking-alert {
-    padding: 20px;
-    background: #fef3c7;
-    border: 2px dashed #f59e0b;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .no-booking-alert .message {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #92400e;
     font-weight: 500;
+  }
+  
+  .detail-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 15px 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #667eea;
+  }
+  
+  .detail-section-title:first-child {
+    margin-top: 0;
+  }
+  
+  /* Alert Message */
+  .no-truck-alert {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
   }
   
   /* Empty State */
   .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #64748b;
+    color: white;
   }
   
   .empty-state i {
     font-size: 64px;
     margin-bottom: 20px;
-    opacity: 0.3;
+    opacity: 0.5;
   }
   
-  .empty-state h4 {
-    font-size: 20px;
-    margin-bottom: 10px;
+  /* Modal Styling */
+  .modal-content {
+    border-radius: 20px;
+    border: none;
+    overflow: hidden;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 20px 30px;
+  }
+  
+  .modal-body {
+    padding: 30px;
+  }
+  
+  .modal-footer {
+    background: #f8f9fb;
+    border: none;
+    padding: 20px 30px;
+  }
+  
+  .form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 15px;
+  }
+  
+  .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .btn-success {
+    background: #10b981;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  
+  .btn-secondary {
+    background: #64748b;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 10px;
+    font-weight: 600;
   }
   
   /* Responsive */
-  @media (max-width: 768px) {
-    .page-header h1 {
-      font-size: 22px;
+  @media (max-width: 1200px) {
+    .row-header {
+      display: none;
     }
     
-    .toolbar {
-      flex-direction: column;
+    .data-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
     }
     
-    .search-box {
-      width: 100%;
+    .data-row .col::before {
+      content: attr(data-label);
+      font-weight: 600;
+      display: inline-block;
+      width: 120px;
+      color: #64748b;
     }
     
-    .truck-info-visible {
+    .detail-grid {
       grid-template-columns: 1fr;
     }
     
-    .cargo-header {
+    .page-header .meta {
       flex-direction: column;
       align-items: flex-start;
+      gap: 8px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .page-header {
+      margin-top: 10px;
+    }
+    
+    .page-header h1 {
+      font-size: 18px;
+    }
+    
+    .glass-container {
+      padding: 20px;
+    }
+    
+    .back-to-desk {
+      position: static;
+      display: block;
+      margin-bottom: 15px;
+      text-align: center;
     }
   }
 </style>
 
-<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+<!-- Back to Desk Link -->
+<a href="/app" class="back-to-desk">
+  <i class="fa fa-arrow-left"></i> Back to Desk
+</a>
+
+<div class="container-fluid" style="max-width: 1600px; margin: 0 auto; padding: 8px 15px;">
   
-  <!-- Page Header -->
+  <!-- Page Header - Compressed -->
   <div class="page-header">
     <h1><i class="fa fa-ship"></i> {{ doc.name }}</h1>
     <div class="meta">
       <div class="meta-item">
-        <i class="fa fa-user"></i>
-        <div>
-          <div style="font-size: 12px; opacity: 0.8;">Customer</div>
-          <div style="font-size: 16px; font-weight: 600;">{{ doc.customer }}</div>
-        </div>
+        <span class="label">Customer:</span>
+        <span class="value">{{ doc.customer }}</span>
       </div>
       <div class="meta-item">
-        <i class="fa fa-route"></i>
-        <div>
-          <div style="font-size: 12px; opacity: 0.8;">Route</div>
-          <div style="font-size: 16px; font-weight: 600;">{{ doc.port_of_loading }} → {{ doc.port_of_discharge }}</div>
-        </div>
+        <span class="label">Direction:</span>
+        <span class="value">{{ doc.direction }}</span>
       </div>
       <div class="meta-item">
-        <i class="fa fa-calendar"></i>
-        <div>
-          <div style="font-size: 12px; opacity: 0.8;">ETA</div>
-          <div style="font-size: 16px; font-weight: 600;">{{ frappe.format_date(doc.eta) if doc.eta else '-' }}</div>
-        </div>
+        <span class="label">Cargo:</span>
+        <span class="value">{{ doc.cargo_description or doc.cargo_count }}</span>
       </div>
       <div class="meta-item">
-        <i class="fa fa-box"></i>
-        <div>
-          <div style="font-size: 12px; opacity: 0.8;">Cargo</div>
-          <div style="font-size: 16px; font-weight: 600;">{{ doc.cargo_description or '-' }}</div>
-        </div>
+        <span class="label">Trucks:</span>
+        <span class="value">{{ doc.trucks_required or '0' }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">Date:</span>
+        <span class="value">{{ frappe.format_date(doc.creation) }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Search and Filter Toolbar -->
+  <!-- Search Toolbar -->
   <div class="toolbar">
     <div class="search-box">
-      <input type="text" id="search-input" placeholder="🔍 Search by container, truck, driver, or transporter...">
-      <i class="fa fa-search"></i>
+      <input type="text" id="search-input" placeholder="Search by container, truck, driver or transporter...">
     </div>
-    <div class="filter-group">
-      <select class="filter-select" id="status-filter">
-        <option value="">All Statuses</option>
-        <option value="Pending">Pending</option>
-        <option value="Approved">Approved</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Booked">Booked</option>
-        <option value="Loading">Loading</option>
-        <option value="In Transit">In Transit</option>
-        <option value="Offloaded">Offloaded</option>
-        <option value="Delivered">Delivered</option>
-      </select>
-      <button class="btn-action btn-primary" onclick="clearFilters()">
-        <i class="fa fa-redo"></i> Clear Filters
-      </button>
-    </div>
+    <select class="filter-select" id="status-filter">
+      <option value="">All Statuses</option>
+      <option value="Pending">Pending</option>
+      <option value="Approved">Approved</option>
+      <option value="Booked">Booked</option>
+      <option value="Loading">Loading</option>
+      <option value="In Transit">In Transit</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Draft">Draft</option>
+    </select>
+    <button class="btn-clear" onclick="clearFilters()">
+      <i class="fa fa-redo"></i> Clear
+    </button>
   </div>
 
-  <!-- Cargo Cards -->
-  <div id="cargo-container">
+  <!-- Cargo Table -->
+  <div class="glass-container">
     {% if doc.cargo_parcel_details %}
-      {% for cargo in doc.cargo_parcel_details %}
-      <div class="cargo-card" 
-           data-container="{{ cargo.container_number or '' }}" 
-           data-truck="{{ cargo.truck_reg_no or '' }}"
-           data-driver="{{ cargo.driver_name or '' }}"
-           data-transporter="{{ cargo.transporter or '' }}"
-           data-status="{{ cargo.booking_status or 'No Booking' }}">
-        
-        <!-- Cargo Header -->
-        <div class="cargo-header">
-          <div class="cargo-title">
-            <span class="cargo-icon">
+      <div class="cargo-table">
+        <!-- Table Header -->
+        <div class="row-header">
+          <div class="col">Cargo</div>
+          <div class="col">Transporter</div>
+          <div class="col">Truck Reg</div>
+          <div class="col">Driver Name</div>
+          <div class="col">Status</div>
+          <div class="col" style="text-align: right;">Actions</div>
+        </div>
+
+        <!-- Data Rows -->
+        {% for cargo in doc.cargo_parcel_details %}
+        <div class="cargo-row" 
+             data-container="{{ cargo.container_number or cargo.cargo_item_description or '' }}"
+             data-truck="{{ cargo.truck_reg_no or '' }}"
+             data-driver="{{ cargo.driver_name or '' }}"
+             data-transporter="{{ cargo.transporter or '' }}"
+             data-status="{{ cargo.booking_status or 'Draft' }}">
+          
+          <div class="data-row">
+            <!-- Cargo -->
+            <div class="col col-container" data-label="Cargo: ">
               {% if cargo.cargo_type == 'Containerised' %}
-                <i class="fa fa-box"></i>
+                {{ cargo.container_number or '-' }}
+                <div class="col-type">{{ cargo.container_type or '-' }}</div>
               {% else %}
-                <i class="fa fa-boxes"></i>
+                {{ cargo.cargo_quantity or '1' }} x {{ cargo.cargo_item_description or 'Break Bulk' }}
+                <div class="col-type">{{ cargo.container_type or 'Break Bulk' }}</div>
               {% endif %}
-            </span>
-            <div>
-              <h5>
-                {% if cargo.cargo_type == 'Containerised' %}
-                  {{ cargo.container_number }} ({{ cargo.container_type }})
-                {% else %}
-                  {{ cargo.cargo_quantity }} x {{ cargo.cargo_item_description }}
+            </div>
+
+            <!-- Transporter -->
+            <div class="col" data-label="Transporter: ">
+              {% if cargo.transporter %}
+                {{ cargo.transporter }}
+              {% else %}
+                <span class="no-truck-alert">
+                  {% if cargo.is_truck_required %}
+                    Truck Required
+                  {% else %}
+                    -
+                  {% endif %}
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Truck Registration -->
+            <div class="col" data-label="Truck Reg: ">
+              {{ cargo.truck_reg_no or '-' }}
+            </div>
+
+            <!-- Driver Name -->
+            <div class="col" data-label="Driver: ">
+              {{ cargo.driver_name or '-' }}
+            </div>
+
+            <!-- Status -->
+            <div class="col" data-label="Status: ">
+              {% if cargo.is_truck_required %}
+                <span class="status-badge status-{{ (cargo.booking_status or 'draft')|lower|replace(' ', '-') }}">
+                  {{ cargo.booking_status or 'Draft' }}
+                </span>
+              {% else %}
+                <span class="status-badge" style="background: #e2e8f0; color: #64748b;">
+                  N/A
+                </span>
+              {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="col actions-column" data-label="Actions: ">
+              {% if cargo.is_truck_required %}
+                {% if not cargo.transporter %}
+                  <button class="btn-action add-booking-btn" 
+                          data-cargo-idx="{{ loop.index0 }}">
+                    <i class="fa fa-plus"></i> Add
+                  </button>
+                {% elif cargo.booking_status in ['Booked', 'Loading', 'In Transit'] %}
+                  <button class="btn-action update-tracking-btn" 
+                          data-cargo-idx="{{ loop.index0 }}">
+                    <i class="fa fa-route"></i> Update
+                  </button>
                 {% endif %}
-              </h5>
-              <div class="cargo-meta">
-                {% if cargo.weight %}Weight: {{ cargo.weight }} kg{% endif %}
-                {% if cargo.cargo_type == 'Containerised' and cargo.seal_no %}
-                  • Seal: {{ cargo.seal_no }}
-                {% endif %}
-              </div>
+              {% endif %}
+              <button class="btn-action btn-details toggle-details-btn">
+                <i class="fa fa-chevron-down"></i> Details
+              </button>
             </div>
           </div>
-          <div>
+
+          <!-- Detail Panel -->
+          <div class="detail-panel">
+            <div class="detail-section-title">📦 Cargo Information</div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="label">Cargo Type</div>
+                <div class="value">{{ cargo.cargo_type or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Container Type</div>
+                <div class="value">{{ cargo.container_type or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Weight (kg)</div>
+                <div class="value">{{ cargo.weight or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Volume (CBM)</div>
+                <div class="value">{{ cargo.volume or '-' }}</div>
+              </div>
+              {% if cargo.cargo_type != 'Containerised' %}
+              <div class="detail-item">
+                <div class="label">Dimensions (L×W×H)</div>
+                <div class="value">
+                  {{ cargo.length or '-' }} × {{ cargo.width or '-' }} × {{ cargo.height or '-' }} cm
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
             {% if cargo.is_truck_required %}
-              <span class="status-badge status-{{ (cargo.booking_status or 'pending')|lower|replace(' ', '-') }}">
-                <i class="fa fa-circle"></i>
-                {{ cargo.booking_status or 'No Booking' }}
-              </span>
-            {% else %}
-              <span class="status-badge" style="background: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1;">
-                <i class="fa fa-times-circle"></i>
-                No Truck Required
-              </span>
+            <div class="detail-section-title">🚛 Driver Information</div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="label">Trailer Registration</div>
+                <div class="value">{{ cargo.trailer_reg_no or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Driver Contact 1</div>
+                <div class="value">{{ cargo.driver_contact_no or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Driver Contact 2</div>
+                <div class="value">{{ cargo.driver_contact_no_2 or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Driver Passport</div>
+                <div class="value">{{ cargo.driver_passport_no or '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Driver Licence</div>
+                <div class="value">{{ cargo.driver_licence_no or '-' }}</div>
+              </div>
+            </div>
+
+            <div class="detail-section-title">📍 Tracking Details</div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="label">Current Location</div>
+                <div class="value">
+                  {% if cargo.truck_location %}
+                    <i class="fa fa-map-marker-alt" style="color: #ef4444;"></i>
+                    {{ cargo.truck_location }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Load By Date</div>
+                <div class="value">{{ frappe.format_date(cargo.load_by_date) if cargo.load_by_date else '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Last Updated</div>
+                <div class="value">{{ frappe.format(cargo.updated_on, {'fieldtype': 'Datetime'}) if cargo.updated_on else '-' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="label">Updated By</div>
+                <div class="value">{{ cargo.updated_by or '-' }}</div>
+              </div>
+              {% if cargo.tracking_comment %}
+              <div class="detail-item" style="grid-column: 1 / -1;">
+                <div class="label">Tracking Comment</div>
+                <div class="value">{{ cargo.tracking_comment }}</div>
+              </div>
+              {% endif %}
+            </div>
             {% endif %}
           </div>
         </div>
-
-        {% if cargo.is_truck_required %}
-          {% if cargo.transporter %}
-            <!-- Truck Info - Always Visible -->
-            <div class="truck-info-visible">
-              <div class="info-item">
-                <i class="fa fa-building"></i>
-                <div>
-                  <div class="label">Transporter</div>
-                  <div class="value">{{ cargo.transporter }}</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <i class="fa fa-truck"></i>
-                <div>
-                  <div class="label">Truck Registration</div>
-                  <div class="value">{{ cargo.truck_reg_no or '-' }}</div>
-                </div>
-              </div>
-              <div class="info-item">
-                <i class="fa fa-user"></i>
-                <div>
-                  <div class="label">Driver Name</div>
-                  <div class="value">{{ cargo.driver_name or '-' }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Collapsible Details Toggle -->
-            <div class="details-toggle" onclick="toggleDetails(this)">
-              <span class="toggle-text">
-                <i class="fa fa-info-circle"></i>
-                View More Details
-              </span>
-              <i class="fa fa-chevron-down toggle-icon"></i>
-            </div>
-
-            <!-- Collapsible Details Content -->
-            <div class="details-content">
-              <div class="details-body">
-                <div class="details-grid">
-                  {% if cargo.trailer_reg_no %}
-                  <div class="detail-item">
-                    <div class="label">Trailer Registration</div>
-                    <div class="value">{{ cargo.trailer_reg_no }}</div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.driver_contact_no %}
-                  <div class="detail-item">
-                    <div class="label">Driver Contact</div>
-                    <div class="value">{{ cargo.driver_contact_no }}</div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.driver_contact_no_2 %}
-                  <div class="detail-item">
-                    <div class="label">Alt Contact</div>
-                    <div class="value">{{ cargo.driver_contact_no_2 }}</div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.driver_passport_no %}
-                  <div class="detail-item">
-                    <div class="label">Passport Number</div>
-                    <div class="value">{{ cargo.driver_passport_no }}</div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.driver_licence_no %}
-                  <div class="detail-item">
-                    <div class="label">Licence Number</div>
-                    <div class="value">{{ cargo.driver_licence_no }}</div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.truck_location %}
-                  <div class="detail-item">
-                    <div class="label">Current Location</div>
-                    <div class="value">
-                      <i class="fa fa-map-marker-alt" style="color: #ef4444;"></i>
-                      {{ cargo.truck_location }}
-                    </div>
-                  </div>
-                  {% endif %}
-                  
-                  {% if cargo.updated_on %}
-                  <div class="detail-item">
-                    <div class="label">Last Updated</div>
-                    <div class="value">{{ frappe.utils.pretty_date(cargo.updated_on) }}</div>
-                  </div>
-                  {% endif %}
-                </div>
-
-                {% if cargo.tracking_comment %}
-                <div style="padding: 15px; background: #f1f5f9; border-radius: 6px; margin-bottom: 20px;">
-                  <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 5px;">
-                    LATEST UPDATE
-                  </div>
-                  <div style="font-size: 14px; color: #1e293b;">
-                    {{ cargo.tracking_comment }}
-                  </div>
-                </div>
-                {% endif %}
-
-                <!-- Action Buttons -->
-                <div class="action-buttons">
-                  {% if cargo.booking_status == 'Pending' and frappe.session.user == doc.owner %}
-                    <button class="btn-action btn-success approve-btn" data-cargo-idx="{{ loop.index0 }}">
-                      <i class="fa fa-check"></i> Approve
-                    </button>
-                    <button class="btn-action btn-danger reject-btn" data-cargo-idx="{{ loop.index0 }}">
-                      <i class="fa fa-times"></i> Reject
-                    </button>
-                  {% endif %}
-
-                  {% if cargo.booking_status == 'Approved' and frappe.session.user == doc.owner %}
-                    <button class="btn-action btn-primary book-btn" data-cargo-idx="{{ loop.index0 }}">
-                      <i class="fa fa-check-circle"></i> Mark as Booked
-                    </button>
-                  {% endif %}
-
-                  {% if cargo.booking_status in ['Booked', 'Loading', 'In Transit', 'Offloaded'] %}
-                    <button class="btn-action btn-info update-tracking-btn" data-cargo-idx="{{ loop.index0 }}">
-                      <i class="fa fa-route"></i> Update Tracking
-                    </button>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-
-          {% else %}
-            <!-- No Booking Yet -->
-            <div class="no-booking-alert">
-              <div class="message">
-                <i class="fa fa-exclamation-triangle" style="font-size: 24px;"></i>
-                <span>Truck required but not yet booked</span>
-              </div>
-              <button class="btn-action btn-success add-booking-btn" data-cargo-idx="{{ loop.index0 }}">
-                <i class="fa fa-plus"></i> Add Truck Booking
-              </button>
-            </div>
-          {% endif %}
-        {% endif %}
+        {% endfor %}
       </div>
-      {% endfor %}
     {% else %}
       <div class="empty-state">
         <i class="fa fa-box-open"></i>
@@ -731,77 +754,37 @@
 </div>
 
 <!-- Add Booking Modal -->
-<div class="modal fade" id="addBookingModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content" style="border-radius: 12px; border: none;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px 12px 0 0;">
-        <h5 class="modal-title" style="font-weight: 600;">
+<div class="modal fade" id="addBookingModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
           <i class="fa fa-truck"></i> Add Truck Booking
         </h5>
         <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">
           <span>&times;</span>
         </button>
       </div>
-      <div class="modal-body" style="padding: 30px;">
+      <div class="modal-body">
         <input type="hidden" id="booking-cargo-idx">
         
         <div class="form-group">
-          <label style="font-weight: 600; color: #1e293b;">
-            Transporter <span style="color: #ef4444;">*</span>
-          </label>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                <i class="fa fa-building"></i>
-              </span>
-            </div>
-            <input type="text" 
-                   class="form-control" 
-                   id="booking-transporter" 
-                   placeholder="Start typing to search..."
-                   autocomplete="off"
-                   required
-                   style="border-left: none;">
-          </div>
+          <label style="font-weight: 600;">Transporter <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" id="booking-transporter" placeholder="Start typing to search..." required autocomplete="off">
           <div id="transporter-dropdown" class="dropdown-menu" style="width: 100%; max-height: 200px; overflow-y: auto;"></div>
         </div>
         
         <div class="row">
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">
-                Truck Registration <span style="color: #ef4444;">*</span>
-              </label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-truck"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-truck-reg" 
-                       placeholder="e.g., ABC-123-GP" 
-                       required
-                       style="border-left: none; text-transform: uppercase;">
-              </div>
+              <label style="font-weight: 600;">Truck Registration <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="form-control" id="booking-truck-reg" placeholder="e.g., ABC-123-GP" required style="text-transform: uppercase;">
             </div>
           </div>
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">Trailer Registration</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-trailer"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-trailer-reg"
-                       placeholder="e.g., XYZ-456-GP"
-                       style="border-left: none; text-transform: uppercase;">
-              </div>
+              <label style="font-weight: 600;">Trailer Registration</label>
+              <input type="text" class="form-control" id="booking-trailer-reg" placeholder="e.g., XYZ-456-GP" style="text-transform: uppercase;">
             </div>
           </div>
         </div>
@@ -809,42 +792,14 @@
         <div class="row">
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">
-                Driver Name <span style="color: #ef4444;">*</span>
-              </label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-user"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-driver-name" 
-                       placeholder="Full name"
-                       required
-                       style="border-left: none;">
-              </div>
+              <label style="font-weight: 600;">Driver Name <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="form-control" id="booking-driver-name" placeholder="Full name" required>
             </div>
           </div>
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">
-                Driver Contact <span style="color: #ef4444;">*</span>
-              </label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-phone"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-driver-contact" 
-                       placeholder="0771234567" 
-                       required
-                       style="border-left: none;">
-              </div>
+              <label style="font-weight: 600;">Driver Contact <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="form-control" id="booking-driver-contact" placeholder="0771234567" required>
             </div>
           </div>
         </div>
@@ -852,44 +807,20 @@
         <div class="row">
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">Driver Passport</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-id-card"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-driver-passport"
-                       placeholder="Passport number"
-                       style="border-left: none; text-transform: uppercase;">
-              </div>
+              <label style="font-weight: 600;">Driver Passport</label>
+              <input type="text" class="form-control" id="booking-driver-passport" placeholder="Passport number" style="text-transform: uppercase;">
             </div>
           </div>
           <div class="col-md-6">
             <div class="form-group">
-              <label style="font-weight: 600; color: #1e293b;">Driver Licence</label>
-              <div class="input-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                    <i class="fa fa-id-badge"></i>
-                  </span>
-                </div>
-                <input type="text" 
-                       class="form-control" 
-                       id="booking-driver-licence"
-                       placeholder="Licence number"
-                       style="border-left: none; text-transform: uppercase;">
-              </div>
+              <label style="font-weight: 600;">Driver Licence</label>
+              <input type="text" class="form-control" id="booking-driver-licence" placeholder="Licence number" style="text-transform: uppercase;">
             </div>
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="background: #f8f9fb; border-radius: 0 0 12px 12px;">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          <i class="fa fa-times"></i> Cancel
-        </button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-success" id="submit-booking">
           <i class="fa fa-check"></i> Submit Booking
         </button>
@@ -899,72 +830,43 @@
 </div>
 
 <!-- Update Tracking Modal -->
-<div class="modal fade" id="updateTrackingModal" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content" style="border-radius: 12px; border: none;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border-radius: 12px 12px 0 0;">
-        <h5 class="modal-title" style="font-weight: 600;">
+<div class="modal fade" id="updateTrackingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
           <i class="fa fa-route"></i> Update Tracking
         </h5>
         <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">
           <span>&times;</span>
         </button>
       </div>
-      <div class="modal-body" style="padding: 30px;">
+      <div class="modal-body">
         <input type="hidden" id="tracking-cargo-idx">
         
         <div class="form-group">
-          <label style="font-weight: 600; color: #1e293b;">
-            Status <span style="color: #ef4444;">*</span>
-          </label>
-          <select class="form-control" id="tracking-status" required style="padding: 10px; border: 2px solid #e0e6ed; border-radius: 6px;">
+          <label style="font-weight: 600;">Status <span style="color: #ef4444;">*</span></label>
+          <select class="form-control" id="tracking-status" required>
             <option value="">Select Status...</option>
-            <option value="Loading">🟣 Loading</option>
-            <option value="In Transit">🟠 In Transit</option>
-            <option value="Offloaded">🟤 Offloaded</option>
-            <option value="Delivered">⚫ Delivered</option>
+            <option value="Loading">Loading</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Delivered">Delivered</option>
           </select>
         </div>
         
         <div class="form-group">
-          <label style="font-weight: 600; color: #1e293b;">
-            Location <span style="color: #ef4444;">*</span>
-          </label>
-          <div class="input-group">
-            <div class="input-group-prepend">
-              <span class="input-group-text" style="background: #f8f9fb; border-right: none;">
-                <i class="fa fa-map-marker-alt"></i>
-              </span>
-            </div>
-            <input type="text" 
-                   class="form-control" 
-                   id="tracking-location" 
-                   required 
-                   placeholder="e.g., Durban Port, Beitbridge Border"
-                   style="border-left: none;">
-          </div>
+          <label style="font-weight: 600;">Location <span style="color: #ef4444;">*</span></label>
+          <input type="text" class="form-control" id="tracking-location" required placeholder="e.g., Durban Port, Beitbridge Border">
         </div>
         
         <div class="form-group">
-          <label style="font-weight: 600; color: #1e293b;">
-            Comment <span style="color: #ef4444;">*</span>
-          </label>
-          <textarea class="form-control" 
-                    id="tracking-comment" 
-                    rows="4" 
-                    required
-                    placeholder="Provide details about the current status..."
-                    style="border: 2px solid #e0e6ed; border-radius: 6px;"></textarea>
-          <small class="form-text text-muted">
-            <i class="fa fa-info-circle"></i> Be specific about location, delays, or issues
-          </small>
+          <label style="font-weight: 600;">Comment <span style="color: #ef4444;">*</span></label>
+          <textarea class="form-control" id="tracking-comment" rows="4" required placeholder="Provide details about the current status..."></textarea>
         </div>
       </div>
-      <div class="modal-footer" style="background: #f8f9fb; border-radius: 0 0 12px 12px;">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">
-          <i class="fa fa-times"></i> Cancel
-        </button>
-        <button type="button" class="btn btn-primary" id="submit-tracking">
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="submit-tracking">
           <i class="fa fa-save"></i> Update
         </button>
       </div>
@@ -981,22 +883,21 @@ $(document).ready(function() {
   let allSuppliers = [];
 
   // ========================================
-  // TOGGLE COLLAPSIBLE DETAILS
+  // TOGGLE DETAILS - Handler for Details button
   // ========================================
-  window.toggleDetails = function(element) {
-    const content = $(element).next('.details-content');
-    const icon = $(element).find('.toggle-icon');
+  $(document).on('click', '.toggle-details-btn', function(e) {
+    e.stopPropagation();
+    const cargoRow = $(this).closest('.cargo-row');
+    const panel = cargoRow.find('.detail-panel');
     
-    if (content.hasClass('show')) {
-      content.removeClass('show');
-      $(element).removeClass('active');
-      $(element).find('.toggle-text').html('<i class="fa fa-info-circle"></i> View More Details');
+    if (cargoRow.hasClass('expanded')) {
+      panel.removeClass('show');
+      cargoRow.removeClass('expanded');
     } else {
-      content.addClass('show');
-      $(element).addClass('active');
-      $(element).find('.toggle-text').html('<i class="fa fa-info-circle"></i> Hide Details');
+      panel.addClass('show');
+      cargoRow.addClass('expanded');
     }
-  };
+  });
 
   // ========================================
   // SEARCH AND FILTER
@@ -1005,7 +906,7 @@ $(document).ready(function() {
     const searchText = $('#search-input').val().toLowerCase();
     const statusFilter = $('#status-filter').val();
     
-    $('.cargo-card').each(function() {
+    $('.cargo-row').each(function() {
       const $card = $(this);
       const container = $card.data('container').toLowerCase();
       const truck = $card.data('truck').toLowerCase();
@@ -1039,7 +940,7 @@ $(document).ready(function() {
   };
 
   // ========================================
-  // LOAD SUPPLIERS FOR TRANSPORTER FIELD
+  // LOAD SUPPLIERS
   // ========================================
   function loadSuppliers() {
     frappe.call({
@@ -1059,7 +960,6 @@ $(document).ready(function() {
     });
   }
 
-  // Autocomplete for transporter
   $('#booking-transporter').on('focus', function() {
     if (allSuppliers.length === 0) {
       loadSuppliers();
@@ -1086,8 +986,7 @@ $(document).ready(function() {
         const displayName = supplier.supplier_name || supplier.name;
         $dropdown.append(`
           <a class="dropdown-item" href="#" data-value="${supplier.name}">
-            <strong>${displayName}</strong>
-            ${supplier.name !== displayName ? '<br><small class="text-muted">' + supplier.name + '</small>' : ''}
+            ${displayName}
           </a>
         `);
       });
@@ -1100,12 +999,11 @@ $(document).ready(function() {
   $(document).on('click', '#transporter-dropdown .dropdown-item', function(e) {
     e.preventDefault();
     const value = $(this).data('value');
-    const displayText = $(this).find('strong').text();
+    const displayText = $(this).text();
     $('#booking-transporter').val(displayText).data('supplier-id', value);
     $('#transporter-dropdown').hide();
   });
 
-  // Hide dropdown when clicking outside
   $(document).on('click', function(e) {
     if (!$(e.target).closest('#booking-transporter, #transporter-dropdown').length) {
       $('#transporter-dropdown').hide();
@@ -1113,13 +1011,12 @@ $(document).ready(function() {
   });
 
   // ========================================
-  // ADD BOOKING BUTTON
+  // ADD BOOKING
   // ========================================
-  $('.add-booking-btn').click(function() {
+  $(document).on('click', '.add-booking-btn', function(e) {
+    e.stopPropagation();
     const idx = $(this).data('cargo-idx');
     $('#booking-cargo-idx').val(idx);
-    
-    // Clear form
     $('#booking-transporter').val('').removeData('supplier-id');
     $('#booking-truck-reg').val('');
     $('#booking-trailer-reg').val('');
@@ -1127,18 +1024,10 @@ $(document).ready(function() {
     $('#booking-driver-contact').val('');
     $('#booking-driver-passport').val('');
     $('#booking-driver-licence').val('');
-    
-    // Load suppliers
-    if (allSuppliers.length === 0) {
-      loadSuppliers();
-    }
-    
+    if (allSuppliers.length === 0) loadSuppliers();
     $('#addBookingModal').modal('show');
   });
 
-  // ========================================
-  // SUBMIT BOOKING
-  // ========================================
   $('#submit-booking').click(function() {
     const idx = $('#booking-cargo-idx').val();
     const transporterId = $('#booking-transporter').data('supplier-id');
@@ -1155,11 +1044,7 @@ $(document).ready(function() {
     };
 
     if (!data.transporter || !data.truck_reg_no || !data.driver_name || !data.driver_contact_no) {
-      frappe.msgprint({
-        title: 'Missing Information',
-        indicator: 'red',
-        message: 'Please fill all required fields marked with *'
-      });
+      frappe.msgprint('Please fill all required fields');
       return;
     }
 
@@ -1167,18 +1052,11 @@ $(document).ready(function() {
 
     frappe.call({
       method: 'freightmas.www.truck_portal.add_truck_booking',
-      args: {
-        job: doc_name,
-        cargo_idx: idx,
-        ...data
-      },
+      args: { job: doc_name, cargo_idx: idx, ...data },
       callback: (r) => {
         if (r.message && r.message.success) {
           $('#addBookingModal').modal('hide');
-          frappe.show_alert({
-            message: 'Booking added successfully! 🎉',
-            indicator: 'green'
-          });
+          frappe.show_alert({ message: 'Booking added successfully!', indicator: 'green' });
           setTimeout(() => location.reload(), 1500);
         }
       },
@@ -1189,101 +1067,15 @@ $(document).ready(function() {
   });
 
   // ========================================
-  // APPROVE BOOKING
-  // ========================================
-  $('.approve-btn').click(function() {
-    const idx = $(this).data('cargo-idx');
-    
-    frappe.confirm(
-      'Are you sure you want to approve this truck booking?',
-      () => {
-        frappe.call({
-          method: 'freightmas.www.truck_portal.approve_booking',
-          args: { job: doc_name, cargo_idx: idx },
-          callback: (r) => {
-            if (r.message && r.message.success) {
-              frappe.show_alert({
-                message: 'Booking approved ✓',
-                indicator: 'green'
-              });
-              setTimeout(() => location.reload(), 1000);
-            }
-          }
-        });
-      }
-    );
-  });
-
-  // ========================================
-  // REJECT BOOKING
-  // ========================================
-  $('.reject-btn').click(function() {
-    const idx = $(this).data('cargo-idx');
-    
-    frappe.prompt({
-      label: 'Reason for Rejection',
-      fieldname: 'reason',
-      fieldtype: 'Small Text',
-      reqd: 1
-    }, (values) => {
-      frappe.call({
-        method: 'freightmas.www.truck_portal.reject_booking',
-        args: { 
-          job: doc_name, 
-          cargo_idx: idx, 
-          reason: values.reason 
-        },
-        callback: (r) => {
-          if (r.message && r.message.success) {
-            frappe.show_alert({
-              message: 'Booking rejected',
-              indicator: 'red'
-            });
-            setTimeout(() => location.reload(), 1000);
-          }
-        }
-      });
-    }, 'Reject Booking', 'Submit');
-  });
-
-  // ========================================
-  // MARK AS BOOKED
-  // ========================================
-  $('.book-btn').click(function() {
-    const idx = $(this).data('cargo-idx');
-    
-    frappe.confirm(
-      'Mark this truck as booked and ready for loading?',
-      () => {
-        frappe.call({
-          method: 'freightmas.www.truck_portal.mark_booked',
-          args: { job: doc_name, cargo_idx: idx },
-          callback: (r) => {
-            if (r.message && r.message.success) {
-              frappe.show_alert({
-                message: 'Marked as booked ✓',
-                indicator: 'blue'
-              });
-              setTimeout(() => location.reload(), 1000);
-            }
-          }
-        });
-      }
-    );
-  });
-
-  // ========================================
   // UPDATE TRACKING
   // ========================================
-  $('.update-tracking-btn').click(function() {
+  $(document).on('click', '.update-tracking-btn', function(e) {
+    e.stopPropagation();
     const idx = $(this).data('cargo-idx');
     $('#tracking-cargo-idx').val(idx);
-    
-    // Clear form
     $('#tracking-status').val('');
     $('#tracking-location').val('');
     $('#tracking-comment').val('');
-    
     $('#updateTrackingModal').modal('show');
   });
 
@@ -1296,11 +1088,7 @@ $(document).ready(function() {
     };
 
     if (!data.status || !data.location || !data.comment) {
-      frappe.msgprint({
-        title: 'Missing Information',
-        indicator: 'red',
-        message: 'Please fill all fields'
-      });
+      frappe.msgprint('Please fill all fields');
       return;
     }
 
@@ -1308,18 +1096,11 @@ $(document).ready(function() {
 
     frappe.call({
       method: 'freightmas.www.truck_portal.update_tracking',
-      args: {
-        job: doc_name,
-        cargo_idx: idx,
-        ...data
-      },
+      args: { job: doc_name, cargo_idx: idx, ...data },
       callback: (r) => {
         if (r.message && r.message.success) {
           $('#updateTrackingModal').modal('hide');
-          frappe.show_alert({
-            message: 'Tracking updated ✓',
-            indicator: 'green'
-          });
+          frappe.show_alert({ message: 'Tracking updated', indicator: 'green' });
           setTimeout(() => location.reload(), 1500);
         }
       },
@@ -1327,11 +1108,6 @@ $(document).ready(function() {
         $('#submit-tracking').prop('disabled', false).html('<i class="fa fa-save"></i> Update');
       }
     });
-  });
-
-  // Auto-uppercase for reg numbers
-  $('#booking-truck-reg, #booking-trailer-reg, #booking-driver-passport, #booking-driver-licence').on('input', function() {
-    this.value = this.value.toUpperCase();
   });
 });
 </script>
