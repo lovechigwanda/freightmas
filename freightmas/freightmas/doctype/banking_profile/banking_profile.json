@@ -78,8 +78,7 @@
   {
    "fieldname": "swift_code",
    "fieldtype": "Data",
-   "label": "Swift Code",
-   "reqd": 1
+   "label": "Swift Code"
   },
   {
    "default": "0",
@@ -105,7 +104,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 08:32:29.705957",
+ "modified": "2025-10-20 20:54:34.698762",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Banking Profile",
@@ -120,7 +119,8 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "FreightMas Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   },
@@ -133,19 +133,6 @@
    "role": "FreightMas User",
    "select": 1,
    "share": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "FreightMas Manager",
-   "select": 1,
-   "share": 1,
-   "write": 1
   }
  ],
  "row_format": "Dynamic",
