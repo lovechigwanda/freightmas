@@ -71,8 +71,14 @@
   "documents_checklist",
   "cargo_parcel_details_section",
   "cargo_parcel_details",
-  "share_with_road_freight",
+  "section_break_rnra",
+  "loading_address",
   "route",
+  "share_with_road_freight",
+  "column_break_mkbb",
+  "loading_instructions",
+  "column_break_icob",
+  "offloadiing_address",
   "charges_tab",
   "currency",
   "column_break_rrvw",
@@ -666,6 +672,33 @@
    "fieldtype": "Data",
    "label": "Trucks Required",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_rnra",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "loading_address",
+   "fieldtype": "Data",
+   "label": "Loading Address"
+  },
+  {
+   "fieldname": "column_break_mkbb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loading_instructions",
+   "fieldtype": "Data",
+   "label": "Loading Instructions"
+  },
+  {
+   "fieldname": "column_break_icob",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "offloadiing_address",
+   "fieldtype": "Data",
+   "label": "Offloading Address"
   }
  ],
  "grid_page_length": 50,
@@ -686,7 +719,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-18 10:16:22.519646",
+ "modified": "2025-10-19 09:16:57.964880",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

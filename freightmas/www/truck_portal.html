@@ -73,7 +73,7 @@
     margin-bottom: 15px;
   }
   
-  /* Page Header - Compressed - Start very close to top */
+  /* Page Header - Compressed */
   .page-header {
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(15px);
@@ -259,7 +259,7 @@
     justify-content: flex-end;
   }
   
-  /* Action Buttons - All White/Outlined Style */
+  /* Action Buttons */
   .btn-action {
     padding: 5px 10px;
     border-radius: 6px;
@@ -287,7 +287,6 @@
     transform: translateY(0);
   }
   
-  /* Add/Update buttons with slightly darker border for emphasis */
   .add-booking-btn,
   .update-tracking-btn {
     border-color: #9ca3af;
@@ -307,7 +306,7 @@
     transform: rotate(180deg);
   }
   
-  /* Status Badge - Enhanced for better visibility */
+  /* Status Badge */
   .status-badge {
     padding: 6px 14px;
     border-radius: 20px;
@@ -320,18 +319,20 @@
   }
   
   .status-pending { background: #fef3c7; color: #92400e; }
+  .status-pending-approval { background: #fef3c7; color: #92400e; }
   .status-approved { background: #d1fae5; color: #065f46; }
   .status-booked { background: #dbeafe; color: #1e40af; }
   .status-in-transit { background: #fed7aa; color: #9a3412; }
   .status-delivered { background: #e0e7ff; color: #3730a3; }
   .status-draft { background: #fee2e2; color: #991b1b; }
   .status-loading { background: #fbcfe8; color: #831843; }
+  .status-rejected { background: #fecaca; color: #991b1b; }
   
-  /* Detail Panel */
+  /* Detail Panel - ACCORDION STYLE */
   .detail-panel {
     display: none;
     background: #f8f9fb;
-    padding: 20px;
+    padding: 0;
     border-top: 2px solid #e5e7eb;
   }
   
@@ -339,44 +340,203 @@
     display: block;
   }
   
-  .detail-grid {
+  /* Accordion Section */
+  .accordion-section {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .accordion-section:last-child {
+    border-bottom: none;
+  }
+  
+  .accordion-header {
+    padding: 15px 20px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  
+  .accordion-header:hover {
+    background: #f9fafb;
+  }
+  
+  .accordion-header.active {
+    background: #f3f4f6;
+  }
+  
+  .accordion-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .accordion-icon {
+    transition: transform 0.3s;
+    color: #64748b;
+  }
+  
+  .accordion-header.active .accordion-icon {
+    transform: rotate(90deg);
+  }
+  
+  .accordion-content {
+    display: none;
+    padding: 20px;
+    background: #fafbfc;
+  }
+  
+  .accordion-content.show {
+    display: block;
+  }
+  
+  /* Info Grid */
+  .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
   }
   
-  .detail-item {
+  .info-item {
     background: white;
     padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
   }
   
-  .detail-item .label {
+  .info-label {
     font-size: 11px;
     color: #64748b;
     font-weight: 600;
     text-transform: uppercase;
     margin-bottom: 4px;
+    display: block;
   }
   
-  .detail-item .value {
+  .info-value {
     font-size: 14px;
     color: #1e293b;
     font-weight: 500;
   }
   
-  .detail-section-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 15px 0 10px 0;
-    padding-bottom: 5px;
-    border-bottom: 2px solid #667eea;
+  .info-value.empty {
+    color: #9ca3af;
+    font-style: italic;
   }
   
-  .detail-section-title:first-child {
-    margin-top: 0;
+  /* Approval Section Styles */
+  .approval-banner {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #fbbf24;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .approval-banner.approved {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    border-color: #10b981;
+  }
+  
+  .approval-banner.rejected {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+    border-color: #ef4444;
+  }
+  
+  .approval-banner-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .approval-banner-text {
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 15px;
+  }
+  
+  .approval-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .btn-approve {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-approve:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  
+  .btn-reject {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-reject:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+  
+  .approval-history {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .approval-history-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  
+  .approval-history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .approval-history-item:last-child {
+    border-bottom: none;
   }
   
   /* Alert Message */
@@ -469,7 +629,7 @@
       color: #64748b;
     }
     
-    .detail-grid {
+    .info-grid {
       grid-template-columns: 1fr;
     }
     
@@ -509,7 +669,7 @@
 
 <div class="container-fluid" style="max-width: 1600px; margin: 0 auto; padding: 8px 15px;">
   
-  <!-- Page Header - Compressed -->
+  <!-- Page Header -->
   <div class="page-header">
     <h1><i class="fa fa-ship"></i> {{ doc.name }}</h1>
     <div class="meta">
@@ -543,13 +703,14 @@
     </div>
     <select class="filter-select" id="status-filter">
       <option value="">All Statuses</option>
-      <option value="Pending">Pending</option>
+      <option value="Draft">Draft</option>
+      <option value="Pending Approval">Pending Approval</option>
       <option value="Approved">Approved</option>
+      <option value="Rejected">Rejected</option>
       <option value="Booked">Booked</option>
       <option value="Loading">Loading</option>
       <option value="In Transit">In Transit</option>
       <option value="Delivered">Delivered</option>
-      <option value="Draft">Draft</option>
     </select>
     <button class="btn-clear" onclick="clearFilters()">
       <i class="fa fa-redo"></i> Clear
@@ -637,7 +798,7 @@
                           data-cargo-idx="{{ loop.index0 }}">
                     <i class="fa fa-plus"></i> Add
                   </button>
-                {% elif cargo.booking_status in ['Booked', 'Loading', 'In Transit'] %}
+                {% elif cargo.booking_status in ['Approved', 'Booked', 'Loading', 'In Transit'] %}
                   <button class="btn-action update-tracking-btn" 
                           data-cargo-idx="{{ loop.index0 }}">
                     <i class="fa fa-route"></i> Update
@@ -650,94 +811,236 @@
             </div>
           </div>
 
-          <!-- Detail Panel -->
+          <!-- Detail Panel - ACCORDION STYLE -->
           <div class="detail-panel">
-            <div class="detail-section-title">📦 Cargo Information</div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="label">Cargo Type</div>
-                <div class="value">{{ cargo.cargo_type or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Container Type</div>
-                <div class="value">{{ cargo.container_type or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Weight (kg)</div>
-                <div class="value">{{ cargo.weight or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Volume (CBM)</div>
-                <div class="value">{{ cargo.volume or '-' }}</div>
-              </div>
-              {% if cargo.cargo_type != 'Containerised' %}
-              <div class="detail-item">
-                <div class="label">Dimensions (L×W×H)</div>
-                <div class="value">
-                  {{ cargo.length or '-' }} × {{ cargo.width or '-' }} × {{ cargo.height or '-' }} cm
+            
+            <!-- Cargo Information Section -->
+            <div class="accordion-section">
+              <div class="accordion-header" data-target="cargo-{{ loop.index0 }}">
+                <div class="accordion-title">
+                  <i class="fa fa-chevron-right accordion-icon"></i>
+                  📦 Cargo Information
                 </div>
               </div>
-              {% endif %}
+              <div class="accordion-content" id="cargo-{{ loop.index0 }}">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="info-label">Cargo Type</span>
+                    <span class="info-value">{{ cargo.cargo_type or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Container/Item</span>
+                    <span class="info-value">
+                      {% if cargo.cargo_type == 'Containerised' %}
+                        {{ cargo.container_number or '-' }}
+                      {% else %}
+                        {{ cargo.cargo_item_description or '-' }}
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Container Type</span>
+                    <span class="info-value">{{ cargo.container_type or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Weight (kg)</span>
+                    <span class="info-value">{{ cargo.weight or '-' }}</span>
+                  </div>
+                  {% if cargo.cargo_type != 'Containerised' %}
+                  <div class="info-item">
+                    <span class="info-label">Quantity</span>
+                    <span class="info-value">{{ cargo.cargo_quantity or '-' }} {{ cargo.cargo_uom or '' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Volume (CBM)</span>
+                    <span class="info-value">{{ cargo.volume or '-' }}</span>
+                  </div>
+                  {% endif %}
+                  <div class="info-item">
+                    <span class="info-label">Drop Off Location</span>
+                    <span class="info-value">{{ cargo.drop_off_place or '-' }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {% if cargo.is_truck_required %}
-            <div class="detail-section-title">🚛 Driver Information</div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="label">Trailer Registration</div>
-                <div class="value">{{ cargo.trailer_reg_no or '-' }}</div>
+            <!-- Truck Assignment Section -->
+            <div class="accordion-section">
+              <div class="accordion-header" data-target="truck-{{ loop.index0 }}">
+                <div class="accordion-title">
+                  <i class="fa fa-chevron-right accordion-icon"></i>
+                  🚛 Truck Assignment
+                </div>
               </div>
-              <div class="detail-item">
-                <div class="label">Driver Contact 1</div>
-                <div class="value">{{ cargo.driver_contact_no or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Driver Contact 2</div>
-                <div class="value">{{ cargo.driver_contact_no_2 or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Driver Passport</div>
-                <div class="value">{{ cargo.driver_passport_no or '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Driver Licence</div>
-                <div class="value">{{ cargo.driver_licence_no or '-' }}</div>
+              <div class="accordion-content" id="truck-{{ loop.index0 }}">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="info-label">Transporter</span>
+                    <span class="info-value">{{ cargo.transporter or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Truck Registration</span>
+                    <span class="info-value">{{ cargo.truck_reg_no or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Trailer Registration</span>
+                    <span class="info-value">{{ cargo.trailer_reg_no or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Driver Name</span>
+                    <span class="info-value">{{ cargo.driver_name or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Contact 1</span>
+                    <span class="info-value">{{ cargo.driver_contact_no or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Contact 2</span>
+                    <span class="info-value">{{ cargo.driver_contact_no_2 or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Passport No</span>
+                    <span class="info-value">{{ cargo.driver_passport_no or '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Licence No</span>
+                    <span class="info-value">{{ cargo.driver_licence_no or '-' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="detail-section-title">📍 Tracking Details</div>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <div class="label">Current Location</div>
-                <div class="value">
-                  {% if cargo.truck_location %}
-                    <i class="fa fa-map-marker-alt" style="color: #ef4444;"></i>
-                    {{ cargo.truck_location }}
+            <!-- Tracking Section -->
+            <div class="accordion-section">
+              <div class="accordion-header" data-target="tracking-{{ loop.index0 }}">
+                <div class="accordion-title">
+                  <i class="fa fa-chevron-right accordion-icon"></i>
+                  📍 Tracking & Timeline
+                </div>
+              </div>
+              <div class="accordion-content" id="tracking-{{ loop.index0 }}">
+                <div class="info-grid">
+                  <div class="info-item">
+                    <span class="info-label">Current Location</span>
+                    <span class="info-value">
+                      {% if cargo.truck_location %}
+                        <i class="fa fa-map-marker-alt" style="color: #ef4444;"></i>
+                        {{ cargo.truck_location }}
+                      {% else %}
+                        <span class="empty">Not updated</span>
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Load By Date</span>
+                    <span class="info-value">{{ frappe.format_date(cargo.load_by_date) if cargo.load_by_date else '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Last Updated</span>
+                    <span class="info-value">{{ frappe.format(cargo.updated_on, {'fieldtype': 'Datetime'}) if cargo.updated_on else '-' }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Updated By</span>
+                    <span class="info-value">{{ cargo.updated_by or '-' }}</span>
+                  </div>
+                </div>
+                {% if cargo.tracking_comment %}
+                <div class="info-item" style="margin-top: 15px;">
+                  <span class="info-label">Tracking Comment</span>
+                  <span class="info-value">{{ cargo.tracking_comment }}</span>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Approval Section -->
+            <div class="accordion-section">
+              <div class="accordion-header active" data-target="approval-{{ loop.index0 }}">
+                <div class="accordion-title">
+                  <i class="fa fa-chevron-right accordion-icon"></i>
+                  {% if cargo.booking_status == 'Pending Approval' %}
+                    ⚠️ Approval Required
+                  {% elif cargo.booking_status == 'Approved' %}
+                    ✅ Approval Status
+                  {% elif cargo.booking_status == 'Rejected' %}
+                    ❌ Approval Status
                   {% else %}
-                    -
+                    ✅ Approval Status
                   {% endif %}
                 </div>
               </div>
-              <div class="detail-item">
-                <div class="label">Load By Date</div>
-                <div class="value">{{ frappe.format_date(cargo.load_by_date) if cargo.load_by_date else '-' }}</div>
+              <div class="accordion-content show" id="approval-{{ loop.index0 }}">
+                
+                {% if cargo.booking_status == 'Pending Approval' %}
+                <!-- Pending Approval Banner -->
+                <div class="approval-banner">
+                  <div class="approval-banner-title">
+                    <i class="fa fa-clock"></i>
+                    Awaiting Approval
+                  </div>
+                  <div class="approval-banner-text">
+                    This booking was submitted by <strong>{{ cargo.transporter }}</strong> on {{ frappe.format_date(cargo.submitted_on) if cargo.submitted_on else 'today' }}. Please review the truck details and approve or reject.
+                  </div>
+                  <div class="approval-actions">
+                    <button class="btn-approve approve-booking-btn" 
+                            data-cargo-idx="{{ loop.index0 }}">
+                      <i class="fa fa-check"></i> Approve Booking
+                    </button>
+                    <button class="btn-reject reject-booking-btn" 
+                            data-cargo-idx="{{ loop.index0 }}">
+                      <i class="fa fa-times"></i> Reject Booking
+                    </button>
+                  </div>
+                </div>
+                
+                {% elif cargo.booking_status == 'Approved' %}
+                <!-- Approved Banner -->
+                <div class="approval-banner approved">
+                  <div class="approval-banner-title">
+                    <i class="fa fa-check-circle"></i>
+                    Booking Approved
+                  </div>
+                  <div class="approval-banner-text">
+                    This booking was approved by <strong>{{ cargo.approved_by or 'System' }}</strong> on {{ frappe.format(cargo.approved_on, {'fieldtype': 'Datetime'}) if cargo.approved_on else 'today' }}.
+                  </div>
+                </div>
+                
+                {% elif cargo.booking_status == 'Rejected' %}
+                <!-- Rejected Banner -->
+                <div class="approval-banner rejected">
+                  <div class="approval-banner-title">
+                    <i class="fa fa-times-circle"></i>
+                    Booking Rejected
+                  </div>
+                  <div class="approval-banner-text">
+                    This booking was rejected by <strong>{{ cargo.approved_by or 'System' }}</strong> on {{ frappe.format(cargo.approved_on, {'fieldtype': 'Datetime'}) if cargo.approved_on else 'today' }}.
+                  </div>
+                  {% if cargo.rejection_reason %}
+                  <div class="approval-history">
+                    <div class="approval-history-title">Rejection Reason</div>
+                    <p style="margin: 0; color: #1e293b;">{{ cargo.rejection_reason }}</p>
+                  </div>
+                  {% endif %}
+                </div>
+                
+                {% else %}
+                <!-- Draft or No Approval Needed -->
+                <div class="approval-history">
+                  <p style="margin: 0; color: #64748b; font-size: 13px;">
+                    {% if cargo.transporter %}
+                      No approval action required at this time.
+                    {% else %}
+                      Truck details have not been submitted yet.
+                    {% endif %}
+                  </p>
+                </div>
+                {% endif %}
+                
               </div>
-              <div class="detail-item">
-                <div class="label">Last Updated</div>
-                <div class="value">{{ frappe.format(cargo.updated_on, {'fieldtype': 'Datetime'}) if cargo.updated_on else '-' }}</div>
-              </div>
-              <div class="detail-item">
-                <div class="label">Updated By</div>
-                <div class="value">{{ cargo.updated_by or '-' }}</div>
-              </div>
-              {% if cargo.tracking_comment %}
-              <div class="detail-item" style="grid-column: 1 / -1;">
-                <div class="label">Tracking Comment</div>
-                <div class="value">{{ cargo.tracking_comment }}</div>
-              </div>
-              {% endif %}
             </div>
             {% endif %}
+
           </div>
         </div>
         {% endfor %}
@@ -822,7 +1125,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-success" id="submit-booking">
-          <i class="fa fa-check"></i> Submit Booking
+          <i class="fa fa-check"></i> Submit for Approval
         </button>
       </div>
     </div>
@@ -874,6 +1177,37 @@
   </div>
 </div>
 
+<!-- Rejection Reason Modal -->
+<div class="modal fade" id="rejectionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+        <h5 class="modal-title">
+          <i class="fa fa-times-circle"></i> Reject Booking
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rejection-cargo-idx">
+        
+        <div class="form-group">
+          <label style="font-weight: 600;">Reason for Rejection <span style="color: #ef4444;">*</span></label>
+          <textarea class="form-control" id="rejection-reason" rows="4" required placeholder="Please provide a clear reason for rejecting this booking..."></textarea>
+          <small class="text-muted">This will be shared with the transporter.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-danger" id="confirm-rejection" style="background: #ef4444; border: none; padding: 10px 25px; border-radius: 10px; font-weight: 600;">
+          <i class="fa fa-times"></i> Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block script %}
@@ -881,6 +1215,27 @@
 $(document).ready(function() {
   const doc_name = '{{ doc.name }}';
   let allSuppliers = [];
+
+  // ========================================
+  // ACCORDION FUNCTIONALITY
+  // ========================================
+  $(document).on('click', '.accordion-header', function(e) {
+    e.stopPropagation();
+    const $header = $(this);
+    const targetId = $header.data('target');
+    const $content = $('#' + targetId);
+    const $section = $header.closest('.accordion-section');
+    
+    // Close all other accordions in the same detail panel
+    $section.siblings('.accordion-section').each(function() {
+      $(this).find('.accordion-header').removeClass('active');
+      $(this).find('.accordion-content').removeClass('show');
+    });
+    
+    // Toggle current accordion
+    $header.toggleClass('active');
+    $content.toggleClass('show');
+  });
 
   // ========================================
   // TOGGLE DETAILS - Handler for Details button with auto-collapse
@@ -899,13 +1254,23 @@ $(document).ready(function() {
     
     // Then toggle the clicked card
     if (isCurrentlyExpanded) {
-      // If it was already expanded, collapse it
       panel.removeClass('show');
       cargoRow.removeClass('expanded');
     } else {
-      // If it was collapsed, expand it
       panel.addClass('show');
       cargoRow.addClass('expanded');
+      
+      // Auto-expand approval section if pending
+      const pendingApproval = panel.find('.approval-banner').length > 0;
+      if (pendingApproval) {
+        panel.find('.accordion-header').each(function() {
+          const targetId = $(this).data('target');
+          if (targetId && targetId.includes('approval')) {
+            $(this).addClass('active');
+            $('#' + targetId).addClass('show');
+          }
+        });
+      }
     }
   });
 
@@ -1050,7 +1415,9 @@ $(document).ready(function() {
       driver_name: $('#booking-driver-name').val(),
       driver_contact_no: $('#booking-driver-contact').val(),
       driver_passport_no: $('#booking-driver-passport').val().toUpperCase(),
-      driver_licence_no: $('#booking-driver-licence').val().toUpperCase()
+      driver_licence_no: $('#booking-driver-licence').val().toUpperCase(),
+      booking_status: 'Pending Approval',
+      submitted_on: frappe.datetime.now_datetime()
     };
 
     if (!data.transporter || !data.truck_reg_no || !data.driver_name || !data.driver_contact_no) {
@@ -1066,12 +1433,83 @@ $(document).ready(function() {
       callback: (r) => {
         if (r.message && r.message.success) {
           $('#addBookingModal').modal('hide');
-          frappe.show_alert({ message: 'Booking added successfully!', indicator: 'green' });
+          frappe.show_alert({ message: 'Booking submitted for approval!', indicator: 'green' });
           setTimeout(() => location.reload(), 1500);
         }
       },
       error: () => {
-        $('#submit-booking').prop('disabled', false).html('<i class="fa fa-check"></i> Submit Booking');
+        $('#submit-booking').prop('disabled', false).html('<i class="fa fa-check"></i> Submit for Approval');
+      }
+    });
+  });
+
+  // ========================================
+  // APPROVE BOOKING
+  // ========================================
+  $(document).on('click', '.approve-booking-btn', function(e) {
+    e.stopPropagation();
+    const idx = $(this).data('cargo-idx');
+    
+    frappe.confirm(
+      'Are you sure you want to approve this truck booking?',
+      () => {
+        $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Approving...');
+        
+        frappe.call({
+          method: 'freightmas.www.truck_portal.approve_booking',
+          args: { 
+            job: doc_name, 
+            cargo_idx: idx
+          },
+          callback: (r) => {
+            if (r.message && r.message.success) {
+              frappe.show_alert({ message: 'Booking approved successfully!', indicator: 'green' });
+              setTimeout(() => location.reload(), 1500);
+            }
+          }
+        });
+      }
+    );
+  });
+
+  // ========================================
+  // REJECT BOOKING
+  // ========================================
+  $(document).on('click', '.reject-booking-btn', function(e) {
+    e.stopPropagation();
+    const idx = $(this).data('cargo-idx');
+    $('#rejection-cargo-idx').val(idx);
+    $('#rejection-reason').val('');
+    $('#rejectionModal').modal('show');
+  });
+
+  $('#confirm-rejection').click(function() {
+    const idx = $('#rejection-cargo-idx').val();
+    const reason = $('#rejection-reason').val().trim();
+    
+    if (!reason) {
+      frappe.msgprint('Please provide a reason for rejection');
+      return;
+    }
+
+    $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Rejecting...');
+
+    frappe.call({
+      method: 'freightmas.www.truck_portal.reject_booking',
+      args: { 
+        job: doc_name, 
+        cargo_idx: idx,
+        reason: reason
+      },
+      callback: (r) => {
+        if (r.message && r.message.success) {
+          $('#rejectionModal').modal('hide');
+          frappe.show_alert({ message: 'Booking rejected', indicator: 'orange' });
+          setTimeout(() => location.reload(), 1500);
+        }
+      },
+      error: () => {
+        $('#confirm-rejection').prop('disabled', false).html('<i class="fa fa-times"></i> Confirm Rejection');
       }
     });
   });
