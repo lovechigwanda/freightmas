@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:port_name",
  "creation": "2025-06-03 19:00:22.867297",
@@ -120,25 +121,13 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 08:33:14.721192",
+ "modified": "2025-10-21 21:40:28.665630",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Port",
  "naming_rule": "By fieldname",
  "owner": "lchigwanda@outlook.com",
  "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
   {
    "create": 1,
    "email": 1,
@@ -161,6 +150,19 @@
    "report": 1,
    "role": "FreightMas Manager",
    "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
    "share": 1,
    "write": 1
   }
