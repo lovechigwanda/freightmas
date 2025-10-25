@@ -54,9 +54,7 @@
   "cargo_details_section",
   "cargo_description",
   "column_break_mwkt",
-  "cargo_count",
   "column_break_rcwr",
-  "trucks_required",
   "bill_of_lading_details_section",
   "bl_number",
   "is_bl_received",
@@ -69,16 +67,23 @@
   "bl_issued_date",
   "documents_checklist_section",
   "documents_checklist",
-  "cargo_parcel_details_section",
-  "cargo_parcel_details",
-  "section_break_rnra",
-  "loading_address",
+  "parcel_tab",
+  "loading_master_section",
+  "is_trucking_required",
+  "column_break_vwaw",
   "route",
+  "loading_master_section2",
+  "loading_address",
+  "road_freight_route",
   "share_with_road_freight",
   "column_break_mkbb",
-  "loading_instructions",
-  "column_break_icob",
   "offloadiing_address",
+  "cargo_count",
+  "column_break_icob",
+  "loading_instructions",
+  "trucks_required",
+  "cargo_parcel_details_section",
+  "cargo_parcel_details",
   "charges_tab",
   "currency",
   "column_break_rrvw",
@@ -661,10 +666,11 @@
   },
   {
    "fieldname": "route",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "hidden": 1,
-   "label": "Route",
+   "label": "Route for Web View",
    "no_copy": 1,
+   "options": "Route",
    "read_only": 1
   },
   {
@@ -672,10 +678,6 @@
    "fieldtype": "Data",
    "label": "Trucks Required",
    "read_only": 1
-  },
-  {
-   "fieldname": "section_break_rnra",
-   "fieldtype": "Section Break"
   },
   {
    "fieldname": "loading_address",
@@ -699,6 +701,36 @@
    "fieldname": "offloadiing_address",
    "fieldtype": "Data",
    "label": "Offloading Address"
+  },
+  {
+   "fieldname": "parcel_tab",
+   "fieldtype": "Tab Break",
+   "label": "Parcel"
+  },
+  {
+   "fieldname": "loading_master_section",
+   "fieldtype": "Section Break",
+   "label": "Loading Master"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_trucking_required",
+   "fieldtype": "Check",
+   "label": "Is Trucking Required"
+  },
+  {
+   "fieldname": "loading_master_section2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_vwaw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "road_freight_route",
+   "fieldtype": "Link",
+   "label": "Road Freight Route",
+   "options": "Road Freight Route"
   }
  ],
  "grid_page_length": 50,
@@ -719,7 +751,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-19 09:16:57.964880",
+ "modified": "2025-10-24 20:34:27.206596",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
