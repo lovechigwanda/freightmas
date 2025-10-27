@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-10-27 22:10:29.546926",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge",
+  "column_break_ujtk",
+  "description",
+  "section_break_tkwp",
+  "qty",
+  "column_break_dlkj",
+  "section_break_kspy",
+  "column_break_zxnj",
+  "buy_rate",
+  "supplier",
+  "column_break_bywa",
+  "cost_amount",
+  "is_purchased",
+  "purchase_invoice_reference"
+ ],
+ "fields": [
+  {
+   "columns": 1,
+   "fieldname": "charge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Charge",
+   "options": "Item",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_ujtk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "charge.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_tkwp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Qty",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_dlkj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_kspy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_zxnj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "buy_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Buy Rate",
+   "mandatory_depends_on": "eval:doc.supplier",
+   "options": "currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "cost_amount",
+   "fieldtype": "Currency",
+   "label": "Cost Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Supplier",
+   "mandatory_depends_on": "eval:doc.buy_rate",
+   "options": "Supplier"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_purchased",
+   "fieldtype": "Check",
+   "label": "Is Purchased",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "purchase_invoice_reference",
+   "fieldtype": "Link",
+   "label": "Purchase Invoice",
+   "no_copy": 1,
+   "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bywa",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-10-27 22:16:17.834048",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Forwarding Cost Charges",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

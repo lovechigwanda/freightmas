@@ -90,20 +90,34 @@
   "conversion_rate",
   "column_break_ieei",
   "base_currency",
-  "section_break_xoqa",
-  "forwarding_charges",
+  "forwarding_costing_section",
+  "forwarding_costing_charges",
   "fetch_from_quotation",
-  "section_break_johw",
+  "section_break_jsok",
   "total_estimated_revenue",
   "total_estimated_revenue_base",
-  "column_break_ygyd",
+  "column_break_tdai",
   "total_estimated_cost",
   "total_estimated_cost_base",
-  "column_break_lpog",
+  "column_break_fatf",
   "total_estimated_profit",
   "total_estimated_profit_base",
+  "job_revenue_actuals_section",
+  "forwarding_revenue_charges",
+  "job_cost_actuals_section",
+  "forwarding_cost_charges",
+  "section_break_johw",
+  "total_txn_revenue",
+  "total_txn_revenue_base",
+  "column_break_ygyd",
+  "total_txn_cost",
+  "total_txn_base",
+  "column_break_lpog",
+  "total_txn_profit",
+  "total_txn_profit_base",
   "tracking_tab",
   "forwarding_tracking",
+  "forwarding_charges",
   "section_break_eooh",
   "current_comment",
   "column_break_hrnc",
@@ -410,11 +424,6 @@
    "label": "Charges"
   },
   {
-   "fieldname": "forwarding_charges",
-   "fieldtype": "Table",
-   "options": "Forwarding Charges"
-  },
-  {
    "fieldname": "currency",
    "fieldtype": "Link",
    "label": "Currency",
@@ -442,57 +451,16 @@
    "label": "Base Currency"
   },
   {
-   "fieldname": "section_break_xoqa",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "section_break_johw",
    "fieldtype": "Section Break"
-  },
-  {
-   "bold": 1,
-   "fieldname": "total_estimated_revenue",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Revenue",
-   "options": "currency"
-  },
-  {
-   "fieldname": "total_estimated_revenue_base",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Revenue",
-   "precision": "2"
   },
   {
    "fieldname": "column_break_ygyd",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_estimated_cost",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Cost",
-   "options": "currency"
-  },
-  {
-   "fieldname": "total_estimated_cost_base",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Cost",
-   "precision": "2"
-  },
-  {
    "fieldname": "column_break_lpog",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_estimated_profit",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Profit",
-   "options": "currency"
-  },
-  {
-   "fieldname": "total_estimated_profit_base",
-   "fieldtype": "Currency",
-   "label": "Total Estimated Profit",
-   "precision": "2"
   },
   {
    "fieldname": "tracking_tab",
@@ -731,6 +699,127 @@
    "fieldtype": "Link",
    "label": "Road Freight Route",
    "options": "Road Freight Route"
+  },
+  {
+   "fieldname": "forwarding_costing_section",
+   "fieldtype": "Section Break",
+   "label": "Job Costing"
+  },
+  {
+   "fieldname": "forwarding_costing_charges",
+   "fieldtype": "Table",
+   "options": "Forwarding Costing Charges"
+  },
+  {
+   "fieldname": "job_revenue_actuals_section",
+   "fieldtype": "Section Break",
+   "label": "Job Revenue Actuals"
+  },
+  {
+   "fieldname": "forwarding_revenue_charges",
+   "fieldtype": "Table",
+   "options": "Forwarding Revenue Charges"
+  },
+  {
+   "fieldname": "job_cost_actuals_section",
+   "fieldtype": "Section Break",
+   "label": "Jost Cost Actuals"
+  },
+  {
+   "fieldname": "forwarding_cost_charges",
+   "fieldtype": "Table",
+   "options": "Forwarding Cost Charges"
+  },
+  {
+   "fieldname": "forwarding_charges",
+   "fieldtype": "Table",
+   "options": "Forwarding Charges"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_txn_revenue",
+   "fieldtype": "Currency",
+   "label": "Total  Revenue",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_txn_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Revenue",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_txn_cost",
+   "fieldtype": "Currency",
+   "label": "Total Cost",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_txn_base",
+   "fieldtype": "Currency",
+   "label": "Total Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_txn_profit",
+   "fieldtype": "Currency",
+   "label": "Total Profit",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_txn_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Profit",
+   "precision": "2"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_estimated_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Revenue",
+   "precision": "2"
+  },
+  {
+   "fieldname": "total_estimated_cost",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_profit",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "options": "currency"
+  },
+  {
+   "fieldname": "total_estimated_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Profit",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_jsok",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_tdai",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_estimated_cost_base",
+   "fieldtype": "Currency",
+   "label": "Total Estimated Cost",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_fatf",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -751,7 +840,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-24 20:34:27.206596",
+ "modified": "2025-10-27 22:41:30.590813",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
