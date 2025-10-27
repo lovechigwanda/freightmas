@@ -102,6 +102,8 @@
   "column_break_fatf",
   "total_estimated_profit",
   "total_estimated_profit_base",
+  "column_break_mmxb",
+  "estimated_profit_margin_percent",
   "job_revenue_actuals_section",
   "forwarding_revenue_charges",
   "job_cost_actuals_section",
@@ -115,6 +117,8 @@
   "column_break_lpog",
   "total_txn_profit",
   "total_txn_profit_base",
+  "column_break_crbh",
+  "profit_margin_percent",
   "tracking_tab",
   "forwarding_tracking",
   "forwarding_charges",
@@ -740,68 +744,79 @@
    "fieldname": "total_txn_revenue",
    "fieldtype": "Currency",
    "label": "Total  Revenue",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_txn_revenue_base",
    "fieldtype": "Currency",
    "label": "Total Revenue",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "total_txn_cost",
    "fieldtype": "Currency",
    "label": "Total Cost",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_txn_base",
    "fieldtype": "Currency",
    "label": "Total Cost",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "total_txn_profit",
    "fieldtype": "Currency",
    "label": "Total Profit",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_txn_profit_base",
    "fieldtype": "Currency",
    "label": "Total Profit",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "bold": 1,
    "fieldname": "total_estimated_revenue",
    "fieldtype": "Currency",
    "label": "Total Estimated Revenue",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_estimated_revenue_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Revenue",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "total_estimated_cost",
    "fieldtype": "Currency",
    "label": "Total Estimated Cost",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_estimated_profit",
    "fieldtype": "Currency",
    "label": "Total Estimated Profit",
-   "options": "currency"
+   "options": "currency",
+   "read_only": 1
   },
   {
    "fieldname": "total_estimated_profit_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Profit",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_jsok",
@@ -815,11 +830,33 @@
    "fieldname": "total_estimated_cost_base",
    "fieldtype": "Currency",
    "label": "Total Estimated Cost",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_fatf",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_mmxb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "estimated_profit_margin_percent",
+   "fieldtype": "Percent",
+   "label": "Estimated Margin Percent",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_crbh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "profit_margin_percent",
+   "fieldtype": "Percent",
+   "label": "Margin Percent",
+   "precision": "2"
   }
  ],
  "grid_page_length": 50,
@@ -840,7 +877,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-27 22:41:30.590813",
+ "modified": "2025-10-28 00:05:29.775617",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
