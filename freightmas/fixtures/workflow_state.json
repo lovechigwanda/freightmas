@@ -48,18 +48,18 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-27 22:12:53.327065",
+  "modified": "2025-10-29 18:14:43.955117",
   "name": "Cancelled",
-  "style": "",
+  "style": "Danger",
   "workflow_state_name": "Cancelled"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-06-02 18:04:34.845113",
+  "modified": "2025-10-29 18:13:53.286880",
   "name": "In Progress",
-  "style": "Warning",
+  "style": "Info",
   "workflow_state_name": "In Progress"
  },
  {
@@ -84,18 +84,18 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-02-27 22:12:43.833698",
+  "modified": "2025-10-29 18:14:35.241579",
   "name": "Completed",
-  "style": "",
+  "style": "Success",
   "workflow_state_name": "Completed"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-07-05 16:57:28.291165",
+  "modified": "2025-10-29 18:14:24.874262",
   "name": "Delivered",
-  "style": "",
+  "style": "Inverse",
   "workflow_state_name": "Delivered"
  },
  {

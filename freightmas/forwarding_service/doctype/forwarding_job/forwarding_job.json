@@ -121,8 +121,7 @@
   "profit_margin_percent",
   "tracking_tab",
   "forwarding_tracking",
-  "forwarding_charges",
-  "section_break_eooh",
+   "section_break_eooh",
   "current_comment",
   "column_break_hrnc",
   "last_updated_by",
@@ -734,11 +733,7 @@
    "fieldtype": "Table",
    "options": "Forwarding Cost Charges"
   },
-  {
-   "fieldname": "forwarding_charges",
-   "fieldtype": "Table",
-   "options": "Forwarding Charges"
-  },
+
   {
    "bold": 1,
    "fieldname": "total_txn_revenue",

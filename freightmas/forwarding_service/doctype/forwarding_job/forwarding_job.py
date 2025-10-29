@@ -11,6 +11,10 @@ class ForwardingJob(Document):
     
     def validate(self):
         """Validate document before saving"""
+        # Set completed_on when status is Completed
+        if self.status == "Completed" and not self.completed_on:
+            self.completed_on = nowdate()
+        
         # Set base currency first
         self.set_base_currency()
         
