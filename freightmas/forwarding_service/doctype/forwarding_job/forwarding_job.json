@@ -121,7 +121,7 @@
   "profit_margin_percent",
   "tracking_tab",
   "forwarding_tracking",
-   "section_break_eooh",
+  "section_break_eooh",
   "current_comment",
   "column_break_hrnc",
   "last_updated_by",
@@ -455,7 +455,8 @@
   },
   {
    "fieldname": "section_break_johw",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Actual Totals"
   },
   {
    "fieldname": "column_break_ygyd",
@@ -625,6 +626,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.status==\"Draft\"",
    "fieldname": "fetch_from_quotation",
    "fieldtype": "Button",
    "label": "Fetch Charges from Quotation"
@@ -704,9 +706,11 @@
    "options": "Road Freight Route"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.status==\"Draft\"",
    "fieldname": "forwarding_costing_section",
    "fieldtype": "Section Break",
-   "label": "Job Costing"
+   "label": "Planned Job Costing"
   },
   {
    "fieldname": "forwarding_costing_charges",
@@ -714,9 +718,10 @@
    "options": "Forwarding Costing Charges"
   },
   {
+   "collapsible": 1,
    "fieldname": "job_revenue_actuals_section",
    "fieldtype": "Section Break",
-   "label": "Job Revenue Actuals"
+   "label": "Actual Revenue"
   },
   {
    "fieldname": "forwarding_revenue_charges",
@@ -724,16 +729,16 @@
    "options": "Forwarding Revenue Charges"
   },
   {
+   "collapsible": 1,
    "fieldname": "job_cost_actuals_section",
    "fieldtype": "Section Break",
-   "label": "Jost Cost Actuals"
+   "label": "Actual Cost"
   },
   {
    "fieldname": "forwarding_cost_charges",
    "fieldtype": "Table",
    "options": "Forwarding Cost Charges"
   },
-
   {
    "bold": 1,
    "fieldname": "total_txn_revenue",
@@ -815,7 +820,8 @@
   },
   {
    "fieldname": "section_break_jsok",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Planned Totals"
   },
   {
    "fieldname": "column_break_tdai",
@@ -872,7 +878,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-28 00:05:29.775617",
+ "modified": "2025-10-29 21:36:50.944376",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

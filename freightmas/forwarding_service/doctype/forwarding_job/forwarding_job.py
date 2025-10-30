@@ -332,3 +332,67 @@ def create_purchase_invoice_with_rows(docname, row_names):
 
     job.save()
     return pi.name
+
+
+#########################################
+# Prevent editing of costing charges once job is not Draft
+# in freightmas/forwarding_service/doctype/forwarding_job/forwarding_job.py
+#########################################
+import frappe
+from frappe import _
+from frappe.utils import flt
+
+class ForwardingJob(Document):
+    def validate(self):
+        # ... your other validate logic ...
+        self.prevent_editing_costing_charges()
+        # ... rest of validate ...
+
+    def prevent_editing_costing_charges(self):
+        """Prevent add/edit/delete of forwarding_costing_charges when job is not Draft."""
+        if self.status == "Draft":
+            return
+
+        # Only relevant for existing docs
+        if not self.name:
+            return
+
+        # Fetch the original document from the database
+        original = frappe.get_doc("Forwarding Job", self.name)
+        
+        original_charges = [c.as_dict() for c in original.get("forwarding_costing_charges", [])]
+        current_charges = [c.as_dict() for c in self.get("forwarding_costing_charges", [])]
+
+        # Map by name for robust comparison (allow reorder)
+        orig_by_name = {r.get("name"): r for r in original_charges if r.get("name")}
+        curr_by_name = {r.get("name"): r for r in current_charges if r.get("name")}
+
+        # 1) New rows (no name) are not allowed
+        for r in current_charges:
+            if not r.get("name"):
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (New row detected)"))
+
+        # 2) Deletions (a name that existed before but missing now)
+        for name in orig_by_name:
+            if name not in curr_by_name:
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (Row removed)"))
+
+        # 3) Protected fields comparison on existing rows
+        protected = ["charge", "qty", "sell_rate", "buy_rate", "customer", "supplier"]
+        for name, orig_row in orig_by_name.items():
+            curr_row = curr_by_name.get(name)
+            if not curr_row:
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+
+            for field in protected:
+                orig_val = orig_row.get(field)
+                curr_val = curr_row.get(field)
+
+                # numeric vs string safe comparisons
+                if field in ("qty", "sell_rate", "buy_rate"):
+                    if flt(orig_val) != flt(curr_val):
+                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+                else:
+                    if (orig_val or "") != (curr_val or ""):
+                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+

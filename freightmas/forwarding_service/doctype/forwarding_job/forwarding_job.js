@@ -941,3 +941,98 @@ function calculate_actual_totals(frm) {
     
     frm.refresh_fields();
 }
+
+
+//////////////////////////////////////////
+/// Prevent editing of costing charges once job is not Draft
+//////////////////////////////////////////
+
+// === Forwarding Job: simple client-side lock for Forwarding Costing ===
+frappe.ui.form.on('Forwarding Job', {
+    refresh(frm) {
+        toggle_costing_table_lock(frm);
+    },
+    status(frm) {
+        // re-check when status changes
+        toggle_costing_table_lock(frm);
+    }
+});
+
+function toggle_costing_table_lock(frm) {
+    const fieldname = 'forwarding_costing_charges';
+    const is_draft = frm.doc.status === 'Draft';
+
+    if (!frm.fields_dict[fieldname]) return;
+
+    // Set DF-level properties which Frappe respects for table actions
+    frm.set_df_property(fieldname, 'cannot_add_rows', !is_draft);
+    frm.set_df_property(fieldname, 'allow_bulk_edit', is_draft);
+
+    // If grid is not yet rendered, stop here; refresh will run again later
+    const grid_field = frm.fields_dict[fieldname];
+    const grid = grid_field && grid_field.grid;
+    const wrapper = grid_field.$wrapper;
+
+    if (!grid) return;
+
+    // Set read_only on grid df so inputs are default readonly where supported
+    grid.df.read_only = !is_draft;
+
+    if (!is_draft) {
+        // hide add/duplicate/delete buttons (defensive selectors)
+        wrapper.find('.grid-add-row, .grid-duplicate-row, .grid-delete-row, .grid-expand-row').hide();
+
+        // Make existing rendered rows readonly (if possible)
+        try {
+            if (grid.grid_rows_by_docname) {
+                Object.keys(grid.grid_rows_by_docname).forEach(name => {
+                    const grid_row = grid.grid_rows_by_docname[name];
+                    if (!grid_row || !grid_row.columns) return;
+                    grid_row.columns.forEach(col => {
+                        if (col && col.df) {
+                            col.df.read_only = 1;
+                        }
+                    });
+                    grid_row.refresh();
+                });
+            } else {
+                // Fallback: visually dim and disable pointer events (still copyable if needed)
+                wrapper.find('.grid-body').css({'pointer-events': 'none', 'opacity': 0.7});
+            }
+        } catch (e) {
+            console.warn('Error locking costing grid rows', e);
+        }
+
+        // Add a one-time lock message (visual)
+        if (!wrapper.find('.fm-costing-locked').length) {
+            wrapper.find('.grid-heading-row').after(
+                `<div class="fm-costing-locked" 
+                      style="padding:6px 0 4px 0; margin-top:4px; color:#0b5ed7; font-weight:500; font-size:13px;">
+                    Planned Job Costing is locked for editing to maintain budget figures.
+                </div>`
+            );
+        }
+    } else {
+        // unlock UI
+        wrapper.find('.fm-costing-locked').remove();
+        wrapper.find('.grid-add-row, .grid-duplicate-row, .grid-delete-row, .grid-expand-row').show();
+        wrapper.find('.grid-body').css({'pointer-events': '', 'opacity': ''});
+
+        try {
+            if (grid.grid_rows_by_docname) {
+                Object.keys(grid.grid_rows_by_docname).forEach(name => {
+                    const grid_row = grid.grid_rows_by_docname[name];
+                    if (!grid_row || !grid_row.columns) return;
+                    grid_row.columns.forEach(col => {
+                        if (col && col.df) {
+                            col.df.read_only = 0;
+                        }
+                    });
+                    grid_row.refresh();
+                });
+            }
+        } catch (e) {
+            console.warn('Error unlocking costing grid rows', e);
+        }
+    }
+}
