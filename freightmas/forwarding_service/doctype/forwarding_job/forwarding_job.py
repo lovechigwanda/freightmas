@@ -36,6 +36,9 @@ class ForwardingJob(Document):
         # Calculate the number of trucks required
         self.calculate_trucks_required()
 
+        # Ensure planned charges exist before leaving Draft
+        self.ensure_planned_charges_before_status_change()
+
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
         if not getattr(self, "base_currency", None) and getattr(self, "company", None):
@@ -195,6 +198,22 @@ class ForwardingJob(Document):
                 trucks_count += 1
         self.trucks_required = str(trucks_count) if trucks_count else ""
 
+    def ensure_planned_charges_before_status_change(self):
+        """Block status change from Draft -> any other unless both planned totals have amounts."""
+        prev_status = None
+        if self.name:
+            prev_status = frappe.db.get_value("Forwarding Job", self.name, "status")
+
+        # Treat new unsaved docs as Draft
+        was_draft = (prev_status or "Draft") == "Draft"
+        leaving_draft = was_draft and self.status and self.status != "Draft"
+
+        if leaving_draft:
+            rev = flt(self.total_estimated_revenue)
+            cost = flt(self.total_estimated_cost)
+            if rev <= 0 or cost <= 0:
+                frappe.throw(_("Please add planned charges first. Both Planned Revenue and Planned Cost must be entered before starting Job."))
+
 # ========================================================
 # SALES INVOICE CREATION - UPDATED for forwarding_revenue_charges
 # ========================================================
@@ -344,9 +363,28 @@ from frappe.utils import flt
 
 class ForwardingJob(Document):
     def validate(self):
-        # ... your other validate logic ...
+        # Ensure planned charges exist before leaving Draft
+        self.ensure_planned_charges_before_status_change()
+
+        # ...existing code...
         self.prevent_editing_costing_charges()
-        # ... rest of validate ...
+        # ...existing code...
+
+    def ensure_planned_charges_before_status_change(self):
+        """Block status change from Draft -> any other unless both planned totals have amounts."""
+        prev_status = None
+        if self.name:
+            prev_status = frappe.db.get_value("Forwarding Job", self.name, "status")
+
+        # Treat new unsaved docs as Draft
+        was_draft = (prev_status or "Draft") == "Draft"
+        leaving_draft = was_draft and self.status and self.status != "Draft"
+
+        if leaving_draft:
+            rev = flt(self.total_estimated_revenue)
+            cost = flt(self.total_estimated_cost)
+            if rev <= 0 or cost <= 0:
+                frappe.throw(_("Please add planned charges first before Starting Job. Both Planned Revenue and Planned Cost must be entered."))
 
     def prevent_editing_costing_charges(self):
         """Prevent add/edit/delete of forwarding_costing_charges when job is not Draft."""

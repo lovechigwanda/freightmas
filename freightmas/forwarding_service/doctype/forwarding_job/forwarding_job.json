@@ -106,8 +106,10 @@
   "estimated_profit_margin_percent",
   "job_revenue_actuals_section",
   "forwarding_revenue_charges",
+  "fetch_revenue_from_job_costing",
   "job_cost_actuals_section",
   "forwarding_cost_charges",
+  "fetch_cost_from_job_costing",
   "section_break_johw",
   "total_txn_revenue",
   "total_txn_revenue_base",
@@ -788,35 +790,35 @@
    "bold": 1,
    "fieldname": "total_estimated_revenue",
    "fieldtype": "Currency",
-   "label": "Total Estimated Revenue",
+   "label": "Total Planned Revenue",
    "options": "currency",
    "read_only": 1
   },
   {
    "fieldname": "total_estimated_revenue_base",
    "fieldtype": "Currency",
-   "label": "Total Estimated Revenue",
+   "label": "Total Planned Revenue",
    "precision": "2",
    "read_only": 1
   },
   {
    "fieldname": "total_estimated_cost",
    "fieldtype": "Currency",
-   "label": "Total Estimated Cost",
+   "label": "Total Planned Cost",
    "options": "currency",
    "read_only": 1
   },
   {
    "fieldname": "total_estimated_profit",
    "fieldtype": "Currency",
-   "label": "Total Estimated Profit",
+   "label": "Total Planned Profit",
    "options": "currency",
    "read_only": 1
   },
   {
    "fieldname": "total_estimated_profit_base",
    "fieldtype": "Currency",
-   "label": "Total Estimated Profit",
+   "label": "Total Planned Profit",
    "precision": "2",
    "read_only": 1
   },
@@ -832,7 +834,7 @@
   {
    "fieldname": "total_estimated_cost_base",
    "fieldtype": "Currency",
-   "label": "Total Estimated Cost",
+   "label": "Total Planned Cost",
    "precision": "2",
    "read_only": 1
   },
@@ -860,6 +862,16 @@
    "fieldtype": "Percent",
    "label": "Margin Percent",
    "precision": "2"
+  },
+  {
+   "fieldname": "fetch_revenue_from_job_costing",
+   "fieldtype": "Button",
+   "label": "Fetch Revenue from Job Costing"
+  },
+  {
+   "fieldname": "fetch_cost_from_job_costing",
+   "fieldtype": "Button",
+   "label": "Fetch Cost from Job Costing"
   }
  ],
  "grid_page_length": 50,
@@ -880,7 +892,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-30 13:25:11.500916",
+ "modified": "2025-10-30 16:29:22.839878",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
