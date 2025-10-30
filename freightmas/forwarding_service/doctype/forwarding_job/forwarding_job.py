@@ -38,6 +38,9 @@ class ForwardingJob(Document):
 
         # Ensure planned charges exist before leaving Draft
         self.ensure_planned_charges_before_status_change()
+        
+        # Prevent editing of costing charges once job is not Draft
+        self.prevent_editing_costing_charges()
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
@@ -212,7 +215,171 @@ class ForwardingJob(Document):
             rev = flt(self.total_estimated_revenue)
             cost = flt(self.total_estimated_cost)
             if rev <= 0 or cost <= 0:
-                frappe.throw(_("Please add planned charges first. Both Planned Revenue and Planned Cost must be entered before starting Job."))
+                frappe.throw(_("Please add planned charges first before Starting Job. Both Planned Revenue and Planned Cost must be entered."))
+
+    def prevent_editing_costing_charges(self):
+        """Prevent add/edit/delete of forwarding_costing_charges when job is not Draft."""
+        if self.status == "Draft":
+            return
+
+        # Only relevant for existing docs
+        if not self.name:
+            return
+
+        # Fetch the original document from the database
+        original = frappe.get_doc("Forwarding Job", self.name)
+        
+        original_charges = [c.as_dict() for c in original.get("forwarding_costing_charges", [])]
+        current_charges = [c.as_dict() for c in self.get("forwarding_costing_charges", [])]
+
+        # Map by name for robust comparison (allow reorder)
+        orig_by_name = {r.get("name"): r for r in original_charges if r.get("name")}
+        curr_by_name = {r.get("name"): r for r in current_charges if r.get("name")}
+
+        # 1) New rows (no name) are not allowed
+        for r in current_charges:
+            if not r.get("name"):
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (New row detected)"))
+
+        # 2) Deletions (a name that existed before but missing now)
+        for name in orig_by_name:
+            if name not in curr_by_name:
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (Row removed)"))
+
+        # 3) Protected fields comparison on existing rows
+        protected = ["charge", "qty", "sell_rate", "buy_rate", "customer", "supplier"]
+        for name, orig_row in orig_by_name.items():
+            curr_row = curr_by_name.get(name)
+            if not curr_row:
+                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+
+            for field in protected:
+                orig_val = orig_row.get(field)
+                curr_val = curr_row.get(field)
+
+                # numeric vs string safe comparisons
+                if field in ("qty", "sell_rate", "buy_rate"):
+                    if flt(orig_val) != flt(curr_val):
+                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+                else:
+                    if (orig_val or "") != (curr_val or ""):
+                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
+
+    @frappe.whitelist()
+    def fetch_revenue_from_costing(self):
+        """
+        Copy eligible revenue-side values from forwarding_costing_charges to forwarding_revenue_charges.
+        
+        Rules:
+        - Row must have both sell_rate (> 0) and customer
+        - Skip if (charge, customer) combination already exists in revenue table
+        - Only copy revenue fields: charge, description, qty, sell_rate, customer, revenue_amount
+        
+        Returns:
+            int: Number of rows added
+        """
+        added = 0
+        
+        # Build set of existing (charge, customer) combinations to avoid duplicates
+        existing_revenue_pairs = set()
+        for row in self.get("forwarding_revenue_charges", []):
+            if row.charge and row.customer:
+                existing_revenue_pairs.add((row.charge, row.customer))
+        
+        # Loop through costing charges and copy eligible revenue data
+        for costing_row in self.get("forwarding_costing_charges", []):
+            # Skip if missing required revenue fields
+            if not costing_row.charge:
+                continue
+            if not (costing_row.customer and flt(costing_row.sell_rate)):
+                continue
+            
+            # Skip if duplicate combination
+            key = (costing_row.charge, costing_row.customer)
+            if key in existing_revenue_pairs:
+                continue
+            
+            # Calculate amounts
+            qty = flt(costing_row.qty) or 1.0
+            sell_rate = flt(costing_row.sell_rate)
+            revenue_amount = qty * sell_rate
+            
+            # Add new revenue row
+            self.append("forwarding_revenue_charges", {
+                "charge": costing_row.charge,
+                "description": costing_row.description,
+                "qty": qty,
+                "sell_rate": sell_rate,
+                "customer": costing_row.customer,
+                "revenue_amount": revenue_amount
+            })
+            
+            existing_revenue_pairs.add(key)
+            added += 1
+        
+        if added:
+            self.save()
+        
+        frappe.msgprint(_("{0} revenue charge(s) added").format(added))
+        return added
+
+    @frappe.whitelist()
+    def fetch_cost_from_costing(self):
+        """
+        Copy eligible cost-side values from forwarding_costing_charges to forwarding_cost_charges.
+        
+        Rules:
+        - Row must have both buy_rate (> 0) and supplier
+        - Skip if (charge, supplier) combination already exists in cost table
+        - Only copy cost fields: charge, description, qty, buy_rate, supplier, cost_amount
+        
+        Returns:
+            int: Number of rows added
+        """
+        added = 0
+        
+        # Build set of existing (charge, supplier) combinations to avoid duplicates
+        existing_cost_pairs = set()
+        for row in self.get("forwarding_cost_charges", []):
+            if row.charge and row.supplier:
+                existing_cost_pairs.add((row.charge, row.supplier))
+        
+        # Loop through costing charges and copy eligible cost data
+        for costing_row in self.get("forwarding_costing_charges", []):
+            # Skip if missing required cost fields
+            if not costing_row.charge:
+                continue
+            if not (costing_row.supplier and flt(costing_row.buy_rate)):
+                continue
+            
+            # Skip if duplicate combination
+            key = (costing_row.charge, costing_row.supplier)
+            if key in existing_cost_pairs:
+                continue
+            
+            # Calculate amounts
+            qty = flt(costing_row.qty) or 1.0
+            buy_rate = flt(costing_row.buy_rate)
+            cost_amount = qty * buy_rate
+            
+            # Add new cost row
+            self.append("forwarding_cost_charges", {
+                "charge": costing_row.charge,
+                "description": costing_row.description,
+                "qty": qty,
+                "buy_rate": buy_rate,
+                "supplier": costing_row.supplier,
+                "cost_amount": cost_amount
+            })
+            
+            existing_cost_pairs.add(key)
+            added += 1
+        
+        if added:
+            self.save()
+        
+        frappe.msgprint(_("{0} cost charge(s) added").format(added))
+        return added
 
 # ========================================================
 # SALES INVOICE CREATION - UPDATED for forwarding_revenue_charges
@@ -351,86 +518,4 @@ def create_purchase_invoice_with_rows(docname, row_names):
 
     job.save()
     return pi.name
-
-
-#########################################
-# Prevent editing of costing charges once job is not Draft
-# in freightmas/forwarding_service/doctype/forwarding_job/forwarding_job.py
-#########################################
-import frappe
-from frappe import _
-from frappe.utils import flt
-
-class ForwardingJob(Document):
-    def validate(self):
-        # Ensure planned charges exist before leaving Draft
-        self.ensure_planned_charges_before_status_change()
-
-        # ...existing code...
-        self.prevent_editing_costing_charges()
-        # ...existing code...
-
-    def ensure_planned_charges_before_status_change(self):
-        """Block status change from Draft -> any other unless both planned totals have amounts."""
-        prev_status = None
-        if self.name:
-            prev_status = frappe.db.get_value("Forwarding Job", self.name, "status")
-
-        # Treat new unsaved docs as Draft
-        was_draft = (prev_status or "Draft") == "Draft"
-        leaving_draft = was_draft and self.status and self.status != "Draft"
-
-        if leaving_draft:
-            rev = flt(self.total_estimated_revenue)
-            cost = flt(self.total_estimated_cost)
-            if rev <= 0 or cost <= 0:
-                frappe.throw(_("Please add planned charges first before Starting Job. Both Planned Revenue and Planned Cost must be entered."))
-
-    def prevent_editing_costing_charges(self):
-        """Prevent add/edit/delete of forwarding_costing_charges when job is not Draft."""
-        if self.status == "Draft":
-            return
-
-        # Only relevant for existing docs
-        if not self.name:
-            return
-
-        # Fetch the original document from the database
-        original = frappe.get_doc("Forwarding Job", self.name)
-        
-        original_charges = [c.as_dict() for c in original.get("forwarding_costing_charges", [])]
-        current_charges = [c.as_dict() for c in self.get("forwarding_costing_charges", [])]
-
-        # Map by name for robust comparison (allow reorder)
-        orig_by_name = {r.get("name"): r for r in original_charges if r.get("name")}
-        curr_by_name = {r.get("name"): r for r in current_charges if r.get("name")}
-
-        # 1) New rows (no name) are not allowed
-        for r in current_charges:
-            if not r.get("name"):
-                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (New row detected)"))
-
-        # 2) Deletions (a name that existed before but missing now)
-        for name in orig_by_name:
-            if name not in curr_by_name:
-                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status. (Row removed)"))
-
-        # 3) Protected fields comparison on existing rows
-        protected = ["charge", "qty", "sell_rate", "buy_rate", "customer", "supplier"]
-        for name, orig_row in orig_by_name.items():
-            curr_row = curr_by_name.get(name)
-            if not curr_row:
-                frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
-
-            for field in protected:
-                orig_val = orig_row.get(field)
-                curr_val = curr_row.get(field)
-
-                # numeric vs string safe comparisons
-                if field in ("qty", "sell_rate", "buy_rate"):
-                    if flt(orig_val) != flt(curr_val):
-                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
-                else:
-                    if (orig_val or "") != (curr_val or ""):
-                        frappe.throw(_("Planned Job Costing cannot be modified after the job leaves Draft status."))
 

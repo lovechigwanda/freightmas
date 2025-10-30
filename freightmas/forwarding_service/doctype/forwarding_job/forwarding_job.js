@@ -149,6 +149,46 @@ frappe.ui.form.on('Forwarding Job', {
                 indicator: 'orange'
             }, 5);
         }
+    },
+
+    fetch_revenue_from_job_costing: function(frm) {
+        if (!frm.doc.name) {
+            frappe.msgprint(__('Please save the document first.'));
+            return;
+        }
+        
+        frappe.call({
+            method: 'fetch_revenue_from_costing',
+            doc: frm.doc,
+            callback: function(r) {
+                if (r && r.message !== undefined) {
+                    const added = r.message || 0;
+                    if (added > 0) {
+                        frm.reload_doc();
+                    }
+                }
+            }
+        });
+    },
+
+    fetch_cost_from_job_costing: function(frm) {
+        if (!frm.doc.name) {
+            frappe.msgprint(__('Please save the document first.'));
+            return;
+        }
+        
+        frappe.call({
+            method: 'fetch_cost_from_costing',
+            doc: frm.doc,
+            callback: function(r) {
+                if (r && r.message !== undefined) {
+                    const added = r.message || 0;
+                    if (added > 0) {
+                        frm.reload_doc();
+                    }
+                }
+            }
+        });
     }
 });
 
