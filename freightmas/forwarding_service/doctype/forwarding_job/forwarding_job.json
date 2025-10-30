@@ -280,7 +280,7 @@
   {
    "fieldname": "port_of_loading",
    "fieldtype": "Link",
-   "label": "Port of Loading",
+   "label": "Port of Origin",
    "options": "Port",
    "reqd": 1
   },
@@ -719,6 +719,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.status != \"Draft\"",
    "fieldname": "job_revenue_actuals_section",
    "fieldtype": "Section Break",
    "label": "Actual Revenue"
@@ -730,6 +731,7 @@
   },
   {
    "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.status != \"Draft\"",
    "fieldname": "job_cost_actuals_section",
    "fieldtype": "Section Break",
    "label": "Actual Cost"
@@ -878,7 +880,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-29 21:36:50.944376",
+ "modified": "2025-10-30 13:25:11.500916",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
