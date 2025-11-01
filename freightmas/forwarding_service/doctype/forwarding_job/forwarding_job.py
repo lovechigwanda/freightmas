@@ -41,6 +41,9 @@ class ForwardingJob(Document):
         
         # Prevent editing of costing charges once job is not Draft
         self.prevent_editing_costing_charges()
+        
+        # Validate cargo milestone progression
+        self.validate_cargo_milestones()
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
@@ -380,6 +383,197 @@ class ForwardingJob(Document):
         
         frappe.msgprint(_("{0} cost charge(s) added").format(added))
         return added
+
+    @frappe.whitelist()
+    def fetch_cost_from_truck_loading(self):
+        """
+        Copy truck-related costs from cargo_parcel_details to forwarding_cost_charges.
+        
+        Rules:
+        - Only process rows where is_truck_required = 1
+        - Row must have both truck_buying_rate (> 0) and transporter
+        - Skip if (service_charge, transporter) combination already exists in cost table
+        - Copy fields: service_charge as charge, truck_buying_rate as buy_rate, transporter as supplier
+        
+        Returns:
+            int: Number of rows added
+        """
+        added = 0
+        
+        # Build set of existing (charge, supplier) combinations to avoid duplicates
+        existing_cost_pairs = set()
+        for row in self.get("forwarding_cost_charges", []):
+            if row.charge and row.supplier:
+                existing_cost_pairs.add((row.charge, row.supplier))
+        
+        # Loop through cargo parcel details and copy eligible truck cost data
+        for cargo_row in self.get("cargo_parcel_details", []):
+            # Skip if trucking is not required
+            if not cargo_row.get("is_truck_required"):
+                continue
+            
+            # Skip if missing required truck cost fields
+            if not cargo_row.service_charge:
+                continue
+            if not (cargo_row.transporter and flt(cargo_row.truck_buying_rate)):
+                continue
+            
+            # Skip if duplicate combination
+            key = (cargo_row.service_charge, cargo_row.transporter)
+            if key in existing_cost_pairs:
+                continue
+            
+            # Calculate amounts (qty = 1 for truck services)
+            qty = 1.0
+            buy_rate = flt(cargo_row.truck_buying_rate)
+            cost_amount = qty * buy_rate
+            
+            # Add new cost row
+            self.append("forwarding_cost_charges", {
+                "charge": cargo_row.service_charge,
+                "description": f"Truck Loading Service - {cargo_row.service_charge}",
+                "qty": qty,
+                "buy_rate": buy_rate,
+                "supplier": cargo_row.transporter,
+                "cost_amount": cost_amount
+            })
+            
+            existing_cost_pairs.add(key)
+            added += 1
+        
+        if added:
+            self.save()
+        
+        frappe.msgprint(_("{0} truck cost charge(s) added").format(added))
+        return added
+
+    def validate_cargo_milestones(self):
+        """Validate cargo milestone checkboxes and dates"""
+        for idx, cargo in enumerate(self.get("cargo_parcel_details", []), 1):
+            if not cargo.is_truck_required:
+                # Clear all milestones if trucking not required
+                self.clear_cargo_milestones(cargo)
+                continue
+            
+            # Validate sequential progression
+            self.validate_milestone_sequence(cargo, idx)
+            
+            # Validate date consistency
+            self.validate_milestone_dates(cargo, idx)
+            
+            # Validate required fields for specific milestones
+            self.validate_milestone_requirements(cargo, idx)
+
+    def clear_cargo_milestones(self, cargo):
+        """Clear all milestone checkboxes and dates when trucking not required"""
+        milestone_fields = [
+            'is_booked', 'is_loaded', 'is_offloaded', 'is_returned', 'is_completed',
+            'booked_on_date', 'loaded_on_date', 'offloaded_on_date', 'returned_on_date', 'completed_on_date'
+        ]
+        for field in milestone_fields:
+            if hasattr(cargo, field):
+                setattr(cargo, field, None if '_on_date' in field else 0)
+
+    def validate_milestone_sequence(self, cargo, row_idx):
+        """Ensure milestones are in proper sequence"""
+        milestones = [
+            ('is_booked', 'Booked'),
+            ('is_loaded', 'Loaded'),
+            ('is_offloaded', 'Offloaded'),
+            ('is_completed', 'Completed')
+        ]
+        
+        previous_milestone = None
+        for milestone_field, milestone_label in milestones:
+            current_state = getattr(cargo, milestone_field, 0)
+            
+            if current_state and previous_milestone and not getattr(cargo, previous_milestone[0], 0):
+                frappe.throw(
+                    _("Row {0}: {1} milestone cannot be completed before {2} milestone")
+                    .format(row_idx, milestone_label, previous_milestone[1])
+                )
+            
+            if current_state:
+                previous_milestone = (milestone_field, milestone_label)
+        
+        # Validate is_returned separately (optional milestone)
+        if getattr(cargo, 'is_returned', 0):
+            if not getattr(cargo, 'to_be_returned', 0):
+                frappe.throw(
+                    _("Row {0}: Container return milestone cannot be set when 'To Be Returned' is not checked")
+                    .format(row_idx)
+                )
+            if not getattr(cargo, 'is_offloaded', 0):
+                frappe.throw(
+                    _("Row {0}: Container must be offloaded before marking as returned")
+                    .format(row_idx)
+                )
+
+    def validate_milestone_dates(self, cargo, row_idx):
+        """Ensure milestone dates are in chronological order and not in future"""
+        import datetime
+        from frappe.utils import getdate, nowdate
+        
+        date_fields = [
+            ('booked_on_date', 'Booked Date'),
+            ('loaded_on_date', 'Loaded Date'),
+            ('offloaded_on_date', 'Offloaded Date'),
+            ('returned_on_date', 'Returned Date'),
+            ('completed_on_date', 'Completed Date')
+        ]
+        
+        dates_with_values = []
+        today = getdate(nowdate())  # Use Frappe's date utilities
+        
+        for field, label in date_fields:
+            date_value = getattr(cargo, field, None)
+            if date_value:
+                try:
+                    # Use Frappe's getdate() to handle various date formats consistently
+                    normalized_date = getdate(date_value)
+                    
+                    # Check for future dates
+                    if normalized_date > today:
+                        frappe.throw(
+                            _("Row {0}: {1} cannot be in the future")
+                            .format(row_idx, label)
+                        )
+                    
+                    dates_with_values.append((field, label, normalized_date))
+                    
+                except Exception:
+                    frappe.throw(
+                        _("Row {0}: Invalid date format in {1}")
+                        .format(row_idx, label)
+                    )
+        
+        # Check chronological order
+        for i in range(1, len(dates_with_values)):
+            if dates_with_values[i][2] < dates_with_values[i-1][2]:
+                frappe.throw(
+                    _("Row {0}: {1} cannot be before {2}")
+                    .format(row_idx, dates_with_values[i][1], dates_with_values[i-1][1])
+                )
+
+    def validate_milestone_requirements(self, cargo, row_idx):
+        """Validate required fields for specific milestones"""
+        # Required for loading
+        if getattr(cargo, 'is_loaded', 0):
+            if not getattr(cargo, 'driver_name', ''):
+                frappe.throw(_("Row {0}: Driver name is required for loaded cargo").format(row_idx))
+            if not getattr(cargo, 'driver_contact_no', ''):
+                frappe.throw(_("Row {0}: Driver contact is required for loaded cargo").format(row_idx))
+            if not getattr(cargo, 'truck_reg_no', ''):
+                frappe.throw(_("Row {0}: Truck registration is required for loaded cargo").format(row_idx))
+        
+        # Required for completion
+        if getattr(cargo, 'is_completed', 0):
+            if not flt(getattr(cargo, 'truck_buying_rate', 0)):
+                frappe.throw(_("Row {0}: Truck buying rate is required for completed cargo").format(row_idx))
+            if not getattr(cargo, 'transporter', ''):
+                frappe.throw(_("Row {0}: Transporter is required for completed cargo").format(row_idx))
+            if not getattr(cargo, 'service_charge', ''):
+                frappe.throw(_("Row {0}: Service charge is required for completed cargo").format(row_idx))
 
 # ========================================================
 # SALES INVOICE CREATION - UPDATED for forwarding_revenue_charges

@@ -27,52 +27,56 @@
   "trucking_details_section",
   "is_truck_required",
   "column_break_blto",
-  "booking_status",
-  "column_break_fowj",
   "load_by_date",
+  "column_break_fowj",
+  "booking_reference",
+  "column_break_mzjq",
+  "cargo_offloading_address",
   "truck_rates_section",
-  "truck_selling_rate",
-  "column_break_wnom",
-  "truck_buying_rate",
-  "column_break_otxt",
-  "service_charge",
   "column_break_mfxq",
-  "loading_details_section",
   "transporter",
-  "driver_contact_no",
-  "column_break_zqiu",
+  "column_break_kulk",
+  "service_charge",
+  "column_break_wnom",
+  "truck_selling_rate",
+  "column_break_otxt",
+  "truck_buying_rate",
+  "loading_details_section",
   "truck_reg_no",
-  "driver_passport_no",
-  "column_break_gbhn",
-  "trailer_reg_no",
   "driver_licence_no",
-  "column_break_ybic",
+  "column_break_zqiu",
+  "trailer_reg_no",
+  "driver_contact_no",
+  "column_break_gbhn",
   "driver_name",
   "driver_contact_no_2",
+  "column_break_ybic",
+  "driver_passport_no",
   "section_break_pfvm",
-  "truck_location",
-  "column_break_gfjd",
   "tracking_comment",
-  "section_break_wisd",
   "updated_on",
-  "column_break_jjmo",
+  "column_break_gfjd",
+  "truck_location",
   "updated_by",
-  "column_break_pcog",
   "section_break_qomc",
+  "is_booked",
+  "booked_on_date",
+  "column_break_yqvl",
   "is_loaded",
-  "gate_out_full_date",
-  "is_empty_picked",
-  "pick_up_empty_date",
+  "loaded_on_date",
   "column_break_locf",
   "is_offloaded",
-  "offloaded_date",
-  "is_gated_in_port",
-  "gate_in_full_date",
+  "offloaded_on_date",
   "column_break_vyup",
   "is_returned",
-  "gate_in_empty_date",
-  "is_loaded_on_vessel",
-  "loaded_on_vessel_date"
+  "returned_on_date",
+  "column_break_lkoi",
+  "is_completed",
+  "completed_on_date",
+  "attachments_section",
+  "proof_of_delivery",
+  "column_break_qsgx",
+  "other_attachment"
  ],
  "fields": [
   {
@@ -155,37 +159,17 @@
    "remember_last_selected_value": 1
   },
   {
+   "depends_on": "eval:doc.is_truck_required",
    "fieldname": "section_break_qomc",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Milestone Tracking"
   },
   {
    "default": "0",
-   "depends_on": "eval:parent.direction==\"Import\"",
    "fieldname": "is_loaded",
    "fieldtype": "Check",
-   "label": "Is Loaded"
-  },
-  {
-   "depends_on": "eval:doc.is_loaded",
-   "description": "Actual date the full container/cargo was picked up from the port.",
-   "fieldname": "gate_out_full_date",
-   "fieldtype": "Date",
-   "label": "Gate Out Full Date",
-   "mandatory_depends_on": "eval:doc.is_loaded== 1"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:parent.direction==\"Export\"",
-   "fieldname": "is_empty_picked",
-   "fieldtype": "Check",
-   "label": "Is Empty Picked"
-  },
-  {
-   "depends_on": "eval:doc.is_empty_picked",
-   "fieldname": "pick_up_empty_date",
-   "fieldtype": "Date",
-   "label": "Pickup Empty Date",
-   "mandatory_depends_on": "eval:doc.is_empty_picked"
+   "label": "Is Loaded",
+   "read_only_depends_on": "eval:doc.is_offloaded"
   },
   {
    "fieldname": "column_break_locf",
@@ -193,50 +177,15 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned && doc.is_loaded\n",
+   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned",
    "fieldname": "is_returned",
    "fieldtype": "Check",
-   "label": "Is Returned"
-  },
-  {
-   "depends_on": "eval:doc.is_returned",
-   "description": "Actual date the empty container was returned to the designated depot.",
-   "fieldname": "gate_in_empty_date",
-   "fieldtype": "Date",
-   "label": "Gate In Empty Date",
-   "mandatory_depends_on": "eval:doc.is_returned"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:parent.direction==\"Export\"",
-   "fieldname": "is_gated_in_port",
-   "fieldtype": "Check",
-   "label": "Is Gated In Port"
-  },
-  {
-   "depends_on": "eval:doc.is_gated_in_port",
-   "fieldname": "gate_in_full_date",
-   "fieldtype": "Date",
-   "label": "Gated In Full Date",
-   "mandatory_depends_on": "eval:doc.is_gated_in_port"
+   "label": "Is Returned",
+   "read_only_depends_on": "eval:doc.is_completed"
   },
   {
    "fieldname": "column_break_vyup",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:parent.direction==\"Export\" && doc.is_gated_in_port",
-   "fieldname": "is_loaded_on_vessel",
-   "fieldtype": "Check",
-   "label": "Is Loaded on Vessel"
-  },
-  {
-   "depends_on": "eval:doc.is_loaded_on_vessel",
-   "fieldname": "loaded_on_vessel_date",
-   "fieldtype": "Date",
-   "label": "Loaded on Vessel Date",
-   "mandatory_depends_on": "eval:doc.is_loaded_on_vessel"
   },
   {
    "depends_on": "eval:doc.is_truck_required",
@@ -307,6 +256,7 @@
    "options": "Supplier"
   },
   {
+   "depends_on": "eval:doc.is_truck_required",
    "fieldname": "section_break_pfvm",
    "fieldtype": "Section Break",
    "label": "Tracking"
@@ -344,7 +294,7 @@
    "precision": "2"
   },
   {
-   "depends_on": "eval:doc.to_be_returned",
+   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned",
    "fieldname": "drop_off_place",
    "fieldtype": "Link",
    "label": "Drop off Place",
@@ -353,7 +303,7 @@
   {
    "fieldname": "trucking_details_section",
    "fieldtype": "Section Break",
-   "label": "Trucking Details"
+   "label": "Trucking Management"
   },
   {
    "fieldname": "column_break_blto",
@@ -386,13 +336,6 @@
    "label": "Tracking Comment"
   },
   {
-   "depends_on": "eval:doc.is_truck_required",
-   "fieldname": "booking_status",
-   "fieldtype": "Select",
-   "label": "Booking Status",
-   "options": "Draft\nIn Progress\nBooking Confirmed\nPending\nApproved\nBooked\nLoading\nIn Transit\nOffloaded\nDelivered"
-  },
-  {
    "fieldname": "column_break_fowj",
    "fieldtype": "Column Break"
   },
@@ -403,22 +346,10 @@
    "label": "Load By Date"
   },
   {
-   "fieldname": "section_break_wisd",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_jjmo",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "updated_by",
    "fieldtype": "Link",
    "label": "Updated By",
    "options": "User"
-  },
-  {
-   "fieldname": "column_break_pcog",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "truck_location",
@@ -427,19 +358,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:parent.direction==\"Import\"",
    "fieldname": "is_offloaded",
    "fieldtype": "Check",
-   "label": "Is Offloaded"
+   "label": "Is Offloaded",
+   "read_only_depends_on": "eval:doc.is_returned"
   },
   {
-   "depends_on": "eval:doc.is_offloaded",
-   "fieldname": "offloaded_date",
-   "fieldtype": "Date",
-   "label": "Offloaded Date",
-   "mandatory_depends_on": "eval:doc.is_offloaded"
-  },
-  {
+   "depends_on": "eval:doc.is_truck_required",
    "fieldname": "truck_rates_section",
    "fieldtype": "Section Break",
    "label": "Rates"
@@ -469,17 +394,117 @@
    "fieldname": "service_charge",
    "fieldtype": "Link",
    "label": "Service Charge",
-   "options": "Item"
+   "options": "Item",
+   "remember_last_selected_value": 1
   },
   {
    "fieldname": "column_break_mfxq",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_truck_required",
+   "fieldname": "booking_reference",
+   "fieldtype": "Data",
+   "label": "Booking Reference"
+  },
+  {
+   "fieldname": "column_break_mzjq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_kulk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_lkoi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_completed",
+   "fieldtype": "Check",
+   "label": "Is Completed"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_booked",
+   "fieldtype": "Check",
+   "label": "Is Booked",
+   "read_only_depends_on": "eval:doc.is_loaded"
+  },
+  {
+   "fieldname": "column_break_yqvl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_booked",
+   "fieldname": "booked_on_date",
+   "fieldtype": "Date",
+   "label": "Booked On",
+   "mandatory_depends_on": "eval:doc.is_booked",
+   "read_only_depends_on": "eval:doc.is_loaded"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded",
+   "fieldname": "loaded_on_date",
+   "fieldtype": "Date",
+   "label": "Loaded On",
+   "mandatory_depends_on": "eval:doc.is_loaded== 1",
+   "read_only_depends_on": "eval:doc.is_offloaded"
+  },
+  {
+   "depends_on": "eval:doc.is_offloaded",
+   "fieldname": "offloaded_on_date",
+   "fieldtype": "Date",
+   "label": "Offloaded On",
+   "mandatory_depends_on": "eval:doc.is_offloaded",
+   "read_only_depends_on": "eval:doc.is_returned"
+  },
+  {
+   "depends_on": "eval:doc.is_returned",
+   "fieldname": "returned_on_date",
+   "fieldtype": "Date",
+   "label": "Returned On",
+   "mandatory_depends_on": "eval:doc.is_returned",
+   "read_only_depends_on": "eval:doc.is_completed"
+  },
+  {
+   "depends_on": "eval:doc.is_completed",
+   "fieldname": "completed_on_date",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "mandatory_depends_on": "eval:doc.is_completed"
+  },
+  {
+   "depends_on": "eval:doc.is_truck_required",
+   "fieldname": "cargo_offloading_address",
+   "fieldtype": "Data",
+   "label": "Offloading Address"
+  },
+  {
+   "fieldname": "attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Attachments"
+  },
+  {
+   "fieldname": "proof_of_delivery",
+   "fieldtype": "Attach",
+   "label": "Proof of Delivery"
+  },
+  {
+   "fieldname": "column_break_qsgx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "other_attachment",
+   "fieldtype": "Attach",
+   "label": "Other"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-01 13:42:59.200710",
+ "modified": "2025-11-01 22:15:31.641841",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

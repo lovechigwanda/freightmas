@@ -109,8 +109,11 @@
   "fetch_revenue_from_job_costing",
   "job_cost_actuals_section",
   "forwarding_cost_charges",
+  "section_break_hokg",
   "fetch_cost_from_job_costing",
+  "column_break_suuv",
   "fetch_cost_from_truck_loading",
+  "column_break_japu",
   "section_break_johw",
   "total_txn_revenue",
   "total_txn_revenue_base",
@@ -658,7 +661,8 @@
   {
    "fieldname": "loading_address",
    "fieldtype": "Data",
-   "label": "Loading Address"
+   "label": "Loading Address",
+   "mandatory_depends_on": "eval:doc.is_trucking_required"
   },
   {
    "fieldname": "column_break_mkbb",
@@ -676,7 +680,8 @@
   {
    "fieldname": "offloadiing_address",
    "fieldtype": "Data",
-   "label": "Offloading Address"
+   "label": "Offloading Address",
+   "mandatory_depends_on": "eval:doc.is_trucking_required"
   },
   {
    "fieldname": "parcel_tab",
@@ -695,6 +700,7 @@
    "label": "Is Trucking Required"
   },
   {
+   "depends_on": "eval:doc.is_trucking_required",
    "fieldname": "loading_master_section2",
    "fieldtype": "Section Break"
   },
@@ -706,6 +712,7 @@
    "fieldname": "road_freight_route",
    "fieldtype": "Link",
    "label": "Road Freight Route",
+   "mandatory_depends_on": "eval:doc.is_trucking_required",
    "options": "Road Freight Route"
   },
   {
@@ -878,6 +885,18 @@
    "fieldname": "fetch_cost_from_truck_loading",
    "fieldtype": "Button",
    "label": "Fetch Cost from Truck Loading"
+  },
+  {
+   "fieldname": "section_break_hokg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_suuv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_japu",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -898,7 +917,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-01 13:52:59.705278",
+ "modified": "2025-11-01 22:14:12.890954",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

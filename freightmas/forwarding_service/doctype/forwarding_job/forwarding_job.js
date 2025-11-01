@@ -189,6 +189,26 @@ frappe.ui.form.on('Forwarding Job', {
                 }
             }
         });
+    },
+
+    fetch_cost_from_truck_loading: function(frm) {
+        if (!frm.doc.name) {
+            frappe.msgprint(__('Please save the document first.'));
+            return;
+        }
+        
+        frappe.call({
+            method: 'fetch_cost_from_truck_loading',
+            doc: frm.doc,
+            callback: function(r) {
+                if (r && r.message !== undefined) {
+                    const added = r.message || 0;
+                    if (added > 0) {
+                        frm.reload_doc();
+                    }
+                }
+            }
+        });
     }
 });
 
@@ -1075,4 +1095,262 @@ function toggle_costing_table_lock(frm) {
             console.warn('Error unlocking costing grid rows', e);
         }
     }
+}
+
+
+// ==========================================================
+// CARGO MILESTONE VALIDATION
+// ==========================================================
+
+frappe.ui.form.on('Cargo Parcel Details', {
+    is_truck_required: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_truck_required) {
+            // Clear all milestone checkboxes and dates when trucking not required
+            clear_all_milestones(row);
+            frm.refresh_field('cargo_parcel_details');
+        }
+    },
+
+    is_booked: function(frm, cdt, cdn) {
+        validate_milestone_checkbox(frm, cdt, cdn, 'is_booked', 'booked_on_date');
+    },
+
+    is_loaded: function(frm, cdt, cdn) {
+        validate_milestone_checkbox(frm, cdt, cdn, 'is_loaded', 'loaded_on_date');
+    },
+
+    is_offloaded: function(frm, cdt, cdn) {
+        validate_milestone_checkbox(frm, cdt, cdn, 'is_offloaded', 'offloaded_on_date');
+    },
+
+    is_returned: function(frm, cdt, cdn) {
+        validate_milestone_checkbox(frm, cdt, cdn, 'is_returned', 'returned_on_date');
+    },
+
+    is_completed: function(frm, cdt, cdn) {
+        validate_milestone_checkbox(frm, cdt, cdn, 'is_completed', 'completed_on_date');
+    },
+
+    // Date field validations
+    booked_on_date: function(frm, cdt, cdn) {
+        validate_milestone_date_sequence(frm, cdt, cdn);
+    },
+
+    loaded_on_date: function(frm, cdt, cdn) {
+        validate_milestone_date_sequence(frm, cdt, cdn);
+    },
+
+    offloaded_on_date: function(frm, cdt, cdn) {
+        validate_milestone_date_sequence(frm, cdt, cdn);
+    },
+
+    completed_on_date: function(frm, cdt, cdn) {
+        validate_milestone_date_sequence(frm, cdt, cdn);
+    }
+});
+
+function validate_milestone_checkbox(frm, cdt, cdn, checkbox_field, date_field) {
+    let row = locals[cdt][cdn];
+    
+    // Skip validation if trucking not required
+    if (!row.is_truck_required) {
+        row[checkbox_field] = 0;
+        frappe.msgprint(__('Trucking must be required to track milestones'));
+        frm.refresh_field('cargo_parcel_details');
+        return;
+    }
+
+    if (row[checkbox_field]) {
+        // Checkbox being ticked - validate progression
+        if (!validate_sequential_progression(row, checkbox_field)) {
+            row[checkbox_field] = 0;
+            frm.refresh_field('cargo_parcel_details');
+            return;
+        }
+
+        // Validate prerequisites for specific milestones
+        if (!validate_milestone_prerequisites(row, checkbox_field)) {
+            row[checkbox_field] = 0;
+            frm.refresh_field('cargo_parcel_details');
+            return;
+        }
+
+        // Auto-set date to current if empty - use consistent format
+        if (!row[date_field]) {
+            row[date_field] = frappe.datetime.get_today(); // This returns YYYY-MM-DD format
+        }
+    } else {
+        // Checkbox being unticked - validate reverse sequence
+        if (!validate_reverse_unticking(row, checkbox_field)) {
+            row[checkbox_field] = 1;
+            frm.refresh_field('cargo_parcel_details');
+            return;
+        }
+
+        // Clear the corresponding date
+        row[date_field] = null;
+    }
+
+    frm.refresh_field('cargo_parcel_details');
+}
+
+function validate_sequential_progression(row, checkbox_field) {
+    const MILESTONE_ORDER = ['is_booked', 'is_loaded', 'is_offloaded', 'is_completed'];
+    const current_index = MILESTONE_ORDER.indexOf(checkbox_field);
+    
+    if (current_index === -1) {
+        // Handle is_returned separately (optional)
+        if (checkbox_field === 'is_returned') {
+            if (!row.to_be_returned) {
+                frappe.msgprint(__('Container return is not required for this cargo'));
+                return false;
+            }
+            if (!row.is_offloaded) {
+                frappe.msgprint(__('Container must be offloaded before marking as returned'));
+                return false;
+            }
+            return true;
+        }
+        return true;
+    }
+
+    // Check if previous milestones are completed
+    for (let i = 0; i < current_index; i++) {
+        if (!row[MILESTONE_ORDER[i]]) {
+            frappe.msgprint(__(`Please complete ${MILESTONE_ORDER[i].replace('is_', '').replace('_', ' ')} milestone first`));
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function validate_reverse_unticking(row, checkbox_field) {
+    const MILESTONE_ORDER = ['is_booked', 'is_loaded', 'is_offloaded', 'is_completed'];
+    const current_index = MILESTONE_ORDER.indexOf(checkbox_field);
+    
+    if (current_index === -1) {
+        // Handle is_returned separately
+        if (checkbox_field === 'is_returned') {
+            return true; // Can always untick return
+        }
+        return true;
+    }
+
+    // Check if later milestones are still ticked
+    for (let i = current_index + 1; i < MILESTONE_ORDER.length; i++) {
+        if (row[MILESTONE_ORDER[i]]) {
+            frappe.msgprint(__(`Please untick ${MILESTONE_ORDER[i].replace('is_', '').replace('_', ' ')} milestone first`));
+            return false;
+        }
+    }
+
+    // Also check if is_returned is ticked
+    if (row.is_returned && current_index <= 2) { // offloaded or earlier
+        frappe.msgprint(__('Please untick "Is Returned" milestone first'));
+        return false;
+    }
+
+    return true;
+}
+
+function validate_milestone_prerequisites(row, checkbox_field) {
+    switch(checkbox_field) {
+        case 'is_loaded':
+            if (!row.driver_name || !row.driver_contact_no || !row.truck_reg_no) {
+                frappe.msgprint(__('Driver name, contact, and truck registration are required before loading'));
+                return false;
+            }
+            break;
+            
+        case 'is_completed':
+            if (!row.truck_buying_rate || !row.transporter || !row.service_charge) {
+                frappe.msgprint(__('Truck buying rate, transporter, and service charge are required before completion'));
+                return false;
+            }
+            break;
+    }
+    return true;
+}
+
+function validate_milestone_date_sequence(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    
+    const date_fields = [
+        { field: 'booked_on_date', label: 'Booked Date' },
+        { field: 'loaded_on_date', label: 'Loaded Date' },
+        { field: 'offloaded_on_date', label: 'Offloaded Date' },
+        { field: 'returned_on_date', label: 'Returned Date' },
+        { field: 'completed_on_date', label: 'Completed Date' }
+    ];
+
+    let dates_with_values = [];
+    let today = frappe.datetime.get_today(); // Use Frappe's date format
+    let has_invalid_date = false;
+
+    // First pass: collect and validate individual dates
+    date_fields.forEach(d => {
+        if (row[d.field]) {
+            let date_value = row[d.field];
+            
+            // Normalize date to YYYY-MM-DD format
+            if (typeof date_value === 'string') {
+                // Handle different date formats
+                if (date_value.includes('/')) {
+                    // Convert DD/MM/YYYY or MM/DD/YYYY to YYYY-MM-DD
+                    let parts = date_value.split('/');
+                    if (parts.length === 3) {
+                        // Assume DD/MM/YYYY format (adjust if your system uses MM/DD/YYYY)
+                        date_value = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    }
+                } else if (date_value.includes('-')) {
+                    // Already in YYYY-MM-DD format or similar
+                    date_value = date_value.split(' ')[0]; // Remove time part if present
+                }
+            }
+            
+            // Check for future dates using string comparison (works for YYYY-MM-DD format)
+            if (date_value > today) {
+                frappe.msgprint(__(`${d.label} cannot be in the future`));
+                row[d.field] = null;
+                has_invalid_date = true;
+                return; // Skip this date from sequence check
+            }
+            
+            dates_with_values.push({
+                ...d,
+                value: date_value,
+                original_value: row[d.field]
+            });
+        }
+    });
+
+    // Only proceed with sequence validation if no individual date errors
+    if (has_invalid_date) {
+        frm.refresh_field('cargo_parcel_details');
+        return;
+    }
+
+    // Second pass: check chronological order
+    for (let i = 1; i < dates_with_values.length; i++) {
+        if (dates_with_values[i].value < dates_with_values[i-1].value) {
+            frappe.msgprint(__(`${dates_with_values[i].label} cannot be before ${dates_with_values[i-1].label}`));
+            // Only clear the problematic date, not all dates
+            row[dates_with_values[i].field] = null;
+            frm.refresh_field('cargo_parcel_details');
+            return; // Stop checking after first sequence error
+        }
+    }
+}
+
+function clear_all_milestones(row) {
+    const milestone_fields = [
+        'is_booked', 'is_loaded', 'is_offloaded', 'is_returned', 'is_completed',
+        'booked_on_date', 'loaded_on_date', 'offloaded_on_date', 'returned_on_date', 'completed_on_date'
+    ];
+    
+    milestone_fields.forEach(field => {
+        row[field] = field.includes('_on_date') ? null : 0;
+    });
 }
