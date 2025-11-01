@@ -110,6 +110,7 @@
   "job_cost_actuals_section",
   "forwarding_cost_charges",
   "fetch_cost_from_job_costing",
+  "fetch_cost_from_truck_loading",
   "section_break_johw",
   "total_txn_revenue",
   "total_txn_revenue_base",
@@ -872,6 +873,11 @@
    "fieldname": "fetch_cost_from_job_costing",
    "fieldtype": "Button",
    "label": "Fetch Cost from Job Costing"
+  },
+  {
+   "fieldname": "fetch_cost_from_truck_loading",
+   "fieldtype": "Button",
+   "label": "Fetch Cost from Truck Loading"
   }
  ],
  "grid_page_length": 50,
@@ -892,7 +898,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-10-30 16:29:22.839878",
+ "modified": "2025-11-01 13:52:59.705278",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

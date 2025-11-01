@@ -30,6 +30,13 @@
   "booking_status",
   "column_break_fowj",
   "load_by_date",
+  "truck_rates_section",
+  "truck_selling_rate",
+  "column_break_wnom",
+  "truck_buying_rate",
+  "column_break_otxt",
+  "service_charge",
+  "column_break_mfxq",
   "loading_details_section",
   "transporter",
   "driver_contact_no",
@@ -431,12 +438,48 @@
    "fieldtype": "Date",
    "label": "Offloaded Date",
    "mandatory_depends_on": "eval:doc.is_offloaded"
+  },
+  {
+   "fieldname": "truck_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Rates"
+  },
+  {
+   "fieldname": "truck_selling_rate",
+   "fieldtype": "Float",
+   "label": "Client Rate",
+   "non_negative": 1,
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_wnom",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "truck_buying_rate",
+   "fieldtype": "Float",
+   "label": "Transporter Rate",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_otxt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_charge",
+   "fieldtype": "Link",
+   "label": "Service Charge",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_mfxq",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-17 00:17:43.859944",
+ "modified": "2025-11-01 13:42:59.200710",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",
