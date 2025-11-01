@@ -1354,3 +1354,116 @@ function clear_all_milestones(row) {
         row[field] = field.includes('_on_date') ? null : 0;
     });
 }
+
+// ==========================================================
+// AUTO-POPULATE CARGO PARCEL DETAILS FROM PARENT
+// ==========================================================
+
+frappe.ui.form.on('Cargo Parcel Details', {
+    cargo_parcel_details_add: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        
+        // Auto-populate default values from parent Loading Master section
+        if (frm.doc.is_trucking_required !== undefined) {
+            frappe.model.set_value(cdt, cdn, 'is_truck_required', frm.doc.is_trucking_required);
+        }
+        
+        if (frm.doc.road_freight_route) {
+            frappe.model.set_value(cdt, cdn, 'road_freight_route', frm.doc.road_freight_route);
+        }
+        
+        if (frm.doc.offloadiing_address) { // Note: your field name has typo "offloadiing"
+            frappe.model.set_value(cdt, cdn, 'cargo_offloading_address', frm.doc.offloadiing_address);
+        }
+        
+        // Existing cargo count update
+        update_cargo_count_forwarding(frm);
+    },
+
+    // ...existing cargo_parcel_details handlers...
+});
+
+// ==========================================================
+// UPDATE CHILD ROWS WHEN PARENT VALUES CHANGE
+// ==========================================================
+
+frappe.ui.form.on('Forwarding Job', {
+    // ...existing handlers...
+
+    is_trucking_required: function(frm) {
+        // Update all existing cargo rows when parent trucking requirement changes
+        update_all_cargo_trucking_requirement(frm);
+    },
+
+    road_freight_route: function(frm) {
+        // Update all existing cargo rows when parent route changes
+        update_all_cargo_routes(frm);
+    },
+
+    offloadiing_address: function(frm) { // Note: keeping your field name as is
+        // Update all existing cargo rows when parent offloading address changes
+        update_all_cargo_offloading_addresses(frm);
+    }
+
+    // ...existing handlers...
+});
+
+// Helper function to update trucking requirement for all cargo rows
+function update_all_cargo_trucking_requirement(frm) {
+    if (!frm.doc.cargo_parcel_details) return;
+    
+    let updated = false;
+    frm.doc.cargo_parcel_details.forEach(function(row) {
+        if (row.is_truck_required !== frm.doc.is_trucking_required) {
+            frappe.model.set_value(row.doctype, row.name, 'is_truck_required', frm.doc.is_trucking_required);
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        frappe.show_alert({
+            message: __('Trucking requirement updated for all cargo items'),
+            indicator: 'blue'
+        }, 3);
+    }
+}
+
+// Helper function to update route for all cargo rows
+function update_all_cargo_routes(frm) {
+    if (!frm.doc.cargo_parcel_details || !frm.doc.road_freight_route) return;
+    
+    let updated = false;
+    frm.doc.cargo_parcel_details.forEach(function(row) {
+        if (row.road_freight_route !== frm.doc.road_freight_route) {
+            frappe.model.set_value(row.doctype, row.name, 'road_freight_route', frm.doc.road_freight_route);
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        frappe.show_alert({
+            message: __('Road freight route updated for all cargo items'),
+            indicator: 'blue'
+        }, 3);
+    }
+}
+
+// Helper function to update offloading address for all cargo rows
+function update_all_cargo_offloading_addresses(frm) {
+    if (!frm.doc.cargo_parcel_details || !frm.doc.offloadiing_address) return;
+    
+    let updated = false;
+    frm.doc.cargo_parcel_details.forEach(function(row) {
+        if (row.cargo_offloading_address !== frm.doc.offloadiing_address) {
+            frappe.model.set_value(row.doctype, row.name, 'cargo_offloading_address', frm.doc.offloadiing_address);
+            updated = true;
+        }
+    });
+    
+    if (updated) {
+        frappe.show_alert({
+            message: __('Offloading address updated for all cargo items'),
+            indicator: 'blue'
+        }, 3);
+    }
+}

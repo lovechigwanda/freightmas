@@ -27,9 +27,9 @@
   "trucking_details_section",
   "is_truck_required",
   "column_break_blto",
-  "load_by_date",
+  "road_freight_route",
   "column_break_fowj",
-  "booking_reference",
+  "load_by_date",
   "column_break_mzjq",
   "cargo_offloading_address",
   "truck_rates_section",
@@ -340,6 +340,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "Today",
    "depends_on": "eval:doc.is_truck_required",
    "fieldname": "load_by_date",
    "fieldtype": "Date",
@@ -400,12 +401,6 @@
   {
    "fieldname": "column_break_mfxq",
    "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.is_truck_required",
-   "fieldname": "booking_reference",
-   "fieldtype": "Data",
-   "label": "Booking Reference"
   },
   {
    "fieldname": "column_break_mzjq",
@@ -499,12 +494,18 @@
    "fieldname": "other_attachment",
    "fieldtype": "Attach",
    "label": "Other"
+  },
+  {
+   "fieldname": "road_freight_route",
+   "fieldtype": "Link",
+   "label": "Route",
+   "options": "Road Freight Route"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-01 22:15:31.641841",
+ "modified": "2025-11-02 01:13:14.508260",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",
