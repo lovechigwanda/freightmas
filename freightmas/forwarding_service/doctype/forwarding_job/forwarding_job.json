@@ -697,7 +697,8 @@
    "default": "0",
    "fieldname": "is_trucking_required",
    "fieldtype": "Check",
-   "label": "Is Trucking Required"
+   "label": "Is Trucking Required",
+   "read_only_depends_on": "eval:doc.trucks_required"
   },
   {
    "depends_on": "eval:doc.is_trucking_required",
@@ -917,7 +918,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-01 22:14:12.890954",
+ "modified": "2025-11-02 01:50:06.881055",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

@@ -45,8 +45,8 @@ class ForwardingJob(Document):
         # Validate cargo milestone progression
         self.validate_cargo_milestones()
         
-        # Auto-sync parent values to cargo details
-        self.sync_parent_values_to_cargo()
+        # REMOVE THIS LINE - it's causing the override issue
+        # self.sync_parent_values_to_cargo()
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
@@ -578,20 +578,6 @@ class ForwardingJob(Document):
             if not getattr(cargo, 'service_charge', ''):
                 frappe.throw(_("Row {0}: Service charge is required for completed cargo").format(row_idx))
 
-    def sync_parent_values_to_cargo(self):
-        """Sync parent Loading Master values to cargo parcel details"""
-        for cargo in self.get("cargo_parcel_details", []):
-            # Sync trucking requirement
-            if hasattr(self, 'is_trucking_required'):
-                cargo.is_truck_required = self.is_trucking_required
-            
-            # Sync road freight route
-            if hasattr(self, 'road_freight_route') and self.road_freight_route:
-                cargo.road_freight_route = self.road_freight_route
-            
-            # Sync offloading address (note: your field has typo "offloadiing")
-            if hasattr(self, 'offloadiing_address') and self.offloadiing_address:
-                cargo.cargo_offloading_address = self.offloadiing_address
 
 # ========================================================
 # SALES INVOICE CREATION - UPDATED for forwarding_revenue_charges

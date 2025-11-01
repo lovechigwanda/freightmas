@@ -1356,7 +1356,7 @@ function clear_all_milestones(row) {
 }
 
 // ==========================================================
-// AUTO-POPULATE CARGO PARCEL DETAILS FROM PARENT
+// AUTO-POPULATE CARGO PARCEL DETAILS FROM PARENT (ENHANCED)
 // ==========================================================
 
 frappe.ui.form.on('Cargo Parcel Details', {
@@ -1372,44 +1372,37 @@ frappe.ui.form.on('Cargo Parcel Details', {
             frappe.model.set_value(cdt, cdn, 'road_freight_route', frm.doc.road_freight_route);
         }
         
-        if (frm.doc.offloadiing_address) { // Note: your field name has typo "offloadiing"
+        if (frm.doc.offloadiing_address) {
             frappe.model.set_value(cdt, cdn, 'cargo_offloading_address', frm.doc.offloadiing_address);
         }
         
-        // Existing cargo count update
+        // Mark as auto-populated (temporary flag for this session)
+        row._auto_populated = true;
+        
         update_cargo_count_forwarding(frm);
-    },
-
-    // ...existing cargo_parcel_details handlers...
+    }
 });
 
 // ==========================================================
-// UPDATE CHILD ROWS WHEN PARENT VALUES CHANGE
+// ENHANCED PARENT VALUE CHANGE HANDLERS
 // ==========================================================
 
 frappe.ui.form.on('Forwarding Job', {
-    // ...existing handlers...
-
     is_trucking_required: function(frm) {
-        // Update all existing cargo rows when parent trucking requirement changes
-        update_all_cargo_trucking_requirement(frm);
+        update_all_cargo_trucking_requirement_enhanced(frm);
     },
 
     road_freight_route: function(frm) {
-        // Update all existing cargo rows when parent route changes
-        update_all_cargo_routes(frm);
+        show_route_update_dialog(frm);
     },
 
-    offloadiing_address: function(frm) { // Note: keeping your field name as is
-        // Update all existing cargo rows when parent offloading address changes
-        update_all_cargo_offloading_addresses(frm);
+    offloadiing_address: function(frm) {
+        show_address_update_dialog(frm);
     }
-
-    // ...existing handlers...
 });
 
-// Helper function to update trucking requirement for all cargo rows
-function update_all_cargo_trucking_requirement(frm) {
+// Enhanced trucking requirement update (always applies to all)
+function update_all_cargo_trucking_requirement_enhanced(frm) {
     if (!frm.doc.cargo_parcel_details) return;
     
     let updated = false;
@@ -1428,12 +1421,168 @@ function update_all_cargo_trucking_requirement(frm) {
     }
 }
 
-// Helper function to update route for all cargo rows
-function update_all_cargo_routes(frm) {
+// Smart route update with user choice
+function show_route_update_dialog(frm) {
     if (!frm.doc.cargo_parcel_details || !frm.doc.road_freight_route) return;
     
+    // Find rows that would be affected
+    const rows_using_different_route = frm.doc.cargo_parcel_details.filter(row => 
+        row.road_freight_route && row.road_freight_route !== frm.doc.road_freight_route
+    );
+    
+    const rows_using_same_route = frm.doc.cargo_parcel_details.filter(row => 
+        !row.road_freight_route || row.road_freight_route === frm.doc.road_freight_route
+    );
+
+    // If no conflicts, update silently
+    if (rows_using_different_route.length === 0) {
+        update_cargo_routes_silently(frm, rows_using_same_route);
+        return;
+    }
+
+    // Show dialog for user choice
+    const dialog = new frappe.ui.Dialog({
+        title: __('Update Cargo Routes'),
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'route_update_info',
+                options: `
+                    <div style="margin-bottom: 15px;">
+                        <p><strong>Route changed to:</strong> ${frm.doc.road_freight_route}</p>
+                        <p>Some cargo items have different routes set manually. What would you like to do?</p>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <h6>Items with different routes (${rows_using_different_route.length}):</h6>
+                        <ul style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin: 5px 0;">
+                            ${rows_using_different_route.map(row => 
+                                `<li>${row.cargo_type || 'Unknown'} - ${row.container_number || row.cargo_item_description || 'Unknown'} 
+                                 (Current: ${row.road_freight_route})</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'update_option',
+                label: 'Update Option',
+                options: [
+                    'Update only items without specific routes',
+                    'Update all items to new route',
+                    'Keep existing routes unchanged'
+                ].join('\n'),
+                default: 'Update only items without specific routes',
+                reqd: 1
+            }
+        ],
+        primary_action_label: __('Apply'),
+        primary_action(values) {
+            switch(values.update_option) {
+                case 'Update only items without specific routes':
+                    update_cargo_routes_silently(frm, rows_using_same_route);
+                    break;
+                case 'Update all items to new route':
+                    update_cargo_routes_silently(frm, frm.doc.cargo_parcel_details);
+                    break;
+                case 'Keep existing routes unchanged':
+                    // FIXED: Show confirmation message but don't update anything
+                    frappe.show_alert({
+                        message: __('No routes were updated - existing values preserved'),
+                        indicator: 'orange'
+                    }, 3);
+                    break;
+            }
+            dialog.hide();
+        }
+    });
+    
+    dialog.show();
+}
+
+// Smart address update with user choice
+function show_address_update_dialog(frm) {
+    if (!frm.doc.cargo_parcel_details || !frm.doc.offloadiing_address) return;
+    
+    // Find rows that would be affected
+    const rows_using_different_address = frm.doc.cargo_parcel_details.filter(row => 
+        row.cargo_offloading_address && row.cargo_offloading_address !== frm.doc.offloadiing_address
+    );
+    
+    const rows_using_same_address = frm.doc.cargo_parcel_details.filter(row => 
+        !row.cargo_offloading_address || row.cargo_offloading_address === frm.doc.offloadiing_address
+    );
+
+    // If no conflicts, update silently
+    if (rows_using_different_address.length === 0) {
+        update_cargo_addresses_silently(frm, rows_using_same_address);
+        return;
+    }
+
+    // Show dialog for user choice
+    const dialog = new frappe.ui.Dialog({
+        title: __('Update Offloading Addresses'),
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'address_update_info',
+                options: `
+                    <div style="margin-bottom: 15px;">
+                        <p><strong>Address changed to:</strong> ${frm.doc.offloadiing_address}</p>
+                        <p>Some cargo items have different addresses set manually. What would you like to do?</p>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <h6>Items with different addresses (${rows_using_different_address.length}):</h6>
+                        <ul style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin: 5px 0;">
+                            ${rows_using_different_address.map(row => 
+                                `<li>${row.cargo_type || 'Unknown'} - ${row.container_number || row.cargo_item_description || 'Unknown'} 
+                                 (Current: ${row.cargo_offloading_address})</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `
+            },
+            {
+                fieldtype: 'Select',
+                fieldname: 'update_option',
+                label: 'Update Option',
+                options: [
+                    'Update only items without specific addresses',
+                    'Update all items to new address',
+                    'Keep existing addresses unchanged'
+                ].join('\n'),
+                default: 'Update only items without specific addresses',
+                reqd: 1
+            }
+        ],
+        primary_action_label: __('Apply'),
+        primary_action(values) {
+            switch(values.update_option) {
+                case 'Update only items without specific addresses':
+                    update_cargo_addresses_silently(frm, rows_using_same_address);
+                    break;
+                case 'Update all items to new address':
+                    update_cargo_addresses_silently(frm, frm.doc.cargo_parcel_details);
+                    break;
+                case 'Keep existing addresses unchanged':
+                    // FIXED: Show confirmation message but don't update anything
+                    frappe.show_alert({
+                        message: __('No addresses were updated - existing values preserved'),
+                        indicator: 'orange'
+                    }, 3);
+                    break;
+            }
+            dialog.hide();
+        }
+    });
+    
+    dialog.show();
+}
+
+// Helper functions for silent updates
+function update_cargo_routes_silently(frm, rows_to_update) {
     let updated = false;
-    frm.doc.cargo_parcel_details.forEach(function(row) {
+    rows_to_update.forEach(function(row) {
         if (row.road_freight_route !== frm.doc.road_freight_route) {
             frappe.model.set_value(row.doctype, row.name, 'road_freight_route', frm.doc.road_freight_route);
             updated = true;
@@ -1442,18 +1591,15 @@ function update_all_cargo_routes(frm) {
     
     if (updated) {
         frappe.show_alert({
-            message: __('Road freight route updated for all cargo items'),
+            message: __(`Road freight route updated for ${rows_to_update.length} cargo item(s)`),
             indicator: 'blue'
         }, 3);
     }
 }
 
-// Helper function to update offloading address for all cargo rows
-function update_all_cargo_offloading_addresses(frm) {
-    if (!frm.doc.cargo_parcel_details || !frm.doc.offloadiing_address) return;
-    
+function update_cargo_addresses_silently(frm, rows_to_update) {
     let updated = false;
-    frm.doc.cargo_parcel_details.forEach(function(row) {
+    rows_to_update.forEach(function(row) {
         if (row.cargo_offloading_address !== frm.doc.offloadiing_address) {
             frappe.model.set_value(row.doctype, row.name, 'cargo_offloading_address', frm.doc.offloadiing_address);
             updated = true;
@@ -1462,7 +1608,7 @@ function update_all_cargo_offloading_addresses(frm) {
     
     if (updated) {
         frappe.show_alert({
-            message: __('Offloading address updated for all cargo items'),
+            message: __(`Offloading address updated for ${rows_to_update.length} cargo item(s)`),
             indicator: 'blue'
         }, 3);
     }
