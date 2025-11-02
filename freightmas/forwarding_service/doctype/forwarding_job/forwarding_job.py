@@ -44,9 +44,6 @@ class ForwardingJob(Document):
         
         # Validate cargo milestone progression
         self.validate_cargo_milestones()
-        
-        # REMOVE THIS LINE - it's causing the override issue
-        # self.sync_parent_values_to_cargo()
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""

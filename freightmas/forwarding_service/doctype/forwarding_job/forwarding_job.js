@@ -10,45 +10,14 @@
 frappe.ui.form.on('Forwarding Job', {
     refresh: function(frm) {
         // ========================================
-        // ADD PORTAL BUTTONS UNDER "VIEW" DROPDOWN
+        // WEB PORTAL BUTTON (Updated to use is_trucking_required)
         // ========================================
-        if (frm.doc.share_with_road_freight && !frm.is_new()) {
-            
-            // Add "Open Web Portal" button
-            frm.page.add_inner_button(__('Open Web Portal'), function() {
+        if (frm.doc.is_trucking_required && !frm.is_new()) {
+            // Add simple "Web Portal" button under View menu
+            frm.page.add_inner_button(__('Web Portal'), function() {
                 const url = `${window.location.origin}/truck_portal?job=${frm.doc.name}`;
                 window.open(url, '_blank');
             }, __('View'));
-            
-            // Add "Copy Portal Link" button
-            frm.page.add_inner_button(__('Copy Portal Link'), function() {
-                const url = `${window.location.origin}/truck_portal?job=${frm.doc.name}`;
-                navigator.clipboard.writeText(url).then(() => {
-                    frappe.show_alert({
-                        message: __('Portal link copied to clipboard!'),
-                        indicator: 'green'
-                    }, 5);
-                }).catch(err => {
-                    frappe.msgprint(__('Failed to copy: ') + err);
-                });
-            }, __('View'));
-        }
-
-        // ========================================
-        // PORTAL ACTIVE INDICATOR
-        // ========================================
-        if (frm.doc.share_with_road_freight && !frm.is_new()) {
-            const html = `
-                <div style="display: flex; align-items: center;">
-                    <span style="font-weight: bold;">🌐 Web Portal Active</span>
-                    <a href="${window.location.origin}/truck_portal?job=${frm.doc.name}" 
-                       target="_blank" 
-                       style="color: white; text-decoration: underline; margin-left: 10px;">
-                        View Portal →
-                    </a>
-                </div>`;
-            // correct usage: object + timeout (seconds)
-            frappe.show_alert({ message: html, indicator: 'blue' }, 5);
         }
         
         // ========================================
@@ -135,20 +104,6 @@ frappe.ui.form.on('Forwarding Job', {
 
     fetch_from_quotation(frm) {
         open_fetch_charges_from_quotation_dialog(frm);
-    },
-    
-    share_with_road_freight: function(frm) {
-        if (frm.doc.share_with_road_freight) {
-            frappe.show_alert({
-                message: __('🌐 Job will be accessible via web portal after saving'),
-                indicator: 'blue'
-            }, 5);
-        } else {
-            frappe.show_alert({
-                message: __('Web portal access will be disabled after saving'),
-                indicator: 'orange'
-            }, 5);
-        }
     },
 
     fetch_revenue_from_job_costing: function(frm) {

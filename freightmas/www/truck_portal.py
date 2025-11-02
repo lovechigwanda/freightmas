@@ -19,9 +19,9 @@ def get_context(context):
     except frappe.DoesNotExistError:
         frappe.throw(f"Forwarding Job {job_name} not found")
     
-    # Check if it's shared
-    if not doc.share_with_road_freight:
-        frappe.throw("This job is not shared for web access")
+    # Check if trucking is required instead of share_with_road_freight
+    if not doc.is_trucking_required:
+        frappe.throw("This job does not require trucking services")
     
     # Check permissions (basic - only logged in users)
     if frappe.session.user == "Guest":
@@ -47,9 +47,9 @@ def add_truck_booking(job, cargo_idx, transporter, truck_reg_no, trailer_reg_no=
     # Get document
     doc = frappe.get_doc("Forwarding Job", job)
     
-    # Check if shared
-    if not doc.share_with_road_freight:
-        frappe.throw(_("This job is not shared for booking"))
+    # Check if trucking is required instead of share_with_road_freight
+    if not doc.is_trucking_required:
+        frappe.throw(_("This job does not require trucking services"))
     
     # Get cargo row
     cargo_idx = int(cargo_idx)
@@ -209,9 +209,9 @@ def update_tracking(job, cargo_idx, status, location, comment):
     # Get document
     doc = frappe.get_doc("Forwarding Job", job)
     
-    # Check if shared
-    if not doc.share_with_road_freight:
-        frappe.throw(_("This job is not shared"))
+    # Check if trucking is required instead of share_with_road_freight
+    if not doc.is_trucking_required:
+        frappe.throw(_("This job does not require trucking services"))
     
     # Get cargo row
     cargo_idx = int(cargo_idx)
