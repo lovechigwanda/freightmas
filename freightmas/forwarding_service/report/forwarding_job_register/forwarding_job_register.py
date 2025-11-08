@@ -23,9 +23,9 @@ def get_columns():
         {"label": "Destination", "fieldname": "destination", "fieldtype": "Link", "options": "Port", "width": 120},
         {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 120},
         {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 90},
-        {"label": "Est. Rev", "fieldname": "total_estimated_revenue_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Cost", "fieldname": "total_estimated_cost_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Prft", "fieldname": "total_estimated_profit_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Rev", "fieldname": "total_quoted_revenue_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Cost", "fieldname": "total_quoted_cost_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Prft", "fieldname": "total_quoted_profit_base", "fieldtype": "Currency", "width": 110},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
     ]
 
@@ -49,7 +49,7 @@ def execute(filters=None):
         fields=[
             "name", "date_created", "customer", "customer_reference", "direction", "shipment_mode",
             "port_of_loading", "destination", "bl_number", "eta",
-            "total_estimated_revenue_base", "total_estimated_cost_base", "total_estimated_profit_base",
+            "total_quoted_revenue_base", "total_quoted_cost_base", "total_quoted_profit_base",
             "status"
         ]
     )
@@ -74,9 +74,9 @@ def execute(filters=None):
             "destination": job.get("destination", ""),
             "bl_number": job.get("bl_number", ""),
             "eta": format_date(job.get("eta")),
-            "total_estimated_revenue_base": job.get("total_estimated_revenue_base", 0),
-            "total_estimated_cost_base": job.get("total_estimated_cost_base", 0),
-            "total_estimated_profit_base": job.get("total_estimated_profit_base", 0),
+            "total_quoted_revenue_base": job.get("total_quoted_revenue_base", 0),
+            "total_quoted_cost_base": job.get("total_quoted_cost_base", 0),
+            "total_quoted_profit_base": job.get("total_quoted_profit_base", 0),
             "status": job.get("status", ""),
         })
 

@@ -84,29 +84,30 @@
   "cargo_parcel_details_section",
   "cargo_parcel_details",
   "charges_tab",
+  "currency_section",
   "currency",
   "column_break_rrvw",
   "conversion_rate",
   "column_break_ieei",
   "base_currency",
-  "forwarding_costing_section",
+  "quoted_costing_section",
   "forwarding_costing_charges",
   "fetch_from_quotation",
-  "section_break_jsok",
-  "total_estimated_revenue",
-  "total_estimated_revenue_base",
+  "quoted_totals_section",
+  "total_quoted_revenue",
+  "total_quoted_revenue_base",
   "column_break_tdai",
-  "total_estimated_cost",
-  "total_estimated_cost_base",
+  "total_quoted_cost",
+  "total_quoted_cost_base",
   "column_break_fatf",
-  "total_estimated_profit",
-  "total_estimated_profit_base",
+  "total_quoted_margin",
+  "total_quoted_profit_base",
   "column_break_mmxb",
-  "estimated_profit_margin_percent",
-  "job_revenue_actuals_section",
+  "quoted_margin_percent",
+  "working_revenue_section",
   "forwarding_revenue_charges",
   "fetch_revenue_from_job_costing",
-  "job_cost_actuals_section",
+  "working_cost_section",
   "forwarding_cost_charges",
   "section_break_hokg",
   "fetch_cost_from_job_costing",
@@ -114,14 +115,14 @@
   "fetch_cost_from_truck_loading",
   "column_break_japu",
   "section_break_johw",
-  "total_txn_revenue",
-  "total_txn_revenue_base",
+  "total_working_revenue",
+  "total_working_revenue_base",
   "column_break_ygyd",
-  "total_txn_cost",
-  "total_txn_base",
+  "total_working_cost",
+  "total_working_base",
   "column_break_lpog",
-  "total_txn_profit",
-  "total_txn_profit_base",
+  "total_working_profit",
+  "total_working_profit_base",
   "column_break_crbh",
   "profit_margin_percent",
   "tracking_tab",
@@ -461,7 +462,7 @@
   {
    "fieldname": "section_break_johw",
    "fieldtype": "Section Break",
-   "label": "Actual Totals"
+   "label": "Working Totals"
   },
   {
    "fieldname": "column_break_ygyd",
@@ -710,13 +711,6 @@
    "options": "Road Freight Route"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.status==\"Draft\"",
-   "fieldname": "forwarding_costing_section",
-   "fieldtype": "Section Break",
-   "label": "Planned Job Costing"
-  },
-  {
    "fieldname": "forwarding_costing_charges",
    "fieldtype": "Table",
    "options": "Forwarding Costing Charges"
@@ -724,9 +718,9 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "eval:doc.status != \"Draft\"",
-   "fieldname": "job_revenue_actuals_section",
+   "fieldname": "working_revenue_section",
    "fieldtype": "Section Break",
-   "label": "Actual Revenue"
+   "label": "Working Revenue"
   },
   {
    "fieldname": "forwarding_revenue_charges",
@@ -736,9 +730,9 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "eval:doc.status != \"Draft\"",
-   "fieldname": "job_cost_actuals_section",
+   "fieldname": "working_cost_section",
    "fieldtype": "Section Break",
-   "label": "Actual Cost"
+   "label": "Working Cost"
   },
   {
    "fieldname": "forwarding_cost_charges",
@@ -747,96 +741,96 @@
   },
   {
    "bold": 1,
-   "fieldname": "total_txn_revenue",
+   "fieldname": "total_working_revenue",
    "fieldtype": "Currency",
-   "label": "Total  Revenue",
+   "label": "Working  Revenue",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_txn_revenue_base",
+   "fieldname": "total_working_revenue_base",
    "fieldtype": "Currency",
-   "label": "Total Revenue",
+   "label": "Total Working Revenue",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "total_txn_cost",
+   "fieldname": "total_working_cost",
    "fieldtype": "Currency",
-   "label": "Total Cost",
+   "label": "Working Cost",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_txn_base",
+   "fieldname": "total_working_base",
    "fieldtype": "Currency",
-   "label": "Total Cost",
+   "label": "Total Working Cost",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "total_txn_profit",
+   "fieldname": "total_working_profit",
    "fieldtype": "Currency",
-   "label": "Total Profit",
+   "label": "Total Working Margin",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_txn_profit_base",
+   "fieldname": "total_working_profit_base",
    "fieldtype": "Currency",
-   "label": "Total Profit",
+   "label": "Total Working Margin",
    "precision": "2",
    "read_only": 1
   },
   {
    "bold": 1,
-   "fieldname": "total_estimated_revenue",
+   "fieldname": "total_quoted_revenue",
    "fieldtype": "Currency",
-   "label": "Total Planned Revenue",
+   "label": "Total Quoted Revenue",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_estimated_revenue_base",
+   "fieldname": "total_quoted_revenue_base",
    "fieldtype": "Currency",
-   "label": "Total Planned Revenue",
+   "label": "Total Quoted Revenue",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "total_estimated_cost",
+   "fieldname": "total_quoted_cost",
    "fieldtype": "Currency",
-   "label": "Total Planned Cost",
+   "label": "Total Quoted Cost",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_estimated_profit",
+   "fieldname": "total_quoted_margin",
    "fieldtype": "Currency",
-   "label": "Total Planned Profit",
+   "label": "Total Quoted Profit",
    "options": "currency",
    "read_only": 1
   },
   {
-   "fieldname": "total_estimated_profit_base",
+   "fieldname": "total_quoted_profit_base",
    "fieldtype": "Currency",
-   "label": "Total Planned Profit",
+   "label": "Total Quoted Profit",
    "precision": "2",
    "read_only": 1
   },
   {
-   "fieldname": "section_break_jsok",
+   "fieldname": "quoted_totals_section",
    "fieldtype": "Section Break",
-   "label": "Planned Totals"
+   "label": "Quoted Totals"
   },
   {
    "fieldname": "column_break_tdai",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "total_estimated_cost_base",
+   "fieldname": "total_quoted_cost_base",
    "fieldtype": "Currency",
-   "label": "Total Planned Cost",
+   "label": "Total Quoted Cost",
    "precision": "2",
    "read_only": 1
   },
@@ -849,9 +843,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "estimated_profit_margin_percent",
+   "fieldname": "quoted_margin_percent",
    "fieldtype": "Percent",
-   "label": "Estimated Margin Percent",
+   "label": "Quoted Margin Percent",
    "precision": "2",
    "read_only": 1
   },
@@ -891,6 +885,15 @@
   {
    "fieldname": "column_break_japu",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "currency_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "quoted_costing_section",
+   "fieldtype": "Section Break",
+   "label": "Quoted Charges"
   }
  ],
  "grid_page_length": 50,
@@ -911,7 +914,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-02 02:18:44.709629",
+ "modified": "2025-11-08 21:47:19.592622",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

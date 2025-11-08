@@ -39,9 +39,9 @@ def get_columns():
         {"label": "BL Recvd", "fieldname": "is_bl_received", "fieldtype": "Check", "width": 80},
         {"label": "BL Confmd", "fieldname": "is_bl_confirmed", "fieldtype": "Check", "width": 80},
         {"label": "Incoterms", "fieldname": "incoterms", "fieldtype": "Link", "options": "Incoterm", "width": 80},
-        {"label": "Est. Rev", "fieldname": "total_estimated_revenue_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Cost", "fieldname": "total_estimated_cost_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Prft", "fieldname": "total_estimated_profit_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Rev", "fieldname": "total_quoted_revenue_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Cost", "fieldname": "total_quoted_cost_base", "fieldtype": "Currency", "width": 110},
+        {"label": "Est. Prft", "fieldname": "total_quoted_profit_base", "fieldtype": "Currency", "width": 110},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
         {"label": "Completed", "fieldname": "completed_on", "fieldtype": "Data", "width": 100},
     ]
@@ -69,7 +69,7 @@ def execute(filters=None):
             "port_of_loading", "port_of_discharge", "destination", "bl_number", "bl_type",
             "vessel_flight_no", "booking_date", "cargo_ready_date", "etd", "eta", "atd", "ata", 
             "delivery_date", "is_bl_received", "is_bl_confirmed", "incoterms",
-            "total_estimated_revenue_base", "total_estimated_cost_base", "total_estimated_profit_base",
+            "total_quoted_revenue_base", "total_quoted_cost_base", "total_quoted_profit_base",
             "status", "completed_on"
         ]
     )
@@ -110,9 +110,9 @@ def execute(filters=None):
             "is_bl_received": job.get("is_bl_received", 0),
             "is_bl_confirmed": job.get("is_bl_confirmed", 0),
             "incoterms": job.get("incoterms", ""),
-            "total_estimated_revenue_base": job.get("total_estimated_revenue_base", 0),
-            "total_estimated_cost_base": job.get("total_estimated_cost_base", 0),
-            "total_estimated_profit_base": job.get("total_estimated_profit_base", 0),
+            "total_quoted_revenue_base": job.get("total_quoted_revenue_base", 0),
+            "total_quoted_cost_base": job.get("total_quoted_cost_base", 0),
+            "total_quoted_profit_base": job.get("total_quoted_profit_base", 0),
             "status": job.get("status", ""),
             "completed_on": format_date(job.get("completed_on", "")),
         })

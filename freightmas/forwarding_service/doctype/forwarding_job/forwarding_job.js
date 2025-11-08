@@ -215,14 +215,14 @@ function toggle_base_fields(frm) {
     const show = frm.doc.currency !== frm.doc.base_currency;
     
     // Costing section
-    frm.toggle_display('total_estimated_revenue_base', show);
-    frm.toggle_display('total_estimated_cost_base', show);
-    frm.toggle_display('total_estimated_profit_base', show);
+    frm.toggle_display('total_quoted_revenue_base', show);
+    frm.toggle_display('total_quoted_cost_base', show);
+    frm.toggle_display('total_quoted_profit_base', show);
     
     // Actuals section
-    frm.toggle_display('total_txn_revenue_base', show);
-    frm.toggle_display('total_txn_base', show);
-    frm.toggle_display('total_txn_profit_base', show);
+    frm.toggle_display('total_working_revenue_base', show);
+    frm.toggle_display('total_working_base', show);
+    frm.toggle_display('total_working_profit_base', show);
 }
 
 // ==========================================================
@@ -235,22 +235,22 @@ function update_currency_labels(frm) {
 
     // Costing labels
     const costing_labels = {
-        total_estimated_revenue: `Total Estimated Revenue (${currency})`,
-        total_estimated_cost: `Total Estimated Cost (${currency})`,
-        total_estimated_profit: `Total Estimated Profit (${currency})`,
-        total_estimated_revenue_base: `Total Estimated Revenue (${base_currency})`,
-        total_estimated_cost_base: `Total Estimated Cost (${base_currency})`,
-        total_estimated_profit_base: `Total Estimated Profit (${base_currency})`
+        total_quoted_revenue: `Total Estimated Revenue (${currency})`,
+        total_quoted_cost: `Total Estimated Cost (${currency})`,
+        total_quoted_margin: `Total Estimated Profit (${currency})`,
+        total_quoted_revenue_base: `Total Estimated Revenue (${base_currency})`,
+        total_quoted_cost_base: `Total Estimated Cost (${base_currency})`,
+        total_quoted_profit_base: `Total Estimated Profit (${base_currency})`
     };
 
     // Actuals labels
     const actuals_labels = {
-        total_txn_revenue: `Total Revenue (${currency})`,
-        total_txn_cost: `Total Cost (${currency})`,
-        total_txn_profit: `Total Profit (${currency})`,
-        total_txn_revenue_base: `Total Revenue (${base_currency})`,
-        total_txn_base: `Total Cost (${base_currency})`,
-        total_txn_profit_base: `Total Profit (${base_currency})`
+        total_working_revenue: `Total Revenue (${currency})`,
+        total_working_cost: `Total Cost (${currency})`,
+        total_working_profit: `Total Profit (${currency})`,
+        total_working_revenue_base: `Total Revenue (${base_currency})`,
+        total_working_base: `Total Cost (${base_currency})`,
+        total_working_profit_base: `Total Profit (${base_currency})`
     };
 
     // Apply costing labels
@@ -895,14 +895,14 @@ function calculate_costing_totals(frm) {
     let rate = flt(frm.doc.conversion_rate) || 1.0;
     let profit_margin_percent = total_revenue > 0 ? (total_profit / total_revenue * 100) : 0;
     
-    set_main_value_safe(frm, 'total_estimated_revenue', total_revenue);
-    set_main_value_safe(frm, 'total_estimated_cost', total_cost);
-    set_main_value_safe(frm, 'total_estimated_profit', total_profit);
-    set_main_value_safe(frm, 'estimated_profit_margin_percent', profit_margin_percent);
+    set_main_value_safe(frm, 'total_quoted_revenue', total_revenue);
+    set_main_value_safe(frm, 'total_quoted_cost', total_cost);
+    set_main_value_safe(frm, 'total_quoted_margin', total_profit);
+    set_main_value_safe(frm, 'quoted_margin_percent', profit_margin_percent);
     
-    set_main_value_safe(frm, 'total_estimated_revenue_base', total_revenue * rate);
-    set_main_value_safe(frm, 'total_estimated_cost_base', total_cost * rate);
-    set_main_value_safe(frm, 'total_estimated_profit_base', total_profit * rate);
+    set_main_value_safe(frm, 'total_quoted_revenue_base', total_revenue * rate);
+    set_main_value_safe(frm, 'total_quoted_cost_base', total_cost * rate);
+    set_main_value_safe(frm, 'total_quoted_profit_base', total_profit * rate);
     
     frm.refresh_fields();
 }
@@ -945,14 +945,14 @@ function calculate_actual_totals(frm) {
     let rate = flt(frm.doc.conversion_rate) || 1.0;
     let profit_margin_percent = total_revenue > 0 ? (total_profit / total_revenue * 100) : 0;
     
-    set_main_value_safe(frm, 'total_txn_revenue', total_revenue);
-    set_main_value_safe(frm, 'total_txn_cost', total_cost);
-    set_main_value_safe(frm, 'total_txn_profit', total_profit);
+    set_main_value_safe(frm, 'total_working_revenue', total_revenue);
+    set_main_value_safe(frm, 'total_working_cost', total_cost);
+    set_main_value_safe(frm, 'total_working_profit', total_profit);
     set_main_value_safe(frm, 'profit_margin_percent', profit_margin_percent);
     
-    set_main_value_safe(frm, 'total_txn_revenue_base', total_revenue * rate);
-    set_main_value_safe(frm, 'total_txn_base', total_cost * rate);
-    set_main_value_safe(frm, 'total_txn_profit_base', total_profit * rate);
+    set_main_value_safe(frm, 'total_working_revenue_base', total_revenue * rate);
+    set_main_value_safe(frm, 'total_working_base', total_cost * rate);
+    set_main_value_safe(frm, 'total_working_profit_base', total_profit * rate);
     
     frm.refresh_fields();
 }

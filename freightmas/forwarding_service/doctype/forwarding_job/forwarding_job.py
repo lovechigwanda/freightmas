@@ -86,15 +86,15 @@ class ForwardingJob(Document):
         total_profit = total_revenue - total_cost
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_estimated_revenue = total_revenue
-        self.total_estimated_cost = total_cost
-        self.total_estimated_profit = total_profit
+        self.total_quoted_revenue = total_revenue
+        self.total_quoted_cost = total_cost
+        self.total_quoted_margin = total_profit
 
-        self.total_estimated_revenue_base = total_revenue * rate
-        self.total_estimated_cost_base = total_cost * rate
-        self.total_estimated_profit_base = total_profit * rate
+        self.total_quoted_revenue_base = total_revenue * rate
+        self.total_quoted_cost_base = total_cost * rate
+        self.total_quoted_profit_base = total_profit * rate
 
-        self.estimated_profit_margin_percent = (
+        self.quoted_margin_percent = (
             (total_profit / total_revenue) * 100 if total_revenue else 0
         )
 
@@ -125,20 +125,20 @@ class ForwardingJob(Document):
         total_profit = total_revenue - total_cost
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_txn_revenue = total_revenue
-        self.total_txn_cost = total_cost
-        self.total_txn_profit = total_profit
+        self.total_working_revenue = total_revenue
+        self.total_working_cost = total_cost
+        self.total_working_profit = total_profit
 
-        self.total_txn_revenue_base = total_revenue * rate
-        self.total_txn_base = total_cost * rate
-        self.total_txn_profit_base = total_profit * rate
+        self.total_working_revenue_base = total_revenue * rate
+        self.total_working_base = total_cost * rate
+        self.total_working_profit_base = total_profit * rate
 
         self.profit_margin_percent = (total_profit / total_revenue * 100) if total_revenue else 0
 
         # Optional variance fields (only if they exist on the DocType)
         if hasattr(self, "cost_variance"):
             try:
-                self.cost_variance = (self.total_estimated_cost or 0) - (self.total_txn_cost or 0)
+                self.cost_variance = (self.total_quoted_cost or 0) - (self.total_working_cost or 0)
             except Exception:
                 pass
 
@@ -215,8 +215,8 @@ class ForwardingJob(Document):
         leaving_draft = was_draft and self.status and self.status != "Draft"
 
         if leaving_draft:
-            rev = flt(self.total_estimated_revenue)
-            cost = flt(self.total_estimated_cost)
+            rev = flt(self.total_quoted_revenue)
+            cost = flt(self.total_quoted_cost)
             if rev <= 0 or cost <= 0:
                 frappe.throw(_("Please add planned charges first before Starting Job. Both Planned Revenue and Planned Cost must be entered."))
 
