@@ -23,7 +23,7 @@
  ],
  "fields": [
   {
-   "columns": 1,
+   "columns": 2,
    "fieldname": "charge",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -123,7 +123,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-27 22:16:17.834048",
+ "modified": "2025-11-08 23:42:33.656676",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Cost Charges",
