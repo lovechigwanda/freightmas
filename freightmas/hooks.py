@@ -381,7 +381,12 @@ fixtures = [
                 "FreightMas Quotation",
                 "Forwarding Job Cost Sheet",
                 "Road Freight Job Cost Sheet",
-                "Clearing Job Cost Sheet"
+                "Clearing Job Cost Sheet",
+                "FreightMas Purchase Invoice",
+                "FM Subs",
+                "Trip Bulk Sales Invoice",
+                "Trip Sales Invoice"
+
             ]]
         ]
     }
