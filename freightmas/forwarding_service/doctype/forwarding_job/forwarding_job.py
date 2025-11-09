@@ -714,3 +714,8 @@ def create_purchase_invoice_with_rows(docname, row_names):
     job.save()
     return pi.name
 
+    def get_pdf_filename(self):
+        """Return custom PDF filename for Forwarding Job Cost Sheet"""
+        return f"FWJB Cost Sheet {self.name}.pdf"
+
+
