@@ -11,16 +11,17 @@
   "to_be_returned",
   "length",
   "height",
-  "drop_off_place",
   "column_break_lnrj",
   "container_number",
   "cargo_item_description",
   "width",
   "chargeable_weight",
+  "drop_off_place",
   "column_break_aoni",
   "container_type",
   "cargo_quantity",
   "cargo_uom",
+  "return_by_date",
   "column_break_fcrr",
   "weight",
   "volume",
@@ -73,6 +74,26 @@
   "column_break_lkoi",
   "is_completed",
   "completed_on_date",
+  "extended_tracking_section",
+  "border_tracking",
+  "border_name",
+  "border_arrived_on",
+  "border_left_on",
+  "column_break_yuyn",
+  "border_2_tracking",
+  "border_2_name",
+  "border_2_arrived_on",
+  "border_2_left_on",
+  "column_break_vqyl",
+  "custom_milestone",
+  "custom_milestone_name",
+  "custom_arrived_on",
+  "custom_left_on",
+  "column_break_nulm",
+  "custom_milestone2",
+  "custom_milestone2_name",
+  "custom2_arrived_on",
+  "custom2_left_on",
   "attachments_section",
   "proof_of_delivery",
   "column_break_qsgx",
@@ -500,12 +521,132 @@
    "fieldtype": "Link",
    "label": "Route",
    "options": "Road Freight Route"
+  },
+  {
+   "fieldname": "return_by_date",
+   "fieldtype": "Date",
+   "label": "Return By Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "border_tracking",
+   "fieldtype": "Check",
+   "label": "Border Tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_name",
+   "fieldtype": "Link",
+   "label": "Border Name",
+   "options": "Border Post"
+  },
+  {
+   "fieldname": "column_break_yuyn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_vqyl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_nulm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "extended_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Extended Tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_arrived_on",
+   "fieldtype": "Date",
+   "label": "Border Arrived On"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_left_on",
+   "fieldtype": "Date",
+   "label": "Border Left On"
+  },
+  {
+   "default": "0",
+   "fieldname": "border_2_tracking",
+   "fieldtype": "Check",
+   "label": "Border 2 Tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_name",
+   "fieldtype": "Link",
+   "label": "Border 2 Name",
+   "options": "Border Post"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_arrived_on",
+   "fieldtype": "Date",
+   "label": "Border 2 Arrived On"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_left_on",
+   "fieldtype": "Date",
+   "label": "Border 2 Left On"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_milestone",
+   "fieldtype": "Check",
+   "label": "Custom Milestone"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone",
+   "fieldname": "custom_milestone_name",
+   "fieldtype": "Data",
+   "label": "Custom Milestone Name"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone",
+   "fieldname": "custom_arrived_on",
+   "fieldtype": "Date",
+   "label": "Custom Arrived On"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone",
+   "fieldname": "custom_left_on",
+   "fieldtype": "Date",
+   "label": "Custom Left On"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_milestone2",
+   "fieldtype": "Check",
+   "label": "Custom Milestone 2"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone2",
+   "fieldname": "custom_milestone2_name",
+   "fieldtype": "Data",
+   "label": "Custom Milestone Name"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone2",
+   "fieldname": "custom2_arrived_on",
+   "fieldtype": "Date",
+   "label": "Custom 2 Arrived On"
+  },
+  {
+   "depends_on": "eval:doc.custom_milestone2",
+   "fieldname": "custom2_left_on",
+   "fieldtype": "Date",
+   "label": "Custom 2 Left On"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-02 01:13:14.508260",
+ "modified": "2025-11-09 19:05:10.239182",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

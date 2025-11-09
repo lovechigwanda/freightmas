@@ -46,6 +46,14 @@ frappe.ui.form.on('Forwarding Job', {
                     '_blank'
                 );
             }, __('View'));
+
+            // --- Add View > Single Job Tracking button ---
+            frm.add_custom_button(__('Single Job Tracking'), function() {
+                window.open(
+                    `/printview?doctype=Forwarding%20Job&name=${frm.doc.name}&format=FWJB%20Single%20Job%20Tracking&no_letterhead=1`,
+                    '_blank'
+                );
+            }, __('View'));
         }
     },
     

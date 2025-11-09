@@ -49,7 +49,7 @@
   "column_break_okym",
   "eta",
   "ata",
-  "delivery_date",
+  "discharge_date",
   "cargo_tab",
   "cargo_details_section",
   "cargo_description",
@@ -71,16 +71,16 @@
   "loading_master_section",
   "is_trucking_required",
   "column_break_vwaw",
+  "cargo_count",
   "route",
   "loading_master_section2",
   "loading_address",
   "road_freight_route",
   "column_break_mkbb",
   "offloadiing_address",
-  "cargo_count",
+  "trucks_required",
   "column_break_icob",
   "loading_instructions",
-  "trucks_required",
   "cargo_parcel_details_section",
   "cargo_parcel_details",
   "charges_tab",
@@ -355,8 +355,7 @@
   {
    "fieldname": "cargo_ready_date",
    "fieldtype": "Date",
-   "label": "Cargo Ready Date",
-   "reqd": 1
+   "label": "Cargo Ready Date"
   },
   {
    "fieldname": "column_break_ttcq",
@@ -387,11 +386,6 @@
    "fieldname": "ata",
    "fieldtype": "Date",
    "label": "Actual Arrival"
-  },
-  {
-   "fieldname": "delivery_date",
-   "fieldtype": "Date",
-   "label": "Delivery Date"
   },
   {
    "fieldname": "cargo_tab",
@@ -690,7 +684,7 @@
    "label": "Loading Master"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "is_trucking_required",
    "fieldtype": "Check",
    "label": "Is Trucking Required",
@@ -904,6 +898,11 @@
    "fieldname": "column_break_vvtr",
    "fieldtype": "Column Break",
    "no_copy": 1
+  },
+  {
+   "fieldname": "discharge_date",
+   "fieldtype": "Date",
+   "label": "Discharge Date"
   }
  ],
  "grid_page_length": 50,
@@ -924,7 +923,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-09 10:06:51.208853",
+ "modified": "2025-11-09 17:24:07.735135",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
