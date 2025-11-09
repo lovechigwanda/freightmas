@@ -575,6 +575,518 @@ class ForwardingJob(Document):
             if not getattr(cargo, 'service_charge', ''):
                 frappe.throw(_("Row {0}: Service charge is required for completed cargo").format(row_idx))
 
+    def get_pdf_filename(self):
+        """Return custom PDF filename for Forwarding Job Cost Sheet"""
+        return f"FWJB Cost Sheet {self.name}.pdf"
+
+    # ========================================================
+    # COST SHEET CALCULATION METHODS
+    # These methods aggregate and format financial data for cost sheet reports and print formats.
+    # Safe to delete this entire block without affecting other functionality.
+    # ========================================================
+
+    def get_all_charges_summary(self):
+        """
+        ========== BEGIN METHOD: get_all_charges_summary ==========
+        
+        Get a summary of all charges (quoted, working, invoiced) for this forwarding job.
+        
+        Returns a dictionary keyed by charge name with aggregated amounts:
+        {
+            'charge_name': {
+                'quoted_revenue': amount,
+                'quoted_cost': amount,
+                'working_revenue': amount,
+                'working_cost': amount,
+                'invoiced_revenue': amount,
+                'invoiced_cost': amount
+            }
+        }
+        
+        Data sources:
+        - Quoted: forwarding_costing_charges table
+        - Working: forwarding_revenue_charges + forwarding_cost_charges tables
+        - Invoiced: Sales Invoices + Purchase Invoices linked to this job
+        
+        ========== END METHOD: get_all_charges_summary ==========
+        """
+        charges_summary = {}
+        
+        # Process planned/quoted charges
+        if hasattr(self, 'forwarding_costing_charges') and self.forwarding_costing_charges:
+            for row in self.forwarding_costing_charges:
+                charge_name = row.charge
+                if charge_name not in charges_summary:
+                    charges_summary[charge_name] = {
+                        'quoted_revenue': 0,
+                        'quoted_cost': 0,
+                        'working_revenue': 0,
+                        'working_cost': 0,
+                        'invoiced_revenue': 0,
+                        'invoiced_cost': 0
+                    }
+                charges_summary[charge_name]['quoted_revenue'] += flt(row.revenue_amount or 0)
+                charges_summary[charge_name]['quoted_cost'] += flt(row.cost_amount or 0)
+        
+        # Process working/actual revenue charges
+        if hasattr(self, 'forwarding_revenue_charges') and self.forwarding_revenue_charges:
+            for row in self.forwarding_revenue_charges:
+                charge_name = row.charge
+                if charge_name not in charges_summary:
+                    charges_summary[charge_name] = {
+                        'quoted_revenue': 0,
+                        'quoted_cost': 0,
+                        'working_revenue': 0,
+                        'working_cost': 0,
+                        'invoiced_revenue': 0,
+                        'invoiced_cost': 0
+                    }
+                charges_summary[charge_name]['working_revenue'] += flt(row.revenue_amount or 0)
+        
+        # Process working/actual cost charges
+        if hasattr(self, 'forwarding_cost_charges') and self.forwarding_cost_charges:
+            for row in self.forwarding_cost_charges:
+                charge_name = row.charge
+                if charge_name not in charges_summary:
+                    charges_summary[charge_name] = {
+                        'quoted_revenue': 0,
+                        'quoted_cost': 0,
+                        'working_revenue': 0,
+                        'working_cost': 0,
+                        'invoiced_revenue': 0,
+                        'invoiced_cost': 0
+                    }
+                charges_summary[charge_name]['working_cost'] += flt(row.cost_amount or 0)
+        
+        # Process invoiced amounts from Sales Invoices (revenue)
+        sales_invoices = frappe.get_all(
+            'Sales Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['name']
+        )
+        
+        for si in sales_invoices:
+            si_doc = frappe.get_doc('Sales Invoice', si.name)
+            if hasattr(si_doc, 'items') and si_doc.items:
+                for item in si_doc.items:
+                    charge_name = item.item_code or item.item_name
+                    if charge_name not in charges_summary:
+                        charges_summary[charge_name] = {
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    charges_summary[charge_name]['invoiced_revenue'] += flt(item.amount or 0)
+        
+        # Process invoiced amounts from Purchase Invoices (cost)
+        purchase_invoices = frappe.get_all(
+            'Purchase Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['name']
+        )
+        
+        for pi in purchase_invoices:
+            pi_doc = frappe.get_doc('Purchase Invoice', pi.name)
+            if hasattr(pi_doc, 'items') and pi_doc.items:
+                for item in pi_doc.items:
+                    charge_name = item.item_code or item.item_name
+                    if charge_name not in charges_summary:
+                        charges_summary[charge_name] = {
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    charges_summary[charge_name]['invoiced_cost'] += flt(item.amount or 0)
+        
+        return charges_summary
+
+    def get_all_parties_summary(self):
+        """
+        ========== BEGIN METHOD: get_all_parties_summary ==========
+        
+        Get a summary of all parties (customers/suppliers) and their charge amounts.
+        
+        Returns a dictionary keyed by party name with:
+        {
+            'party_name': {
+                'party_type': 'Customer' or 'Supplier',
+                'quoted_revenue': amount,
+                'quoted_cost': amount,
+                'working_revenue': amount,
+                'working_cost': amount,
+                'invoiced_revenue': amount,
+                'invoiced_cost': amount
+            }
+        }
+        
+        Data sources:
+        - Quoted: forwarding_costing_charges (customer/supplier fields)
+        - Working: forwarding_revenue_charges (customers) + forwarding_cost_charges (suppliers)
+        - Invoiced: Sales Invoices (customers) + Purchase Invoices (suppliers)
+        
+        ========== END METHOD: get_all_parties_summary ==========
+        """
+        parties_summary = {}
+        
+        # Process planned charges - customers
+        if hasattr(self, 'forwarding_costing_charges') and self.forwarding_costing_charges:
+            for row in self.forwarding_costing_charges:
+                if row.customer:
+                    if row.customer not in parties_summary:
+                        parties_summary[row.customer] = {
+                            'party_type': 'Customer',
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    parties_summary[row.customer]['quoted_revenue'] += flt(row.revenue_amount or 0)
+                
+                # Process planned charges - suppliers
+                if row.supplier:
+                    if row.supplier not in parties_summary:
+                        parties_summary[row.supplier] = {
+                            'party_type': 'Supplier',
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    parties_summary[row.supplier]['quoted_cost'] += flt(row.cost_amount or 0)
+        
+        # Process working revenue charges - customers
+        if hasattr(self, 'forwarding_revenue_charges') and self.forwarding_revenue_charges:
+            for row in self.forwarding_revenue_charges:
+                if row.customer:
+                    if row.customer not in parties_summary:
+                        parties_summary[row.customer] = {
+                            'party_type': 'Customer',
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    parties_summary[row.customer]['working_revenue'] += flt(row.revenue_amount or 0)
+        
+        # Process working cost charges - suppliers
+        if hasattr(self, 'forwarding_cost_charges') and self.forwarding_cost_charges:
+            for row in self.forwarding_cost_charges:
+                if row.supplier:
+                    if row.supplier not in parties_summary:
+                        parties_summary[row.supplier] = {
+                            'party_type': 'Supplier',
+                            'quoted_revenue': 0,
+                            'quoted_cost': 0,
+                            'working_revenue': 0,
+                            'working_cost': 0,
+                            'invoiced_revenue': 0,
+                            'invoiced_cost': 0
+                        }
+                    parties_summary[row.supplier]['working_cost'] += flt(row.cost_amount or 0)
+        
+        # Process invoiced revenue from Sales Invoices
+        sales_invoices = frappe.get_all(
+            'Sales Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['name', 'customer']
+        )
+        
+        for si in sales_invoices:
+            customer = si.customer
+            if customer not in parties_summary:
+                parties_summary[customer] = {
+                    'party_type': 'Customer',
+                    'quoted_revenue': 0,
+                    'quoted_cost': 0,
+                    'working_revenue': 0,
+                    'working_cost': 0,
+                    'invoiced_revenue': 0,
+                    'invoiced_cost': 0
+                }
+            
+            si_doc = frappe.get_doc('Sales Invoice', si.name)
+            if hasattr(si_doc, 'items') and si_doc.items:
+                for item in si_doc.items:
+                    parties_summary[customer]['invoiced_revenue'] += flt(item.amount or 0)
+        
+        # Process invoiced cost from Purchase Invoices
+        purchase_invoices = frappe.get_all(
+            'Purchase Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['name', 'supplier']
+        )
+        
+        for pi in purchase_invoices:
+            supplier = pi.supplier
+            if supplier not in parties_summary:
+                parties_summary[supplier] = {
+                    'party_type': 'Supplier',
+                    'quoted_revenue': 0,
+                    'quoted_cost': 0,
+                    'working_revenue': 0,
+                    'working_cost': 0,
+                    'invoiced_revenue': 0,
+                    'invoiced_cost': 0
+                }
+            
+            pi_doc = frappe.get_doc('Purchase Invoice', pi.name)
+            if hasattr(pi_doc, 'items') and pi_doc.items:
+                for item in pi_doc.items:
+                    parties_summary[supplier]['invoiced_cost'] += flt(item.amount or 0)
+        
+        return parties_summary
+
+    def get_job_totals_summary(self):
+        """
+        ========== BEGIN METHOD: get_job_totals_summary ==========
+        
+        Get overall totals and margin metrics for this forwarding job.
+        
+        Returns a dictionary with:
+        {
+            'quoted_revenue': total,
+            'quoted_cost': total,
+            'quoted_margin': margin,
+            'quoted_margin_percent': percent,
+            'working_revenue': total,
+            'working_cost': total,
+            'working_margin': margin,
+            'working_margin_percent': percent,
+            'invoiced_revenue': total,
+            'invoiced_cost': total,
+            'invoiced_margin': margin,
+            'invoiced_margin_percent': percent
+        }
+        
+        Calculates:
+        - Quoted totals: from forwarding_costing_charges
+        - Working totals: from forwarding_revenue_charges + forwarding_cost_charges
+        - Invoiced totals: from Sales Invoices + Purchase Invoices
+        - Margins: calculated as Revenue - Cost
+        - Margin percentages: (Margin / Revenue) * 100
+        
+        ========== END METHOD: get_job_totals_summary ==========
+        """
+        quoted_revenue = flt(self.total_quoted_revenue or 0)
+        quoted_cost = flt(self.total_quoted_cost or 0)
+        working_revenue = flt(self.total_working_revenue or 0)
+        working_cost = flt(self.total_working_cost or 0)
+        
+        # Get invoiced totals
+        invoiced_revenue = 0
+        invoiced_cost = 0
+        
+        sales_invoices = frappe.get_all(
+            'Sales Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['total']
+        )
+        invoiced_revenue = sum([flt(si.get('total', 0)) for si in sales_invoices])
+        
+        purchase_invoices = frappe.get_all(
+            'Purchase Invoice',
+            filters={'forwarding_job_reference': self.name, 'docstatus': 1},
+            fields=['total']
+        )
+        invoiced_cost = sum([flt(pi.get('total', 0)) for pi in purchase_invoices])
+        
+        quoted_margin = quoted_revenue - quoted_cost
+        working_margin = working_revenue - working_cost
+        invoiced_margin = invoiced_revenue - invoiced_cost
+        
+        quoted_margin_percent = (quoted_margin / quoted_revenue * 100) if quoted_revenue > 0 else 0
+        working_margin_percent = (working_margin / working_revenue * 100) if working_revenue > 0 else 0
+        invoiced_margin_percent = (invoiced_margin / invoiced_revenue * 100) if invoiced_revenue > 0 else 0
+        
+        return {
+            'quoted_revenue': quoted_revenue,
+            'quoted_cost': quoted_cost,
+            'quoted_margin': quoted_margin,
+            'quoted_margin_percent': quoted_margin_percent,
+            'working_revenue': working_revenue,
+            'working_cost': working_cost,
+            'working_margin': working_margin,
+            'working_margin_percent': working_margin_percent,
+            'invoiced_revenue': invoiced_revenue,
+            'invoiced_cost': invoiced_cost,
+            'invoiced_margin': invoiced_margin,
+            'invoiced_margin_percent': invoiced_margin_percent
+        }
+
+    def get_charge_details_for_cost_sheet(self):
+        """
+        ========== BEGIN METHOD: get_charge_details_for_cost_sheet ==========
+        
+        Get organized charge details formatted specifically for cost sheet templates.
+        This is the primary method called by print formats to display charge data.
+        
+        Returns:
+        {
+            'charges': [
+                {
+                    'charge': name,
+                    'quoted_revenue': amount,
+                    'quoted_cost': amount,
+                    'working_revenue': amount,
+                    'working_cost': amount,
+                    'invoiced_revenue': amount,
+                    'invoiced_cost': amount
+                }
+            ],
+            'totals': {
+                'quoted_revenue': total,
+                'quoted_cost': total,
+                'working_revenue': total,
+                'working_cost': total,
+                'invoiced_revenue': total,
+                'invoiced_cost': total,
+                'invoiced_margin': margin
+            }
+        }
+        
+        Usage in print format:
+            {% set data = doc.get_charge_details_for_cost_sheet() %}
+            {% for charge in data.charges %}
+                {{ charge.charge }}: {{ charge.quoted_revenue }}
+            {% endfor %}
+        
+        ========== END METHOD: get_charge_details_for_cost_sheet ==========
+        """
+        charges_summary = self.get_all_charges_summary()
+        totals = self.get_job_totals_summary()
+        
+        charges_list = []
+        for charge_name, amounts in charges_summary.items():
+            charges_list.append({
+                'charge': charge_name,
+                'quoted_revenue': amounts['quoted_revenue'],
+                'quoted_cost': amounts['quoted_cost'],
+                'working_revenue': amounts['working_revenue'],
+                'working_cost': amounts['working_cost'],
+                'invoiced_revenue': amounts['invoiced_revenue'],
+                'invoiced_cost': amounts['invoiced_cost']
+            })
+        
+        return {
+            'charges': sorted(charges_list, key=lambda x: x['charge']),
+            'totals': {
+                'quoted_revenue': totals['quoted_revenue'],
+                'quoted_cost': totals['quoted_cost'],
+                'working_revenue': totals['working_revenue'],
+                'working_cost': totals['working_cost'],
+                'invoiced_revenue': totals['invoiced_revenue'],
+                'invoiced_cost': totals['invoiced_cost'],
+                'invoiced_margin': totals['invoiced_margin']
+            }
+        }
+
+    def get_party_details_for_cost_sheet(self):
+        """
+        ========== BEGIN METHOD: get_party_details_for_cost_sheet ==========
+        
+        Get organized party (customer/supplier) details formatted for cost sheet templates.
+        This is the primary method called by print formats to display party data.
+        
+        Returns:
+        {
+            'customers': [
+                {
+                    'party': name,
+                    'quoted_revenue': amount,
+                    'quoted_cost': amount,
+                    'working_revenue': amount,
+                    'working_cost': amount,
+                    'invoiced_revenue': amount,
+                    'invoiced_cost': amount
+                }
+            ],
+            'suppliers': [
+                {
+                    'party': name,
+                    'quoted_revenue': amount,
+                    'quoted_cost': amount,
+                    'working_revenue': amount,
+                    'working_cost': amount,
+                    'invoiced_revenue': amount,
+                    'invoiced_cost': amount
+                }
+            ],
+            'totals': {
+                'quoted_revenue': total,
+                'quoted_cost': total,
+                'working_revenue': total,
+                'working_cost': total,
+                'invoiced_revenue': total,
+                'invoiced_cost': total
+            }
+        }
+        
+        Usage in print format:
+            {% set data = doc.get_party_details_for_cost_sheet() %}
+            <h3>Customers</h3>
+            {% for customer in data.customers %}
+                {{ customer.party }}: {{ customer.quoted_revenue }}
+            {% endfor %}
+            <h3>Suppliers</h3>
+            {% for supplier in data.suppliers %}
+                {{ supplier.party }}: {{ supplier.quoted_cost }}
+            {% endfor %}
+        
+        ========== END METHOD: get_party_details_for_cost_sheet ==========
+        """
+        parties_summary = self.get_all_parties_summary()
+        
+        customers = []
+        suppliers = []
+        
+        for party_name, amounts in parties_summary.items():
+            party_data = {
+                'party': party_name,
+                'quoted_revenue': amounts['quoted_revenue'],
+                'quoted_cost': amounts['quoted_cost'],
+                'working_revenue': amounts['working_revenue'],
+                'working_cost': amounts['working_cost'],
+                'invoiced_revenue': amounts['invoiced_revenue'],
+                'invoiced_cost': amounts['invoiced_cost']
+            }
+            
+            if amounts['party_type'] == 'Customer':
+                customers.append(party_data)
+            else:
+                suppliers.append(party_data)
+        
+        totals = self.get_job_totals_summary()
+        
+        return {
+            'customers': sorted(customers, key=lambda x: x['party']),
+            'suppliers': sorted(suppliers, key=lambda x: x['party']),
+            'totals': {
+                'quoted_revenue': totals['quoted_revenue'],
+                'quoted_cost': totals['quoted_cost'],
+                'working_revenue': totals['working_revenue'],
+                'working_cost': totals['working_cost'],
+                'invoiced_revenue': totals['invoiced_revenue'],
+                'invoiced_cost': totals['invoiced_cost']
+            }
+        }
+
+    # ========================================================
+    # END COST SHEET CALCULATION METHODS
+    # Safe to delete entire block above without affecting other code.
+    # ========================================================
+
 
 # ========================================================
 # SALES INVOICE CREATION - UPDATED for forwarding_revenue_charges
