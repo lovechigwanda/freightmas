@@ -85,15 +85,9 @@
   "border_2_arrived_on",
   "border_2_left_on",
   "column_break_vqyl",
-  "custom_milestone",
-  "custom_milestone_name",
-  "custom_arrived_on",
-  "custom_left_on",
+  "offloading_point",
+  "offloading_arrived_on",
   "column_break_nulm",
-  "custom_milestone2",
-  "custom_milestone2_name",
-  "custom2_arrived_on",
-  "custom2_left_on",
   "attachments_section",
   "proof_of_delivery",
   "column_break_qsgx",
@@ -538,6 +532,7 @@
    "fieldname": "border_name",
    "fieldtype": "Link",
    "label": "Border Name",
+   "mandatory_depends_on": "eval:doc.border_tracking",
    "options": "Border Post"
   },
   {
@@ -561,7 +556,8 @@
    "depends_on": "eval:doc.border_tracking",
    "fieldname": "border_arrived_on",
    "fieldtype": "Date",
-   "label": "Border Arrived On"
+   "label": "Border Arrived On",
+   "mandatory_depends_on": "eval:doc.border_tracking"
   },
   {
    "depends_on": "eval:doc.border_tracking",
@@ -580,13 +576,15 @@
    "fieldname": "border_2_name",
    "fieldtype": "Link",
    "label": "Border 2 Name",
+   "mandatory_depends_on": "eval:doc.border_2_tracking",
    "options": "Border Post"
   },
   {
    "depends_on": "eval:doc.border_2_tracking",
    "fieldname": "border_2_arrived_on",
    "fieldtype": "Date",
-   "label": "Border 2 Arrived On"
+   "label": "Border 2 Arrived On",
+   "mandatory_depends_on": "eval:doc.border_2_tracking"
   },
   {
    "depends_on": "eval:doc.border_2_tracking",
@@ -596,57 +594,22 @@
   },
   {
    "default": "0",
-   "fieldname": "custom_milestone",
+   "fieldname": "offloading_point",
    "fieldtype": "Check",
-   "label": "Custom Milestone"
+   "label": "Offloading Point"
   },
   {
-   "depends_on": "eval:doc.custom_milestone",
-   "fieldname": "custom_milestone_name",
-   "fieldtype": "Data",
-   "label": "Custom Milestone Name"
-  },
-  {
-   "depends_on": "eval:doc.custom_milestone",
-   "fieldname": "custom_arrived_on",
+   "depends_on": "eval:doc.offloading_point",
+   "fieldname": "offloading_arrived_on",
    "fieldtype": "Date",
-   "label": "Custom Arrived On"
-  },
-  {
-   "depends_on": "eval:doc.custom_milestone",
-   "fieldname": "custom_left_on",
-   "fieldtype": "Date",
-   "label": "Custom Left On"
-  },
-  {
-   "default": "0",
-   "fieldname": "custom_milestone2",
-   "fieldtype": "Check",
-   "label": "Custom Milestone 2"
-  },
-  {
-   "depends_on": "eval:doc.custom_milestone2",
-   "fieldname": "custom_milestone2_name",
-   "fieldtype": "Data",
-   "label": "Custom Milestone Name"
-  },
-  {
-   "depends_on": "eval:doc.custom_milestone2",
-   "fieldname": "custom2_arrived_on",
-   "fieldtype": "Date",
-   "label": "Custom 2 Arrived On"
-  },
-  {
-   "depends_on": "eval:doc.custom_milestone2",
-   "fieldname": "custom2_left_on",
-   "fieldtype": "Date",
-   "label": "Custom 2 Left On"
+   "label": "Offload Arrived On",
+   "mandatory_depends_on": "eval:doc.custom_milestone"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-09 19:05:10.239182",
+ "modified": "2025-11-10 11:23:12.240605",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",
