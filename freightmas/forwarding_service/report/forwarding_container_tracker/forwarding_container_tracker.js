@@ -1,18 +1,16 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-// Using the new FreightMas Report Utilities for consistency
-frappe.query_reports["Forwarding Job Register"] = {
-    filters: [
-        // Use standard date range filter
+frappe.query_reports["Forwarding Container Tracker"] = {
+    "filters": [
         {
-            fieldname: "date_range",
-            label: __("Date Range"),
-            fieldtype: "Select",
-            options: [
+            "fieldname": "date_range",
+            "label": __("Date Range"),
+            "fieldtype": "Select",
+            "options": [
                 "",
-                "Today", 
-                "Yesterday",
+                "Today",
+                "Yesterday", 
                 "This Week",
                 "Last Week",
                 "This Month",
@@ -21,46 +19,84 @@ frappe.query_reports["Forwarding Job Register"] = {
                 "Last Year",
                 "Custom"
             ],
-            default: "This Month",
-            on_change: function () {
-                // Use the utility function for date range handling
+            "default": "This Month",
+            "on_change": function() {
                 apply_date_range_filter();
             }
         },
         {
-            fieldname: "from_date",
-            label: __("From Date"),
-            fieldtype: "Date",
-            default: frappe.datetime.add_months(frappe.datetime.get_today(), -1)
+            "fieldname": "from_date",
+            "label": __("From Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.add_months(frappe.datetime.get_today(), -1),
+            "reqd": 1
         },
         {
-            fieldname: "to_date",
-            label: __("To Date"), 
-            fieldtype: "Date",
-            default: frappe.datetime.get_today()
+            "fieldname": "to_date", 
+            "label": __("To Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.get_today(),
+            "reqd": 1
         },
         {
-            fieldname: "customer",
-            label: __("Customer"),
-            fieldtype: "Link",
-            options: "Customer",
-            only_select: true
+            "fieldname": "customer",
+            "label": __("Customer"),
+            "fieldtype": "Link",
+            "options": "Customer"
         },
         {
-            fieldname: "status",
-            label: __("Status"),
-            fieldtype: "Select",
-            options: "\nDraft\nIn Progress\nCompleted\nCancelled"
+            "fieldname": "status",
+            "label": __("Job Status"),
+            "fieldtype": "Select",
+            "options": "\nDraft\nIn Progress\nDelivered\nCompleted\nCancelled"
+        },
+        {
+            "fieldname": "customer_reference",
+            "label": __("Reference"),
+            "fieldtype": "Data"
         }
     ],
-
-    onload: function(report) {
-        // Use standard export button setup from utilities
-        setup_standard_export_buttons(report, "Forwarding Job Register");
+    
+    "onload": function(report) {
+        // Use standard export button setup (copied from Forwarding Job Register)
+        setup_standard_export_buttons(report, "Forwarding Container Tracker");
+    },
+    
+    "formatter": function(value, row, column, data, default_formatter) {
+        value = default_formatter(value, row, column, data);
+        
+        // Format overdue days with highlighting
+        if (column.fieldname === "loading_overdue_days" || column.fieldname === "return_overdue_days") {
+            if (value && parseInt(value) > 0) {
+                value = `<span style="color: #d73527; font-weight: bold;">${value} days</span>`;
+            } else if (value) {
+                value = `${value} days`;
+            }
+        }
+        
+        // Format container status with color coding  
+        if (column.fieldname === "container_status") {
+            switch(value) {
+                case "Completed":
+                    value = `<span style="color: #5cb85c;">${value}</span>`;
+                    break;
+                case "Returned":
+                    value = `<span style="color: #5bc0de;">${value}</span>`;
+                    break;
+                case "Loaded":
+                    value = `<span style="color: #f0ad4e;">${value}</span>`;
+                    break;
+                case "Pending Booking":
+                    value = `<span style="color: #d73527;">${value}</span>`;
+                    break;
+            }
+        }
+        
+        return value;
     }
 };
 
-// Apply date range filter logic (copied from utilities since they may not be loaded yet)
+// Helper function for date range filter
 function apply_date_range_filter() {
     let date_range = frappe.query_report.get_filter_value('date_range');
     let today = frappe.datetime.get_today();
@@ -99,7 +135,8 @@ function apply_date_range_filter() {
             to_date = `${lastYear}-12-31`;
             break;
         default:
-            return; // For "Custom" option, don't auto-populate
+            // For "Custom" option, don't auto-populate
+            return;
     }
 
     if (date_range && date_range !== "Custom" && date_range !== "") {
@@ -108,7 +145,7 @@ function apply_date_range_filter() {
     }
 }
 
-// Standard export button setup (fallback if utilities not loaded)
+// Standard export button setup (copied from Forwarding Job Register)
 function setup_standard_export_buttons(report, report_name) {
     // Excel Export
     report.page.add_inner_button(__('Export to Excel'), function() {

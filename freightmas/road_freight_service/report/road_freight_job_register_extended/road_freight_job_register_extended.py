@@ -17,7 +17,7 @@ def get_columns():
         {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Road Freight Job", "width": 140},
         {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 90},
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
-        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 120},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 160},
         {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 90},
         {"label": "Type", "fieldname": "shipment_type", "fieldtype": "Data", "width": 110},
         {"label": "Cargo Desc.", "fieldname": "cargo_description", "fieldtype": "Data", "width": 180, "align": "left"},

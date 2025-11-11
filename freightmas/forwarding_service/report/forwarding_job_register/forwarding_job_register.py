@@ -3,73 +3,73 @@
 
 from __future__ import unicode_literals
 import frappe
-
-def format_date(date_str):
-    if not date_str:
-        return ""
-    try:
-        return frappe.utils.formatdate(date_str, "dd-MMM-yy")
-    except Exception:
-        return date_str
+from freightmas.utils.report_utils import (
+    format_date,
+    get_standard_columns,
+    build_job_filters,
+    combine_direction_shipment,
+    validate_date_filters
+)
 
 def get_columns():
-    return [
-        {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
-        {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 90},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
-        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 120},
-        {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 120},
-        {"label": "Origin", "fieldname": "port_of_loading", "fieldtype": "Link", "options": "Port", "width": 120},
-        {"label": "Destination", "fieldname": "destination", "fieldtype": "Link", "options": "Port", "width": 120},
-        {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 120},
-        {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 90},
-        {"label": "Est. Rev", "fieldname": "total_quoted_revenue_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Cost", "fieldname": "total_quoted_cost_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Est. Prft", "fieldname": "total_quoted_profit_base", "fieldtype": "Currency", "width": 110},
-        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+    """Get column definitions using standard utilities."""
+    standard_cols = get_standard_columns()
+    
+    # Use standard columns where possible, customize as needed
+    columns = [
+        # Update the job_id column to link to Forwarding Job
+        {**standard_cols["job_id"], "options": "Forwarding Job"},
+        standard_cols["job_date"],
+        {**standard_cols["customer"], "width": 200},  # Slightly wider for customer names
+        standard_cols["reference"],
+        standard_cols["direction"],
+        standard_cols["origin"],
+        standard_cols["destination"],
+        standard_cols["bl_number"],
+        {**standard_cols["eta"], "width": 100},  # Wider for date format
+        standard_cols["estimated_revenue"],
+        standard_cols["estimated_cost"],
+        standard_cols["estimated_profit"],
+        standard_cols["status"],
     ]
+    
+    return columns
 
 def execute(filters=None):
+    """
+    Main execution function using standardized utilities.
+    """
+    # Validate and normalize filters
+    filters = validate_date_filters(filters or {})
+    
+    # Get columns using standard utilities
     columns = get_columns()
-    data = []
-
-    filters = filters or {}
-    job_filters = {}
-
-    if filters.get("from_date") and filters.get("to_date"):
-        job_filters["date_created"] = ["between", [filters["from_date"], filters["to_date"]]]
-    if filters.get("customer"):
-        job_filters["customer"] = filters["customer"]
-    if filters.get("status"):
-        job_filters["status"] = filters["status"]
-
+    
+    # Build database filters using utilities
+    job_filters = build_job_filters(filters, "Forwarding Job")
+    
+    # Get data from database
     jobs = frappe.get_all(
         "Forwarding Job",
         filters=job_filters,
         fields=[
-            "name", "date_created", "customer", "customer_reference", "direction", "shipment_mode",
-            "port_of_loading", "destination", "bl_number", "eta",
-            "total_quoted_revenue_base", "total_quoted_cost_base", "total_quoted_profit_base",
-            "status"
-        ]
+            "name", "date_created", "customer", "customer_reference", 
+            "direction", "shipment_mode", "port_of_loading", "destination", 
+            "bl_number", "eta", "total_quoted_revenue_base", 
+            "total_quoted_cost_base", "total_quoted_profit_base", "status"
+        ],
+        order_by="date_created desc"
     )
-
+    
+    # Process data with consistent formatting
+    data = []
     for job in jobs:
-        # Combine shipment_mode + direction for the Direction field
-        combined_direction = ""
-        if job.get("shipment_mode") and job.get("direction"):
-            combined_direction = f"{job.get('shipment_mode')} {job.get('direction')}"
-        elif job.get("shipment_mode"):
-            combined_direction = job.get("shipment_mode")
-        elif job.get("direction"):
-            combined_direction = job.get("direction")
-
         data.append({
             "name": job.get("name", ""),
-            "date_created": format_date(job["date_created"]),
+            "date_created": format_date(job.get("date_created")),
             "customer": job.get("customer", ""),
             "customer_reference": job.get("customer_reference", ""),
-            "direction": combined_direction,
+            "direction": combine_direction_shipment(job),
             "port_of_loading": job.get("port_of_loading", ""),
             "destination": job.get("destination", ""),
             "bl_number": job.get("bl_number", ""),
@@ -79,5 +79,5 @@ def execute(filters=None):
             "total_quoted_profit_base": job.get("total_quoted_profit_base", 0),
             "status": job.get("status", ""),
         })
-
+    
     return columns, data

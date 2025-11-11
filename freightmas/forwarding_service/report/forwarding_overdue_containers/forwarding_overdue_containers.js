@@ -1,18 +1,16 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-// Using the new FreightMas Report Utilities for consistency
-frappe.query_reports["Forwarding Job Register"] = {
-    filters: [
-        // Use standard date range filter
+frappe.query_reports["Forwarding Overdue Containers"] = {
+    "filters": [
         {
-            fieldname: "date_range",
-            label: __("Date Range"),
-            fieldtype: "Select",
-            options: [
+            "fieldname": "date_range",
+            "label": __("Date Range"),
+            "fieldtype": "Select",
+            "options": [
                 "",
-                "Today", 
-                "Yesterday",
+                "Today",
+                "Yesterday", 
                 "This Week",
                 "Last Week",
                 "This Month",
@@ -21,46 +19,56 @@ frappe.query_reports["Forwarding Job Register"] = {
                 "Last Year",
                 "Custom"
             ],
-            default: "This Month",
-            on_change: function () {
-                // Use the utility function for date range handling
+            "default": "This Month",
+            "on_change": function() {
                 apply_date_range_filter();
             }
         },
         {
-            fieldname: "from_date",
-            label: __("From Date"),
-            fieldtype: "Date",
-            default: frappe.datetime.add_months(frappe.datetime.get_today(), -1)
+            "fieldname": "from_date",
+            "label": __("From Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.add_months(frappe.datetime.get_today(), -1),
+            "reqd": 1
         },
         {
-            fieldname: "to_date",
-            label: __("To Date"), 
-            fieldtype: "Date",
-            default: frappe.datetime.get_today()
+            "fieldname": "to_date", 
+            "label": __("To Date"),
+            "fieldtype": "Date",
+            "default": frappe.datetime.get_today(),
+            "reqd": 1
         },
         {
-            fieldname: "customer",
-            label: __("Customer"),
-            fieldtype: "Link",
-            options: "Customer",
-            only_select: true
+            "fieldname": "customer",
+            "label": __("Customer"),
+            "fieldtype": "Link",
+            "options": "Customer"
         },
         {
-            fieldname: "status",
-            label: __("Status"),
-            fieldtype: "Select",
-            options: "\nDraft\nIn Progress\nCompleted\nCancelled"
+            "fieldname": "status",
+            "label": __("Job Status"),
+            "fieldtype": "Select",
+            "options": "\nDraft\nIn Progress\nDelivered\nCompleted\nCancelled"
+        },
+        {
+            "fieldname": "customer_reference",
+            "label": __("Reference"),
+            "fieldtype": "Data"
         }
     ],
-
-    onload: function(report) {
-        // Use standard export button setup from utilities
-        setup_standard_export_buttons(report, "Forwarding Job Register");
+    
+    "onload": function(report) {
+        // Use standard export button setup 
+        setup_standard_export_buttons(report, "Forwarding Overdue Containers");
+    },
+    
+    "formatter": function(value, row, column, data, default_formatter) {
+        value = default_formatter(value, row, column, data);
+        return value;
     }
 };
 
-// Apply date range filter logic (copied from utilities since they may not be loaded yet)
+// Helper function for date range filter
 function apply_date_range_filter() {
     let date_range = frappe.query_report.get_filter_value('date_range');
     let today = frappe.datetime.get_today();
@@ -99,7 +107,8 @@ function apply_date_range_filter() {
             to_date = `${lastYear}-12-31`;
             break;
         default:
-            return; // For "Custom" option, don't auto-populate
+            // For "Custom" option, don't auto-populate
+            return;
     }
 
     if (date_range && date_range !== "Custom" && date_range !== "") {
@@ -108,7 +117,7 @@ function apply_date_range_filter() {
     }
 }
 
-// Standard export button setup (fallback if utilities not loaded)
+// Standard export button setup
 function setup_standard_export_buttons(report, report_name) {
     // Excel Export
     report.page.add_inner_button(__('Export to Excel'), function() {
@@ -126,7 +135,7 @@ function setup_standard_export_buttons(report, report_name) {
         window.open(url);
     }, __('Export'));
 
-    // Clear Filters - Standalone button (not grouped under Export)
+    // Clear Filters - Standalone button
     report.page.add_button(__('Clear Filters'), function() {
         report.filters.forEach(filter => {
             let default_value = filter.df.default || "";

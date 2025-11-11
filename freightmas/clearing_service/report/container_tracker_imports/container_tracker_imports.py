@@ -19,7 +19,7 @@ def get_columns():
         {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 210},
         {"label": "S Line", "fieldname": "shipping_line", "fieldtype": "Link", "options": "Shipping Line", "width": 90},
-        {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 140},
+        {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 160},
         {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 140},
         {"label": "Type", "fieldname": "container_type", "fieldtype": "Data", "width": 90},
         {"label": "Status", "fieldname": "container_status", "fieldtype": "Data", "width": 120},

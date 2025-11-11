@@ -18,10 +18,10 @@ def get_columns():
     return [
         {"label": "Job No", "fieldname": "name", "fieldtype": "Link", "options": "Clearing Job", "width": 150},
         {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 210},
-        {"label": "Consignee", "fieldname": "consignee", "fieldtype": "Link", "options": "Customer", "width": 210},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 160},
+        {"label": "Consignee", "fieldname": "consignee", "fieldtype": "Link", "options": "Customer", "width": 160},
         {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 120},  # <-- Added here
-        {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 140},
+        {"label": "BL No", "fieldname": "bl_number", "fieldtype": "Data", "width": 160},
         {"label": "Cargo Description", "fieldname": "cargo_description", "fieldtype": "Data", "width": 200, "align": "left"},
         {"label": "Cargo Count", "fieldname": "cargo_count", "fieldtype": "Data", "width": 120},
         {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 100},
