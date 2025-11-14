@@ -47,7 +47,7 @@ def get_standard_columns():
     Returns dictionary of standard column definitions for common fields.
     """
     return {
-        "job_id": {"label": "Job ID", "fieldname": "name", "fieldtype": "Data", "width": 140},
+    "job_id": {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
         "job_date": {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
         "customer": {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
         "customer_name": {"label": "Customer", "fieldname": "customer_name", "fieldtype": "Data", "width": 180},

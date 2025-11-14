@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-11-12 15:20:57.449366",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "Main Letterhead",
+ "letterhead": null,
+ "modified": "2025-11-12 15:20:57.449366",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Unbilled Forwarding Jobs",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Forwarding Job",
+ "report_name": "Unbilled Forwarding Jobs",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}
