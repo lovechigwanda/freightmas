@@ -1136,10 +1136,18 @@
           item.className = 'dropdown-item';
           item.setAttribute('data-value', supplier.name);
           
-          item.innerHTML = `
-            <div class="dropdown-item-name">${supplier.supplier_name || supplier.name}</div>
-            ${supplier.supplier_name ? `<div class="dropdown-item-code">${supplier.name}</div>` : ''}
-          `;
+          // Create elements safely to prevent XSS
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'dropdown-item-name';
+          nameDiv.textContent = supplier.supplier_name || supplier.name;
+          item.appendChild(nameDiv);
+          
+          if (supplier.supplier_name) {
+            const codeDiv = document.createElement('div');
+            codeDiv.className = 'dropdown-item-code';
+            codeDiv.textContent = supplier.name;
+            item.appendChild(codeDiv);
+          }
           
           item.addEventListener('click', function() {
             input.value = supplier.supplier_name || supplier.name;
