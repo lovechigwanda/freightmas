@@ -32,6 +32,17 @@
       letter-spacing: 0.3px;
     }
     
+    .customer-name {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 4px;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+    
     .header-subtitle {
       text-align: center;
       font-size: 12px;
@@ -147,9 +158,10 @@
   </style>
 
   <!-- Main Header -->
-  <div class="header-title">{{ doc.company or "FreightMas" }} - Consolidated Tracking Report</div>
+  {% set company_name = frappe.db.get_single_value("Global Defaults", "default_company") or "FreightMas" %}
+  <div class="header-title">{{ company_name }} - Consolidated Tracking Report</div>
+  <div class="customer-name">{{ doc.customer_name }}</div>
   <div class="header-subtitle">
-    Customer: {{ doc.customer_name }}<br>
     Report Generated: {{ frappe.utils.format_datetime(frappe.utils.now(), "dd-MMM-yyyy HH:mm") }}<br>
     Total Active Jobs: {{ active_jobs|length }}
   </div>
