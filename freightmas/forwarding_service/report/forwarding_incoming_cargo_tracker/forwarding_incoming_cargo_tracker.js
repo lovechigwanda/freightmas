@@ -52,12 +52,38 @@ frappe.query_reports["Forwarding Incoming Cargo Tracker"] = {
     ],
     
     "onload": function(report) {
-        // Use standard export button setup
-        setup_standard_export_buttons(report, "Forwarding Incoming Cargo Tracker");
+        setup_export_buttons(report);
     }
 };
 
-// Helper function for date range filter
+function setup_export_buttons(report) {
+    // Excel Export
+    report.page.add_inner_button(__("Export to Excel"), function() {
+        const filters = report.get_filter_values(true);
+        const query = encodeURIComponent(JSON.stringify(filters));
+        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent("Forwarding Incoming Cargo Tracker")}&filters=${query}`;
+        window.open(url);
+    }, __("Export"));
+
+    // PDF Export
+    report.page.add_inner_button(__("Export to PDF"), function() {
+        const filters = report.get_filter_values(true);
+        const query = encodeURIComponent(JSON.stringify(filters));
+        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent("Forwarding Incoming Cargo Tracker")}&filters=${query}`;
+        window.open(url);
+    }, __("Export"));
+
+    // Clear Filters
+    report.page.add_button(__("Clear Filters"), function() {
+        report.set_filter_value('date_range', 'This Month');
+        report.set_filter_value('from_date', frappe.datetime.add_months(frappe.datetime.get_today(), -1));
+        report.set_filter_value('to_date', frappe.datetime.get_today());
+        report.set_filter_value('customer', '');
+        report.set_filter_value('customer_reference', '');
+        report.refresh();
+    });
+}
+
 function apply_date_range_filter() {
     let date_range = frappe.query_report.get_filter_value('date_range');
     let today = frappe.datetime.get_today();
@@ -96,7 +122,6 @@ function apply_date_range_filter() {
             to_date = `${lastYear}-12-31`;
             break;
         default:
-            // For "Custom" option, don't auto-populate
             return;
     }
 
@@ -104,36 +129,4 @@ function apply_date_range_filter() {
         frappe.query_report.set_filter_value('from_date', from_date);
         frappe.query_report.set_filter_value('to_date', to_date);
     }
-}
-
-// Standard export button setup
-function setup_standard_export_buttons(report, report_name) {
-    // Excel Export
-    report.page.add_inner_button(__('Export to Excel'), function() {
-        const filters = report.get_filter_values(true);
-        const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
-        window.open(url);
-    }, __('Export'));
-
-    // PDF Export
-    report.page.add_inner_button(__('Export to PDF'), function() {
-        const filters = report.get_filter_values(true);
-        const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
-        window.open(url);
-    }, __('Export'));
-
-    // Clear Filters - Standalone button (not grouped under Export)
-    report.page.add_button(__('Clear Filters'), function() {
-        // Set specific default values for each filter
-        report.set_filter_value('date_range', 'This Month');
-        report.set_filter_value('from_date', frappe.datetime.add_months(frappe.datetime.get_today(), -1));
-        report.set_filter_value('to_date', frappe.datetime.get_today());
-        report.set_filter_value('customer', '');
-        report.set_filter_value('customer_reference', '');
-        
-        // Refresh the report
-        report.refresh();
-    });
 }

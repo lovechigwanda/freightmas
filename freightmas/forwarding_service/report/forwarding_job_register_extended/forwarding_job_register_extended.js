@@ -1,10 +1,9 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-// Using the new FreightMas Report Utilities for consistency
+// Standalone Forwarding Job Register Extended Report - Comprehensive Version
 frappe.query_reports["Forwarding Job Register Extended"] = {
     filters: [
-        // Use standard date range filter
         {
             fieldname: "date_range",
             label: __("Date Range"),
@@ -23,7 +22,6 @@ frappe.query_reports["Forwarding Job Register Extended"] = {
             ],
             default: "This Month",
             on_change: function () {
-                // Use the utility function for date range handling
                 apply_date_range_filter();
             }
         },
@@ -50,17 +48,22 @@ frappe.query_reports["Forwarding Job Register Extended"] = {
             fieldname: "status",
             label: __("Status"),
             fieldtype: "Select",
-            options: "\nDraft\nIn Progress\nCompleted\nCancelled"
+            options: "\nDraft\nIn Progress\nDelivered\nCompleted\nCancelled"
+        },
+        {
+            fieldname: "direction",
+            label: __("Direction"),
+            fieldtype: "Select",
+            options: "\nImport\nExport"
         }
     ],
 
     onload: function(report) {
-        // Use standard export button setup from utilities
-        setup_standard_export_buttons(report, "Forwarding Job Register Extended");
+        setup_export_buttons(report);
     }
 };
 
-// Apply date range filter logic (copied from utilities since they may not be loaded yet)
+// Standalone date range filter logic
 function apply_date_range_filter() {
     let date_range = frappe.query_report.get_filter_value('date_range');
     let today = frappe.datetime.get_today();
@@ -108,13 +111,13 @@ function apply_date_range_filter() {
     }
 }
 
-// Standard export button setup (fallback if utilities not loaded)
-function setup_standard_export_buttons(report, report_name) {
+// Standalone export button setup
+function setup_export_buttons(report) {
     // Excel Export
     report.page.add_inner_button(__('Export to Excel'), function() {
         const filters = report.get_filter_values(true);
         const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
+        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent("Forwarding Job Register Extended")}&filters=${query}`;
         window.open(url);
     }, __('Export'));
 
@@ -122,16 +125,15 @@ function setup_standard_export_buttons(report, report_name) {
     report.page.add_inner_button(__('Export to PDF'), function() {
         const filters = report.get_filter_values(true);
         const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
+        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent("Forwarding Job Register Extended")}&filters=${query}`;
         window.open(url);
     }, __('Export'));
 
-    // Clear Filters - Standalone button (not grouped under Export)
+    // Clear Filters
     report.page.add_inner_button(__('Clear Filters'), function() {
         report.filters.forEach(filter => {
             let default_value = filter.df.default || "";
             if (filter.df.fieldtype === "Select" && filter.df.options) {
-                // For Select fields, use first option as default if no explicit default
                 if (!default_value) {
                     const options = filter.df.options.split('\n').filter(opt => opt.trim());
                     default_value = options.length > 0 ? options[0] : "";
@@ -140,7 +142,6 @@ function setup_standard_export_buttons(report, report_name) {
             report.set_filter_value(filter.df.fieldname, default_value);
         });
         
-        // Refresh the report
         report.refresh();
     });
 }

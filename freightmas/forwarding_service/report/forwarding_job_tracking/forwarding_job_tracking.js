@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Forwarding Job Billing Report"] = {
+frappe.query_reports["Forwarding Job Tracking"] = {
 	"filters": [
 		{
 			fieldname: "date_range",
@@ -89,12 +89,6 @@ frappe.query_reports["Forwarding Job Billing Report"] = {
 			fieldtype: "Link",
 			options: "Customer",
 			only_select: true
-		},
-		{
-			fieldname: "status",
-			label: __("Status"),
-			fieldtype: "Select",
-			options: "\nDraft\nIn Progress\nCompleted\nCancelled"
 		}
 	],
 
@@ -102,14 +96,14 @@ frappe.query_reports["Forwarding Job Billing Report"] = {
 		report.page.add_inner_button('Export to Excel', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Forwarding Job Billing Report&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Forwarding Job Tracking&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 
 		report.page.add_inner_button('Export to PDF', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Forwarding Job Billing Report&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Forwarding Job Tracking&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 

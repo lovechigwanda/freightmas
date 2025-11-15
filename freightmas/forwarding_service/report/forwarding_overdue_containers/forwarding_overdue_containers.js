@@ -45,12 +45,6 @@ frappe.query_reports["Forwarding Overdue Containers"] = {
             "options": "Customer"
         },
         {
-            "fieldname": "status",
-            "label": __("Job Status"),
-            "fieldtype": "Select",
-            "options": "\nDraft\nIn Progress\nDelivered\nCompleted\nCancelled"
-        },
-        {
             "fieldname": "customer_reference",
             "label": __("Reference"),
             "fieldtype": "Data"
@@ -58,8 +52,7 @@ frappe.query_reports["Forwarding Overdue Containers"] = {
     ],
     
     "onload": function(report) {
-        // Use standard export button setup 
-        setup_standard_export_buttons(report, "Forwarding Overdue Containers");
+        setup_export_buttons(report);
     },
     
     "formatter": function(value, row, column, data, default_formatter) {
@@ -68,7 +61,34 @@ frappe.query_reports["Forwarding Overdue Containers"] = {
     }
 };
 
-// Helper function for date range filter
+function setup_export_buttons(report) {
+    // Excel Export
+    report.page.add_inner_button(__("Export to Excel"), function() {
+        const filters = report.get_filter_values(true);
+        const query = encodeURIComponent(JSON.stringify(filters));
+        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent("Forwarding Overdue Containers")}&filters=${query}`;
+        window.open(url);
+    }, __("Export"));
+
+    // PDF Export
+    report.page.add_inner_button(__("Export to PDF"), function() {
+        const filters = report.get_filter_values(true);
+        const query = encodeURIComponent(JSON.stringify(filters));
+        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent("Forwarding Overdue Containers")}&filters=${query}`;
+        window.open(url);
+    }, __("Export"));
+
+    // Clear Filters
+    report.page.add_button(__("Clear Filters"), function() {
+        report.set_filter_value('date_range', 'This Month');
+        report.set_filter_value('from_date', frappe.datetime.add_months(frappe.datetime.get_today(), -1));
+        report.set_filter_value('to_date', frappe.datetime.get_today());
+        report.set_filter_value('customer', '');
+        report.set_filter_value('customer_reference', '');
+        report.refresh();
+    });
+}
+
 function apply_date_range_filter() {
     let date_range = frappe.query_report.get_filter_value('date_range');
     let today = frappe.datetime.get_today();
@@ -107,7 +127,6 @@ function apply_date_range_filter() {
             to_date = `${lastYear}-12-31`;
             break;
         default:
-            // For "Custom" option, don't auto-populate
             return;
     }
 
@@ -115,41 +134,4 @@ function apply_date_range_filter() {
         frappe.query_report.set_filter_value('from_date', from_date);
         frappe.query_report.set_filter_value('to_date', to_date);
     }
-}
-
-// Standard export button setup
-function setup_standard_export_buttons(report, report_name) {
-    // Excel Export
-    report.page.add_inner_button(__('Export to Excel'), function() {
-        const filters = report.get_filter_values(true);
-        const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
-        window.open(url);
-    }, __('Export'));
-
-    // PDF Export
-    report.page.add_inner_button(__('Export to PDF'), function() {
-        const filters = report.get_filter_values(true);
-        const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent(report_name)}&filters=${query}`;
-        window.open(url);
-    }, __('Export'));
-
-    // Clear Filters - Standalone button
-    report.page.add_button(__('Clear Filters'), function() {
-        report.filters.forEach(filter => {
-            let default_value = filter.df.default || "";
-            if (filter.df.fieldtype === "Select" && filter.df.options) {
-                // For Select fields, use first option as default if no explicit default
-                if (!default_value) {
-                    const options = filter.df.options.split('\n').filter(opt => opt.trim());
-                    default_value = options.length > 0 ? options[0] : "";
-                }
-            }
-            report.set_filter_value(filter.df.fieldname, default_value);
-        });
-        
-        // Refresh the report
-        report.refresh();
-    });
 }

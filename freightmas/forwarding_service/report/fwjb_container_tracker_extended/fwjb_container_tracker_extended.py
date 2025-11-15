@@ -58,14 +58,25 @@ def execute(filters=None):
         
         data.append({
             "name": container.get("parent"),
+            "date_created": format_date(container.get("date_created")),
             "customer": container.get("customer", ""),
             "customer_reference": container.get("customer_reference", ""),
+            "direction": combined_direction,
             "container_number": container.get("container_number", ""),
             "container_type": container.get("container_type", ""),
-            "container_status": container_status,
             "load_by_date": format_date(container.get("load_by_date")),
+            "to_be_returned": format_checkbox(container.get("to_be_returned", 0)),
             "return_by_date": format_date(container.get("return_by_date")),
+            "container_status": container_status,
+            "truck_reg_no": container.get("truck_reg_no", ""),
+            "trailer_reg_no": container.get("trailer_reg_no", ""),
+            "driver_name": container.get("driver_name", ""),
+            "loaded_on_date": format_date(container.get("loaded_on_date")),
+            "offloaded_on_date": format_date(container.get("offloaded_on_date")),
+            "returned_on_date": format_date(container.get("returned_on_date")),
+            "completed_on_date": format_date(container.get("completed_on_date")),
             "loading_overdue_days": loading_overdue,
+            "return_overdue_days": return_overdue,
         })
     
     return columns, data
@@ -73,14 +84,25 @@ def execute(filters=None):
 def get_columns():
     return [
         {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 190},
-        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 160},
-        {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 150},
-        {"label": "Type", "fieldname": "container_type", "fieldtype": "Link", "options": "Container Type", "width": 120},
-        {"label": "Status", "fieldname": "container_status", "fieldtype": "Data", "width": 140},
+        {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 140},
+        {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 120},
+        {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 140},
+        {"label": "Container Type", "fieldname": "container_type", "fieldtype": "Link", "options": "Container Type", "width": 120},
         {"label": "Load By", "fieldname": "load_by_date", "fieldtype": "Data", "width": 100},
+        {"label": "To Return", "fieldname": "to_be_returned", "fieldtype": "Data", "width": 80},
         {"label": "Return By", "fieldname": "return_by_date", "fieldtype": "Data", "width": 100},
-        {"label": "O/D Days", "fieldname": "loading_overdue_days", "fieldtype": "Int", "width": 100},
+        {"label": "Container Status", "fieldname": "container_status", "fieldtype": "Data", "width": 140},
+        {"label": "Truck Reg No", "fieldname": "truck_reg_no", "fieldtype": "Data", "width": 120},
+        {"label": "Trailer Reg No", "fieldname": "trailer_reg_no", "fieldtype": "Data", "width": 120},
+        {"label": "Driver Name", "fieldname": "driver_name", "fieldtype": "Data", "width": 140},
+        {"label": "Loaded On", "fieldname": "loaded_on_date", "fieldtype": "Data", "width": 100},
+        {"label": "Offloaded On", "fieldname": "offloaded_on_date", "fieldtype": "Data", "width": 100},
+        {"label": "Returned On", "fieldname": "returned_on_date", "fieldtype": "Data", "width": 100},
+        {"label": "Completed On", "fieldname": "completed_on_date", "fieldtype": "Data", "width": 100},
+        {"label": "Loading Overdue Days", "fieldname": "loading_overdue_days", "fieldtype": "Int", "width": 150},
+        {"label": "Return Overdue Days", "fieldname": "return_overdue_days", "fieldtype": "Int", "width": 150},
     ]
 
 def calculate_container_status(container):

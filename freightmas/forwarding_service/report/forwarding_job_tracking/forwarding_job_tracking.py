@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import formatdate
+from frappe.utils import formatdate, getdate, add_days
 
 
 def execute(filters=None):
@@ -19,20 +19,32 @@ def execute(filters=None):
         conditions += f" AND date_created <= '{filters['to_date']}'"
     if filters.get("customer"):
         conditions += f" AND customer = '{filters['customer']}'"
-    if filters.get("status"):
-        conditions += f" AND status = '{filters['status']}'"
 
     jobs = frappe.db.sql(f"""
         SELECT name, date_created, customer, customer_reference, 
-               direction, shipment_mode, port_of_loading, destination, 
-               bl_number, eta, total_quoted_revenue_base, 
-               total_quoted_cost_base, total_quoted_profit_base, status
+               direction, shipment_mode, eta, ata,
+               status, current_comment
         FROM `tabForwarding Job`
         WHERE {conditions}
         ORDER BY date_created DESC
     """, as_dict=True)
 
+    # Filter jobs based on completed status and date (show current jobs + recently completed within 5 days)
+    today = getdate()
+    five_days_ago = add_days(today, -5)
+    
+    filtered_jobs = []
     for job in jobs:
+        # Include if not completed
+        if job.get("status") != "Completed":
+            filtered_jobs.append(job)
+        # Or if completed within last 5 days
+        elif job.get("completed_on"):
+            completed_date = getdate(job.get("completed_on"))
+            if completed_date >= five_days_ago:
+                filtered_jobs.append(job)
+
+    for job in filtered_jobs:
         # Combine direction and shipment mode
         direction_shipment = ""
         if job.get("direction") and job.get("shipment_mode"):
@@ -46,16 +58,12 @@ def execute(filters=None):
             "name": job.name,
             "date_created": format_date(job.get("date_created")),
             "customer": job.get("customer", ""),
-            "customer_reference": job.get("customer_reference", ""),
             "direction": direction_shipment,
-            "port_of_loading": job.get("port_of_loading", ""),
-            "destination": job.get("destination", ""),
-            "bl_number": job.get("bl_number", ""),
+            "customer_reference": job.get("customer_reference", ""),
             "eta": format_date(job.get("eta")),
-            "total_quoted_revenue_base": job.get("total_quoted_revenue_base", 0),
-            "total_quoted_cost_base": job.get("total_quoted_cost_base", 0),
-            "total_quoted_profit_base": job.get("total_quoted_profit_base", 0),
+            "ata": format_date(job.get("ata")),
             "status": job.get("status", ""),
+            "current_comment": job.get("current_comment", ""),
         })
 
     return columns, data
@@ -65,17 +73,13 @@ def get_columns():
     return [
         {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
         {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
-        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 140},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
         {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 120},
-        {"label": "Origin", "fieldname": "port_of_loading", "fieldtype": "Link", "options": "Port", "width": 140},
-        {"label": "Destination", "fieldname": "destination", "fieldtype": "Link", "options": "Port", "width": 140},
-        {"label": "BL Number", "fieldname": "bl_number", "fieldtype": "Data", "width": 140},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 140},
         {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 100},
-        {"label": "Est. Revenue", "fieldname": "total_quoted_revenue_base", "fieldtype": "Currency", "width": 120},
-        {"label": "Est. Cost", "fieldname": "total_quoted_cost_base", "fieldtype": "Currency", "width": 120},
-        {"label": "Est. Profit", "fieldname": "total_quoted_profit_base", "fieldtype": "Currency", "width": 120},
+        {"label": "ATA", "fieldname": "ata", "fieldtype": "Data", "width": 100},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+        {"label": "Current Comment", "fieldname": "current_comment", "fieldtype": "Data", "width": 250},
     ]
 
 

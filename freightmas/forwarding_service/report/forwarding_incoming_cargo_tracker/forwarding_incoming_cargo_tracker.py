@@ -1,76 +1,37 @@
 # Copyright (c) 2024, Lovech Technologies Limited and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
-from frappe.utils import getdate, date_diff
-from freightmas.utils.report_utils import (
-    format_date,
-    get_standard_columns,
-    build_job_filters,
-    combine_direction_shipment,
-    validate_date_filters
-)
-
-def get_columns():
-    """Get column definitions using standard utilities."""
-    standard_cols = get_standard_columns()
-    
-    # Use standard columns where possible, customize as needed
-    columns = [
-        # Update the job_id column to link to Forwarding Job
-        {**standard_cols["job_id"], "options": "Forwarding Job"},
-        standard_cols["job_date"],
-        {**standard_cols["customer"], "width": 180},
-        standard_cols["reference"],
-        
-        # Port Information
-        {"label": "Disch Port", "fieldname": "port_of_discharge", "fieldtype": "Link", "options": "Port", "width": 120},
-        
-        # Key Shipping Dates
-        {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 100},
-        {"label": "ATA", "fieldname": "ata", "fieldtype": "Data", "width": 100},
-        
-        # Status Information
-        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 150},
-        {"label": "Days", "fieldname": "days", "fieldtype": "Data", "width": 80},
-    ]
-    
-    return columns
+from frappe.utils import getdate, date_diff, formatdate
 
 def execute(filters=None):
-    """
-    Main execution function using standardized utilities.
-    """
-    # Validate and normalize filters
-    filters = validate_date_filters(filters or {})
-    
-    # Get columns using standard utilities
+    if not filters:
+        filters = {}
+
     columns = get_columns()
-    
-    # Build database filters using utilities  
-    job_filters = build_job_filters(filters, "Forwarding Job")
-    
-    # Include both draft and submitted jobs for incoming cargo tracking
-    job_filters["docstatus"] = ["in", [0, 1]]
-    
-    # Add customer reference filter if specified  
-    if filters.get("customer_reference"):
-        job_filters["customer_reference"] = ["like", f"%{filters['customer_reference']}%"]
-    
-    # Get data from database
-    jobs = frappe.get_all(
-        "Forwarding Job",
-        filters=job_filters,
-        fields=[
-            "name", "date_created", "customer", "customer_reference", 
-            "port_of_discharge", "eta", "ata", "discharge_date"
-        ],
-        order_by="date_created desc"
-    )
-    
-    # Process data with incoming cargo logic
     data = []
+
+    # Build conditions for SQL query
+    conditions = "1=1"
+    if filters.get("from_date"):
+        conditions += f" AND date_created >= '{filters['from_date']}'"
+    if filters.get("to_date"):
+        conditions += f" AND date_created <= '{filters['to_date']}'"
+    if filters.get("customer"):
+        conditions += f" AND customer = '{filters['customer']}'"
+    if filters.get("customer_reference"):
+        conditions += f" AND customer_reference LIKE '%{filters['customer_reference']}%'"
+
+    # Get forwarding jobs data
+    jobs = frappe.db.sql(f"""
+        SELECT name, date_created, customer, customer_reference, 
+               port_of_discharge, eta, ata, discharge_date, cargo_count
+        FROM `tabForwarding Job`
+        WHERE {conditions} AND docstatus IN (0, 1)
+        ORDER BY date_created DESC
+    """, as_dict=True)
+
+    # Process data with incoming cargo logic
     today = getdate()
     
     for job in jobs:
@@ -108,7 +69,7 @@ def execute(filters=None):
                 status = "No ETA"
                 days = ""
         
-        # Format data using standard utilities
+        # Format data
         data.append({
             "name": job.get("name", ""),
             "date_created": format_date(job.get("date_created")),
@@ -117,8 +78,32 @@ def execute(filters=None):
             "port_of_discharge": job.get("port_of_discharge", ""),
             "eta": format_date(job.get("eta")),
             "ata": format_date(job.get("ata")),
+            "cargo_count": job.get("cargo_count", ""),
             "status": status,
             "days": days,
         })
     
     return columns, data
+
+def get_columns():
+    return [
+        {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
+        {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 140},
+        {"label": "Cargo", "fieldname": "cargo_count", "fieldtype": "Data", "width": 80},
+        {"label": "Disch Port", "fieldname": "port_of_discharge", "fieldtype": "Link", "options": "Port", "width": 120},
+        {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 100},
+        {"label": "ATA", "fieldname": "ata", "fieldtype": "Data", "width": 100},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 150},
+        {"label": "Days", "fieldname": "days", "fieldtype": "Data", "width": 80},
+    ]
+
+def format_date(date_value):
+    """Format date string to dd-MMM-yy format."""
+    if not date_value:
+        return ""
+    try:
+        return formatdate(date_value, "dd-MMM-yy")
+    except Exception:
+        return date_value

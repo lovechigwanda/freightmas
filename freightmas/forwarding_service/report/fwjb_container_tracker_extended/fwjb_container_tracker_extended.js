@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Forwarding Container Tracker"] = {
+frappe.query_reports["FWJB Container Tracker Extended"] = {
     "filters": [
         {
             "fieldname": "date_range",
@@ -66,7 +66,7 @@ function setup_export_buttons(report) {
     report.page.add_inner_button(__("Export to Excel"), function() {
         const filters = report.get_filter_values(true);
         const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent("Forwarding Container Tracker")}&filters=${query}`;
+        const url = `/api/method/freightmas.api.export_report_to_excel?report_name=${encodeURIComponent("FWJB Container Tracker Extended")}&filters=${query}`;
         window.open(url);
     }, __("Export"));
 
@@ -74,7 +74,7 @@ function setup_export_buttons(report) {
     report.page.add_inner_button(__("Export to PDF"), function() {
         const filters = report.get_filter_values(true);
         const query = encodeURIComponent(JSON.stringify(filters));
-        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent("Forwarding Container Tracker")}&filters=${query}`;
+        const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=${encodeURIComponent("FWJB Container Tracker Extended")}&filters=${query}`;
         window.open(url);
     }, __("Export"));
 

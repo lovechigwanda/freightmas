@@ -1,214 +1,64 @@
 # Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
 import frappe
-from frappe.utils import getdate, date_diff
-from freightmas.utils.report_utils import (
-    format_date,
-    get_standard_columns,
-    build_job_filters,
-    validate_date_filters
-)
-
-def get_columns():
-    """Get simplified column definitions for Forwarding Overdue Containers."""
-    standard_cols = get_standard_columns()
-    
-    columns = [
-        # Core Job Information
-        {**standard_cols["job_id"], "options": "Forwarding Job"},
-        standard_cols["job_date"],
-        standard_cols["customer"],
-        standard_cols["reference"],
-        
-        # Container Details
-        {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 140},
-        {"label": "Load By", "fieldname": "load_by_date", "fieldtype": "Data", "width": 100},
-        {"label": "Return By", "fieldname": "return_by_date", "fieldtype": "Data", "width": 100},
-        
-        # Overdue Calculations
-        {"label": "Loading Overdue Days", "fieldname": "loading_overdue_days", "fieldtype": "Int", "width": 150},
-        {"label": "Return Overdue Days", "fieldname": "return_overdue_days", "fieldtype": "Int", "width": 150},
-    ]
-    
-    return columns
-
-def calculate_loading_overdue_days(container):
-    """
-    Calculate loading overdue days.
-    
-    Logic: Today or Loaded On Date minus Load By Date
-    Only return positive values (overdue), and only if not yet loaded.
-    
-    Args:
-        container: Dictionary with container data
-        
-    Returns:
-        Integer days overdue (only positive values) or None
-    """
-    load_by = container.get("load_by_date")
-    if not load_by:
-        return None
-        
-    # If already loaded, no overdue calculation needed for this report
-    if container.get("is_loaded"):
-        return None
-        
-    # Use today since not yet loaded
-    today = getdate()
-    load_by_date = getdate(load_by)
-    overdue_days = date_diff(today, load_by_date)
-    
-    # Return only positive (overdue) days
-    return overdue_days if overdue_days > 0 else None
-
-def calculate_return_overdue_days(container):
-    """
-    Calculate return overdue days.
-    
-    Logic: Today or Returned On Date minus Return By Date
-    Only return positive values (overdue), and only if not yet returned.
-    If container doesn't need to be returned, return None.
-    
-    Args:
-        container: Dictionary with container data
-        
-    Returns:
-        Integer days overdue (only positive values) or None
-    """
-    # If container doesn't need to be returned, no overdue calculation
-    if not container.get("to_be_returned"):
-        return None
-        
-    return_by = container.get("return_by_date")
-    if not return_by:
-        return None
-        
-    # If already returned, no overdue calculation needed for this report
-    if container.get("is_returned"):
-        return None
-        
-    # Use today since not yet returned
-    today = getdate()
-    return_by_date = getdate(return_by)
-    overdue_days = date_diff(today, return_by_date)
-    
-    # Return only positive (overdue) days
-    return overdue_days if overdue_days > 0 else None
+from frappe.utils import getdate, date_diff, formatdate
 
 def execute(filters=None):
-    """
-    Main execution function for Forwarding Overdue Containers report.
-    Only returns containers that are overdue for loading or return.
-    """
-    # Validate and normalize filters
-    filters = validate_date_filters(filters or {})
-    
-    # Get columns
+    if not filters:
+        filters = {}
+
     columns = get_columns()
+    data = []
+
+    # Build conditions for SQL query
+    job_conditions = "1=1 AND fj.docstatus IN (0, 1)"
+    if filters.get("from_date"):
+        job_conditions += f" AND fj.date_created >= '{filters['from_date']}'"
+    if filters.get("to_date"):
+        job_conditions += f" AND fj.date_created <= '{filters['to_date']}'"
+    if filters.get("customer"):
+        job_conditions += f" AND fj.customer = '{filters['customer']}'"
+    if filters.get("customer_reference"):
+        job_conditions += f" AND fj.customer_reference LIKE '%{filters['customer_reference']}%'"
+
+    # Get containerised cargo packages with job data using JOIN
+    containers = frappe.db.sql(f"""
+        SELECT cpd.parent, cpd.name, cpd.container_number, cpd.to_be_returned,
+               cpd.load_by_date, cpd.return_by_date, cpd.is_loaded, 
+               cpd.loaded_on_date, cpd.is_returned, cpd.returned_on_date,
+               fj.date_created, fj.customer, fj.customer_reference
+        FROM `tabCargo Parcel Details` cpd
+        JOIN `tabForwarding Job` fj ON cpd.parent = fj.name
+        WHERE cpd.cargo_type = 'Containerised' 
+        AND cpd.parenttype = 'Forwarding Job'
+        AND {job_conditions}
+        ORDER BY fj.date_created DESC, cpd.name
+    """, as_dict=True)
+
+    # Process containers and filter for overdue ones
+    today = getdate()
     
-    # Build database filters for Forwarding Jobs
-    job_filters = build_job_filters(filters, "Forwarding Job")
-    
-    # Get containerised cargo packages first to identify relevant jobs
-    container_filters = {
-        "cargo_type": "Containerised",
-        "parenttype": "Forwarding Job"
-    }
-    
-    # Get containerised cargo packages
-    containers = frappe.get_all(
-        "Cargo Parcel Details",
-        filters=container_filters,
-        fields=[
-            "parent", "name", "container_number", "to_be_returned",
-            "load_by_date", "return_by_date",
-            "is_loaded", "loaded_on_date", 
-            "is_returned", "returned_on_date"
-        ],
-        order_by="parent desc, name"
-    )
-    
-    if not containers:
-        return columns, []
-    
-    # Filter for only overdue containers
-    overdue_containers = []
     for container in containers:
-        loading_overdue = calculate_loading_overdue_days(container)
-        return_overdue = calculate_return_overdue_days(container)
+        loading_overdue = calculate_loading_overdue_days(container, today)
+        return_overdue = calculate_return_overdue_days(container, today)
         
-        # Convert None to 0 for calculation
+        # Only include containers that are actually overdue
         loading_days = loading_overdue if loading_overdue is not None else 0
         return_days = return_overdue if return_overdue is not None else 0
         
-        # Include only if there are actual overdue days (sum > 0)
         if loading_days > 0 or return_days > 0:
-            container["loading_overdue_days"] = loading_overdue  # Keep original None/value
-            container["return_overdue_days"] = return_overdue    # Keep original None/value
-            overdue_containers.append(container)
-    
-    if not overdue_containers:
-        return columns, []
-    
-    # Get unique job names from overdue containers
-    job_names = list(set([container["parent"] for container in overdue_containers]))
-    
-    # Add job filter for overdue container jobs only
-    if job_names:
-        job_filters["name"] = ["in", job_names]
-    else:
-        return columns, []
-    
-    # Get forwarding job data
-    jobs = frappe.get_all(
-        "Forwarding Job",
-        filters=job_filters,
-        fields=[
-            "name", "date_created", "customer", "customer_reference"
-        ],
-        order_by="date_created desc"
-    )
-    
-    # Create a job lookup dictionary
-    job_lookup = {job["name"]: job for job in jobs}
-    
-    # Process data
-    data = []
-    for container in overdue_containers:
-        job_name = container.get("parent")
-        job_data = job_lookup.get(job_name)
-        
-        if not job_data:
-            continue
-            
-        row = {
-            # Core Job Information (fieldnames must match column definitions)
-            "name": job_name,  # This maps to "Job ID" column
-            "date_created": format_date(job_data.get("date_created")),  # This maps to "Job Date" column
-            "customer": job_data.get("customer", ""),
-            "customer_reference": job_data.get("customer_reference", ""),
-            
-            # Container Details
-            "container_number": container.get("container_number", ""),
-            
-            # Key Dates (only due dates, not actual dates since they'll be empty)
-            "load_by_date": format_date(container.get("load_by_date")),
-            "return_by_date": format_date(container.get("return_by_date")),
-            
-            # Overdue Days
-            "loading_overdue_days": container.get("loading_overdue_days"),
-            "return_overdue_days": container.get("return_overdue_days"),
-        }
-        
-        # Double-check: Only add rows that actually have overdue days > 0
-        loading_days = row["loading_overdue_days"] if row["loading_overdue_days"] is not None else 0
-        return_days = row["return_overdue_days"] if row["return_overdue_days"] is not None else 0
-        
-        # Only include if there are actual overdue days
-        if loading_days > 0 or return_days > 0:
-            data.append(row)
+            data.append({
+                "name": container.get("parent"),
+                "date_created": format_date(container.get("date_created")),
+                "customer": container.get("customer", ""),
+                "customer_reference": container.get("customer_reference", ""),
+                "container_number": container.get("container_number", ""),
+                "load_by_date": format_date(container.get("load_by_date")),
+                "return_by_date": format_date(container.get("return_by_date")),
+                "loading_overdue_days": loading_overdue,
+                "return_overdue_days": return_overdue,
+            })
     
     # Sort by most overdue first (loading overdue, then return overdue)
     data.sort(key=lambda x: (
@@ -217,3 +67,50 @@ def execute(filters=None):
     ))
     
     return columns, data
+
+def get_columns():
+    return [
+        {"label": "Job ID", "fieldname": "name", "fieldtype": "Link", "options": "Forwarding Job", "width": 140},
+        {"label": "Job Date", "fieldname": "date_created", "fieldtype": "Data", "width": 100},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 140},
+        {"label": "Container No", "fieldname": "container_number", "fieldtype": "Data", "width": 140},
+        {"label": "Load By", "fieldname": "load_by_date", "fieldtype": "Data", "width": 100},
+        {"label": "Return By", "fieldname": "return_by_date", "fieldtype": "Data", "width": 100},
+        {"label": "Load O/D Days", "fieldname": "loading_overdue_days", "fieldtype": "Int", "width": 150},
+        {"label": "Return O/D Days", "fieldname": "return_overdue_days", "fieldtype": "Int", "width": 150},
+    ]
+
+def calculate_loading_overdue_days(container, today):
+    """Calculate loading overdue days - only for containers not yet loaded."""
+    load_by = container.get("load_by_date")
+    if not load_by or container.get("is_loaded"):
+        return None
+        
+    load_by_date = getdate(load_by)
+    overdue_days = date_diff(today, load_by_date)
+    
+    return overdue_days if overdue_days > 0 else None
+
+def calculate_return_overdue_days(container, today):
+    """Calculate return overdue days - only for containers that need to be returned but haven't been."""
+    if not container.get("to_be_returned") or container.get("is_returned"):
+        return None
+        
+    return_by = container.get("return_by_date")
+    if not return_by:
+        return None
+        
+    return_by_date = getdate(return_by)
+    overdue_days = date_diff(today, return_by_date)
+    
+    return overdue_days if overdue_days > 0 else None
+
+def format_date(date_str):
+    """Format date string to dd-MMM-yy format."""
+    if not date_str:
+        return ""
+    try:
+        return formatdate(date_str, "dd-MMM-yy")
+    except Exception:
+        return date_str
