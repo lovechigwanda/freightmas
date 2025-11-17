@@ -256,7 +256,7 @@ app_include_js = "/assets/freightmas/js/report_commons.js"
 
 ##############################################################
 
-##REGISTER BEFORE DELETE AND VALIDATE FOR TRIP REVENUE CHARGES
+##DOCUMENT EVENTS CONFIGURATION
 
 doc_events = {
     "Trip Revenue Charges": {
@@ -266,17 +266,15 @@ doc_events = {
     "Trip Cost Charges": {
         "validate": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.validate",
         "before_delete": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.before_delete"
-    }
-}
-
-##############################################################
-
-##REGISTER BEFORE DELETE AND VALIDATE FOR TRIP COST CHARGES
-
-doc_events = {
-    "Trip Cost Charges": {
-        "validate": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.validate",
-        "before_delete": "freightmas.trucking_service.doctype.trip_cost_charges.trip_cost_charges.before_delete"
+    },
+    "Forwarding Job": {
+        "after_insert": "freightmas.utils.forwarding_job_folder.create_job_folder_on_insert",
+        "on_update": "freightmas.utils.forwarding_job_folder.update_job_folder_on_update", 
+        "before_rename": "freightmas.utils.forwarding_job_folder.before_rename_forwarding_job"
+    },
+    "File": {
+        "after_insert": "freightmas.utils.forwarding_job_folder.file_on_insert",
+        "on_update": "freightmas.utils.forwarding_job_folder.file_on_update"
     }
 }
 

@@ -538,7 +538,8 @@
   {
    "fieldname": "bill_of_lading_details_section",
    "fieldtype": "Section Break",
-   "label": "Bill of Lading Details"
+   "label": "Bill of Lading Details",
+   "no_copy": 1
   },
   {
    "columns": 2,
@@ -602,6 +603,7 @@
   {
    "fieldname": "documents_checklist",
    "fieldtype": "Table",
+   "no_copy": 1,
    "options": "Forwarding Documents Checklist"
   },
   {
@@ -923,7 +925,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-09 17:24:07.735135",
+ "modified": "2025-11-17 16:27:02.486975",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
