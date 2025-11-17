@@ -101,6 +101,14 @@
       padding-top: 15px;
     }
     
+    .job-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #2E86AB;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    
     .summary-table, .charge-table, .party-table { 
       width: 100%; 
       border-collapse: collapse; 
@@ -195,30 +203,27 @@
     <table class="summary-table">
       <thead>
         <tr>
-          <th style="width:20%;">Job ID</th>
-          <th style="width:20%;">Reference</th>
-          <th style="width:15%;">Cargo Count</th>
-          <th style="width:15%;">ETA</th>
-          <th style="width:15%;">ATA</th>
-          <th style="width:15%;">Status</th>
+          <th style="width:20%; text-align:left;">Job ID</th>
+          <th style="width:20%; text-align:left;">Reference</th>
+          <th style="width:15%; text-align:left;">Cargo Count</th>
+          <th style="width:15%; text-align:left;">ETA</th>
+          <th style="width:15%; text-align:left;">ATA</th>
+          <th style="width:15%; text-align:left;">Status</th>
         </tr>
       </thead>
       <tbody>
         {% for job in active_jobs %}
           <tr>
-            <td>{{ job.name }}</td>
-            <td>{{ job.customer_reference or '—' }}</td>
-            <td>{{ job.cargo_count or '—' }}</td>
-            <td>{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
-            <td>{{ frappe.utils.formatdate(job.ata, 'dd-MMM-yy') if job.ata else '—' }}</td>
-            <td>{{ job.status }}</td>
+            <td style="text-align:left;">{{ job.name }}</td>
+            <td style="text-align:left;">{{ job.customer_reference or '—' }}</td>
+            <td style="text-align:left;">{{ job.cargo_count or '—' }}</td>
+            <td style="text-align:left;">{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
+            <td style="text-align:left;">{{ frappe.utils.formatdate(job.ata, 'dd-MMM-yy') if job.ata else '—' }}</td>
+            <td style="text-align:left;">{{ job.status }}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-
-    <!-- Section Divider -->
-    <div class="section-divider"></div>
 
     <!-- Detailed Job Tracking Section -->
     <div class="section-title">📋 Detailed Job Tracking</div>
@@ -232,10 +237,8 @@
         <div class="job-title">JOB {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or 'No Reference' }}</div>
         
         <!-- Job Header Info -->
-        <div style="text-align: left; font-size: 11px; margin-bottom: 12px; line-height: 1.3;">
-          Mode: {{ (job.shipment_mode or "Sea") ~ " " ~ (job.direction or "Import") }} | Date Created: {{ frappe.utils.formatdate(job.date_created, "dd-MMM-yy") if job.date_created else "—" }}<br>
-          Route: {{ job.port_of_loading or "—" }} → {{ job.destination or job.port_of_discharge or "—" }} | Cargo Count: {{ job.cargo_count or "—" }}
-        </div>
+                <!-- Job Header Info -->
+                <!-- Job Header Info -->\n        <div style=\"text-align: left; font-size: 11px; margin-bottom: 12px; line-height: 1.3;\">\n          Mode: {{ (job.shipment_mode or \"Sea\") ~ \" \" ~ (job.direction or \"Import\") }} | Date Created: {{ frappe.utils.formatdate(job.date_created, \"dd-MMM-yy\") if job.date_created else \"—\" }}<br>\n          Route: {{ job.port_of_loading or \"—\" }} → {{ job.destination or job.port_of_discharge or \"—\" }} | Cargo Count: {{ job.cargo_count or \"—\" }}\n        </div>"
         
         <!-- Key Dates Timeline -->
         <div class="sub-section-title">Key Dates Timeline</div>
@@ -260,8 +263,28 @@
           </tbody>
         </table>
 
+<div class="sub-section-title">Job Tracking Status</div>
+<div class="tracking-table">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Current Milestone</th>
+        <th>Last Updated On</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ job.status }}</td>
+        <td>{{ current_milestone }}</td>
+        <td>{{ last_updated }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+        
         <!-- Job Tracking Status -->
-        <div class="sub-section-title">Job Tracking Status</div>
+        <div class="section-title">Job Tracking Status</div>
         <table class="summary-table">
           <thead>
             <tr>
@@ -272,15 +295,12 @@
           </thead>
           <tbody>
             <tr>
-              <td>{{ job_doc.status or "—" }}</td>
-              <td>{{ job_doc.current_comment or "—" }}</td>
+              <td style="text-align:left; font-weight:bold;">{{ job_doc.status or "—" }}</td>
+              <td style="text-align:left;">{{ job_doc.current_comment or "—" }}</td>
               <td>{{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}</td>
             </tr>
-          </tbody>
-        </table>
-        
-        <!-- Cargo Tracking Details -->
-        <div class="sub-section-title">Cargo Tracking Details</div>
+          </tbody>\n        </table>\n        \n        <!-- Cargo Tracking Details -->
+        <div class="section-title">Cargo Tracking Details</div>
         <table class="party-table">
           <thead>
             <tr>
@@ -301,7 +321,7 @@
           <tbody>
             {% for row in containers %}
             <tr>
-              <td>
+              <td style="text-align:left;">
                 {%- if row.cargo_type == "Containerised" or row.cargo_type == "General Cargo" -%}
                   {{ row.container_number or "—" }}
                 {%- else -%}
@@ -349,7 +369,7 @@
               <td>{{ frappe.utils.formatdate(row.offloaded_on_date, "dd-MMM-yy") if row.offloaded_on_date else "—" }}</td>
               <td>{{ frappe.utils.formatdate(row.returned_on_date, "dd-MMM-yy") if row.returned_on_date else "—" }}</td>
               <td>{{ frappe.utils.formatdate(row.completed_on_date, "dd-MMM-yy") if row.completed_on_date else "—" }}</td>
-              <td>{{ row.tracking_comment or "—" }}</td>
+              <td style="text-align:left;">{{ row.tracking_comment or "—" }}</td>
             </tr>
             {% endfor %}
             {% if not containers %}
