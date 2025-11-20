@@ -48,7 +48,53 @@ def get_columns():
     ]
 
 @frappe.whitelist()
-def generate_customer_tracking_pdf(customer):
+def send_customer_tracking_email(customer, to_email, subject, message, cc_emails=None, attach_pdf=True):
+    """Send consolidated tracking email to customer with optional PDF attachment"""
+    try:
+        # Validate customer exists
+        if not frappe.db.exists("Customer", customer):
+            frappe.throw(f"Customer {customer} not found")
+        
+        # Prepare recipients
+        recipients = [to_email]
+        cc = []
+        if cc_emails:
+            cc = [email.strip() for email in cc_emails.split(",") if email.strip()]
+        
+        # Prepare attachments if PDF is requested
+        attachments = []
+        if attach_pdf:
+            pdf_data = generate_customer_tracking_pdf(customer)
+            if pdf_data and pdf_data.get('pdf_content'):
+                import base64
+                pdf_content = base64.b64decode(pdf_data['pdf_content'])
+                attachments.append({
+                    'fname': pdf_data['filename'],
+                    'fcontent': pdf_content
+                })
+        
+        # Send email using Frappe's built-in email service
+        frappe.sendmail(
+            recipients=recipients,
+            cc=cc,
+            subject=subject,
+            message=message,
+            attachments=attachments,
+            reference_doctype="Customer",
+            reference_name=customer
+        )
+        
+        return {
+            "success": True,
+            "message": f"Email sent successfully to {to_email}"
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Email sending error for {customer}: {str(e)}", "Customer Tracking Email")
+        return {
+            "success": False,
+            "message": f"Error sending email: {str(e)}"
+        }
     """Generate consolidated tracking PDF using print format"""
     try:
         # Get the PDF using the print format

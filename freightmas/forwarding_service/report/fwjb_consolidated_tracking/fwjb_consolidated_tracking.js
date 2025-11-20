@@ -31,13 +31,19 @@ frappe.query_reports["FWJB Consolidated Tracking"] = {
 	formatter: function(value, row, column, data, default_formatter) {
 		value = default_formatter(value, row, column, data);
 
-		// Add PDF export button for each customer row
+		// Add PDF and Email export buttons for each customer row
 		if (column.fieldname === "customer" && data.customer) {
 			value += ` <button class="btn btn-xs btn-primary customer-pdf-btn" 
 						data-customer="${data.customer}" 
 						style="margin-left: 10px; font-size: 10px; padding: 2px 6px;"
 						title="Export Consolidated Tracking PDF">
-					📄 PDF
+						📄 PDF
+					</button>`;
+			value += ` <button class="btn btn-xs btn-success customer-email-btn" 
+						data-customer="${data.customer}" 
+						style="margin-left: 5px; font-size: 10px; padding: 2px 6px;"
+						title="Email Consolidated Tracking Report">
+						📧 Email
 					</button>`;
 		}
 
@@ -85,7 +91,117 @@ function show_customer_pdf_dialog(report) {
 	dialog.show();
 }
 
-// Function to generate PDF for specific customer using print format
+// Function to show email dialog for specific customer
+function show_customer_email_dialog(customer) {
+	// Get customer email
+	frappe.call({
+		method: 'frappe.client.get_value',
+		args: {
+			doctype: 'Customer',
+			filters: {'name': customer},
+			fieldname: ['email_id', 'customer_name']
+		},
+		callback: function(response) {
+			let customer_data = response.message || {};
+			let customer_email = customer_data.email_id || '';
+			let customer_name = customer_data.customer_name || customer;
+			
+			// Create email dialog
+			let email_dialog = new frappe.ui.Dialog({
+				title: `Email Tracking Report - ${customer_name}`,
+				fields: [
+					{
+						fieldname: 'to_email',
+						label: 'To Email',
+						fieldtype: 'Data',
+						reqd: 1,
+						default: customer_email,
+						description: 'Primary recipient email address'
+					},
+					{
+						fieldname: 'cc_emails',
+						label: 'CC Emails',
+						fieldtype: 'Data',
+						description: 'Additional recipients (comma separated)'
+					},
+					{
+						fieldname: 'subject',
+						label: 'Subject',
+						fieldtype: 'Data',
+						reqd: 1,
+						default: `Consolidated Tracking Report - ${customer_name}`
+					},
+					{
+						fieldname: 'message',
+						label: 'Message',
+						fieldtype: 'Text Editor',
+						reqd: 1,
+						default: `Dear ${customer_name},<br><br>Please find attached your consolidated tracking report for active shipments.<br><br>Best regards,<br>FreightMas Team<br><br>Please contact your account manager if you need clarity on anything.`
+					},
+					{
+						fieldname: 'attach_pdf',
+						label: 'Attach PDF Report',
+						fieldtype: 'Check',
+						default: 1
+					}
+				],
+				primary_action_label: 'Send Email',
+				primary_action: function(values) {
+					if (values.to_email) {
+						send_customer_email(customer, values);
+						email_dialog.hide();
+					}
+				}
+			});
+			
+			email_dialog.show();
+		}
+	});
+}
+
+// Function to send email using server method
+function send_customer_email(customer, email_data) {
+	// Show loading message
+	frappe.show_alert({
+		message: `Sending email to ${email_data.to_email}...`,
+		indicator: 'blue'
+	});
+
+	// Call server method to send email
+	frappe.call({
+		method: 'freightmas.forwarding_service.report.fwjb_consolidated_tracking.fwjb_consolidated_tracking.send_customer_tracking_email',
+		args: {
+			customer: customer,
+			to_email: email_data.to_email,
+			subject: email_data.subject,
+			message: email_data.message,
+			cc_emails: email_data.cc_emails,
+			attach_pdf: email_data.attach_pdf
+		},
+		callback: function(response) {
+			if (response.message && response.message.success) {
+				frappe.show_alert({
+					message: response.message.message,
+					indicator: 'green'
+				});
+			} else {
+				frappe.msgprint({
+					title: 'Email Error',
+					message: response.message?.message || 'Failed to send email',
+					indicator: 'red'
+				});
+			}
+		},
+		error: function(error) {
+			console.error('Email sending error:', error);
+			frappe.msgprint({
+				title: 'Email Error',
+				message: 'Failed to send email. Please contact your system administrator.',
+				indicator: 'red'
+			});
+		}
+	});
+}
 function generate_customer_pdf(customer) {
 	// Show loading message
 	frappe.show_alert({
@@ -125,13 +241,21 @@ function generate_customer_pdf(customer) {
 	});
 }
 
-// Apply event handlers for inline PDF buttons
+// Apply event handlers for inline PDF and Email buttons
 $(document).ready(function() {
 	$(document).on('click', '.customer-pdf-btn', function(e) {
 		e.stopPropagation();
 		const customer = $(this).data('customer');
 		if (customer) {
 			generate_customer_pdf(customer);
+		}
+	});
+	
+	$(document).on('click', '.customer-email-btn', function(e) {
+		e.stopPropagation();
+		const customer = $(this).data('customer');
+		if (customer) {
+			show_customer_email_dialog(customer);
 		}
 	});
 });
