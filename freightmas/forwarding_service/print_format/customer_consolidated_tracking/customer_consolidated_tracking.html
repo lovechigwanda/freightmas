@@ -204,7 +204,7 @@
       <!-- Tracking Comment -->
       {% if job_doc.current_comment %}
       <div class="job-info">
-        <strong>Tracking Comment:</strong> {{ job_doc.current_comment }} <strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
+        <strong>Tracking Comment:</strong> {{ job_doc.current_comment }} &nbsp;&nbsp; <strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
       </div>
       {% endif %}
       
