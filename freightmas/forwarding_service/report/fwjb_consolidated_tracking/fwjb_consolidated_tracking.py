@@ -48,6 +48,35 @@ def get_columns():
     ]
 
 @frappe.whitelist()
+def generate_customer_tracking_pdf(customer):
+    """Generate consolidated tracking PDF using print format"""
+    try:
+        # Get the PDF using the print format
+        pdf = frappe.get_print(
+            doctype="Customer",
+            name=customer,
+            print_format="Customer Consolidated Tracking",
+            as_pdf=True
+        )
+        
+        # Create filename
+        import base64
+        timestamp = frappe.utils.now_datetime().strftime('%Y%m%d_%H%M')
+        filename = f"Consolidated_Tracking_{customer}_{timestamp}.pdf"
+        
+        # Return base64 encoded PDF
+        pdf_base64 = base64.b64encode(pdf).decode('utf-8')
+        
+        return {
+            "pdf_content": pdf_base64,
+            "filename": filename
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"PDF Generation Error for {customer}: {str(e)}", "Customer Tracking PDF")
+        frappe.throw(f"Error generating PDF: {str(e)}")
+
+@frappe.whitelist()
 def send_customer_tracking_email(customer, to_email, subject, message, cc_emails=None, attach_pdf=True):
     """Send consolidated tracking email to customer with optional PDF attachment"""
     try:
@@ -94,28 +123,6 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
         return {
             "success": False,
             "message": f"Error sending email: {str(e)}"
-        }
-    """Generate consolidated tracking PDF using print format"""
-    try:
-        # Get the PDF using the print format
-        pdf = frappe.get_print(
-            doctype="Customer",
-            name=customer,
-            print_format="Customer Consolidated Tracking",
-            as_pdf=True
-        )
-        
-        # Create filename
-        import base64
-        timestamp = frappe.utils.now_datetime().strftime('%Y%m%d_%H%M')
-        filename = f"Consolidated_Tracking_{customer}_{timestamp}.pdf"
-        
-        # Return base64 encoded PDF
-        pdf_base64 = base64.b64encode(pdf).decode('utf-8')
-        
-        return {
-            "pdf_content": pdf_base64,
-            "filename": filename
         }
         
     except Exception as e:
