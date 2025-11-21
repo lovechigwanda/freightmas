@@ -93,17 +93,30 @@ function show_customer_pdf_dialog(report) {
 
 // Function to show email dialog for specific customer
 function show_customer_email_dialog(customer) {
-	// Get customer email
+	// Get customer email and tracking settings
 	frappe.call({
 		method: 'frappe.client.get_value',
 		args: {
 			doctype: 'Customer',
 			filters: {'name': customer},
-			fieldname: ['email_id', 'customer_name']
+			fieldname: ['email_id', 'customer_name', 'tracking_email', 'tracking_cc_emails', 'tracking_email_enabled']
 		},
 		callback: function(response) {
 			let customer_data = response.message || {};
-			let customer_email = customer_data.email_id || '';
+			
+			// Check if tracking emails are enabled
+			if (customer_data.tracking_email_enabled === 0) {
+				frappe.msgprint({
+					title: 'Tracking Emails Disabled',
+					message: `Tracking emails are disabled for ${customer_data.customer_name || customer}. Please enable them in the Customer record first.`,
+					indicator: 'orange'
+				});
+				return;
+			}
+			
+			// Use tracking_email first, fallback to email_id
+			let primary_email = customer_data.tracking_email || customer_data.email_id || '';
+			let cc_emails = customer_data.tracking_cc_emails || '';
 			let customer_name = customer_data.customer_name || customer;
 			
 			// Create email dialog
@@ -114,14 +127,16 @@ function show_customer_email_dialog(customer) {
 						fieldname: 'to_email',
 						label: 'To Email',
 						fieldtype: 'Data',
+						options: 'Email',
 						reqd: 1,
-						default: customer_email,
+						default: primary_email,
 						description: 'Primary recipient email address'
 					},
 					{
 						fieldname: 'cc_emails',
 						label: 'CC Emails',
-						fieldtype: 'Data',
+						fieldtype: 'Small Text',
+						default: cc_emails,
 						description: 'Additional recipients (comma separated)'
 					},
 					{
@@ -147,16 +162,38 @@ function show_customer_email_dialog(customer) {
 				],
 				primary_action_label: 'Send Email',
 				primary_action: function(values) {
-					if (values.to_email) {
-						send_customer_email(customer, values);
-						email_dialog.hide();
+					// Validate email formats
+					if (!validate_email_format(values.to_email)) {
+						frappe.msgprint('Please enter a valid email address');
+						return;
 					}
+					
+					// Validate CC emails if provided
+					if (values.cc_emails && !validate_cc_emails(values.cc_emails)) {
+						frappe.msgprint('Please enter valid CC email addresses (comma separated)');
+						return;
+					}
+					
+					send_customer_email(customer, values);
+					email_dialog.hide();
 				}
 			});
 			
 			email_dialog.show();
 		}
 	});
+}
+
+// Email validation helper functions
+function validate_email_format(email) {
+	const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return email_regex.test(email);
+}
+
+function validate_cc_emails(cc_emails) {
+	if (!cc_emails.trim()) return true;
+	const emails = cc_emails.split(',').map(email => email.trim());
+	return emails.every(email => validate_email_format(email));
 }
 
 // Function to send email using server method

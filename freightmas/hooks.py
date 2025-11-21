@@ -331,7 +331,11 @@ fixtures = [
                 "Quotation-custom_quotation_cost_col_break_2",
                 "Quotation-custom_quotation_costing_totals",
                 "Quotation Item-custom_buy_rate",
-                "Quotation Item-custom_job_reference"
+                "Quotation Item-custom_job_reference",
+                "Customer-tracking_email_settings_section",
+                "Customer-tracking_email",
+                "Customer-tracking_cc_emails",
+                "Customer-tracking_email_enabled"
             ]]
         ]
     },

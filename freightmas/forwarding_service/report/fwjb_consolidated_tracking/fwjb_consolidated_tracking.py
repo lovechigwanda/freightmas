@@ -80,15 +80,31 @@ def generate_customer_tracking_pdf(customer):
 def send_customer_tracking_email(customer, to_email, subject, message, cc_emails=None, attach_pdf=True):
     """Send consolidated tracking email to customer with optional PDF attachment"""
     try:
-        # Validate customer exists
-        if not frappe.db.exists("Customer", customer):
+        # Validate customer exists and tracking is enabled
+        customer_doc = frappe.get_doc("Customer", customer)
+        if not customer_doc:
             frappe.throw(f"Customer {customer} not found")
+            
+        # Check if tracking emails are enabled for this customer
+        if not customer_doc.get('tracking_email_enabled', 1):
+            frappe.throw(f"Tracking emails are disabled for customer {customer}")
+        
+        # Validate email format
+        import re
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, to_email):
+            frappe.throw("Invalid email address format")
         
         # Prepare recipients
         recipients = [to_email]
         cc = []
         if cc_emails:
-            cc = [email.strip() for email in cc_emails.split(",") if email.strip()]
+            cc_list = [email.strip() for email in cc_emails.split(",") if email.strip()]
+            # Validate CC emails
+            for email in cc_list:
+                if not re.match(email_pattern, email):
+                    frappe.throw(f"Invalid CC email address format: {email}")
+            cc = cc_list
         
         # Prepare attachments if PDF is requested
         attachments = []
