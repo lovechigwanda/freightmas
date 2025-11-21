@@ -31,20 +31,32 @@ frappe.query_reports["FWJB Consolidated Tracking"] = {
 	formatter: function(value, row, column, data, default_formatter) {
 		value = default_formatter(value, row, column, data);
 
-		// Add PDF and Email export buttons for each customer row
+		// Add action links for each customer row
 		if (column.fieldname === "customer" && data.customer) {
-			value += ` <button class="btn btn-xs btn-primary customer-pdf-btn" 
-						data-customer="${data.customer}" 
-						style="margin-left: 10px; font-size: 10px; padding: 2px 6px;"
-						title="Export Consolidated Tracking PDF">
-						📄 PDF
-					</button>`;
-			value += ` <button class="btn btn-xs btn-success customer-email-btn" 
-						data-customer="${data.customer}" 
-						style="margin-left: 5px; font-size: 10px; padding: 2px 6px;"
-						title="Email Consolidated Tracking Report">
-						📧 Email
-					</button>`;
+			value += `
+				<span class="customer-actions" style="margin-left: 15px; font-size: 11px;">
+					<a href="#" class="action-link customer-email-link" 
+					   data-customer="${data.customer}" 
+					   style="color: #5e64ff; text-decoration: none; margin-right: 8px;"
+					   title="Send tracking email to customer">
+						Send Email
+					</a>
+					<span style="color: #ccc; margin-right: 8px;">|</span>
+					<a href="#" class="action-link customer-pdf-link" 
+					   data-customer="${data.customer}" 
+					   style="color: #5e64ff; text-decoration: none; margin-right: 8px;"
+					   title="Export consolidated tracking PDF">
+						Export PDF
+					</a>
+					<span style="color: #ccc; margin-right: 8px;">|</span>
+					<a href="/app/forwarding-job?customer=${encodeURIComponent(data.customer)}" 
+					   class="action-link customer-jobs-link" 
+					   style="color: #5e64ff; text-decoration: none;"
+					   title="View all jobs for this customer">
+						View Jobs
+					</a>
+				</span>
+			`;
 		}
 
 		return value;
@@ -151,7 +163,7 @@ function show_customer_email_dialog(customer) {
 						label: 'Message',
 						fieldtype: 'Text Editor',
 						reqd: 1,
-						default: `Dear ${customer_name},<br><br>Please find attached your consolidated tracking report for active shipments.<br><br>Best regards,<br>FreightMas Team<br><br>Please contact your account manager if you need clarity on anything.`
+						default: `Dear ${customer_name},<br><br>Please find attached your consolidated tracking report for active jobs.<br><br>Best regards,<br>`
 					},
 					{
 						fieldname: 'attach_pdf',
@@ -278,9 +290,11 @@ function generate_customer_pdf(customer) {
 	});
 }
 
-// Apply event handlers for inline PDF and Email buttons
+// Apply event handlers for inline action links
 $(document).ready(function() {
-	$(document).on('click', '.customer-pdf-btn', function(e) {
+	// Handle PDF export links
+	$(document).on('click', '.customer-pdf-link', function(e) {
+		e.preventDefault();
 		e.stopPropagation();
 		const customer = $(this).data('customer');
 		if (customer) {
@@ -288,11 +302,28 @@ $(document).ready(function() {
 		}
 	});
 	
-	$(document).on('click', '.customer-email-btn', function(e) {
+	// Handle Email links
+	$(document).on('click', '.customer-email-link', function(e) {
+		e.preventDefault();
 		e.stopPropagation();
 		const customer = $(this).data('customer');
 		if (customer) {
 			show_customer_email_dialog(customer);
 		}
+	});
+	
+	// Add hover effects for action links
+	$(document).on('mouseenter', '.action-link', function() {
+		$(this).css({
+			'color': '#4c52cc',
+			'text-decoration': 'underline'
+		});
+	});
+	
+	$(document).on('mouseleave', '.action-link', function() {
+		$(this).css({
+			'color': '#5e64ff',
+			'text-decoration': 'none'
+		});
 	});
 });
