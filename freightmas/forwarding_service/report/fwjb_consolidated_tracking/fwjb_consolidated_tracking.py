@@ -86,7 +86,7 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
             frappe.throw(f"Customer {customer} not found")
             
         # Check if tracking emails are enabled for this customer
-        if not customer_doc.get('tracking_email_enabled', 1):
+        if not customer_doc.get('custom_tracking_email_enabled', 1):
             frappe.throw(f"Tracking emails are disabled for customer {customer}")
         
         # Validate email format
