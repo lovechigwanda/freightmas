@@ -159,6 +159,19 @@ function show_customer_email_dialog(customer) {
 						default: `Consolidated Tracking Report - ${customer_name}`
 					},
 					{
+						fieldname: 'email_template',
+						label: 'Load Template',
+						fieldtype: 'Link',
+						options: 'Email Template',
+						description: 'Optional: Select a template to load',
+						change: function() {
+							let template_name = email_dialog.get_value('email_template');
+							if (template_name) {
+								load_email_template(template_name, customer_name, email_dialog);
+							}
+						}
+					},
+					{
 						fieldname: 'message',
 						label: 'Message',
 						fieldtype: 'Text Editor',
@@ -206,6 +219,61 @@ function validate_cc_emails(cc_emails) {
 	if (!cc_emails.trim()) return true;
 	const emails = cc_emails.split(',').map(email => email.trim());
 	return emails.every(email => validate_email_format(email));
+}
+
+// Function to load email template content
+function load_email_template(template_name, customer_name, dialog) {
+	frappe.call({
+		method: 'frappe.email.doctype.email_template.email_template.get_email_template',
+		args: {
+			template_name: template_name,
+			doc: {
+				'name': customer_name,
+				'customer_name': customer_name
+			}
+		},
+		callback: function(response) {
+			if (response.message) {
+				// Update dialog fields with template content
+				if (response.message.subject) {
+					dialog.set_value('subject', response.message.subject);
+				}
+				if (response.message.message) {
+					dialog.set_value('message', response.message.message);
+				}
+				
+				frappe.show_alert({
+					message: `Template "${template_name}" loaded successfully`,
+					indicator: 'green'
+				});
+			}
+		},
+		error: function(error) {
+			console.error('Template loading error:', error);
+			// Fallback: Get template manually
+			frappe.db.get_doc('Email Template', template_name)
+				.then(template => {
+					if (template.subject) {
+						dialog.set_value('subject', template.subject);
+					}
+					if (template.response) {
+						// Process basic variables
+						let message = template.response.replace(/{{ customer_name }}/g, customer_name);
+						dialog.set_value('message', message);
+					}
+					frappe.show_alert({
+						message: `Template "${template_name}" loaded`,
+						indicator: 'green'
+					});
+				})
+				.catch(err => {
+					frappe.show_alert({
+						message: 'Error loading template',
+						indicator: 'red'
+					});
+				});
+		}
+	});
 }
 
 // Function to send email using server method
