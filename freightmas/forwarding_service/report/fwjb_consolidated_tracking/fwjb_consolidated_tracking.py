@@ -85,10 +85,6 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
         if not customer_doc:
             frappe.throw(f"Customer {customer} not found")
             
-        # Check if tracking emails are enabled for this customer
-        if not customer_doc.get('custom_tracking_email_enabled', 1):
-            frappe.throw(f"Tracking emails are disabled for customer {customer}")
-        
         # Validate email format
         import re
         email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
@@ -140,10 +136,6 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
             "success": False,
             "message": f"Error sending email: {str(e)}"
         }
-        
-    except Exception as e:
-        frappe.log_error(f"PDF Generation Error for {customer}: {str(e)}", "Customer Tracking PDF")
-        frappe.throw(f"Error generating PDF: {str(e)}")
 
 def format_date(date_value):
     """Format date string to dd-MMM-yy format."""

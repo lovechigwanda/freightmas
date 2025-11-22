@@ -332,10 +332,8 @@ fixtures = [
                 "Quotation-custom_quotation_costing_totals",
                 "Quotation Item-custom_buy_rate",
                 "Quotation Item-custom_job_reference",
-                "Customer-custom_tracking_email_settings_section",
                 "Customer-custom_tracking_email",
-                "Customer-custom_tracking_cc_emails",
-                "Customer-custom_tracking_email_enabled"
+                "Customer-custom_auto_tracking_email"
             ]]
         ]
     },

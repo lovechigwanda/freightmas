@@ -111,24 +111,13 @@ function show_customer_email_dialog(customer) {
 		args: {
 			doctype: 'Customer',
 			filters: {'name': customer},
-			fieldname: ['email_id', 'customer_name', 'custom_tracking_email', 'custom_tracking_cc_emails', 'custom_tracking_email_enabled']
+			fieldname: ['email_id', 'customer_name', 'custom_tracking_email', 'custom_auto_tracking_email']
 		},
 		callback: function(response) {
 			let customer_data = response.message || {};
 			
-			// Check if tracking emails are enabled
-			if (customer_data.custom_tracking_email_enabled === 0) {
-				frappe.msgprint({
-					title: 'Tracking Emails Disabled',
-					message: `Tracking emails are disabled for ${customer_data.customer_name || customer}. Please enable them in the Customer record first.`,
-					indicator: 'orange'
-				});
-				return;
-			}
-			
 		// Use custom_tracking_email first, fallback to email_id
-		let primary_email = customer_data.custom_tracking_email || customer_data.email_id || '';
-			let cc_emails = customer_data.custom_tracking_cc_emails || '';
+			let primary_email = customer_data.custom_tracking_email || customer_data.email_id || '';
 			let customer_name = customer_data.customer_name || customer;
 			
 			// Create email dialog
@@ -148,7 +137,7 @@ function show_customer_email_dialog(customer) {
 						fieldname: 'cc_emails',
 						label: 'CC Emails',
 						fieldtype: 'Small Text',
-						default: cc_emails,
+						default: '',
 						description: 'Additional recipients (comma separated)'
 					},
 					{
