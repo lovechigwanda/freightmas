@@ -1,5 +1,7 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
+// Use these custom fields from Customer:
+// tracking_email, auto_tracking_email, tracking_cc_emails, tracking_email_enabled, tracking_email_settings_section
 
 frappe.query_reports["FWJB Consolidated Tracking"] = {
 	"filters": [],
@@ -63,7 +65,7 @@ frappe.query_reports["FWJB Consolidated Tracking"] = {
 	}
 };
 
-// Function to show customer selection dialog for PDF export
+// Show selector dialog for PDF export
 function show_customer_pdf_dialog(report) {
 	const data = report.data || [];
 	if (data.length === 0) {
@@ -71,9 +73,7 @@ function show_customer_pdf_dialog(report) {
 		return;
 	}
 
-	// Create options from current data
 	const customer_options = data.map(row => row.customer).filter(Boolean);
-
 	if (customer_options.length === 0) {
 		frappe.msgprint('No customers available for PDF export.');
 		return;
@@ -103,24 +103,34 @@ function show_customer_pdf_dialog(report) {
 	dialog.show();
 }
 
-// Function to show email dialog for specific customer
+// Show email dialog for specific customer
 function show_customer_email_dialog(customer) {
-	// Get customer email and tracking settings
+	// Fetch customer contact and tracking fields
 	frappe.call({
 		method: 'frappe.client.get_value',
 		args: {
 			doctype: 'Customer',
 			filters: {'name': customer},
-			fieldname: ['email_id', 'customer_name', 'custom_tracking_email', 'custom_auto_tracking_email']
+			fieldname: ['email_id', 'customer_name', 'tracking_email', 'tracking_cc_emails', 'tracking_email_enabled', 'auto_tracking_email']
 		},
 		callback: function(response) {
 			let customer_data = response.message || {};
-			
-		// Use custom_tracking_email first, fallback to email_id
-			let primary_email = customer_data.custom_tracking_email || customer_data.email_id || '';
+
+			// If tracking email enabled flag exists and is explicitly 0, block sending
+			if (typeof customer_data.tracking_email_enabled !== 'undefined' && customer_data.tracking_email_enabled === 0) {
+				frappe.msgprint({
+					title: 'Tracking Emails Disabled',
+					message: `Tracking emails are disabled for ${customer_data.customer_name || customer}. Please enable them in the Customer record first.`,
+					indicator: 'orange'
+				});
+				return;
+			}
+
+			// Determine recipients
+			let primary_email = customer_data.tracking_email || customer_data.email_id || '';
+			let cc_emails = customer_data.tracking_cc_emails || '';
 			let customer_name = customer_data.customer_name || customer;
-			
-			// Create email dialog
+
 			let email_dialog = new frappe.ui.Dialog({
 				title: `Email Tracking Report - ${customer_name}`,
 				fields: [
@@ -137,7 +147,7 @@ function show_customer_email_dialog(customer) {
 						fieldname: 'cc_emails',
 						label: 'CC Emails',
 						fieldtype: 'Small Text',
-						default: '',
+						default: cc_emails,
 						description: 'Additional recipients (comma separated)'
 					},
 					{
@@ -181,24 +191,24 @@ function show_customer_email_dialog(customer) {
 						frappe.msgprint('Please enter a valid email address');
 						return;
 					}
-					
+
 					// Validate CC emails if provided
 					if (values.cc_emails && !validate_cc_emails(values.cc_emails)) {
 						frappe.msgprint('Please enter valid CC email addresses (comma separated)');
 						return;
 					}
-					
+
 					send_customer_email(customer, values);
 					email_dialog.hide();
 				}
 			});
-			
+
 			email_dialog.show();
 		}
 	});
 }
 
-// Email validation helper functions
+// Validation helpers
 function validate_email_format(email) {
 	const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 	return email_regex.test(email);
@@ -210,7 +220,7 @@ function validate_cc_emails(cc_emails) {
 	return emails.every(email => validate_email_format(email));
 }
 
-// Function to load email template content
+// Load email template (server first, fallback to get_doc)
 function load_email_template(template_name, customer_name, dialog) {
 	frappe.call({
 		method: 'frappe.email.doctype.email_template.email_template.get_email_template',
@@ -223,57 +233,33 @@ function load_email_template(template_name, customer_name, dialog) {
 		},
 		callback: function(response) {
 			if (response.message) {
-				// Update dialog fields with template content
-				if (response.message.subject) {
-					dialog.set_value('subject', response.message.subject);
-				}
-				if (response.message.message) {
-					dialog.set_value('message', response.message.message);
-				}
-				
-				frappe.show_alert({
-					message: `Template "${template_name}" loaded successfully`,
-					indicator: 'green'
-				});
+				if (response.message.subject) dialog.set_value('subject', response.message.subject);
+				if (response.message.message) dialog.set_value('message', response.message.message);
+				frappe.show_alert({ message: `Template "${template_name}" loaded successfully`, indicator: 'green' });
 			}
 		},
 		error: function(error) {
 			console.error('Template loading error:', error);
-			// Fallback: Get template manually
 			frappe.db.get_doc('Email Template', template_name)
 				.then(template => {
-					if (template.subject) {
-						dialog.set_value('subject', template.subject);
-					}
+					if (template.subject) dialog.set_value('subject', template.subject);
 					if (template.response) {
-						// Process basic variables
-						let message = template.response.replace(/{{ customer_name }}/g, customer_name);
+						let message = template.response.replace(/{{\s*customer_name\s*}}/g, customer_name);
 						dialog.set_value('message', message);
 					}
-					frappe.show_alert({
-						message: `Template "${template_name}" loaded`,
-						indicator: 'green'
-					});
+					frappe.show_alert({ message: `Template "${template_name}" loaded`, indicator: 'green' });
 				})
 				.catch(err => {
-					frappe.show_alert({
-						message: 'Error loading template',
-						indicator: 'red'
-					});
+					frappe.show_alert({ message: 'Error loading template', indicator: 'red' });
 				});
 		}
 	});
 }
 
-// Function to send email using server method
+// Send the email via server method
 function send_customer_email(customer, email_data) {
-	// Show loading message
-	frappe.show_alert({
-		message: `Sending email to ${email_data.to_email}...`,
-		indicator: 'blue'
-	});
+	frappe.show_alert({ message: `Sending email to ${email_data.to_email}...`, indicator: 'blue' });
 
-	// Call server method to send email
 	frappe.call({
 		method: 'freightmas.forwarding_service.report.fwjb_consolidated_tracking.fwjb_consolidated_tracking.send_customer_tracking_email',
 		args: {
@@ -286,10 +272,7 @@ function send_customer_email(customer, email_data) {
 		},
 		callback: function(response) {
 			if (response.message && response.message.success) {
-				frappe.show_alert({
-					message: response.message.message,
-					indicator: 'green'
-				});
+				frappe.show_alert({ message: response.message.message, indicator: 'green' });
 			} else {
 				frappe.msgprint({
 					title: 'Email Error',
@@ -308,22 +291,16 @@ function send_customer_email(customer, email_data) {
 		}
 	});
 }
-function generate_customer_pdf(customer) {
-	// Show loading message
-	frappe.show_alert({
-		message: `Generating consolidated tracking PDF for ${customer}...`,
-		indicator: 'blue'
-	});
 
-	// Call server method to generate PDF using print format
+// Generate PDF and trigger download
+function generate_customer_pdf(customer) {
+	frappe.show_alert({ message: `Generating consolidated tracking PDF for ${customer}...`, indicator: 'blue' });
+
 	frappe.call({
 		method: 'freightmas.forwarding_service.report.fwjb_consolidated_tracking.fwjb_consolidated_tracking.generate_customer_tracking_pdf',
-		args: {
-			customer: customer
-		},
+		args: { customer: customer },
 		callback: function(response) {
 			if (response.message) {
-				// Create download link for PDF
 				const pdf_url = 'data:application/pdf;base64,' + response.message.pdf_content;
 				const link = document.createElement('a');
 				link.href = pdf_url;
@@ -331,11 +308,7 @@ function generate_customer_pdf(customer) {
 				document.body.appendChild(link);
 				link.click();
 				document.body.removeChild(link);
-
-				frappe.show_alert({
-					message: `PDF generated successfully for ${customer}!`,
-					indicator: 'green'
-				});
+				frappe.show_alert({ message: `PDF generated successfully for ${customer}!`, indicator: 'green' });
 			} else {
 				frappe.msgprint('Error generating PDF. Please try again.');
 			}
@@ -347,40 +320,22 @@ function generate_customer_pdf(customer) {
 	});
 }
 
-// Apply event handlers for inline action links
+// Event bindings for inline action links
 $(document).ready(function() {
-	// Handle PDF export links
 	$(document).on('click', '.customer-pdf-link', function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		const customer = $(this).data('customer');
-		if (customer) {
-			generate_customer_pdf(customer);
-		}
+		e.preventDefault(); e.stopPropagation();
+		const customer = $(this).data('customer'); if (customer) generate_customer_pdf(customer);
 	});
-	
-	// Handle Email links
+
 	$(document).on('click', '.customer-email-link', function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		const customer = $(this).data('customer');
-		if (customer) {
-			show_customer_email_dialog(customer);
-		}
+		e.preventDefault(); e.stopPropagation();
+		const customer = $(this).data('customer'); if (customer) show_customer_email_dialog(customer);
 	});
-	
-	// Add hover effects for action links
+
 	$(document).on('mouseenter', '.action-link', function() {
-		$(this).css({
-			'color': '#4c52cc',
-			'text-decoration': 'underline'
-		});
+		$(this).css({ 'color': '#4c52cc', 'text-decoration': 'underline' });
 	});
-	
 	$(document).on('mouseleave', '.action-link', function() {
-		$(this).css({
-			'color': '#5e64ff',
-			'text-decoration': 'none'
-		});
+		$(this).css({ 'color': '#5e64ff', 'text-decoration': 'none' });
 	});
 });
