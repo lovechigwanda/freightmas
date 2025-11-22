@@ -111,7 +111,7 @@ function show_customer_email_dialog(customer) {
 		args: {
 			doctype: 'Customer',
 			filters: {'name': customer},
-			fieldname: ['email_id', 'customer_name', 'tracking_email', 'tracking_cc_emails', 'tracking_email_enabled', 'auto_tracking_email']
+			fieldname: ['email_id', 'customer_name', 'tracking_email', 'tracking_cc_emails', 'tracking_email_enabled']
 		},
 		callback: function(response) {
 			let customer_data = response.message || {};
