@@ -332,24 +332,13 @@ fixtures = [
                 "Quotation-custom_quotation_costing_totals",
                 "Quotation Item-custom_buy_rate",
                 "Quotation Item-custom_job_reference",
+                "Quotation-custom_bundle_charges",
                 "Customer-custom_auto_tracking_email",
                 "Customer-custom_enable_tracking_emails",
                 "Customer-custom_cc_recipients",
                 "Customer-custom_primary_tracking_email",
                 "Customer-custom_tracking_email_settings"
             ]]
-        ]
-    },
-    {
-        "dt": "Role",
-        "filters": [
-            ["name", "in", ["FreightMas Manager", "FreightMas User"]]
-        ]
-    },
-    {
-        "dt": "DocPerm",
-        "filters": [
-            ["role", "in", ["FreightMas Manager", "FreightMas User"]]
         ]
     },
     {
