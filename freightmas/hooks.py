@@ -377,6 +377,7 @@ fixtures = [
                 "FreightMas Purchase Invoice",
                 "FM Subs",
                 "Trip Bulk Sales Invoice",
+                "Cash Pmt Voucher",
                 "Trip Sales Invoice"
 
             ]]
