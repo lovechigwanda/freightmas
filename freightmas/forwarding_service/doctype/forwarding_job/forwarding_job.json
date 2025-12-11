@@ -192,7 +192,7 @@
    "fieldname": "shipment_mode",
    "fieldtype": "Select",
    "label": "Shipment Mode",
-   "options": "Sea\nAir",
+   "options": "Sea\nAir\nRoad",
    "set_only_once": 1
   },
   {
@@ -925,13 +925,24 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-11-17 16:27:02.486975",
+ "modified": "2025-12-11 07:55:46.300532",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "share": 1,
+   "write": 1
+  },
   {
    "amend": 1,
    "cancel": 1,
@@ -945,17 +956,6 @@
    "select": 1,
    "share": 1,
    "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "FreightMas User",
-   "share": 1,
    "write": 1
   },
   {
