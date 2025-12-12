@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-12 21:46:25.102607",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "house_job",
+  "cargo_description",
+  "column_break_pgcd",
+  "consignee"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "house_job",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "House Job",
+   "link_filters": "[[\"Forwarding Job\",\"shipment_type\",\"=\",\"Consol\"],[\"Forwarding Job\",\"status\",\"not in\",[\"Completed\",\"Cancelled\",null]]]",
+   "options": "Forwarding Job",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_pgcd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "house_job.consignee",
+   "fieldname": "consignee",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Consignee"
+  },
+  {
+   "columns": 2,
+   "fetch_from": "house_job.cargo_description",
+   "fieldname": "cargo_description",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Cargo Description"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-12 22:10:07.741655",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "House Jobs",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
