@@ -45,86 +45,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Receivables",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Customer",
-   "link_count": 0,
-   "link_to": "Customer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sales Invoice",
-   "link_count": 0,
-   "link_to": "Sales Invoice",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Sales Register",
-   "link_count": 0,
-   "link_to": "Sales Register",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Accounts Receivable",
-   "link_count": 0,
-   "link_to": "Accounts Receivable",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Statement of Accounts",
-   "link_count": 0,
-   "link_to": "Statement of Accounts",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Accounts Receivable Summary",
-   "link_count": 0,
-   "link_to": "Accounts Receivable Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "report_ref_doctype": "Sales Invoice",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "FM Accounts Receivable Summary",
-   "link_count": 0,
-   "link_to": "FM Accounts Receivable Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Payables",
    "link_count": 7,
    "link_type": "DocType",
@@ -200,9 +120,88 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Receivables",
+   "link_count": 7,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Register",
+   "link_count": 0,
+   "link_to": "Sales Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Accounts Receivable",
+   "link_count": 0,
+   "link_to": "Accounts Receivable",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Statement of Accounts",
+   "link_count": 0,
+   "link_to": "Statement of Accounts",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Accounts Receivable Summary",
+   "link_count": 0,
+   "link_to": "Accounts Receivable Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "FM Accounts Receivable Summary",
+   "link_count": 0,
+   "link_to": "FM Accounts Receivable Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-12-17 19:23:50.071341",
+ "modified": "2025-12-17 20:37:35.689578",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Accounts",
