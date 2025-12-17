@@ -352,7 +352,7 @@ fixtures = [
     {
         "dt": "Workspace",
         "filters": [
-            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service", "Trucking Service"]]
+            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts", "Trucking Service"]]
         ]
     },
    {
