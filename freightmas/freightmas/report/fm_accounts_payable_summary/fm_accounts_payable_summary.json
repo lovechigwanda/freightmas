@@ -21,10 +21,6 @@
  "ref_doctype": "Purchase Invoice",
  "report_name": "FM Accounts Payable Summary",
  "report_type": "Script Report",
- "json": {
-  "page_length": 20,
-  "page_length_options": [20, 100, 500, "All"]
- },
  "roles": [
   {
    "role": "Accounts Manager"
