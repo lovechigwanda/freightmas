@@ -26,6 +26,13 @@ def execute(filters=None):
     if filters.get("direction"):
         conditions += f" AND direction = '{filters['direction']}'"
 
+    # Handle pagination
+    limit_clause = ""
+    if filters.get("page_length") and filters.get("page_length") != "All":
+        page_length = int(filters.get("page_length", 20))
+        start = int(filters.get("start", 0))
+        limit_clause = f" LIMIT {page_length} OFFSET {start}"
+
     # Get forwarding jobs data - matching exact columns from screenshot
     jobs = frappe.db.sql(f"""
         SELECT name, date_created, customer, consignee, bl_number, 
@@ -33,6 +40,7 @@ def execute(filters=None):
         FROM `tabForwarding Job`
         WHERE {conditions}
         ORDER BY date_created DESC
+        {limit_clause}
     """, as_dict=True)
 
     for job in jobs:
@@ -46,6 +54,18 @@ def execute(filters=None):
             "status": job.get("status", ""),
         })
 
+    # Return data for pagination
+    result = {"data": data, "columns": columns}
+    
+    # Add total count for pagination if limit is applied
+    if limit_clause:
+        total_count = frappe.db.sql(f"""
+            SELECT COUNT(*) as total
+            FROM `tabForwarding Job`
+            WHERE {conditions}
+        """, as_dict=True)[0].total
+        result["total"] = total_count
+    
     return columns, data
 
 

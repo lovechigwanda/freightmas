@@ -20,6 +20,20 @@
  "ref_doctype": "Forwarding Job",
  "report_name": "Forwarding Job List",
  "report_type": "Script Report",
- "roles": [],
+ "json": {
+  "page_length": 20,
+  "page_length_options": [20, 100, 500, "All"]
+ },
+ "roles": [
+  {
+   "role": "Freightmas User"
+  },
+  {
+   "role": "Freightmas Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "timeout": 0
 }
