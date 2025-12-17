@@ -270,22 +270,20 @@ def get_aging_analysis(customer, filters, report_date):
     # Get outstanding invoices
     date_field = "due_date" if aging_based_on == "Due Date" else "posting_date"
     
-    # Query for submitted invoices
-    docstatus_condition = "docstatus = 1" if not include_proforma else "docstatus IN (0, 1)"
-    amount_field = "outstanding_amount" if not include_proforma else "grand_total"
+    aging = {"range1": 0, "range2": 0, "range3": 0, "range4": 0}
     
-    outstanding_invoices = frappe.db.sql(f"""
-        SELECT name, {date_field} as ref_date, {amount_field} as amount
+    # Get submitted invoices with outstanding amounts
+    submitted_invoices = frappe.db.sql(f"""
+        SELECT name, {date_field} as ref_date, outstanding_amount as amount
         FROM `tabSales Invoice`
         WHERE customer = %s
         AND company = %s
-        AND {docstatus_condition}
-        AND {amount_field} > 0
+        AND docstatus = 1
+        AND outstanding_amount > 0
     """, (customer, company), as_dict=True)
     
-    aging = {"range1": 0, "range2": 0, "range3": 0, "range4": 0}
-    
-    for invoice in outstanding_invoices:
+    # Process submitted invoices
+    for invoice in submitted_invoices:
         if not invoice.ref_date:
             continue
             
@@ -300,6 +298,34 @@ def get_aging_analysis(customer, filters, report_date):
             aging["range3"] += amount
         else:
             aging["range4"] += amount
+    
+    # If including proforma invoices, add draft invoices to aging
+    if include_proforma:
+        draft_invoices = frappe.db.sql(f"""
+            SELECT name, {date_field} as ref_date, grand_total as amount
+            FROM `tabSales Invoice`
+            WHERE customer = %s
+            AND company = %s
+            AND docstatus = 0
+            AND grand_total > 0
+        """, (customer, company), as_dict=True)
+        
+        # Process draft invoices
+        for invoice in draft_invoices:
+            if not invoice.ref_date:
+                continue
+                
+            days_diff = (report_date - getdate(invoice.ref_date)).days
+            amount = flt(invoice.amount)
+            
+            if days_diff <= range_list[0]:
+                aging["range1"] += amount
+            elif days_diff <= range_list[1]:
+                aging["range2"] += amount
+            elif days_diff <= range_list[2]:
+                aging["range3"] += amount
+            else:
+                aging["range4"] += amount
     
     return aging
 
