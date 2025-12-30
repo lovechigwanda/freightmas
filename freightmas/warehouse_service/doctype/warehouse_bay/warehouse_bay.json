@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:bay_code",
+ "creation": "2025-12-27 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "bay_code",
+  "bay_type",
+  "column_break_4",
+  "is_available",
+  "section_break_capacity",
+  "capacity_sqm",
+  "max_pallets",
+  "column_break_capacity",
+  "max_weight_kg",
+  "max_height_cm",
+  "section_break_8",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "bay_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Bay Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "bay_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Bay Type",
+   "options": "Pallet Racking\nFloor Storage\nMezzanine\nShelving\nDrive-In Racking\nCantilever",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_available",
+   "fieldtype": "Check",
+   "label": "Is Available"
+  },
+  {
+   "fieldname": "section_break_capacity",
+   "fieldtype": "Section Break",
+   "label": "Bay Capacity Limits",
+   "description": "Set maximum capacity limits for this bay. These limits will be validated when creating bins."
+  },
+  {
+   "fieldname": "capacity_sqm",
+   "fieldtype": "Float",
+   "label": "Max Area (SQM)",
+   "precision": "2",
+   "description": "Total floor area available in square meters"
+  },
+  {
+   "fieldname": "max_pallets",
+   "fieldtype": "Float",
+   "label": "Max Pallet Positions",
+   "precision": "0",
+   "description": "Maximum number of pallet positions in this bay"
+  },
+  {
+   "fieldname": "column_break_capacity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_weight_kg",
+   "fieldtype": "Float",
+   "label": "Max Weight (kg)",
+   "precision": "2",
+   "description": "Maximum total weight capacity in kilograms"
+  },
+  {
+   "fieldname": "max_height_cm",
+   "fieldtype": "Float",
+   "label": "Max Height (cm)",
+   "precision": "0",
+   "description": "Maximum storage height in centimeters"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Bin Status Overview"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "HTML",
+   "label": "Bins"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Warehouse Bay",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

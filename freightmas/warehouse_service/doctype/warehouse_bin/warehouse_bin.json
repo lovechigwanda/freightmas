@@ -1,0 +1,161 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:bin_code",
+ "creation": "2025-12-27 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "bay",
+  "bin_code",
+  "bin_type",
+  "column_break_5",
+  "max_weight_kg",
+  "max_height_cm",
+  "section_break_capacity",
+  "capacity_uom",
+  "max_capacity",
+  "column_break_capacity",
+  "current_capacity_used",
+  "capacity_utilization_pct",
+  "section_break_8",
+  "current_allocations_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "bay",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Warehouse Bay",
+   "options": "Warehouse Bay",
+   "reqd": 1
+  },
+  {
+   "fieldname": "bin_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Bin Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "bin_type",
+   "fieldtype": "Select",
+   "label": "Bin Type",
+   "options": "Pallet Position\nFloor Space\nShelf\nRack Level",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_weight_kg",
+   "fieldtype": "Float",
+   "label": "Max Weight (KG)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "max_height_cm",
+   "fieldtype": "Float",
+   "label": "Max Height (CM)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "section_break_capacity",
+   "fieldtype": "Section Break",
+   "label": "Capacity Management"
+  },
+  {
+   "fieldname": "capacity_uom",
+   "fieldtype": "Select",
+   "label": "Capacity UOM",
+   "options": "Pallets\nCBM\nSQM",
+   "default": "Pallets",
+   "reqd": 1
+  },
+  {
+   "fieldname": "max_capacity",
+   "fieldtype": "Float",
+   "label": "Max Capacity",
+   "precision": "2",
+   "description": "Maximum capacity in the selected UOM"
+  },
+  {
+   "fieldname": "column_break_capacity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "current_capacity_used",
+   "fieldtype": "Float",
+   "label": "Current Capacity Used",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "capacity_utilization_pct",
+   "fieldtype": "Percent",
+   "label": "Capacity Utilization %",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Current Bin Allocations"
+  },
+  {
+   "fieldname": "current_allocations_html",
+   "fieldtype": "HTML",
+   "label": "Allocations"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Warehouse Bin",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse User",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

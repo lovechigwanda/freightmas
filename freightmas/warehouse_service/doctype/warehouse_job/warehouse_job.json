@@ -1,0 +1,252 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-12-27 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "job_date",
+  "job_type",
+  "column_break_5",
+  "goods_receipt",
+  "storage_start_date",
+  "storage_end_date",
+  "total_storage_days",
+  "column_break_10",
+  "status",
+  "reference_number",
+  "contract_type",
+  "section_break_14",
+  "notes",
+  "section_break_16",
+  "storage_charges",
+  "section_break_18",
+  "handling_charges",
+  "section_break_20",
+  "total_storage_charges",
+  "total_handling_charges",
+  "total_charges",
+  "column_break_24",
+  "invoiced_amount",
+  "pending_amount",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "WMS-JOB-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "job_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Job Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "job_type",
+   "fieldtype": "Select",
+   "label": "Job Type",
+   "options": "Storage Only\nHandling Only\nStorage + Handling",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "goods_receipt",
+   "fieldtype": "Link",
+   "label": "Goods Receipt",
+   "options": "Customer Goods Receipt"
+  },
+  {
+   "fieldname": "storage_start_date",
+   "fieldtype": "Date",
+   "label": "Storage Start Date"
+  },
+  {
+   "fieldname": "storage_end_date",
+   "fieldtype": "Date",
+   "label": "Storage End Date"
+  },
+  {
+   "fieldname": "total_storage_days",
+   "fieldtype": "Int",
+   "label": "Total Storage Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nActive\nCompleted\nInvoiced\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_number",
+   "fieldtype": "Data",
+   "label": "Reference Number"
+  },
+  {
+   "default": "Spot",
+   "fieldname": "contract_type",
+   "fieldtype": "Select",
+   "label": "Contract Type",
+   "options": "Spot\nMonthly Contract\nAnnual Contract"
+  },
+  {
+   "fieldname": "section_break_14",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "label": "Storage Charges"
+  },
+  {
+   "fieldname": "storage_charges",
+   "fieldtype": "Table",
+   "label": "Storage Charges",
+   "options": "Warehouse Job Storage Charges"
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Handling Charges"
+  },
+  {
+   "fieldname": "handling_charges",
+   "fieldtype": "Table",
+   "label": "Handling Charges",
+   "options": "Warehouse Job Handling Charges"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "fieldname": "total_storage_charges",
+   "fieldtype": "Currency",
+   "label": "Total Storage Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_handling_charges",
+   "fieldtype": "Currency",
+   "label": "Total Handling Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_charges",
+   "fieldtype": "Currency",
+   "label": "Total Charges",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_24",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoiced_amount",
+   "fieldtype": "Currency",
+   "label": "Invoiced Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pending_amount",
+   "fieldtype": "Currency",
+   "label": "Pending Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Warehouse Job",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Warehouse Job",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer",
+ "track_changes": 1
+}

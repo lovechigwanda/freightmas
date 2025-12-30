@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-27 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "goods_receipt_item",
+  "storage_unit_type",
+  "quantity",
+  "column_break_4",
+  "start_date",
+  "end_date",
+  "storage_days",
+  "column_break_8",
+  "free_days",
+  "chargeable_days",
+  "section_break_11",
+  "rate_per_day",
+  "rate_per_month",
+  "rate_type",
+  "column_break_15",
+  "amount",
+  "section_break_17",
+  "sales_invoice",
+  "is_invoiced"
+ ],
+ "fields": [
+  {
+   "fieldname": "goods_receipt_item",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Goods Receipt Item",
+   "options": "Customer Goods Receipt Item"
+  },
+  {
+   "fieldname": "storage_unit_type",
+   "fieldtype": "Link",
+   "label": "Storage Unit Type",
+   "options": "Storage Unit Type"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
+  },
+  {
+   "fieldname": "storage_days",
+   "fieldtype": "Int",
+   "label": "Storage Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "free_days",
+   "fieldtype": "Int",
+   "label": "Free Days"
+  },
+  {
+   "fieldname": "chargeable_days",
+   "fieldtype": "Int",
+   "label": "Chargeable Days",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break",
+   "label": "Rates"
+  },
+  {
+   "fieldname": "rate_per_day",
+   "fieldtype": "Currency",
+   "label": "Rate Per Day"
+  },
+  {
+   "fieldname": "rate_per_month",
+   "fieldtype": "Currency",
+   "label": "Rate Per Month"
+  },
+  {
+   "default": "Per Day",
+   "fieldname": "rate_type",
+   "fieldtype": "Select",
+   "label": "Rate Type",
+   "options": "Per Day\nPer Month\nPer SQM"
+  },
+  {
+   "fieldname": "column_break_15",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_17",
+   "fieldtype": "Section Break",
+   "label": "Invoice Details"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_invoiced",
+   "fieldtype": "Check",
+   "label": "Is Invoiced",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Warehouse Job Storage Charges",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

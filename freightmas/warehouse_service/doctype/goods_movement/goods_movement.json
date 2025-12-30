@@ -1,0 +1,224 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2025-12-27 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "movement_date",
+  "movement_type",
+  "column_break_4",
+  "customer",
+  "goods_receipt",
+  "goods_dispatch",
+  "section_break_8",
+  "source_zone",
+  "source_bay",
+  "source_bin",
+  "column_break_12",
+  "destination_zone",
+  "destination_bay",
+  "destination_bin",
+  "section_break_16",
+  "moved_by",
+  "reason",
+  "section_break_19",
+  "items",
+  "section_break_21",
+  "notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "WMS-MOV-.YYYY.-",
+   "reqd": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "movement_date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Movement Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "movement_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Movement Type",
+   "options": "Inbound\nOutbound\nRelocation\nConsolidation\nInspection",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "goods_receipt",
+   "fieldtype": "Link",
+   "label": "Goods Receipt",
+   "options": "Customer Goods Receipt"
+  },
+  {
+   "fieldname": "goods_dispatch",
+   "fieldtype": "Link",
+   "label": "Goods Dispatch",
+   "options": "Customer Goods Dispatch"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Source Location"
+  },
+  {
+   "fieldname": "source_zone",
+   "fieldtype": "Link",
+   "label": "Source Zone",
+   "options": "Warehouse Zone"
+  },
+  {
+   "fieldname": "source_bay",
+   "fieldtype": "Link",
+   "label": "Source Bay",
+   "options": "Warehouse Bay"
+  },
+  {
+   "fieldname": "source_bin",
+   "fieldtype": "Link",
+   "label": "Source Bin",
+   "options": "Warehouse Bin"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination_zone",
+   "fieldtype": "Link",
+   "label": "Destination Zone",
+   "options": "Warehouse Zone"
+  },
+  {
+   "fieldname": "destination_bay",
+   "fieldtype": "Link",
+   "label": "Destination Bay",
+   "options": "Warehouse Bay"
+  },
+  {
+   "fieldname": "destination_bin",
+   "fieldtype": "Link",
+   "label": "Destination Bin",
+   "options": "Warehouse Bin"
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "label": "Movement Details"
+  },
+  {
+   "fieldname": "moved_by",
+   "fieldtype": "Link",
+   "label": "Moved By",
+   "options": "User"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Select",
+   "label": "Reason",
+   "options": "New Receipt\nDispatch\nSpace Optimization\nQuality Issue\nCustomer Request\nOther"
+  },
+  {
+   "fieldname": "section_break_19",
+   "fieldtype": "Section Break",
+   "label": "Items"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Goods Movement Item"
+  },
+  {
+   "fieldname": "section_break_21",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Goods Movement",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-12-27 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Goods Movement",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
