@@ -9,16 +9,59 @@ from frappe.utils import flt, get_datetime_str, date_diff, today, getdate
 class WarehouseJob(Document):
 	def validate(self):
 		"""Validate Warehouse Job"""
-		self.calculate_storage_days()
+		self.validate_fiscal_year()
+		self.validate_job_dates()
+		self.calculate_job_validity()
 		self.calculate_storage_charges()
 		self.calculate_handling_charges()
 		self.calculate_totals()
 		self.validate_invoiced_rows()
 	
+	def validate_fiscal_year(self):
+		"""Validate job dates fall within fiscal year"""
+		if not self.fiscal_year:
+			return
+		
+		# Get fiscal year dates
+		fy = frappe.get_doc("Fiscal Year", self.fiscal_year)
+		fy_start = getdate(fy.year_start_date)
+		fy_end = getdate(fy.year_end_date)
+		
+		# Validate job start date
+		if self.job_start_date:
+			job_start = getdate(self.job_start_date)
+			if job_start < fy_start:
+				frappe.throw(f"Job Start Date cannot be before fiscal year start ({fy_start})")
+			if job_start > fy_end:
+				frappe.throw(f"Job Start Date cannot be after fiscal year end ({fy_end})")
+		
+		# Validate job end date
+		if self.job_end_date:
+			job_end = getdate(self.job_end_date)
+			if job_end > fy_end:
+				frappe.throw(f"Job End Date cannot exceed fiscal year end ({fy_end}). Create a new job for the next fiscal year.")
+			if job_end < fy_start:
+				frappe.throw(f"Job End Date cannot be before fiscal year start ({fy_start})")
+	
+	def validate_job_dates(self):
+		"""Validate job date logic"""
+		if self.job_start_date and self.job_end_date:
+			if getdate(self.job_end_date) < getdate(self.job_start_date):
+				frappe.throw("Job End Date cannot be before Job Start Date")
+	
+	def calculate_job_validity(self):
+		"""Calculate job validity in days"""
+		if self.job_start_date and self.job_end_date:
+			self.job_validity_days = date_diff(self.job_end_date, self.job_start_date) + 1
+	
 	def before_submit(self):
 		"""Actions before submit"""
 		if self.status == "Draft":
 			self.status = "Active"
+		
+		# Lock validity dates on submit
+		if not self.allow_validity_override:
+			self.db_set('allow_validity_override', 0)
 	
 	def on_submit(self):
 		"""Actions on submit"""

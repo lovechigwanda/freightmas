@@ -1,0 +1,177 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-30 19:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer",
+  "valid_from",
+  "valid_to",
+  "is_active",
+  "section_break_storage",
+  "storage_unit_type",
+  "storage_rate_per_day",
+  "storage_rate_per_month",
+  "column_break_storage",
+  "apply_to_bay_type",
+  "specific_bay",
+  "section_break_handling",
+  "handling_service_type",
+  "handling_rate",
+  "handling_unit",
+  "column_break_handling",
+  "notes"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_storage",
+   "fieldtype": "Section Break",
+   "label": "Storage Rates"
+  },
+  {
+   "fieldname": "storage_unit_type",
+   "fieldtype": "Link",
+   "label": "Storage Unit Type",
+   "options": "Storage Unit Type"
+  },
+  {
+   "fieldname": "storage_rate_per_day",
+   "fieldtype": "Currency",
+   "label": "Storage Rate Per Day",
+   "precision": "2"
+  },
+  {
+   "fieldname": "storage_rate_per_month",
+   "fieldtype": "Currency",
+   "label": "Storage Rate Per Month",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_storage",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "apply_to_bay_type",
+   "fieldtype": "Link",
+   "label": "Apply to Bay Type",
+   "options": "Warehouse Bay Type",
+   "description": "Leave blank to apply to all bay types"
+  },
+  {
+   "fieldname": "specific_bay",
+   "fieldtype": "Link",
+   "label": "Specific Bay",
+   "options": "Warehouse Bay",
+   "description": "Specify a particular bay for this rate"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_handling",
+   "fieldtype": "Section Break",
+   "label": "Handling Rates"
+  },
+  {
+   "fieldname": "handling_service_type",
+   "fieldtype": "Link",
+   "label": "Handling Service Type",
+   "options": "Handling Service Type"
+  },
+  {
+   "fieldname": "handling_rate",
+   "fieldtype": "Currency",
+   "label": "Handling Rate",
+   "precision": "2"
+  },
+  {
+   "fieldname": "handling_unit",
+   "fieldtype": "Select",
+   "label": "Handling Unit",
+   "options": "Per Pallet\nPer CBM\nPer Ton\nPer Unit\nPer Hour\nFlat Rate"
+  },
+  {
+   "fieldname": "column_break_handling",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-30 19:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Customer Warehouse Rates",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Warehouse User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer",
+ "track_changes": 1
+}

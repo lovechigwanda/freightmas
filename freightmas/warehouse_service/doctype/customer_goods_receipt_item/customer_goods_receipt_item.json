@@ -1,29 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2025-12-27 10:00:00.000000",
+ "creation": "2025-12-27 10:00:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "item_number",
+  "storage_unit_item",
   "customer_reference",
   "description",
   "storage_unit_type",
-  "quantity",
   "column_break_6",
   "weight_kg",
   "length_cm",
   "width_cm",
   "height_cm",
   "volume_cbm",
+  "quantity",
   "section_break_12",
   "warehouse_bay",
   "warehouse_bin",
+  "expiry_date",
   "column_break_16",
   "batch_number",
   "serial_numbers",
-  "expiry_date",
   "section_break_20",
   "special_handling",
   "quantity_remaining",
@@ -33,30 +33,32 @@
  ],
  "fields": [
   {
-   "fieldname": "item_number",
-   "fieldtype": "Int",
+   "fieldname": "storage_unit_item",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Item Number",
-   "read_only": 1
+   "label": "Storage Unit Item",
+   "options": "Storage Unit Item"
   },
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Customer Reference / SKU"
+   "label": "Customer Ref / SKU"
   },
   {
+   "fetch_from": "storage_unit_item.description",
    "fieldname": "description",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Description",
    "reqd": 1
   },
   {
+   "fetch_from": "storage_unit_item.storage_unit_type",
    "fieldname": "storage_unit_type",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Storage Unit Type",
+   "label": "Storage UOM",
    "options": "Storage Unit Type",
    "reqd": 1
   },
@@ -73,24 +75,28 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "storage_unit_item.weight_kg",
    "fieldname": "weight_kg",
    "fieldtype": "Float",
    "label": "Weight (KG)",
    "precision": "2"
   },
   {
+   "fetch_from": "storage_unit_item.length_cm",
    "fieldname": "length_cm",
    "fieldtype": "Float",
    "label": "Length (CM)",
    "precision": "2"
   },
   {
+   "fetch_from": "storage_unit_item.width_cm",
    "fieldname": "width_cm",
    "fieldtype": "Float",
    "label": "Width (CM)",
    "precision": "2"
   },
   {
+   "fetch_from": "storage_unit_item.height_cm",
    "fieldname": "height_cm",
    "fieldtype": "Float",
    "label": "Height (CM)",
@@ -131,7 +137,7 @@
   },
   {
    "fieldname": "serial_numbers",
-   "fieldtype": "Text",
+   "fieldtype": "Small Text",
    "label": "Serial Numbers"
   },
   {
@@ -178,12 +184,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-27 10:00:00.000000",
+ "modified": "2025-12-30 21:53:39.398254",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Receipt Item",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

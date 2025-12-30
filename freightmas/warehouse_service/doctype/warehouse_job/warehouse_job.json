@@ -12,14 +12,17 @@
   "job_date",
   "job_type",
   "column_break_5",
-  "goods_receipt",
-  "storage_start_date",
-  "storage_end_date",
-  "total_storage_days",
-  "column_break_10",
   "status",
   "reference_number",
   "contract_type",
+  "section_break_validity",
+  "fiscal_year",
+  "job_start_date",
+  "job_end_date",
+  "column_break_validity",
+  "job_validity_days",
+  "allow_validity_override",
+  "column_break_10",
   "section_break_14",
   "notes",
   "section_break_16",
@@ -71,32 +74,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "goods_receipt",
-   "fieldtype": "Link",
-   "label": "Goods Receipt",
-   "options": "Customer Goods Receipt"
-  },
-  {
-   "fieldname": "storage_start_date",
-   "fieldtype": "Date",
-   "label": "Storage Start Date"
-  },
-  {
-   "fieldname": "storage_end_date",
-   "fieldtype": "Date",
-   "label": "Storage End Date"
-  },
-  {
-   "fieldname": "total_storage_days",
-   "fieldtype": "Int",
-   "label": "Total Storage Days",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_10",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -116,6 +93,57 @@
    "fieldtype": "Select",
    "label": "Contract Type",
    "options": "Spot\nMonthly Contract\nAnnual Contract"
+  },
+  {
+   "fieldname": "section_break_validity",
+   "fieldtype": "Section Break",
+   "label": "Job Validity Period",
+   "description": "Job validity is tied to fiscal year. All goods receipts and dispatches must fall within this period."
+  },
+  {
+   "fieldname": "fiscal_year",
+   "fieldtype": "Link",
+   "label": "Fiscal Year",
+   "options": "Fiscal Year",
+   "reqd": 1,
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+  },
+  {
+   "fieldname": "job_start_date",
+   "fieldtype": "Date",
+   "label": "Job Start Date",
+   "reqd": 1,
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+  },
+  {
+   "fieldname": "job_end_date",
+   "fieldtype": "Date",
+   "label": "Job End Date",
+   "reqd": 1,
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+  },
+  {
+   "fieldname": "column_break_validity",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "job_validity_days",
+   "fieldtype": "Int",
+   "label": "Job Validity (Days)",
+   "read_only": 1,
+   "description": "Calculated based on start and end date"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_validity_override",
+   "fieldtype": "Check",
+   "label": "Allow Validity Override",
+   "description": "Enable to modify job validity dates (Admin only)",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section_break_14",

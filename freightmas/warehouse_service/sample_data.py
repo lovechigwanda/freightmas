@@ -29,6 +29,7 @@ def create_all_sample_data():
 	create_warehouse_bays()
 	create_warehouse_bins()
 	create_storage_unit_types()
+	create_storage_unit_items()
 	create_handling_activity_types()
 	create_storage_rate_cards()
 	create_customers()
@@ -277,6 +278,91 @@ def create_storage_unit_types():
 			print(f"  ✓ Created: {unit.unit_type}")
 		else:
 			print(f"  ⊙ Already exists: {unit_data['unit_type']}")
+
+
+def create_storage_unit_items():
+	"""Create sample storage unit items - predefined items for quick data entry"""
+	print("\n📋 Creating Storage Unit Items...")
+	
+	items = [
+		{
+			"item_code": "PALLET-STD",
+			"item_name": "Standard Pallet Load",
+			"storage_unit_type": "Euro Pallet",
+			"description": "<p>Standard palletized goods - mixed cargo</p>",
+			"length_cm": 120.0,
+			"width_cm": 80.0,
+			"height_cm": 150.0,
+			"weight_kg": 500.0,
+			"is_active": 1
+		},
+		{
+			"item_code": "CARTON-MED",
+			"item_name": "Medium Carton Box",
+			"storage_unit_type": "Carton Box",
+			"description": "<p>Medium size carton box - general goods</p>",
+			"length_cm": 40.0,
+			"width_cm": 30.0,
+			"height_cm": 30.0,
+			"weight_kg": 15.0,
+			"is_active": 1
+		},
+		{
+			"item_code": "CARTON-LG",
+			"item_name": "Large Carton Box",
+			"storage_unit_type": "Carton Box",
+			"description": "<p>Large carton box - bulky items</p>",
+			"length_cm": 60.0,
+			"width_cm": 40.0,
+			"height_cm": 40.0,
+			"weight_kg": 25.0,
+			"is_active": 1
+		},
+		{
+			"item_code": "CAGE-STD",
+			"item_name": "Standard Pallet Cage",
+			"storage_unit_type": "Pallet Cage",
+			"description": "<p>Metal pallet cage - secure storage</p>",
+			"length_cm": 120.0,
+			"width_cm": 100.0,
+			"height_cm": 180.0,
+			"weight_kg": 600.0,
+			"is_active": 1
+		},
+		{
+			"item_code": "DRUM-200L",
+			"item_name": "200L Drum",
+			"storage_unit_type": "Drum (200L)",
+			"description": "<p>Standard 200 liter drum - liquids/chemicals</p>",
+			"length_cm": 60.0,
+			"width_cm": 60.0,
+			"height_cm": 90.0,
+			"weight_kg": 200.0,
+			"is_active": 1
+		},
+		{
+			"item_code": "IBC-1000L",
+			"item_name": "1000L IBC Tank",
+			"storage_unit_type": "IBC (1000L)",
+			"description": "<p>Intermediate bulk container - 1000 liters</p>",
+			"length_cm": 120.0,
+			"width_cm": 100.0,
+			"height_cm": 120.0,
+			"weight_kg": 1000.0,
+			"is_active": 1
+		}
+	]
+	
+	for item_data in items:
+		if not frappe.db.exists("Storage Unit Item", item_data["item_code"]):
+			item = frappe.get_doc({
+				"doctype": "Storage Unit Item",
+				**item_data
+			})
+			item.insert(ignore_permissions=True)
+			print(f"  ✓ Created: {item.item_code} - {item.item_name}")
+		else:
+			print(f"  ⊙ Already exists: {item_data['item_code']}")
 
 
 def create_handling_activity_types():

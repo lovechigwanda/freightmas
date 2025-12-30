@@ -1,0 +1,8 @@
+// Copyright (c) 2025, Navari Limited and contributors
+// For license information, please see license.txt
+
+frappe.ui.form.on('Warehouse Bay Type', {
+	refresh: function(frm) {
+		// Add custom behavior if needed
+	}
+});
