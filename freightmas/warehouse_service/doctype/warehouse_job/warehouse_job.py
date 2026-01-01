@@ -342,20 +342,46 @@ class WarehouseJob(Document):
 			ORDER BY dispatch_date DESC, creation DESC
 		""", {"job": self.name}, as_dict=1)
 		
+		# Calculate stock balance by combining receipts and dispatches
 		stock_balance = frappe.db.sql("""
 			SELECT 
-				COALESCE(gri.storage_unit_type, 'N/A') as storage_unit_type,
-				COALESCE(gri.warehouse_bay, 'Unassigned') as warehouse_bay,
-				SUM(gri.quantity) as total_received,
-				SUM(COALESCE(gri.quantity_remaining, gri.quantity)) as current_balance,
-				SUM(gri.quantity - COALESCE(gri.quantity_remaining, gri.quantity)) as total_dispatched,
-				COUNT(DISTINCT CASE WHEN gri.warehouse_bin IS NOT NULL THEN gri.warehouse_bin END) as bin_count
-			FROM `tabCustomer Goods Receipt Item` gri
-			INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
-			WHERE gr.warehouse_job = %(job)s
-			AND gr.docstatus != 2
-			GROUP BY gri.storage_unit_type, gri.warehouse_bay
-			ORDER BY gri.storage_unit_type, gri.warehouse_bay
+				COALESCE(storage_unit_type, 'N/A') as storage_unit_type,
+				COALESCE(warehouse_bay, 'Unassigned') as warehouse_bay,
+				SUM(total_received) as total_received,
+				SUM(total_dispatched) as total_dispatched,
+				SUM(total_received) - SUM(total_dispatched) as current_balance,
+				COUNT(DISTINCT bin_name) as bin_count
+			FROM (
+				-- Receipts
+				SELECT 
+					gri.storage_unit_type,
+					gri.warehouse_bay,
+					SUM(gri.quantity) as total_received,
+					0 as total_dispatched,
+					gri.warehouse_bin as bin_name
+				FROM `tabCustomer Goods Receipt Item` gri
+				INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
+				WHERE gr.warehouse_job = %(job)s
+				AND gr.docstatus = 1
+				GROUP BY gri.storage_unit_type, gri.warehouse_bay, gri.warehouse_bin
+				
+				UNION ALL
+				
+				-- Dispatches
+				SELECT 
+					gdi.storage_unit_type,
+					gdi.warehouse_bay,
+					0 as total_received,
+					SUM(gdi.quantity) as total_dispatched,
+					NULL as bin_name
+				FROM `tabCustomer Goods Dispatch Item` gdi
+				INNER JOIN `tabCustomer Goods Dispatch` gd ON gd.name = gdi.parent
+				WHERE gd.warehouse_job = %(job)s
+				AND gd.docstatus = 1
+				GROUP BY gdi.storage_unit_type, gdi.warehouse_bay
+			) combined
+			GROUP BY storage_unit_type, warehouse_bay
+			ORDER BY storage_unit_type, warehouse_bay
 		""", {"job": self.name}, as_dict=1)
 		
 		return frappe.render_template(

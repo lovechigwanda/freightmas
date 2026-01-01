@@ -112,6 +112,12 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+.section-header:hover {
+	background: #e9ecef;
 }
 
 .section-header h3 {
@@ -119,6 +125,18 @@
 	font-size: 15px;
 	font-weight: 600;
 	color: #1f272e;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.section-header .toggle-icon {
+	font-size: 12px;
+	transition: transform 0.2s;
+}
+
+.section-header .toggle-icon.collapsed {
+	transform: rotate(-90deg);
 }
 
 .section-header .count {
@@ -128,6 +146,44 @@
 	border-radius: 12px;
 	font-size: 12px;
 	font-weight: 600;
+}
+
+.section-content {
+	display: none;
+}
+
+.section-content.expanded {
+	display: block;
+}
+
+.view-all-container {
+	padding: 15px 20px;
+	text-align: center;
+	background: #f8f9fa;
+	border-top: 1px solid #d1d8dd;
+}
+
+.btn-view-all {
+	padding: 8px 20px;
+	background: white;
+	border: 1px solid #2490ef;
+	color: #2490ef;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.2s;
+}
+
+.btn-view-all:hover {
+	background: #2490ef;
+	color: white;
+}
+
+.showing-text {
+	font-size: 12px;
+	color: #6c757d;
+	margin-bottom: 10px;
 }
 
 .transaction-table {
@@ -272,11 +328,11 @@
 	<!-- Summary Cards -->
 	<div class="summary-cards">
 		<div class="summary-card receipts">
-			<div class="value">{{ receipts|length }}</div>
+			<div class="value">{{ receipts|selectattr('status', 'equalto', 'Submitted')|list|length }}</div>
 			<div class="label">Total Receipts</div>
 		</div>
 		<div class="summary-card dispatches">
-			<div class="value">{{ dispatches|length }}</div>
+			<div class="value">{{ dispatches|selectattr('status', 'equalto', 'Submitted')|list|length }}</div>
 			<div class="label">Total Dispatches</div>
 		</div>
 		<div class="summary-card stock">
@@ -287,57 +343,74 @@
 
 	<!-- Goods Receipts Section -->
 	<div class="transaction-section">
-		<div class="section-header">
-			<h3>Goods Receipts</h3>
+		<div class="section-header" onclick="toggleSection('receipts')">
+			<h3>
+				<span class="toggle-icon collapsed" id="receipts-icon">▼</span>
+				Goods Receipts
+			</h3>
 			<span class="count">{{ receipts|length }}</span>
 		</div>
-		{% if receipts %}
-		<table class="transaction-table">
-			<thead>
-				<tr>
-					<th>Date</th>
-					<th>Document ID</th>
-					<th>Reference</th>
-					<th>Vehicle</th>
-					<th>Items</th>
-					<th>Total Qty</th>
-					<th>Status</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for receipt in receipts %}
-				<tr onclick="openDocument('Customer Goods Receipt', '{{ receipt.name }}')">
-					<td>{{ frappe.utils.formatdate(receipt.receipt_date, 'dd MMM yyyy') }}</td>
-					<td><strong>{{ receipt.name }}</strong></td>
-					<td>{{ receipt.reference_number or '-' }}</td>
-					<td>{{ receipt.vehicle_number or '-' }}</td>
-					<td>{{ receipt.item_count }}</td>
-					<td class="number">{{ receipt.total_quantity|int }}</td>
-					<td>
-						<span class="status-badge {{ receipt.status|lower|replace(' ', '-') }}">
-							{{ receipt.status }}
-						</span>
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-		{% else %}
-		<div class="empty-state">
-			<div style="font-size: 48px; opacity: 0.3;">📦</div>
-			<div>No goods receipts found</div>
+		<div class="section-content" id="receipts-content">
+			{% if receipts %}
+			<table class="transaction-table">
+				<thead>
+					<tr>
+						<th>Date</th>
+						<th>Document ID</th>
+						<th>Reference</th>
+						<th>Vehicle</th>
+						<th>Items</th>
+						<th>Total Qty</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for receipt in receipts[:15] %}
+					<tr onclick="openDocument('Customer Goods Receipt', '{{ receipt.name }}')">
+						<td>{{ frappe.utils.formatdate(receipt.receipt_date, 'dd MMM yyyy') }}</td>
+						<td><strong>{{ receipt.name }}</strong></td>
+						<td>{{ receipt.reference_number or '-' }}</td>
+						<td>{{ receipt.vehicle_number or '-' }}</td>
+						<td>{{ receipt.item_count }}</td>
+						<td class="number">{{ receipt.total_quantity|int }}</td>
+						<td>
+							<span class="status-badge {{ receipt.status|lower|replace(' ', '-') }}">
+								{{ receipt.status }}
+							</span>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% if receipts|length > 15 %}
+			<div class="view-all-container">
+				<div class="showing-text">Showing latest 15 of {{ receipts|length }} receipts</div>
+				<button class="btn-view-all" onclick="viewAllReceipts('{{ doc.name }}')">
+					View All Receipts
+				</button>
+			</div>
+			{% endif %}
+			{% else %}
+			<div class="empty-state">
+				<div style="font-size: 48px; opacity: 0.3;">📦</div>
+				<div>No goods receipts found</div>
+			</div>
+			{% endif %}
 		</div>
-		{% endif %}
 	</div>
 
 	<!-- Goods Dispatches Section -->
 	<div class="transaction-section">
-		<div class="section-header">
-			<h3>Goods Dispatches</h3>
+		<div class="section-header" onclick="toggleSection('dispatches')">
+			<h3>
+				<span class="toggle-icon collapsed" id="dispatches-icon">▼</span>
+				Goods Dispatches
+			</h3>
 			<span class="count">{{ dispatches|length }}</span>
 		</div>
-		{% if dispatches %}
-		<table class="transaction-table">
+		<div class="section-content" id="dispatches-content">
+			{% if dispatches %}
+			<table class="transaction-table">
 			<thead>
 				<tr>
 					<th>Date</th>
@@ -350,7 +423,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for dispatch in dispatches %}
+				{% for dispatch in dispatches[:15] %}
 				<tr onclick="openDocument('Customer Goods Dispatch', '{{ dispatch.name }}')">
 					<td>{{ frappe.utils.formatdate(dispatch.dispatch_date, 'dd MMM yyyy') }}</td>
 					<td><strong>{{ dispatch.name }}</strong></td>
@@ -367,7 +440,21 @@
 				{% endfor %}
 			</tbody>
 		</table>
+		{% if dispatches|length > 15 %}
+		<div class="view-all-container">
+			<div class="showing-text">Showing latest 15 of {{ dispatches|length }} dispatches</div>
+			<button class="btn-view-all" onclick="viewAllDispatches('{{ doc.name }}')">
+				View All Dispatches
+			</button>
+		</div>
 		{% endif %}
+		{% else %}
+		<div class="empty-state">
+			<div style="font-size: 48px; opacity: 0.3;">🚚</div>
+			<div>No goods dispatches found</div>
+		</div>
+		{% endif %}
+		</div>
 	</div>
 
 	<!-- Stock Balance Section -->
@@ -417,6 +504,27 @@
 </div>
 
 <script>
+function toggleSection(sectionName) {
+	const content = document.getElementById(sectionName + '-content');
+	const icon = document.getElementById(sectionName + '-icon');
+	
+	if (content.classList.contains('expanded')) {
+		content.classList.remove('expanded');
+		icon.classList.add('collapsed');
+	} else {
+		content.classList.add('expanded');
+		icon.classList.remove('collapsed');
+	}
+}
+
+function viewAllReceipts(jobName) {
+	frappe.set_route('List', 'Customer Goods Receipt', {warehouse_job: jobName});
+}
+
+function viewAllDispatches(jobName) {
+	frappe.set_route('List', 'Customer Goods Dispatch', {warehouse_job: jobName});
+}
+
 function openDocument(doctype, name) {
 	window.open(`/app/${doctype.toLowerCase().replace(/ /g, '-')}/${name}`, '_blank');
 }

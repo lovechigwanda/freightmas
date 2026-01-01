@@ -12,13 +12,21 @@ frappe.ui.form.on('Warehouse Job', {
 			});
 		}
 		
-		// Add Create button with Customer Goods Receipt option
+		// Add Create button with Customer Goods Receipt and Dispatch options
 		if (!frm.is_new() && frm.doc.status !== "Completed") {
 			frm.add_custom_button(__('Customer Goods Receipt'), function() {
 				frappe.new_doc('Customer Goods Receipt', {
 					warehouse_job: frm.doc.name,
 					customer: frm.doc.customer,
 					receipt_date: frappe.datetime.get_today()
+				});
+			}, __('Create'));
+			
+			frm.add_custom_button(__('Customer Goods Dispatch'), function() {
+				frappe.new_doc('Customer Goods Dispatch', {
+					warehouse_job: frm.doc.name,
+					customer: frm.doc.customer,
+					dispatch_date: frappe.datetime.get_today()
 				});
 			}, __('Create'));
 		}
