@@ -3,6 +3,17 @@
 
 frappe.ui.form.on('Warehouse Job', {
 	refresh: function(frm) {
+		// Add Create button with Customer Goods Receipt option
+		if (!frm.is_new() && frm.doc.status !== "Completed") {
+			frm.add_custom_button(__('Customer Goods Receipt'), function() {
+				frappe.new_doc('Customer Goods Receipt', {
+					warehouse_job: frm.doc.name,
+					customer: frm.doc.customer,
+					receipt_date: frappe.datetime.get_today()
+				});
+			}, __('Create'));
+		}
+		
 		// Add custom buttons for workflow actions
 		if (frm.doc.docstatus === 1 && frm.doc.status === "Active") {
 			frm.add_custom_button(__('Mark as Completed'), function() {

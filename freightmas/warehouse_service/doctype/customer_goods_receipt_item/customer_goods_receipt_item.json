@@ -123,6 +123,7 @@
   {
    "fieldname": "warehouse_bin",
    "fieldtype": "Link",
+   "get_query": "freightmas.warehouse_service.doctype.customer_goods_receipt_item.customer_goods_receipt_item.get_bin_query",
    "label": "Warehouse Bin",
    "options": "Warehouse Bin"
   },
