@@ -1,0 +1,472 @@
+<style>
+.transactions-container {
+	padding: 15px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.transaction-filters {
+	background: #f8f9fa;
+	padding: 15px;
+	border-radius: 6px;
+	margin-bottom: 20px;
+	display: flex;
+	gap: 15px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.filter-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.filter-group label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+}
+
+.filter-group input,
+.filter-group select {
+	padding: 6px 12px;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+.filter-actions {
+	display: flex;
+	gap: 10px;
+	align-items: flex-end;
+}
+
+.btn-refresh {
+	padding: 6px 16px;
+	background: #2490ef;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.btn-refresh:hover {
+	background: #1a7dc4;
+}
+
+.summary-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.summary-card {
+	background: white;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	padding: 10px 15px;
+	text-align: center;
+}
+
+.summary-card.receipts {
+	border-left: 3px solid #28a745;
+}
+
+.summary-card.dispatches {
+	border-left: 3px solid #dc3545;
+}
+
+.summary-card.stock {
+	border-left: 3px solid #2490ef;
+}
+
+.summary-card .value {
+	font-size: 24px;
+	font-weight: 700;
+	color: #1f272e;
+	margin-bottom: 2px;
+	line-height: 1;
+}
+
+.summary-card .label {
+	font-size: 11px;
+	color: #6c757d;
+	font-weight: 500;
+}
+
+.transaction-section {
+	background: white;
+	border: 1px solid #d1d8dd;
+	border-radius: 6px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+.section-header {
+	background: #f8f9fa;
+	padding: 12px 20px;
+	border-bottom: 1px solid #d1d8dd;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.section-header h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1f272e;
+}
+
+.section-header .count {
+	background: #2490ef;
+	color: white;
+	padding: 2px 10px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.transaction-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.transaction-table thead {
+	background: #f8f9fa;
+}
+
+.transaction-table th {
+	padding: 12px 20px;
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	text-transform: uppercase;
+	border-bottom: 1px solid #d1d8dd;
+}
+
+.transaction-table td {
+	padding: 12px 20px;
+	font-size: 13px;
+	color: #1f272e;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.transaction-table tbody tr {
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.transaction-table tbody tr:hover {
+	background: #f8f9fa;
+}
+
+.status-badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.status-badge.draft {
+	background: #e7f3ff;
+	color: #2490ef;
+}
+
+.status-badge.submitted {
+	background: #d4edda;
+	color: #155724;
+}
+
+.status-badge.cancelled {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.empty-state {
+	padding: 40px;
+	text-align: center;
+	color: #6c757d;
+}
+
+.empty-state i {
+	font-size: 48px;
+	margin-bottom: 15px;
+	opacity: 0.3;
+}
+
+.stock-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.stock-table th {
+	padding: 10px 20px;
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	color: #6c757d;
+	background: #f8f9fa;
+	border-bottom: 1px solid #d1d8dd;
+}
+
+.stock-table td {
+	padding: 10px 20px;
+	font-size: 13px;
+	color: #1f272e;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.stock-table .number {
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.stock-table .balance {
+	color: #2490ef;
+	font-weight: 700;
+}
+
+.stock-table .location {
+	color: #6c757d;
+	font-size: 12px;
+}
+</style>
+
+<div class="transactions-container">
+	<!-- Filters -->
+	<div class="transaction-filters">
+		<div class="filter-group">
+			<label>From Date</label>
+			<input type="date" id="filter-from-date" class="form-control">
+		</div>
+		<div class="filter-group">
+			<label>To Date</label>
+			<input type="date" id="filter-to-date" class="form-control">
+		</div>
+		<div class="filter-group">
+			<label>Status</label>
+			<select id="filter-status" class="form-control">
+				<option value="">All</option>
+				<option value="Draft">Draft</option>
+				<option value="Stored">Stored</option>
+				<option value="Partially Dispatched">Partially Dispatched</option>
+				<option value="Dispatched">Dispatched</option>
+			</select>
+		</div>
+		<div class="filter-group">
+			<label>Search Reference</label>
+			<input type="text" id="filter-reference" class="form-control" placeholder="Receipt/Dispatch #">
+		</div>
+		<div class="filter-actions">
+			<button class="btn-refresh" onclick="applyFilters()">Apply Filters</button>
+			<button class="btn-refresh" onclick="refreshTransactions()">Refresh</button>
+		</div>
+	</div>
+
+	<!-- Summary Cards -->
+	<div class="summary-cards">
+		<div class="summary-card receipts">
+			<div class="value">{{ receipts|length }}</div>
+			<div class="label">Total Receipts</div>
+		</div>
+		<div class="summary-card dispatches">
+			<div class="value">{{ dispatches|length }}</div>
+			<div class="label">Total Dispatches</div>
+		</div>
+		<div class="summary-card stock">
+			<div class="value">{{ stock_balance|sum(attribute='current_balance')|int }}</div>
+			<div class="label">Current Stock Units</div>
+		</div>
+	</div>
+
+	<!-- Goods Receipts Section -->
+	<div class="transaction-section">
+		<div class="section-header">
+			<h3>Goods Receipts</h3>
+			<span class="count">{{ receipts|length }}</span>
+		</div>
+		{% if receipts %}
+		<table class="transaction-table">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Document ID</th>
+					<th>Reference</th>
+					<th>Vehicle</th>
+					<th>Items</th>
+					<th>Total Qty</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for receipt in receipts %}
+				<tr onclick="openDocument('Customer Goods Receipt', '{{ receipt.name }}')">
+					<td>{{ frappe.utils.formatdate(receipt.receipt_date, 'dd MMM yyyy') }}</td>
+					<td><strong>{{ receipt.name }}</strong></td>
+					<td>{{ receipt.reference_number or '-' }}</td>
+					<td>{{ receipt.vehicle_number or '-' }}</td>
+					<td>{{ receipt.item_count }}</td>
+					<td class="number">{{ receipt.total_quantity|int }}</td>
+					<td>
+						<span class="status-badge {{ receipt.status|lower|replace(' ', '-') }}">
+							{{ receipt.status }}
+						</span>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		<div class="empty-state">
+			<div style="font-size: 48px; opacity: 0.3;">📦</div>
+			<div>No goods receipts found</div>
+		</div>
+		{% endif %}
+	</div>
+
+	<!-- Goods Dispatches Section -->
+	<div class="transaction-section">
+		<div class="section-header">
+			<h3>Goods Dispatches</h3>
+			<span class="count">{{ dispatches|length }}</span>
+		</div>
+		{% if dispatches %}
+		<table class="transaction-table">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Document ID</th>
+					<th>Reference</th>
+					<th>Vehicle</th>
+					<th>Items</th>
+					<th>Total Qty</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for dispatch in dispatches %}
+				<tr onclick="openDocument('Customer Goods Dispatch', '{{ dispatch.name }}')">
+					<td>{{ frappe.utils.formatdate(dispatch.dispatch_date, 'dd MMM yyyy') }}</td>
+					<td><strong>{{ dispatch.name }}</strong></td>
+					<td>{{ dispatch.reference_number or '-' }}</td>
+					<td>{{ dispatch.vehicle_number or '-' }}</td>
+					<td>{{ dispatch.item_count }}</td>
+					<td class="number">{{ dispatch.total_quantity|int }}</td>
+					<td>
+						<span class="status-badge {{ dispatch.status|lower|replace(' ', '-') }}">
+							{{ dispatch.status }}
+						</span>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% endif %}
+	</div>
+
+	<!-- Stock Balance Section -->
+	<div class="transaction-section">
+		<div class="section-header">
+			<h3>Current Stock Balance by Location</h3>
+		</div>
+		{% if stock_balance %}
+		<table class="stock-table">
+			<thead>
+				<tr>
+					<th>Storage Unit Type</th>
+					<th>Warehouse Bay</th>
+					<th>Total Received</th>
+					<th>Total Dispatched</th>
+					<th>Current Balance</th>
+					<th>Bins Used</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for stock in stock_balance %}
+				<tr>
+					<td><strong>{{ stock.storage_unit_type }}</strong></td>
+					<td class="location">{{ stock.warehouse_bay }}</td>
+					<td class="number">{{ stock.total_received|int }}</td>
+					<td class="number">{{ stock.total_dispatched|int }}</td>
+					<td class="number balance">{{ stock.current_balance|int }}</td>
+					<td class="number">{{ stock.bin_count }}</td>
+				</tr>
+				{% endfor %}
+				<tr style="background: #f8f9fa; font-weight: 600;">
+					<td colspan="2">TOTAL</td>
+					<td class="number">{{ stock_balance|sum(attribute='total_received')|int }}</td>
+					<td class="number">{{ stock_balance|sum(attribute='total_dispatched')|int }}</td>
+					<td class="number balance">{{ stock_balance|sum(attribute='current_balance')|int }}</td>
+					<td class="number">{{ stock_balance|sum(attribute='bin_count')|int }}</td>
+				</tr>
+			</tbody>
+		</table>
+		{% else %}
+		<div class="empty-state">
+			<div style="font-size: 48px; opacity: 0.3;">📊</div>
+			<div>No stock balance data available</div>
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+<script>
+function openDocument(doctype, name) {
+	window.open(`/app/${doctype.toLowerCase().replace(/ /g, '-')}/${name}`, '_blank');
+}
+
+function refreshTransactions() {
+	cur_frm.reload_doc();
+}
+
+function applyFilters() {
+	const fromDate = document.getElementById('filter-from-date').value;
+	const toDate = document.getElementById('filter-to-date').value;
+	const status = document.getElementById('filter-status').value;
+	const reference = document.getElementById('filter-reference').value.toLowerCase();
+
+	const rows = document.querySelectorAll('.transaction-table tbody tr');
+	
+	rows.forEach(row => {
+		let show = true;
+		const cells = row.cells;
+		
+		// Filter by date
+		if (fromDate || toDate) {
+			const dateText = cells[0].textContent;
+			const rowDate = new Date(dateText);
+			if (fromDate && rowDate < new Date(fromDate)) show = false;
+			if (toDate && rowDate > new Date(toDate)) show = false;
+		}
+		
+		// Filter by status
+		if (status && !cells[cells.length - 1].textContent.includes(status)) {
+			show = false;
+		}
+		
+		// Filter by reference
+		if (reference && !cells[1].textContent.toLowerCase().includes(reference)) {
+			show = false;
+		}
+		
+		row.style.display = show ? '' : 'none';
+	});
+}
+
+// Auto-refresh on save
+frappe.ui.form.on('Warehouse Job', {
+	after_save: function(frm) {
+		if (frm.doc.__islocal) return;
+		// Reload to refresh transactions
+		setTimeout(() => {
+			frm.reload_doc();
+		}, 500);
+	}
+});
+</script>

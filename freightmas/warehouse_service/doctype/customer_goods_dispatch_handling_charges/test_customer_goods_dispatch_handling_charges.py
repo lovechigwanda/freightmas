@@ -12,5 +12,5 @@ from frappe.tests.utils import FrappeTestCase
 # IGNORE_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
-class TestCustomerGoodsDispatch(FrappeTestCase):
+class TestCustomerGoodsDispatchHandlingCharges(FrappeTestCase):
 	pass

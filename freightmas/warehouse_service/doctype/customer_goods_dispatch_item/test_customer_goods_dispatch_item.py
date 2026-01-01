@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and Contributors
+# Copyright (c) 2025, Navari Limited and Contributors
 # See license.txt
 
 # import frappe
@@ -12,5 +12,5 @@ from frappe.tests.utils import FrappeTestCase
 # IGNORE_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
-class TestCustomerGoodsDispatch(FrappeTestCase):
+class TestCustomerGoodsDispatchItem(FrappeTestCase):
 	pass

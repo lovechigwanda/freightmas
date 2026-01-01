@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "creation": "2025-12-30 19:30:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "handling_service_type",
+  "service_category",
+  "column_break_3",
+  "quantity",
+  "unit",
+  "rate",
+  "column_break_7",
+  "amount",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "handling_service_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Handling Service Type",
+   "options": "Handling Service Type",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "handling_service_type.service_category",
+   "fieldname": "service_category",
+   "fieldtype": "Data",
+   "label": "Service Category",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "handling_service_type.default_unit",
+   "fieldname": "unit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Unit",
+   "options": "Per Pallet\nPer CBM\nPer Ton\nPer Unit\nPer Hour\nFlat Rate",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "handling_service_type.default_rate",
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Rate",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-12-30 21:48:08.348822",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Customer Goods Dispatch Handling Charges",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

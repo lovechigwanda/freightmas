@@ -3,6 +3,15 @@
 
 frappe.ui.form.on('Warehouse Job', {
 	refresh: function(frm) {
+		// Load transactions HTML
+		if (!frm.is_new()) {
+			frm.call('get_transactions_html').then(r => {
+				if (r.message) {
+					frm.set_df_property('transactions_html', 'options', r.message);
+				}
+			});
+		}
+		
 		// Add Create button with Customer Goods Receipt option
 		if (!frm.is_new() && frm.doc.status !== "Completed") {
 			frm.add_custom_button(__('Customer Goods Receipt'), function() {

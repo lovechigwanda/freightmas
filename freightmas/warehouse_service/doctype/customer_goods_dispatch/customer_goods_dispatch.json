@@ -2,35 +2,58 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2025-12-27 10:00:00.000000",
+ "creation": "2025-12-30 22:29:00.608766",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "general_details_section",
   "naming_series",
-  "customer",
-  "goods_receipt",
-  "dispatch_date",
-  "dispatch_time",
-  "column_break_6",
-  "delivery_order_number",
+  "company",
+  "column_break_5",
+  "date_created",
+  "column_break_cgqz",
+  "created_by",
   "status",
+  "section_break_yhmy",
   "warehouse_job",
+  "customer",
+  "column_break_jizm",
+  "dispatch_date",
+  "reference_number",
+  "column_break_hvte",
+  "dispatch_time",
+  "delivery_location",
   "section_break_10",
   "transporter",
-  "vehicle_number",
-  "driver_name",
   "driver_contact",
+  "column_break_mwey",
+  "vehicle_number",
+  "license_no",
+  "column_break_ccop",
+  "driver_name",
   "section_break_15",
-  "destination",
-  "section_break_17",
+  "loading_instructions",
+  "column_break_ukhx",
+  "handling_instructions",
+  "section_break_18",
   "items",
-  "section_break_19",
-  "total_pallets_out",
-  "total_weight_kg",
-  "amended_from"
+  "section_break_handling",
+  "handling_charges",
+  "total_handling_charges",
+  "section_break_20",
+  "total_pallets",
+  "total_volume_cbm",
+  "column_break_cpxd",
+  "amended_from",
+  "total_weight_kg"
  ],
  "fields": [
+  {
+   "fieldname": "general_details_section",
+   "fieldtype": "Section Break",
+   "label": "General Details"
+  },
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
@@ -39,20 +62,64 @@
    "reqd": 1
   },
   {
-   "fieldname": "customer",
+   "fieldname": "company",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Customer",
-   "options": "Customer",
+   "label": "Company",
+   "options": "Company",
    "reqd": 1
   },
   {
-   "fieldname": "goods_receipt",
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_created",
+   "fieldtype": "Date",
+   "label": "Date Created"
+  },
+  {
+   "fieldname": "column_break_cgqz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "created_by",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Goods Receipt",
-   "options": "Customer Goods Receipt",
+   "label": "Created By",
+   "options": "User",
    "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nLoading\nDispatched\nDelivered\nCancelled",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_yhmy",
+   "fieldtype": "Section Break",
+   "label": "Dispatch Details"
+  },
+  {
+   "fieldname": "warehouse_job",
+   "fieldtype": "Link",
+   "label": "Warehouse Job",
+   "options": "Warehouse Job",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "warehouse_job.customer",
+   "fieldname": "customer",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Customer"
+  },
+  {
+   "fieldname": "column_break_jizm",
+   "fieldtype": "Column Break"
   },
   {
    "default": "Today",
@@ -63,32 +130,25 @@
    "reqd": 1
   },
   {
-   "fieldname": "dispatch_time",
-   "fieldtype": "Time",
-   "label": "Dispatch Time"
-  },
-  {
-   "fieldname": "column_break_6",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "delivery_order_number",
+   "fieldname": "reference_number",
    "fieldtype": "Data",
-   "label": "Delivery Order Number"
-  },
-  {
-   "default": "Draft",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "Draft\nScheduled\nLoading\nDispatched",
+   "label": "Reference Number",
    "reqd": 1
   },
   {
-   "fieldname": "warehouse_job",
-   "fieldtype": "Link",
-   "label": "Warehouse Job",
-   "options": "Warehouse Job"
+   "fieldname": "column_break_hvte",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dispatch_time",
+   "fieldtype": "Time",
+   "label": "Dispatch Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "delivery_location",
+   "fieldtype": "Data",
+   "label": "Delivery Location"
   },
   {
    "fieldname": "section_break_10",
@@ -102,9 +162,27 @@
    "options": "Supplier"
   },
   {
+   "fieldname": "driver_contact",
+   "fieldtype": "Data",
+   "label": "Driver Contact"
+  },
+  {
+   "fieldname": "column_break_mwey",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "vehicle_number",
    "fieldtype": "Data",
    "label": "Vehicle Number"
+  },
+  {
+   "fieldname": "license_no",
+   "fieldtype": "Data",
+   "label": "License No"
+  },
+  {
+   "fieldname": "column_break_ccop",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "driver_name",
@@ -112,22 +190,26 @@
    "label": "Driver Name"
   },
   {
-   "fieldname": "driver_contact",
-   "fieldtype": "Data",
-   "label": "Driver Contact"
-  },
-  {
    "fieldname": "section_break_15",
    "fieldtype": "Section Break",
-   "label": "Delivery Details"
+   "label": "Instructions"
   },
   {
-   "fieldname": "destination",
-   "fieldtype": "Text",
-   "label": "Destination"
+   "fieldname": "loading_instructions",
+   "fieldtype": "Small Text",
+   "label": "Loading Instructions"
   },
   {
-   "fieldname": "section_break_17",
+   "fieldname": "column_break_ukhx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "handling_instructions",
+   "fieldtype": "Small Text",
+   "label": "Handling Instructions"
+  },
+  {
+   "fieldname": "section_break_18",
    "fieldtype": "Section Break",
    "label": "Items"
   },
@@ -139,22 +221,44 @@
    "reqd": 1
   },
   {
-   "fieldname": "section_break_19",
+   "fieldname": "section_break_handling",
+   "fieldtype": "Section Break",
+   "label": "Handling Charges"
+  },
+  {
+   "fieldname": "handling_charges",
+   "fieldtype": "Table",
+   "label": "Handling Charges",
+   "options": "Customer Goods Dispatch Handling Charges"
+  },
+  {
+   "fieldname": "total_handling_charges",
+   "fieldtype": "Currency",
+   "label": "Total Handling Charges",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_20",
    "fieldtype": "Section Break",
    "label": "Totals"
   },
   {
-   "fieldname": "total_pallets_out",
+   "fieldname": "total_pallets",
    "fieldtype": "Int",
-   "label": "Total Pallets Out",
+   "label": "Total Pallets",
    "read_only": 1
   },
   {
-   "fieldname": "total_weight_kg",
+   "fieldname": "total_volume_cbm",
    "fieldtype": "Float",
-   "label": "Total Weight (KG)",
-   "precision": "2",
+   "label": "Total Volume (CBM)",
+   "precision": "3",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cpxd",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "amended_from",
@@ -163,13 +267,21 @@
    "no_copy": 1,
    "options": "Customer Goods Dispatch",
    "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "total_weight_kg",
+   "fieldtype": "Float",
+   "label": "Total Weight (KG)",
+   "precision": "2",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-27 10:00:00.000000",
+ "modified": "2025-12-30 22:29:00.608766",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch",
@@ -214,6 +326,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

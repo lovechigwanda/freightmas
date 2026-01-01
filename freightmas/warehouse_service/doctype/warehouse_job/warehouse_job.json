@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2025-12-27 10:00:00.000000",
+ "creation": "2025-12-27 10:00:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -36,7 +36,10 @@
   "column_break_24",
   "invoiced_amount",
   "pending_amount",
-  "amended_from"
+  "amended_from",
+  "transactions_tab",
+  "transactions_html",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -95,50 +98,50 @@
    "options": "Spot\nMonthly Contract\nAnnual Contract"
   },
   {
+   "description": "Job validity is tied to fiscal year. All goods receipts and dispatches must fall within this period.",
    "fieldname": "section_break_validity",
    "fieldtype": "Section Break",
-   "label": "Job Validity Period",
-   "description": "Job validity is tied to fiscal year. All goods receipts and dispatches must fall within this period."
+   "label": "Job Validity Period"
   },
   {
    "fieldname": "fiscal_year",
    "fieldtype": "Link",
    "label": "Fiscal Year",
    "options": "Fiscal Year",
-   "reqd": 1,
-   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override",
+   "reqd": 1
   },
   {
    "fieldname": "job_start_date",
    "fieldtype": "Date",
    "label": "Job Start Date",
-   "reqd": 1,
-   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override",
+   "reqd": 1
   },
   {
    "fieldname": "job_end_date",
    "fieldtype": "Date",
    "label": "Job End Date",
-   "reqd": 1,
-   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override"
+   "read_only_depends_on": "eval:!doc.__islocal && !doc.allow_validity_override",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_validity",
    "fieldtype": "Column Break"
   },
   {
+   "description": "Calculated based on start and end date",
    "fieldname": "job_validity_days",
    "fieldtype": "Int",
    "label": "Job Validity (Days)",
-   "read_only": 1,
-   "description": "Calculated based on start and end date"
+   "read_only": 1
   },
   {
    "default": "0",
+   "description": "Enable to modify job validity dates (Admin only)",
    "fieldname": "allow_validity_override",
    "fieldtype": "Check",
    "label": "Allow Validity Override",
-   "description": "Enable to modify job validity dates (Admin only)",
    "permlevel": 1
   },
   {
@@ -152,7 +155,7 @@
   },
   {
    "fieldname": "notes",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
    "label": "Notes"
   },
   {
@@ -224,12 +227,37 @@
    "options": "Warehouse Job",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "transactions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Transactions"
+  },
+  {
+   "fieldname": "transactions_html",
+   "fieldtype": "HTML",
+   "label": "Transactions"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2025-12-27 10:00:00.000000",
+ "links": [
+  {
+   "link_doctype": "Customer Goods Receipt",
+   "link_fieldname": "warehouse_job"
+  },
+  {
+   "link_doctype": "Customer Goods Dispatch",
+   "link_fieldname": "warehouse_job"
+  }
+ ],
+ "modified": "2026-01-01 17:04:16.293254",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Job",
@@ -272,6 +300,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

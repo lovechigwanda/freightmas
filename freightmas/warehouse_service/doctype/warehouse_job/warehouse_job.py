@@ -293,3 +293,77 @@ class WarehouseJob(Document):
 		
 		frappe.msgprint(f"Sales Invoice {si.name} created successfully")
 		return si.name
+	
+	@frappe.whitelist()
+	def get_transactions_html(self):
+		"""Generate HTML for transactions tab"""
+		receipts = frappe.db.sql("""
+			SELECT 
+				name,
+				receipt_date,
+				reference_number,
+				vehicle_number,
+				docstatus,
+				CASE 
+					WHEN docstatus = 0 THEN 'Draft'
+					WHEN docstatus = 1 THEN 'Submitted'
+					WHEN docstatus = 2 THEN 'Cancelled'
+				END as status,
+				(SELECT COUNT(*) FROM `tabCustomer Goods Receipt Item` 
+				 WHERE parent = `tabCustomer Goods Receipt`.name) as item_count,
+				(SELECT SUM(quantity) FROM `tabCustomer Goods Receipt Item` 
+				 WHERE parent = `tabCustomer Goods Receipt`.name) as total_quantity
+			FROM `tabCustomer Goods Receipt`
+			WHERE warehouse_job = %(job)s
+			AND docstatus != 2
+			ORDER BY receipt_date DESC, creation DESC
+		""", {"job": self.name}, as_dict=1)
+		
+		# Get dispatches
+		dispatches = frappe.db.sql("""
+			SELECT 
+				name,
+				dispatch_date,
+				reference_number,
+				vehicle_number,
+				docstatus,
+				CASE 
+					WHEN docstatus = 0 THEN 'Draft'
+					WHEN docstatus = 1 THEN 'Submitted'
+					WHEN docstatus = 2 THEN 'Cancelled'
+				END as status,
+				(SELECT COUNT(*) FROM `tabCustomer Goods Dispatch Item` 
+				 WHERE parent = `tabCustomer Goods Dispatch`.name) as item_count,
+				(SELECT SUM(quantity) FROM `tabCustomer Goods Dispatch Item` 
+				 WHERE parent = `tabCustomer Goods Dispatch`.name) as total_quantity
+			FROM `tabCustomer Goods Dispatch`
+			WHERE warehouse_job = %(job)s
+			AND docstatus != 2
+			ORDER BY dispatch_date DESC, creation DESC
+		""", {"job": self.name}, as_dict=1)
+		
+		stock_balance = frappe.db.sql("""
+			SELECT 
+				COALESCE(gri.storage_unit_type, 'N/A') as storage_unit_type,
+				COALESCE(gri.warehouse_bay, 'Unassigned') as warehouse_bay,
+				SUM(gri.quantity) as total_received,
+				SUM(COALESCE(gri.quantity_remaining, gri.quantity)) as current_balance,
+				SUM(gri.quantity - COALESCE(gri.quantity_remaining, gri.quantity)) as total_dispatched,
+				COUNT(DISTINCT CASE WHEN gri.warehouse_bin IS NOT NULL THEN gri.warehouse_bin END) as bin_count
+			FROM `tabCustomer Goods Receipt Item` gri
+			INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
+			WHERE gr.warehouse_job = %(job)s
+			AND gr.docstatus != 2
+			GROUP BY gri.storage_unit_type, gri.warehouse_bay
+			ORDER BY gri.storage_unit_type, gri.warehouse_bay
+		""", {"job": self.name}, as_dict=1)
+		
+		return frappe.render_template(
+			"freightmas/warehouse_service/doctype/warehouse_job/warehouse_job_transactions.html",
+			{
+				"doc": self,
+				"receipts": receipts,
+				"dispatches": dispatches,
+				"stock_balance": stock_balance
+			}
+		)

@@ -1,114 +1,180 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:GDI-{####}",
  "creation": "2025-12-27 10:00:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "goods_receipt_item",
+  "storage_unit_item",
+  "customer_reference",
   "description",
   "storage_unit_type",
-  "column_break_4",
-  "quantity_available",
-  "quantity_to_dispatch",
-  "section_break_7",
+  "column_break_6",
+  "weight_kg",
+  "length_cm",
+  "width_cm",
+  "height_cm",
+  "volume_cbm",
+  "quantity",
+  "section_break_12",
   "warehouse_bay",
   "warehouse_bin",
-  "column_break_11",
+  "expiry_date",
+  "column_break_16",
   "batch_number",
-  "condition_on_dispatch",
-  "section_break_14",
+  "serial_numbers",
+  "section_break_20",
+  "special_handling",
+  "quantity_dispatched",
+  "status",
+  "column_break_24",
   "notes"
  ],
  "fields": [
   {
-   "fieldname": "goods_receipt_item",
+   "fieldname": "storage_unit_item",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Goods Receipt Item",
-   "options": "Customer Goods Receipt Item",
+   "label": "Storage Unit Item",
+   "options": "Storage Unit Item"
+  },
+  {
+   "fieldname": "customer_reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Ref / SKU"
+  },
+  {
+   "fetch_from": "storage_unit_item.description",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description",
    "reqd": 1
   },
   {
-   "fetch_from": "goods_receipt_item.description",
-   "fieldname": "description",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Description",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "goods_receipt_item.storage_unit_type",
+   "fetch_from": "storage_unit_item.storage_unit_type",
    "fieldname": "storage_unit_type",
    "fieldtype": "Link",
-   "label": "Storage Unit Type",
+   "in_list_view": 1,
+   "label": "Storage UOM",
    "options": "Storage Unit Type",
-   "read_only": 1
+   "reqd": 1
   },
   {
-   "fieldname": "column_break_4",
+   "fieldname": "quantity",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Quantity",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "goods_receipt_item.quantity_remaining",
-   "fieldname": "quantity_available",
+   "fetch_from": "storage_unit_item.weight_kg",
+   "fieldname": "weight_kg",
    "fieldtype": "Float",
-   "label": "Quantity Available",
-   "precision": "2",
+   "label": "Weight (KG)",
+   "precision": "2"
+  },
+  {
+   "fetch_from": "storage_unit_item.length_cm",
+   "fieldname": "length_cm",
+   "fieldtype": "Float",
+   "label": "Length (CM)",
+   "precision": "2"
+  },
+  {
+   "fetch_from": "storage_unit_item.width_cm",
+   "fieldname": "width_cm",
+   "fieldtype": "Float",
+   "label": "Width (CM)",
+   "precision": "2"
+  },
+  {
+   "fetch_from": "storage_unit_item.height_cm",
+   "fieldname": "height_cm",
+   "fieldtype": "Float",
+   "label": "Height (CM)",
+   "precision": "2"
+  },
+  {
+   "fieldname": "volume_cbm",
+   "fieldtype": "Float",
+   "label": "Volume (CBM)",
+   "precision": "3",
    "read_only": 1
   },
   {
-   "fieldname": "quantity_to_dispatch",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Quantity to Dispatch",
-   "precision": "2",
-   "reqd": 1
-  },
-  {
-   "fieldname": "section_break_7",
+   "fieldname": "section_break_12",
    "fieldtype": "Section Break",
-   "label": "Location"
+   "label": "Storage Location"
   },
   {
-   "fetch_from": "goods_receipt_item.warehouse_bay",
    "fieldname": "warehouse_bay",
    "fieldtype": "Link",
    "label": "Warehouse Bay",
-   "options": "Warehouse Bay",
-   "read_only": 1
+   "options": "Warehouse Bay"
   },
   {
-   "fetch_from": "goods_receipt_item.warehouse_bin",
    "fieldname": "warehouse_bin",
    "fieldtype": "Link",
+   "get_query": "freightmas.warehouse_service.doctype.customer_goods_dispatch_item.customer_goods_dispatch_item.get_bin_query",
    "label": "Warehouse Bin",
-   "options": "Warehouse Bin",
-   "read_only": 1
+   "options": "Warehouse Bin"
   },
   {
-   "fieldname": "column_break_11",
+   "fieldname": "column_break_16",
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "goods_receipt_item.batch_number",
    "fieldname": "batch_number",
    "fieldtype": "Data",
-   "label": "Batch Number",
+   "label": "Batch Number"
+  },
+  {
+   "fieldname": "serial_numbers",
+   "fieldtype": "Small Text",
+   "label": "Serial Numbers"
+  },
+  {
+   "fieldname": "expiry_date",
+   "fieldtype": "Date",
+   "label": "Expiry Date"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break",
+   "label": "Additional Information"
+  },
+  {
+   "fieldname": "special_handling",
+   "fieldtype": "Select",
+   "label": "Special Handling",
+   "options": "None\nFragile\nHazardous\nTemperature Controlled\nHigh Value"
+  },
+  {
+   "fieldname": "quantity_dispatched",
+   "fieldtype": "Float",
+   "label": "Quantity Dispatched",
+   "precision": "2",
    "read_only": 1
   },
   {
-   "default": "Good",
-   "fieldname": "condition_on_dispatch",
+   "default": "Dispatched",
+   "fieldname": "status",
    "fieldtype": "Select",
-   "label": "Condition on Dispatch",
-   "options": "Good\nDamaged\nMissing"
+   "label": "Status",
+   "options": "Dispatched\nDelivered\nReturned\nDamaged",
+   "read_only": 1
   },
   {
-   "fieldname": "section_break_14",
-   "fieldtype": "Section Break"
+   "fieldname": "column_break_24",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "notes",
@@ -119,11 +185,10 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-27 21:12:45.726348",
+ "modified": "2025-12-30 21:53:39.398254",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch Item",
- "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
