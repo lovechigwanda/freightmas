@@ -2,21 +2,21 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:item_code",
- "creation": "2025-12-30 21:00:00.000000",
+ "creation": "2025-12-30 21:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "item_code",
-  "item_name",
   "description",
   "column_break_basic",
+  "item_name",
+  "uom",
   "is_active",
   "section_break_storage",
-  "storage_unit_type",
-  "column_break_dimensions",
   "length_cm",
-  "width_cm",
   "height_cm",
+  "column_break_dimensions",
+  "width_cm",
   "weight_kg"
  ],
  "fields": [
@@ -37,7 +37,7 @@
   },
   {
    "fieldname": "description",
-   "fieldtype": "Text Editor",
+   "fieldtype": "Small Text",
    "label": "Description"
   },
   {
@@ -51,18 +51,9 @@
    "label": "Is Active"
   },
   {
-   "collapsible": 0,
    "fieldname": "section_break_storage",
    "fieldtype": "Section Break",
-   "label": "Storage Details"
-  },
-  {
-   "fieldname": "storage_unit_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Default Storage Unit Type",
-   "options": "Storage Unit Type",
-   "reqd": 1
+   "label": "Other Details"
   },
   {
    "fieldname": "column_break_dimensions",
@@ -91,11 +82,19 @@
    "fieldtype": "Float",
    "label": "Weight per Unit (KG)",
    "precision": "2"
+  },
+  {
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Default Storage UOM",
+   "options": "UOM",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-30 21:00:00.000000",
+ "modified": "2026-01-01 21:10:14.876593",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Storage Unit Item",
@@ -136,6 +135,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

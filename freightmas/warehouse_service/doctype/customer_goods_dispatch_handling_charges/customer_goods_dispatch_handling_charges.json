@@ -5,51 +5,27 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "handling_service_type",
-  "service_category",
-  "column_break_3",
-  "quantity",
-  "unit",
+  "handling_service",
   "rate",
-  "column_break_7",
+  "column_break_3",
+  "uom",
   "amount",
+  "column_break_7",
+  "quantity",
   "remarks"
  ],
  "fields": [
-  {
-   "fieldname": "handling_service_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Handling Service Type",
-   "options": "Handling Service Type",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "handling_service_type.service_category",
-   "fieldname": "service_category",
-   "fieldtype": "Data",
-   "label": "Service Category",
-   "read_only": 1
-  },
   {
    "fieldname": "column_break_3",
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
    "fieldname": "quantity",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Quantity",
+   "label": "Qty",
    "precision": "2",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "handling_service_type.default_unit",
-   "fieldname": "unit",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Unit",
-   "options": "Per Pallet\nPer CBM\nPer Ton\nPer Unit\nPer Hour\nFlat Rate",
    "reqd": 1
   },
   {
@@ -66,6 +42,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -74,15 +51,37 @@
    "read_only": 1
   },
   {
+   "columns": 2,
    "fieldname": "remarks",
    "fieldtype": "Small Text",
+   "in_list_view": 1,
    "label": "Remarks"
+  },
+  {
+   "columns": 2,
+   "fieldname": "handling_service",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Handling Service",
+   "link_filters": "[[\"Item\",\"is_stock_item\",\"=\",0]]",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "handling_service_type.default_unit",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "UOM",
+   "options": "UOM",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-12-30 21:48:08.348822",
+ "modified": "2026-01-01 20:54:16.948357",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch Handling Charges",

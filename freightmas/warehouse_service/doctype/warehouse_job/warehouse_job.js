@@ -29,6 +29,29 @@ frappe.ui.form.on('Warehouse Job', {
 					dispatch_date: frappe.datetime.get_today()
 				});
 			}, __('Create'));
+			
+			// Add Fetch Handling Charges button
+			frm.add_custom_button(__('Fetch Handling Charges'), function() {
+				frappe.call({
+					method: 'fetch_handling_charges',
+					doc: frm.doc,
+					callback: function(r) {
+						if (r.message) {
+							frappe.show_alert({
+								message: r.message.message,
+								indicator: 'green'
+							});
+							frm.refresh_field('handling_charges');
+							frm.dirty();
+						}
+					}
+				});
+			}, __('Actions'));
+			
+			// Add Create Sales Invoice button
+			frm.add_custom_button(__('Create Sales Invoice'), function() {
+				create_sales_invoice_from_charges(frm);
+			}, __('Create'));
 		}
 		
 		// Add custom buttons for workflow actions
@@ -82,3 +105,156 @@ frappe.ui.form.on('Warehouse Job', {
 		}
 	}
 });
+
+// ========================================
+// CREATE SALES INVOICE FROM HANDLING CHARGES
+// ========================================
+
+function create_sales_invoice_from_charges(frm) {
+	const all_rows = frm.doc.handling_charges || [];
+	const eligible_rows = all_rows.filter(row => 
+		row.amount && row.customer && !row.is_invoiced
+	);
+
+	if (!eligible_rows.length) {
+		frappe.msgprint(__("No eligible charges found for invoicing."));
+		return;
+	}
+
+	let selected_customer = eligible_rows[0].customer;
+
+	const get_unique_customers = () => [...new Set(eligible_rows.map(r => r.customer))];
+
+	const render_dialog_ui = (dialog, customer) => {
+		const customers = get_unique_customers();
+		const rows = customer ? eligible_rows.filter(r => r.customer === customer) : eligible_rows;
+
+		const customer_filter = `
+			<div style="margin-bottom: 15px;">
+				<label for="customer-filter" style="font-weight: bold; margin-bottom: 5px; display: block;">Customer:</label>
+				<select id="customer-filter" class="customer-filter form-control">
+					${customers.map(c => `<option value="${c}" ${c === customer ? 'selected' : ''}>${c}</option>`).join('')}
+				</select>
+			</div>
+		`;
+
+		const select_all_html = `
+			<div style="margin-bottom: 10px;">
+				<label>
+					<input type="checkbox" id="select-all-charges" class="select-all-charges"> 
+					<strong>Select All</strong>
+				</label>
+			</div>
+		`;
+
+		const table_html = `
+			<table class="table table-bordered" style="margin-top: 10px;">
+				<thead>
+					<tr>
+						<th style="width: 40px;"></th>
+						<th>Date</th>
+						<th>Activity Type</th>
+						<th>Description</th>
+						<th>Qty</th>
+						<th>Rate</th>
+						<th>Amount</th>
+						<th>Source</th>
+					</tr>
+				</thead>
+				<tbody>
+					${rows.map(row => `
+						<tr>
+							<td>
+								<input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+							</td>
+							<td>${frappe.datetime.str_to_user(row.activity_date) || '-'}</td>
+							<td>${row.handling_activity_type || '-'}</td>
+							<td>${row.description || '-'}</td>
+							<td>${row.quantity || 0}</td>
+							<td>${format_currency(row.rate || 0)}</td>
+							<td>${format_currency(row.amount || 0)}</td>
+							<td>${row.source_document || 'Manual'}</td>
+						</tr>
+					`).join('')}
+				</tbody>
+			</table>
+		`;
+
+		const full_html = customer_filter + select_all_html + table_html;
+		dialog.fields_dict.charge_rows_html.$wrapper.html(full_html);
+
+		// Customer filter handler
+		dialog.$wrapper.find('.customer-filter').off('change').on('change', function() {
+			selected_customer = this.value;
+			render_dialog_ui(dialog, selected_customer);
+		});
+
+		// Select all checkbox handler
+		dialog.$wrapper.find('#select-all-charges').on('change', function() {
+			const isChecked = this.checked;
+			dialog.$wrapper.find('.charge-row-check').prop('checked', isChecked);
+		});
+
+		// Individual checkbox handler
+		dialog.$wrapper.find('.charge-row-check').on('change', function() {
+			const total = dialog.$wrapper.find('.charge-row-check').length;
+			const checked = dialog.$wrapper.find('.charge-row-check:checked').length;
+			dialog.$wrapper.find('#select-all-charges').prop('checked', total === checked);
+		});
+	};
+
+	const dialog = new frappe.ui.Dialog({
+		title: __('Select Charges for Sales Invoice'),
+		size: 'large',
+		fields: [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'charge_rows_html',
+				options: ''
+			}
+		],
+		primary_action_label: __('Create Sales Invoice'),
+		primary_action() {
+			const selected = Array.from(
+				dialog.$wrapper.find('.charge-row-check:checked')
+			).map(el => el.dataset.rowName);
+
+			if (!selected.length) {
+				frappe.msgprint(__("Please select at least one charge."));
+				return;
+			}
+
+			const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+			const unique_customers = [...new Set(selected_rows.map(r => r.customer))];
+
+			if (unique_customers.length > 1) {
+				frappe.msgprint(__("You can only create an invoice for one customer at a time."));
+				return;
+			}
+
+			frappe.call({
+				method: "freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.create_sales_invoice_with_rows",
+				args: {
+					docname: frm.doc.name,
+					row_names: selected
+				},
+				callback(r) {
+					if (r.message) {
+						frappe.msgprint({
+							title: __('Sales Invoice Created'),
+							message: __('Sales Invoice {0} has been created successfully', [r.message]),
+							indicator: 'green'
+						});
+						
+						frappe.set_route("Form", "Sales Invoice", r.message);
+						frm.reload_doc();
+						dialog.hide();
+					}
+				}
+			});
+		}
+	});
+
+	dialog.show();
+	render_dialog_ui(dialog, selected_customer);
+}

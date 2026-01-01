@@ -393,3 +393,165 @@ class WarehouseJob(Document):
 				"stock_balance": stock_balance
 			}
 		)
+	
+	@frappe.whitelist()
+	def fetch_handling_charges(self):
+		"""Fetch handling charges from submitted receipts and dispatches"""
+		# Get all submitted receipts for this job
+		receipts = frappe.get_all(
+			"Customer Goods Receipt",
+			filters={
+				"warehouse_job": self.name,
+				"docstatus": 1
+			},
+			fields=["name", "receipt_date", "customer"]
+		)
+		
+		# Get all submitted dispatches for this job
+		dispatches = frappe.get_all(
+			"Customer Goods Dispatch",
+			filters={
+				"warehouse_job": self.name,
+				"docstatus": 1
+			},
+			fields=["name", "dispatch_date", "customer"]
+		)
+		
+		# Track existing charges to avoid duplicates
+		existing_charges = set()
+		for charge in self.handling_charges:
+			if charge.source_document and charge.source_item:
+				existing_charges.add((charge.source_document, charge.source_item))
+		
+		charges_added = 0
+		
+		# Fetch charges from receipts
+		for receipt in receipts:
+			receipt_doc = frappe.get_doc("Customer Goods Receipt", receipt.name)
+			
+			for charge_row in receipt_doc.handling_charges:
+				# Check if this charge already exists
+				key = (receipt.name, charge_row.name)
+				if key in existing_charges:
+					continue
+				
+				# Add new charge row
+				self.append("handling_charges", {
+					"activity_date": receipt.receipt_date,
+					"handling_activity_type": charge_row.handling_service_type,
+					"description": f"{charge_row.service_category or ''} - {charge_row.remarks or ''}".strip(" -"),
+					"quantity": charge_row.quantity,
+					"uom": self.map_unit_to_uom(charge_row.unit),
+					"rate": charge_row.rate,
+					"amount": charge_row.amount,
+					"customer": receipt.customer,
+					"source_document_type": "Customer Goods Receipt",
+					"source_document": receipt.name,
+					"source_item": charge_row.name
+				})
+				charges_added += 1
+		
+		# Fetch charges from dispatches
+		for dispatch in dispatches:
+			dispatch_doc = frappe.get_doc("Customer Goods Dispatch", dispatch.name)
+			
+			for charge_row in dispatch_doc.handling_charges:
+				# Check if this charge already exists
+				key = (dispatch.name, charge_row.name)
+				if key in existing_charges:
+					continue
+				
+				# Add new charge row
+				self.append("handling_charges", {
+					"activity_date": dispatch.dispatch_date,
+					"handling_activity_type": charge_row.handling_service_type,
+					"description": f"{charge_row.service_category or ''} - {charge_row.remarks or ''}".strip(" -"),
+					"quantity": charge_row.quantity,
+					"uom": self.map_unit_to_uom(charge_row.unit),
+					"rate": charge_row.rate,
+					"amount": charge_row.amount,
+					"customer": dispatch.customer,
+					"source_document_type": "Customer Goods Dispatch",
+					"source_document": dispatch.name,
+					"source_item": charge_row.name
+				})
+				charges_added += 1
+		
+		# Recalculate totals
+		self.calculate_handling_charges()
+		self.calculate_totals()
+		
+		return {
+			"message": f"Added {charges_added} handling charge(s)",
+			"charges_added": charges_added
+		}
+	
+	def map_unit_to_uom(self, unit):
+		"""Map receipt/dispatch unit to warehouse job UOM"""
+		mapping = {
+			"Per Pallet": "Pallets",
+			"Per CBM": "Fixed",
+			"Per Ton": "Fixed",
+			"Per Unit": "Cartons",
+			"Per Hour": "Hours",
+			"Flat Rate": "Fixed"
+		}
+		return mapping.get(unit, "Fixed")
+
+
+@frappe.whitelist()
+def create_sales_invoice_with_rows(docname, row_names):
+	"""Create Sales Invoice from selected handling charges"""
+	import json
+	from frappe.utils import nowdate
+	
+	row_names = json.loads(row_names)
+	job = frappe.get_doc("Warehouse Job", docname)
+	selected_rows = [row for row in job.handling_charges if row.name in row_names]
+	
+	if not selected_rows:
+		frappe.throw("No valid charges selected.")
+	
+	# Create Sales Invoice
+	si = frappe.new_doc("Sales Invoice")
+	si.customer = selected_rows[0].customer
+	si.set_posting_time = 1
+	si.posting_date = nowdate()
+	
+	# Add reference to warehouse job
+	try:
+		if si.meta.get_field("warehouse_job_reference"):
+			si.warehouse_job_reference = job.name
+	except Exception:
+		pass
+	
+	# Generate remarks
+	charge_list = ", ".join([row.handling_activity_type or "Handling Charge" for row in selected_rows[:5]])
+	if len(selected_rows) > 5:
+		charge_list += f" and {len(selected_rows) - 5} more"
+	si.remarks = f"Warehouse Job {job.name}: {charge_list}"
+	
+	# Add items
+	for row in selected_rows:
+		si.append("items", {
+			"item_code": row.handling_activity_type or "Handling Service",
+			"description": row.description or row.handling_activity_type or "Handling Service",
+			"qty": row.quantity or 1,
+			"rate": row.rate or 0,
+			"amount": row.amount or 0
+		})
+	
+	# Save and return
+	si.insert()
+	
+	# Update handling charges with invoice reference
+	for row in selected_rows:
+		frappe.db.set_value("Warehouse Job Handling Charges", row.name, {
+			"sales_invoice": si.name,
+			"is_invoiced": 1
+		})
+	
+	# Reload job to update invoiced amount
+	job.reload()
+	
+	return si.name
