@@ -42,11 +42,11 @@ def get_columns():
 			"width": 200
 		},
 		{
-			"fieldname": "storage_unit_type",
-			"label": _("Storage Unit Type"),
+			"fieldname": "uom",
+			"label": _("UOM"),
 			"fieldtype": "Link",
-			"options": "Storage Unit Type",
-			"width": 120
+			"options": "UOM",
+			"width": 100
 		},
 		{
 			"fieldname": "quantity_in",
@@ -98,7 +98,7 @@ def get_data(filters):
 			cgr.name as goods_receipt,
 			cgr.receipt_date,
 			cgri.description,
-			cgri.storage_unit_type,
+			cgri.uom,
 			cgri.quantity as quantity_in,
 			(cgri.quantity - cgri.quantity_remaining) as quantity_dispatched,
 			cgri.quantity_remaining,

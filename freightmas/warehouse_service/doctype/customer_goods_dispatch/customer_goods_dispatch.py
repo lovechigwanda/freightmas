@@ -25,13 +25,13 @@ class CustomerGoodsDispatch(Document):
 					INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
 					WHERE gr.warehouse_job = %(job)s
 					AND gr.docstatus = 1
-					AND gri.storage_unit_type = %(unit_type)s
+					AND gri.uom = %(uom)s
 					AND gri.warehouse_bin = %(bin)s
 					AND gri.quantity_remaining > 0
 					ORDER BY gr.receipt_date ASC, gr.creation ASC
 				""", {
 					"job": self.warehouse_job,
-					"unit_type": item.storage_unit_type,
+					"uom": item.uom,
 					"bin": item.warehouse_bin
 				}, as_dict=1)
 				

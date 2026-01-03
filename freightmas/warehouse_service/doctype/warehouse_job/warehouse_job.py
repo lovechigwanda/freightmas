@@ -203,10 +203,10 @@ class WarehouseJob(Document):
 			if flt(item.quantity_remaining) <= 0:
 				continue
 			
-			# Find matching rate by storage unit type
+			# Find matching rate by UOM
 			rate_item = None
 			for rate in rate_card.rate_items:
-				if rate.storage_unit_type == item.storage_unit_type:
+				if rate.uom == item.uom:
 					rate_item = rate
 					break
 			
@@ -215,7 +215,7 @@ class WarehouseJob(Document):
 			
 			self.append("storage_charges", {
 				"goods_receipt_item": item.name,
-				"storage_unit_type": item.storage_unit_type,
+				"uom": item.uom,
 				"quantity": item.quantity_remaining,
 				"start_date": self.storage_start_date or receipt.receipt_date,
 				"end_date": self.storage_end_date,
@@ -256,7 +256,7 @@ class WarehouseJob(Document):
 				si.append("items", {
 					"item_code": "WMS-STORAGE",  # Create this service item
 					"item_name": "Warehouse Storage Service",
-					"description": f"Storage for {charge.quantity} {charge.storage_unit_type} ({charge.chargeable_days} days)",
+					"description": f"Storage for {charge.quantity} {charge.uom} ({charge.chargeable_days} days)",
 					"qty": 1,
 					"rate": charge.amount,
 					"amount": charge.amount
@@ -348,7 +348,7 @@ class WarehouseJob(Document):
 		# Calculate stock balance by combining receipts and dispatches
 		stock_balance = frappe.db.sql("""
 			SELECT 
-				COALESCE(storage_unit_type, 'N/A') as storage_unit_type,
+				COALESCE(uom, 'N/A') as uom,
 				COALESCE(warehouse_bay, 'Unassigned') as warehouse_bay,
 				SUM(total_received) as total_received,
 				SUM(total_dispatched) as total_dispatched,
@@ -357,7 +357,7 @@ class WarehouseJob(Document):
 			FROM (
 				-- Receipts
 				SELECT 
-					gri.storage_unit_type,
+					gri.uom,
 					gri.warehouse_bay,
 					SUM(gri.quantity) as total_received,
 					0 as total_dispatched,
@@ -366,13 +366,13 @@ class WarehouseJob(Document):
 				INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
 				WHERE gr.warehouse_job = %(job)s
 				AND gr.docstatus = 1
-				GROUP BY gri.storage_unit_type, gri.warehouse_bay, gri.warehouse_bin
+				GROUP BY gri.uom, gri.warehouse_bay, gri.warehouse_bin
 				
 				UNION ALL
 				
 				-- Dispatches
 				SELECT 
-					gdi.storage_unit_type,
+					gdi.uom,
 					gdi.warehouse_bay,
 					0 as total_received,
 					SUM(gdi.quantity) as total_dispatched,
@@ -381,10 +381,10 @@ class WarehouseJob(Document):
 				INNER JOIN `tabCustomer Goods Dispatch` gd ON gd.name = gdi.parent
 				WHERE gd.warehouse_job = %(job)s
 				AND gd.docstatus = 1
-				GROUP BY gdi.storage_unit_type, gdi.warehouse_bay
+				GROUP BY gdi.uom, gdi.warehouse_bay
 			) combined
-			GROUP BY storage_unit_type, warehouse_bay
-			ORDER BY storage_unit_type, warehouse_bay
+			GROUP BY uom, warehouse_bay
+			ORDER BY uom, warehouse_bay
 		""", {"job": self.name}, as_dict=1)
 		
 		return frappe.render_template(

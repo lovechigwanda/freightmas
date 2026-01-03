@@ -126,7 +126,7 @@ function render_allocations_html(frm, allocations) {
 						<div>
 							<span style="color: #888;">Qty:</span> 
 							<strong style="color: #333;">${allocation.quantity_remaining} / ${allocation.original_qty}</strong>
-							<span style="color: #666; margin-left: 4px;">${allocation.storage_unit_type}</span>
+							<span style="color: #666; margin-left: 4px;">${allocation.uom || ''}</span>
 							${capacity_info}
 						</div>
 						<div>
