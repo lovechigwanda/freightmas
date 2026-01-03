@@ -565,6 +565,7 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 	"""
 	Calculate storage charges for a job for a given period.
 	Groups consecutive days with same UOM quantities into charge periods.
+	Only calculates up to today, skips already charged periods.
 	
 	Args:
 		docname: Warehouse Job name
@@ -574,10 +575,26 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 	job = frappe.get_doc("Warehouse Job", docname)
 	start_date = getdate(start_date)
 	end_date = getdate(end_date)
+	today_date = getdate(today())
+	
+	# Don't calculate into the future - limit end_date to today
+	if end_date > today_date:
+		end_date = today_date
 	
 	# Validate storage rates are defined
 	if not job.storage_rate_item:
 		frappe.throw("Storage rates not defined in Storage Rate Item table")
+	
+	# Get existing charged periods to avoid duplicates
+	# Structure: {uom: [(start_date, end_date)]}
+	existing_charges = {}
+	for charge in job.storage_charges:
+		if not charge.is_invoiced:  # Only consider uninvoiced charges (can be updated)
+			continue
+		uom = charge.uom
+		if uom not in existing_charges:
+			existing_charges[uom] = []
+		existing_charges[uom].append((getdate(charge.start_date), getdate(charge.end_date)))
 	
 	# Get all receipts for this job
 	receipts = frappe.get_all(
@@ -635,6 +652,22 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 		for day in sorted(daily_inventory.keys()):
 			current_qty = daily_inventory[day].get(uom, 0)
 			
+			# Check if this day is already charged (invoiced)
+			day_already_charged = False
+			if uom in existing_charges:
+				for charged_start, charged_end in existing_charges[uom]:
+					if charged_start <= day <= charged_end:
+						day_already_charged = True
+						break
+			
+			if day_already_charged:
+				# Close any open period before this charged day
+				if period_start is not None:
+					charge_periods[uom].append((period_start, frappe.utils.add_days(day, -1), period_qty))
+					period_start = None
+					period_qty = 0
+				continue
+			
 			if current_qty > 0:
 				if period_start is None:
 					# Start new period
@@ -658,6 +691,7 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 			charge_periods[uom].append((period_start, end_date, period_qty))
 	
 	# Create storage charge rows
+	new_charges_count = 0
 	for uom, periods in charge_periods.items():
 		for period_start, period_end, qty in periods:
 			if qty > 0:
@@ -689,10 +723,14 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 					"amount": amount,
 					"is_invoiced": 0
 				})
+				new_charges_count += 1
 	
 	# Save job
-	job.save()
-	frappe.msgprint(f"Storage charges calculated for period {start_date} to {end_date}")
+	if new_charges_count > 0:
+		job.save()
+		frappe.msgprint(f"{new_charges_count} storage charge(s) created for period {start_date} to {end_date}")
+	else:
+		frappe.msgprint(f"No new charges to create. Period {start_date} to {end_date} already charged or no inventory.")
 	
 	return True
 
