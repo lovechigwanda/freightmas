@@ -29,9 +29,10 @@
   "driver_contact",
   "column_break_mwey",
   "vehicle_number",
-  "license_no",
+  "id_number",
   "column_break_ccop",
   "driver_name",
+  "license_no",
   "section_break_15",
   "storage_instructions",
   "column_break_ukhx",
@@ -46,8 +47,7 @@
   "total_volume_cbm",
   "column_break_cpxd",
   "amended_from",
-  "total_weight_kg",
-  "amended_from"
+  "total_weight_kg"
  ],
  "fields": [
   {
@@ -284,14 +284,18 @@
    "no_copy": 1,
    "options": "Customer Goods Receipt",
    "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "read_only": 1
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "label": "ID / Passport Number"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-30 22:29:00.608766",
+ "modified": "2026-01-03 15:17:56.936075",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Receipt",

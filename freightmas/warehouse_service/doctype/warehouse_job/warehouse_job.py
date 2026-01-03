@@ -441,10 +441,10 @@ class WarehouseJob(Document):
 				# Add new charge row
 				self.append("handling_charges", {
 					"activity_date": receipt.receipt_date,
-					"handling_activity_type": charge_row.handling_service_type,
-					"description": f"{charge_row.service_category or ''} - {charge_row.remarks or ''}".strip(" -"),
+					"handling_service": charge_row.handling_service,
+					"remarks": charge_row.remarks or "",
 					"quantity": charge_row.quantity,
-					"uom": self.map_unit_to_uom(charge_row.unit),
+					"uom": charge_row.uom,
 					"rate": charge_row.rate,
 					"amount": charge_row.amount,
 					"customer": receipt.customer,
@@ -467,10 +467,10 @@ class WarehouseJob(Document):
 				# Add new charge row
 				self.append("handling_charges", {
 					"activity_date": dispatch.dispatch_date,
-					"handling_activity_type": charge_row.handling_service_type,
-					"description": f"{charge_row.service_category or ''} - {charge_row.remarks or ''}".strip(" -"),
+					"handling_service": charge_row.handling_service,
+					"remarks": charge_row.remarks or "",
 					"quantity": charge_row.quantity,
-					"uom": self.map_unit_to_uom(charge_row.unit),
+					"uom": charge_row.uom,
 					"rate": charge_row.rate,
 					"amount": charge_row.amount,
 					"customer": dispatch.customer,

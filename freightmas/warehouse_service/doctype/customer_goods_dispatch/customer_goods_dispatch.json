@@ -29,9 +29,10 @@
   "driver_contact",
   "column_break_mwey",
   "vehicle_number",
-  "license_no",
+  "id_number",
   "column_break_ccop",
   "driver_name",
+  "license_no",
   "section_break_15",
   "loading_instructions",
   "column_break_ukhx",
@@ -83,6 +84,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "user",
    "fieldname": "created_by",
    "fieldtype": "Link",
    "label": "Created By",
@@ -276,12 +278,17 @@
    "label": "Total Weight (KG)",
    "precision": "2",
    "read_only": 1
+  },
+  {
+   "fieldname": "id_number",
+   "fieldtype": "Data",
+   "label": "ID / Passport Number"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-30 22:29:00.608766",
+ "modified": "2026-01-03 15:21:31.327318",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch",
