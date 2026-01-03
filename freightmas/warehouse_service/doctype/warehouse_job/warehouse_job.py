@@ -586,11 +586,9 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 		frappe.throw("Storage rates not defined in Storage Rate Item table")
 	
 	# Get existing charged periods to avoid duplicates
-	# Structure: {uom: [(start_date, end_date)]}
+	# Check all existing charges (both invoiced and uninvoiced)
 	existing_charges = {}
 	for charge in job.storage_charges:
-		if not charge.is_invoiced:  # Only consider uninvoiced charges (can be updated)
-			continue
 		uom = charge.uom
 		if uom not in existing_charges:
 			existing_charges[uom] = []
