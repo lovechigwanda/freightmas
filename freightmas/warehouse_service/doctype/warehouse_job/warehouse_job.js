@@ -118,7 +118,26 @@ frappe.ui.form.on('Warehouse Job', {
 // ========================================
 
 function create_sales_invoice_from_charges(frm) {
-	const all_rows = frm.doc.handling_charges || [];
+	// Combine handling and storage charges
+	const handling_rows = (frm.doc.handling_charges || []).map(row => ({
+		...row,
+		charge_type: 'Handling',
+		item_description: row.description || row.handling_activity_type || 'Handling Service',
+		item_code: row.handling_activity_type || 'Handling Service'
+	}));
+	
+	const storage_rows = (frm.doc.storage_charges || []).map(row => ({
+		...row,
+		charge_type: 'Storage',
+		customer: frm.doc.customer, // Storage charges use job customer
+		activity_date: row.end_date,
+		quantity: row.quantity,
+		rate: row.amount / row.quantity, // Calculate rate from amount
+		item_description: `Storage: ${row.uom} (${row.storage_days} days)`,
+		item_code: 'Storage Service'
+	}));
+	
+	const all_rows = [...handling_rows, ...storage_rows];
 	const eligible_rows = all_rows.filter(row => 
 		row.amount && row.customer && !row.is_invoiced
 	);
@@ -159,28 +178,28 @@ function create_sales_invoice_from_charges(frm) {
 				<thead>
 					<tr>
 						<th style="width: 40px;"></th>
+						<th>Type</th>
 						<th>Date</th>
-						<th>Activity Type</th>
+						<th>Activity/UOM</th>
 						<th>Description</th>
 						<th>Qty</th>
 						<th>Rate</th>
 						<th>Amount</th>
-						<th>Source</th>
 					</tr>
 				</thead>
 				<tbody>
 					${rows.map(row => `
 						<tr>
 							<td>
-								<input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+								<input type="checkbox" class="charge-row-check" data-row-name="${row.name}" data-charge-type="${row.charge_type}">
 							</td>
+							<td><span class="badge badge-${row.charge_type === 'Storage' ? 'info' : 'primary'}">${row.charge_type}</span></td>
 							<td>${frappe.datetime.str_to_user(row.activity_date) || '-'}</td>
-							<td>${row.handling_activity_type || '-'}</td>
-							<td>${row.description || '-'}</td>
+							<td>${row.charge_type === 'Storage' ? row.uom : (row.handling_activity_type || '-')}</td>
+							<td>${row.item_description || '-'}</td>
 							<td>${row.quantity || 0}</td>
 							<td>${format_currency(row.rate || 0)}</td>
 							<td>${format_currency(row.amount || 0)}</td>
-							<td>${row.source_document || 'Manual'}</td>
 						</tr>
 					`).join('')}
 				</tbody>
@@ -224,14 +243,18 @@ function create_sales_invoice_from_charges(frm) {
 		primary_action() {
 			const selected = Array.from(
 				dialog.$wrapper.find('.charge-row-check:checked')
-			).map(el => el.dataset.rowName);
+			).map(el => ({
+				name: el.dataset.rowName,
+				charge_type: el.dataset.chargeType
+			}));
 
 			if (!selected.length) {
 				frappe.msgprint(__("Please select at least one charge."));
 				return;
 			}
 
-			const selected_rows = eligible_rows.filter(r => selected.includes(r.name));
+			const selected_names = selected.map(s => s.name);
+			const selected_rows = eligible_rows.filter(r => selected_names.includes(r.name));
 			const unique_customers = [...new Set(selected_rows.map(r => r.customer))];
 
 			if (unique_customers.length > 1) {

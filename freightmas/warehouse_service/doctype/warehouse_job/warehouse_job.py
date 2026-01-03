@@ -504,20 +504,27 @@ class WarehouseJob(Document):
 
 @frappe.whitelist()
 def create_sales_invoice_with_rows(docname, row_names):
-	"""Create Sales Invoice from selected handling charges"""
+	"""Create Sales Invoice from selected handling and storage charges"""
 	import json
 	from frappe.utils import nowdate
 	
-	row_names = json.loads(row_names)
+	row_data = json.loads(row_names)
 	job = frappe.get_doc("Warehouse Job", docname)
-	selected_rows = [row for row in job.handling_charges if row.name in row_names]
 	
-	if not selected_rows:
+	# Separate handling and storage charges
+	handling_names = [r['name'] for r in row_data if r.get('charge_type') == 'Handling']
+	storage_names = [r['name'] for r in row_data if r.get('charge_type') == 'Storage']
+	
+	selected_handling = [row for row in job.handling_charges if row.name in handling_names]
+	selected_storage = [row for row in job.storage_charges if row.name in storage_names]
+	
+	if not selected_handling and not selected_storage:
 		frappe.throw("No valid charges selected.")
 	
 	# Create Sales Invoice
 	si = frappe.new_doc("Sales Invoice")
-	si.customer = selected_rows[0].customer
+	# Use customer from handling charges if available, otherwise use job customer
+	si.customer = selected_handling[0].customer if selected_handling else job.customer
 	si.set_posting_time = 1
 	si.posting_date = nowdate()
 	
@@ -529,13 +536,17 @@ def create_sales_invoice_with_rows(docname, row_names):
 		pass
 	
 	# Generate remarks
-	charge_list = ", ".join([row.handling_activity_type or "Handling Charge" for row in selected_rows[:5]])
-	if len(selected_rows) > 5:
-		charge_list += f" and {len(selected_rows) - 5} more"
-	si.remarks = f"Warehouse Job {job.name}: {charge_list}"
+	handling_count = len(selected_handling)
+	storage_count = len(selected_storage)
+	remarks_parts = []
+	if handling_count:
+		remarks_parts.append(f"{handling_count} handling charge(s)")
+	if storage_count:
+		remarks_parts.append(f"{storage_count} storage charge(s)")
+	si.remarks = f"Warehouse Job {job.name}: {', '.join(remarks_parts)}"
 	
-	# Add items
-	for row in selected_rows:
+	# Add handling charge items
+	for row in selected_handling:
 		si.append("items", {
 			"item_code": row.handling_activity_type or "Handling Service",
 			"description": row.description or row.handling_activity_type or "Handling Service",
@@ -544,13 +555,29 @@ def create_sales_invoice_with_rows(docname, row_names):
 			"amount": row.amount or 0
 		})
 	
+	# Add storage charge items
+	for row in selected_storage:
+		si.append("items", {
+			"item_code": "Storage Service",
+			"description": f"Storage: {row.uom} - {row.storage_days} days ({row.start_date} to {row.end_date})",
+			"qty": row.quantity or 1,
+			"rate": row.amount / row.quantity if row.quantity else row.amount,
+			"amount": row.amount or 0
+		})
+	
 	# Save and return
 	si.insert()
 	
 	# Update handling charges with invoice reference
-	for row in selected_rows:
+	for row in selected_handling:
 		frappe.db.set_value("Warehouse Job Handling Charges", row.name, {
 			"sales_invoice": si.name,
+			"is_invoiced": 1
+		})
+	
+	# Update storage charges with invoice reference
+	for row in selected_storage:
+		frappe.db.set_value("Warehouse Job Storage Charges", row.name, {
 			"is_invoiced": 1
 		})
 	
