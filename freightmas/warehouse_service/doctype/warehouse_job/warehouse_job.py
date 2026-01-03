@@ -632,36 +632,65 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 		frappe.msgprint("No receipts found for this job")
 		return
 	
-	# Build daily inventory snapshots
+	# Build daily inventory snapshots by tracking all receipts and dispatches
 	# Structure: {date: {uom: quantity}}
 	daily_inventory = {}
 	
+	# Initialize all dates in the period
 	current_date = start_date
 	while current_date <= end_date:
 		daily_inventory[current_date] = {}
 		current_date = frappe.utils.add_days(current_date, 1)
 	
-	# For each receipt item, calculate quantity in warehouse for each day
-	for receipt in receipts:
-		items = frappe.get_all(
-			"Customer Goods Receipt Item",
-			filters={"parent": receipt.name},
-			fields=["name", "uom", "quantity", "quantity_remaining"]
-		)
+	# Get all receipt items with their dates
+	receipt_items = frappe.db.sql("""
+		SELECT 
+			cgri.uom,
+			cgri.quantity,
+			cgr.receipt_date
+		FROM `tabCustomer Goods Receipt Item` cgri
+		INNER JOIN `tabCustomer Goods Receipt` cgr ON cgr.name = cgri.parent
+		WHERE cgr.warehouse_job = %(job)s
+		AND cgr.docstatus = 1
+		ORDER BY cgr.receipt_date ASC
+	""", {"job": docname}, as_dict=1)
+	
+	# Get all dispatch items with their dates
+	dispatch_items = frappe.db.sql("""
+		SELECT 
+			cgdi.uom,
+			cgdi.quantity,
+			cgd.dispatch_date
+		FROM `tabCustomer Goods Dispatch Item` cgdi
+		INNER JOIN `tabCustomer Goods Dispatch` cgd ON cgd.name = cgdi.parent
+		WHERE cgd.warehouse_job = %(job)s
+		AND cgd.docstatus = 1
+		ORDER BY cgd.dispatch_date ASC
+	""", {"job": docname}, as_dict=1)
+	
+	# Build running balance for each day
+	for day in sorted(daily_inventory.keys()):
+		# Calculate total receipts up to this day
+		for receipt_item in receipt_items:
+			receipt_date = getdate(receipt_item.receipt_date)
+			if receipt_date <= day:
+				uom = receipt_item.uom
+				qty = flt(receipt_item.quantity)
+				
+				if uom not in daily_inventory[day]:
+					daily_inventory[day][uom] = 0
+				daily_inventory[day][uom] += qty
 		
-		receipt_date = getdate(receipt.receipt_date) if receipt.receipt_date else start_date
-		
-		for item in items:
-			# Add to daily inventory for each day in period
-			for day in daily_inventory:
-				if day >= receipt_date:
-					uom = item.uom
-					qty = flt(item.quantity_remaining)
-					
-					if qty > 0:
-						if uom not in daily_inventory[day]:
-							daily_inventory[day][uom] = 0
-						daily_inventory[day][uom] += qty
+		# Subtract total dispatches up to this day
+		for dispatch_item in dispatch_items:
+			dispatch_date = getdate(dispatch_item.dispatch_date)
+			if dispatch_date <= day:
+				uom = dispatch_item.uom
+				qty = flt(dispatch_item.quantity)
+				
+				if uom not in daily_inventory[day]:
+					daily_inventory[day][uom] = 0
+				daily_inventory[day][uom] -= qty
 	
 	# Group consecutive days with same UOM quantities into charge periods
 	# Structure: {uom: [(start_date, end_date, quantity)]}
