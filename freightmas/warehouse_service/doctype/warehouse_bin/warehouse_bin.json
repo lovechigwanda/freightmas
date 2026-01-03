@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:bin_code",
- "creation": "2025-12-27 10:00:00.000000",
+ "creation": "2025-12-27 10:00:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -14,7 +14,7 @@
   "max_weight_kg",
   "max_height_cm",
   "section_break_capacity",
-  "capacity_uom",
+  "uom",
   "max_capacity",
   "column_break_capacity",
   "current_capacity_used",
@@ -68,19 +68,11 @@
    "label": "Capacity Management"
   },
   {
-   "fieldname": "capacity_uom",
-   "fieldtype": "Select",
-   "label": "Capacity UOM",
-   "options": "Pallets\nCBM\nSQM",
-   "default": "Pallets",
-   "reqd": 1
-  },
-  {
+   "description": "Maximum capacity in the selected UOM",
    "fieldname": "max_capacity",
    "fieldtype": "Float",
    "label": "Max Capacity",
-   "precision": "2",
-   "description": "Maximum capacity in the selected UOM"
+   "precision": "2"
   },
   {
    "fieldname": "column_break_capacity",
@@ -108,11 +100,19 @@
    "fieldname": "current_allocations_html",
    "fieldtype": "HTML",
    "label": "Allocations"
+  },
+  {
+   "default": "Pallets",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "Capacity UOM",
+   "options": "UOM",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-27 10:00:00.000000",
+ "modified": "2026-01-03 11:49:14.152950",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Bin",
@@ -154,6 +154,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

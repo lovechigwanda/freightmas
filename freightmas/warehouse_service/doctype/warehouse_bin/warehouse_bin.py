@@ -26,13 +26,13 @@ class WarehouseBin(Document):
 		bay = frappe.get_doc("Warehouse Bay", self.bay)
 		
 		# Check pallet capacity
-		if self.capacity_uom == "Pallets" and self.max_capacity and bay.max_pallets:
+		if self.uom == "Pallets" and self.max_capacity and bay.max_pallets:
 			# Get total pallet capacity of other bins in this bay
 			total_pallets = frappe.db.sql("""
 				SELECT SUM(max_capacity) as total
 				FROM `tabWarehouse Bin`
 				WHERE bay = %s
-				AND capacity_uom = 'Pallets'
+				AND uom = 'Pallets'
 				AND name != %s
 			""", (self.bay, self.name or ""))
 			
@@ -47,12 +47,12 @@ class WarehouseBin(Document):
 				)
 		
 		# Check SQM capacity
-		if self.capacity_uom == "SQM" and self.max_capacity and bay.capacity_sqm:
+		if self.uom == "SQM" and self.max_capacity and bay.capacity_sqm:
 			total_sqm = frappe.db.sql("""
-				SELECT SUM(max_capacity) as total
+				SELECT SUM(max_capacity)
 				FROM `tabWarehouse Bin`
 				WHERE bay = %s
-				AND capacity_uom = 'SQM'
+				AND uom = 'SQM'
 				AND name != %s
 			""", (self.bay, self.name or ""))
 			
@@ -87,7 +87,7 @@ class WarehouseBin(Document):
 	
 	def calculate_current_capacity(self):
 		"""Calculate current capacity used based on allocations"""
-		if not self.capacity_uom or not self.max_capacity:
+		if not self.uom or not self.max_capacity:
 			return
 		
 		capacity_used = self.get_current_capacity_used()
@@ -100,20 +100,15 @@ class WarehouseBin(Document):
 	
 	def get_current_capacity_used(self):
 		"""Calculate total capacity used in bin's UOM"""
-		if not self.capacity_uom:
+		if not self.uom:
 			return 0.0
 		
 		allocations = frappe.db.sql("""
 			SELECT 
 				cgri.quantity_remaining,
-				cgri.storage_unit_type,
-				sut.pallet_equivalent_factor,
-				sut.cbm_equivalent_factor,
-				sut.sqm_equivalent_factor,
-				cgri.volume_cbm
+				cgri.uom
 			FROM `tabCustomer Goods Receipt Item` cgri
 			INNER JOIN `tabCustomer Goods Receipt` cgr ON cgri.parent = cgr.name
-			LEFT JOIN `tabStorage Unit Type` sut ON cgri.storage_unit_type = sut.name
 			WHERE cgri.warehouse_bin = %s
 			AND cgr.docstatus = 1
 			AND cgri.quantity_remaining > 0
@@ -123,41 +118,30 @@ class WarehouseBin(Document):
 		
 		for allocation in allocations:
 			qty = flt(allocation.quantity_remaining)
+			uom = allocation.uom
 			
-			if self.capacity_uom == "Pallets":
-				factor = flt(allocation.pallet_equivalent_factor, 1.0)
-				total_capacity += qty * factor
-			
-			elif self.capacity_uom == "CBM":
-				# Use actual volume if available, otherwise use conversion factor
-				if allocation.volume_cbm:
-					total_capacity += flt(allocation.volume_cbm)
-				else:
-					factor = flt(allocation.cbm_equivalent_factor, 0)
-					total_capacity += qty * factor
-			
-			elif self.capacity_uom == "SQM":
-				factor = flt(allocation.sqm_equivalent_factor, 0)
-				total_capacity += qty * factor
+			# If UOMs match directly, just add the quantity
+			if self.uom == uom:
+				total_capacity += qty
+			else:
+				# For different UOMs, try to convert (simplified - just add as is for now)
+				# You may want to add UOM conversion logic here
+				total_capacity += qty
 		
 		return total_capacity
 	
-	def check_capacity_available(self, quantity, storage_unit_type):
+	def check_capacity_available(self, quantity, uom):
 		"""Check if bin has capacity for additional items"""
-		if not self.capacity_uom or not self.max_capacity:
+		if not self.uom or not self.max_capacity:
 			return True  # No capacity limits set
 		
-		# Get conversion factor for the storage unit type
-		unit_type_doc = frappe.get_doc("Storage Unit Type", storage_unit_type)
-		
-		if self.capacity_uom == "Pallets":
-			capacity_needed = quantity * flt(unit_type_doc.pallet_equivalent_factor, 1.0)
-		elif self.capacity_uom == "CBM":
-			capacity_needed = quantity * flt(unit_type_doc.cbm_equivalent_factor, 0)
-		elif self.capacity_uom == "SQM":
-			capacity_needed = quantity * flt(unit_type_doc.sqm_equivalent_factor, 0)
+		# If UOMs match, directly compare
+		if self.uom == uom:
+			capacity_needed = quantity
 		else:
-			return True
+			# For different UOMs, you may want to add conversion logic here
+			# For now, treat as matching
+			capacity_needed = quantity
 		
 		current_used = self.get_current_capacity_used()
 		available = self.max_capacity - current_used
@@ -184,16 +168,11 @@ class WarehouseBin(Document):
 				cgri.description,
 				cgri.quantity as original_qty,
 				cgri.quantity_remaining,
-				cgri.storage_unit_type,
-				cgri.weight_kg,
+				cgri.uom,
 				cgr.receipt_date,
-				DATEDIFF(CURDATE(), cgr.receipt_date) as days_stored,
-				sut.pallet_equivalent_factor,
-				sut.cbm_equivalent_factor,
-				sut.sqm_equivalent_factor
+				DATEDIFF(CURDATE(), cgr.receipt_date) as days_stored
 			FROM `tabCustomer Goods Receipt Item` cgri
 			INNER JOIN `tabCustomer Goods Receipt` cgr ON cgri.parent = cgr.name
-			LEFT JOIN `tabStorage Unit Type` sut ON cgri.storage_unit_type = sut.name
 			WHERE cgri.warehouse_bin = %s
 			AND cgr.docstatus = 1
 			AND cgri.quantity_remaining > 0
@@ -203,14 +182,13 @@ class WarehouseBin(Document):
 		# Add capacity in bin's UOM to each allocation
 		for allocation in allocations:
 			qty = flt(allocation.quantity_remaining)
+			uom = allocation.uom
 			
-			if self.capacity_uom == "Pallets":
-				allocation.capacity_used = qty * flt(allocation.pallet_equivalent_factor, 1.0)
-			elif self.capacity_uom == "CBM":
-				allocation.capacity_used = qty * flt(allocation.cbm_equivalent_factor, 0)
-			elif self.capacity_uom == "SQM":
-				allocation.capacity_used = qty * flt(allocation.sqm_equivalent_factor, 0)
+			# If UOMs match, capacity used equals quantity
+			if self.uom == uom:
+				allocation.capacity_used = qty
 			else:
-				allocation.capacity_used = 0
+				# For different UOMs, you may want to add conversion logic
+				allocation.capacity_used = qty
 		
 		return allocations

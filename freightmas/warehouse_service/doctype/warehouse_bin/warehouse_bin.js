@@ -41,7 +41,7 @@ function render_allocations_html(frm, allocations) {
 		
 		// Capacity status with bin's UOM
 		let capacity_html = '';
-		if (frm.doc.capacity_uom && frm.doc.max_capacity) {
+		if (frm.doc.uom && frm.doc.max_capacity) {
 			let capacity_pct = frm.doc.capacity_utilization_pct || 0;
 			let status_color = capacity_pct > 90 ? '#d32f2f' : (capacity_pct > 70 ? '#f57c00' : '#388e3c');
 			let status_icon = capacity_pct > 90 ? '🔴' : (capacity_pct > 70 ? '🟠' : '🟢');
@@ -50,7 +50,7 @@ function render_allocations_html(frm, allocations) {
 				<div style="margin-bottom: 15px; padding: 12px; background: #f5f5f5; border-radius: 4px;">
 					<div style="display: flex; justify-content: space-between; align-items: center;">
 						<div>
-							<span style="font-size: 14px; color: #666;">Capacity (${frm.doc.capacity_uom}):</span>
+							<span style="font-size: 14px; color: #666;">Capacity (${frm.doc.uom}):</span>
 							<strong style="font-size: 16px; color: ${status_color}; margin-left: 8px;">
 								${status_icon} ${total_capacity.toFixed(2)} / ${frm.doc.max_capacity} (${capacity_pct.toFixed(1)}%)
 							</strong>
@@ -96,8 +96,8 @@ function render_allocations_html(frm, allocations) {
 			
 			// Build capacity info based on bin's UOM
 			let capacity_info = '';
-			if (frm.doc.capacity_uom && allocation.capacity_used) {
-				capacity_info = `<span style="color: #666; margin-left: 4px;">≈ ${allocation.capacity_used.toFixed(2)} ${frm.doc.capacity_uom}</span>`;
+			if (frm.doc.uom && allocation.capacity_used) {
+				capacity_info = `<span style="color: #666; margin-left: 4px;">≈ ${allocation.capacity_used.toFixed(2)} ${frm.doc.uom}</span>`;
 			}
 			
 			html += `
