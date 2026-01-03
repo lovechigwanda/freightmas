@@ -75,7 +75,7 @@ class WarehouseJob(Document):
 			self.total_storage_days = date_diff(today(), self.storage_start_date) + 1
 	
 	def calculate_storage_charges(self):
-		"""Calculate storage charge amounts"""
+		"""Calculate storage charge amounts based on period and rates"""
 		for charge in self.storage_charges:
 			# Calculate storage days
 			if charge.start_date and charge.end_date:
@@ -85,18 +85,21 @@ class WarehouseJob(Document):
 			else:
 				charge.storage_days = 0
 			
-			# Calculate chargeable days
-			charge.chargeable_days = max(0, charge.storage_days - flt(charge.free_days))
+			# Get rate for this UOM from storage_rate_item table
+			rate_per_day = 0
+			min_days = 0
 			
-			# Calculate amount based on rate type
-			if charge.rate_type == "Per Day":
-				charge.amount = flt(charge.quantity) * flt(charge.rate_per_day) * charge.chargeable_days
-			elif charge.rate_type == "Per Month":
-				months = charge.chargeable_days / 30.0
-				charge.amount = flt(charge.quantity) * flt(charge.rate_per_month) * months
-			elif charge.rate_type == "Per SQM":
-				# Assumes rate_per_day is actually rate per SQM per day
-				charge.amount = flt(charge.quantity) * flt(charge.rate_per_day) * charge.chargeable_days
+			for rate_item in self.storage_rate_item:
+				if rate_item.uom == charge.uom:
+					rate_per_day = flt(rate_item.rate_per_day)
+					min_days = flt(rate_item.minimum_charge_days)
+					break
+			
+			# Apply minimum charge days
+			chargeable_days = max(charge.storage_days, min_days)
+			
+			# Calculate amount: Quantity × Days × Rate per Day
+			charge.amount = flt(charge.quantity) * chargeable_days * rate_per_day
 	
 	def calculate_handling_charges(self):
 		"""Calculate handling charge amounts"""
@@ -555,3 +558,178 @@ def create_sales_invoice_with_rows(docname, row_names):
 	job.reload()
 	
 	return si.name
+
+
+@frappe.whitelist()
+def calculate_monthly_storage_for_job(docname, start_date, end_date):
+	"""
+	Calculate storage charges for a job for a given period.
+	Groups consecutive days with same UOM quantities into charge periods.
+	
+	Args:
+		docname: Warehouse Job name
+		start_date: Period start date (YYYY-MM-DD)
+		end_date: Period end date (YYYY-MM-DD)
+	"""
+	job = frappe.get_doc("Warehouse Job", docname)
+	start_date = getdate(start_date)
+	end_date = getdate(end_date)
+	
+	# Validate storage rates are defined
+	if not job.storage_rate_item:
+		frappe.throw("Storage rates not defined in Storage Rate Item table")
+	
+	# Get all receipts for this job
+	receipts = frappe.get_all(
+		"Customer Goods Receipt",
+		filters={"warehouse_job": docname, "docstatus": 1},
+		fields=["name", "receipt_date"]
+	)
+	
+	if not receipts:
+		frappe.msgprint("No receipts found for this job")
+		return
+	
+	# Build daily inventory snapshots
+	# Structure: {date: {uom: quantity}}
+	daily_inventory = {}
+	
+	current_date = start_date
+	while current_date <= end_date:
+		daily_inventory[current_date] = {}
+		current_date = frappe.utils.add_days(current_date, 1)
+	
+	# For each receipt item, calculate quantity in warehouse for each day
+	for receipt in receipts:
+		items = frappe.get_all(
+			"Customer Goods Receipt Item",
+			filters={"parent": receipt.name},
+			fields=["name", "uom", "quantity", "quantity_remaining"]
+		)
+		
+		receipt_date = getdate(receipt.receipt_date) if receipt.receipt_date else start_date
+		
+		for item in items:
+			# Add to daily inventory for each day in period
+			for day in daily_inventory:
+				if day >= receipt_date:
+					uom = item.uom
+					qty = flt(item.quantity_remaining)
+					
+					if qty > 0:
+						if uom not in daily_inventory[day]:
+							daily_inventory[day][uom] = 0
+						daily_inventory[day][uom] += qty
+	
+	# Group consecutive days with same UOM quantities into charge periods
+	# Structure: {uom: [(start_date, end_date, quantity)]}
+	charge_periods = {}
+	
+	for uom_rate in job.storage_rate_item:
+		uom = uom_rate.uom
+		charge_periods[uom] = []
+		
+		period_start = None
+		period_qty = 0
+		
+		for day in sorted(daily_inventory.keys()):
+			current_qty = daily_inventory[day].get(uom, 0)
+			
+			if current_qty > 0:
+				if period_start is None:
+					# Start new period
+					period_start = day
+					period_qty = current_qty
+				elif current_qty != period_qty:
+					# Quantity changed - close current period and start new one
+					charge_periods[uom].append((period_start, frappe.utils.add_days(day, -1), period_qty))
+					period_start = day
+					period_qty = current_qty
+			else:
+				# No inventory for this UOM on this day
+				if period_start is not None:
+					# Close current period
+					charge_periods[uom].append((period_start, frappe.utils.add_days(day, -1), period_qty))
+					period_start = None
+					period_qty = 0
+		
+		# Close any open period at end date
+		if period_start is not None:
+			charge_periods[uom].append((period_start, end_date, period_qty))
+	
+	# Create storage charge rows
+	for uom, periods in charge_periods.items():
+		for period_start, period_end, qty in periods:
+			if qty > 0:
+				# Calculate days
+				storage_days = date_diff(period_end, period_start) + 1
+				
+				# Get rate and minimum days
+				rate_per_day = 0
+				min_days = 0
+				for rate_item in job.storage_rate_item:
+					if rate_item.uom == uom:
+						rate_per_day = flt(rate_item.rate_per_day)
+						min_days = flt(rate_item.minimum_charge_days)
+						break
+				
+				# Apply minimum charge days
+				chargeable_days = max(storage_days, min_days)
+				
+				# Calculate amount
+				amount = qty * chargeable_days * rate_per_day
+				
+				# Add charge row
+				job.append("storage_charges", {
+					"uom": uom,
+					"quantity": qty,
+					"start_date": period_start,
+					"end_date": period_end,
+					"storage_days": storage_days,
+					"amount": amount,
+					"is_invoiced": 0
+				})
+	
+	# Save job
+	job.save()
+	frappe.msgprint(f"Storage charges calculated for period {start_date} to {end_date}")
+	
+	return True
+
+
+def calculate_all_monthly_storage():
+	"""
+	Scheduled task to calculate storage charges for all active warehouse jobs.
+	Runs monthly to calculate previous month's storage charges.
+	"""
+	from frappe.utils import add_months, get_first_day, get_last_day
+	
+	# Calculate for previous month
+	today_date = getdate(today())
+	prev_month = add_months(today_date, -1)
+	start_date = get_first_day(prev_month)
+	end_date = get_last_day(prev_month)
+	
+	# Get all active warehouse jobs
+	jobs = frappe.get_all(
+		"Warehouse Job",
+		filters={"status": "Active", "docstatus": 1},
+		fields=["name"]
+	)
+	
+	if not jobs:
+		frappe.logger().info("No active warehouse jobs found for storage calculation")
+		return
+	
+	success_count = 0
+	error_count = 0
+	
+	for job in jobs:
+		try:
+			calculate_monthly_storage_for_job(job.name, start_date, end_date)
+			success_count += 1
+		except Exception as e:
+			error_count += 1
+			frappe.logger().error(f"Error calculating storage for job {job.name}: {str(e)}")
+	
+	frappe.logger().info(f"Monthly storage calculation completed. Success: {success_count}, Errors: {error_count}")

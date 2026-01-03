@@ -54,6 +54,13 @@ frappe.ui.form.on('Warehouse Job', {
 			}, __('Create'));
 		}
 		
+		// Add Calculate Storage Charges button
+		if (!frm.is_new()) {
+			frm.add_custom_button(__('Calculate Storage Charges'), function() {
+				calculate_storage_charges_dialog(frm);
+			}, __('Actions'));
+		}
+		
 		// Add custom buttons for workflow actions
 		if (frm.doc.docstatus === 1 && frm.doc.status === "Active") {
 			frm.add_custom_button(__('Mark as Completed'), function() {
@@ -251,10 +258,52 @@ function create_sales_invoice_from_charges(frm) {
 						dialog.hide();
 					}
 				}
-			});
-		}
-	});
+		});
+	}
+});
 
 	dialog.show();
 	render_dialog_ui(dialog, selected_customer);
+}
+
+// Calculate Storage Charges Dialog
+function calculate_storage_charges_dialog(frm) {
+	let d = new frappe.ui.Dialog({
+		title: __('Calculate Storage Charges'),
+		fields: [
+			{
+				label: __('Start Date'),
+				fieldname: 'start_date',
+				fieldtype: 'Date',
+				reqd: 1,
+				default: frappe.datetime.month_start()
+			},
+			{
+				label: __('End Date'),
+				fieldname: 'end_date',
+				fieldtype: 'Date',
+				reqd: 1,
+				default: frappe.datetime.month_end()
+			}
+		],
+		primary_action_label: __('Calculate'),
+		primary_action(values) {
+			frappe.call({
+				method: 'freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.calculate_monthly_storage_for_job',
+				args: {
+					docname: frm.doc.name,
+					start_date: values.start_date,
+					end_date: values.end_date
+				},
+				callback: function(r) {
+					if (r.message) {
+						frm.reload_doc();
+						d.hide();
+					}
+				}
+			});
+		}
+	});
+	
+	d.show();
 }

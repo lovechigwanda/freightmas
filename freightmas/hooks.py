@@ -158,23 +158,11 @@ app_include_js = "/assets/freightmas/js/report_commons.js"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"freightmas.tasks.all"
-# 	],
-# 	"daily": [
-# 		"freightmas.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"freightmas.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"freightmas.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"freightmas.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"monthly": [
+		"freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.calculate_all_monthly_storage"
+	],
+}
 
 # Testing
 # -------

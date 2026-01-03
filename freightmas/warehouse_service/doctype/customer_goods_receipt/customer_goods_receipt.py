@@ -24,7 +24,5 @@ class CustomerGoodsReceipt(Document):
 		self.total_volume_cbm = 0
 		
 		for item in self.items:
-			if item.storage_unit_type == "Pallet":
+			if item.uom == "Pallet":
 				self.total_pallets += item.quantity or 0
-			self.total_weight_kg += (item.weight_kg or 0) * (item.quantity or 0)
-			self.total_volume_cbm += (item.volume_cbm or 0) * (item.quantity or 0)
