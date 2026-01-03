@@ -17,14 +17,14 @@
   "contract_type",
   "section_break_validity",
   "fiscal_year",
-  "job_start_date",
-  "job_end_date",
-  "column_break_validity",
   "job_validity_days",
+  "column_break_validity",
+  "job_start_date",
   "allow_validity_override",
   "column_break_10",
-  "section_break_14",
-  "notes",
+  "job_end_date",
+  "storage_rates_section",
+  "storage_rate_item",
   "section_break_16",
   "storage_charges",
   "section_break_18",
@@ -39,6 +39,9 @@
   "amended_from",
   "transactions_tab",
   "transactions_html",
+  "notes_tab",
+  "section_break_14",
+  "notes",
   "connections_tab"
  ],
  "fields": [
@@ -243,6 +246,22 @@
    "fieldname": "transactions_html",
    "fieldtype": "HTML",
    "label": "Transactions"
+  },
+  {
+   "fieldname": "storage_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Storage Rates"
+  },
+  {
+   "fieldname": "storage_rate_item",
+   "fieldtype": "Table",
+   "options": "Storage Rate Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Notes"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -257,7 +276,7 @@
    "link_fieldname": "warehouse_job"
   }
  ],
- "modified": "2026-01-01 17:04:16.293254",
+ "modified": "2026-01-03 08:38:07.745968",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Job",
