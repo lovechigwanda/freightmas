@@ -59,6 +59,12 @@ def get_columns(filters):
             "width": 120
         },
         {
+            "fieldname": "advance_amount",
+            "label": _("Advance"),
+            "fieldtype": "Currency",
+            "width": 120
+        },
+        {
             "fieldname": "credit_note_amount",
             "label": _("Credit Note"),
             "fieldtype": "Currency",
@@ -118,11 +124,20 @@ def get_data(filters):
 def get_customers_with_invoices(filters):
     """Get list of customers who have sales invoices."""
     conditions = get_conditions(filters)
+    include_proforma = filters.get("include_proforma_invoices")
+    
+    # Build the docstatus condition
+    if include_proforma:
+        # Include both submitted (docstatus=1) and draft (docstatus=0) invoices
+        docstatus_condition = "docstatus IN (0, 1)"
+    else:
+        # Only submitted invoices
+        docstatus_condition = "docstatus = 1"
     
     customers = frappe.db.sql(f"""
         SELECT DISTINCT customer
         FROM `tabSales Invoice`
-        WHERE docstatus = 1 {conditions}
+        WHERE {docstatus_condition} {conditions}
         ORDER BY customer
     """, as_dict=True)
     
@@ -147,15 +162,16 @@ def get_customer_summary(customer, filters, report_date):
     # Get paid amount (payments in period)
     paid_amount = get_paid_amount(customer, filters)
     
+    # Get advance amount (unallocated payments)
+    advance_amount = get_advance_amount(customer, filters)
+    
     # Get credit note amount
     credit_note_amount = get_credit_note_amount(customer, filters)
     
-    # Calculate outstanding amount (include proforma if checkbox is ticked)
-    total_invoiced = invoiced_amount
-    if filters.get("include_proforma_invoices"):
-        total_invoiced += proforma_amount
-        
-    outstanding_amount = opening_balance + total_invoiced - paid_amount - credit_note_amount
+    # Calculate outstanding amount
+    # When include_proforma_invoices is checked, add proforma_amount to the outstanding balance
+    # Advances reduce the outstanding balance
+    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - credit_note_amount
     
     # Get aging analysis (include proforma if checkbox is ticked)
     aging = get_aging_analysis(customer, filters, report_date)
@@ -165,6 +181,7 @@ def get_customer_summary(customer, filters, report_date):
         "opening_balance": opening_balance,
         "invoiced_amount": invoiced_amount,
         "paid_amount": paid_amount,
+        "advance_amount": advance_amount,
         "credit_note_amount": credit_note_amount,
         "outstanding_amount": outstanding_amount,
         "range1": aging.get("range1", 0),
@@ -178,7 +195,7 @@ def get_customer_summary(customer, filters, report_date):
         row["proforma_amount"] = proforma_amount
     
     # Only return row if there's activity
-    if any([outstanding_amount, invoiced_amount, proforma_amount, paid_amount]):
+    if any([outstanding_amount, invoiced_amount, proforma_amount, paid_amount, advance_amount]):
         return row
     
     return None
@@ -236,6 +253,38 @@ def get_paid_amount(customer, filters):
     """, (customer, company))[0][0] or 0
     
     return flt(amount)
+
+
+def get_advance_amount(customer, filters):
+    """Get total unallocated advance payments from customer."""
+    company = filters.get("company")
+    
+    # Get total received amount from payment entries
+    total_received = frappe.db.sql("""
+        SELECT IFNULL(SUM(pe.paid_amount), 0) as amount
+        FROM `tabPayment Entry` pe
+        WHERE pe.party_type = 'Customer'
+        AND pe.party = %s
+        AND pe.company = %s
+        AND pe.docstatus = 1
+        AND pe.payment_type = 'Receive'
+    """, (customer, company))[0][0] or 0
+    
+    # Get total allocated amount
+    total_allocated = frappe.db.sql("""
+        SELECT IFNULL(SUM(per.allocated_amount), 0) as amount
+        FROM `tabPayment Entry` pe
+        JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
+        WHERE pe.party_type = 'Customer'
+        AND pe.party = %s
+        AND pe.company = %s
+        AND pe.docstatus = 1
+    """, (customer, company))[0][0] or 0
+    
+    # Unallocated advance = Total received - Total allocated
+    advance_amount = flt(total_received) - flt(total_allocated)
+    
+    return flt(advance_amount) if advance_amount > 0 else 0
 
 
 def get_credit_note_amount(customer, filters):

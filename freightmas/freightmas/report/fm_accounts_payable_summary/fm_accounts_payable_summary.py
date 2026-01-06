@@ -59,6 +59,12 @@ def get_columns(filters):
             "width": 120
         },
         {
+            "fieldname": "advance_amount",
+            "label": _("Advance"),
+            "fieldtype": "Currency",
+            "width": 120
+        },
+        {
             "fieldname": "debit_note_amount",
             "label": _("Debit Note"),
             "fieldtype": "Currency",
@@ -118,11 +124,20 @@ def get_data(filters):
 def get_suppliers_with_invoices(filters):
     """Get list of suppliers who have purchase invoices."""
     conditions = get_conditions(filters)
+    include_proforma = filters.get("include_proforma_invoices")
+    
+    # Build the docstatus condition
+    if include_proforma:
+        # Include both submitted (docstatus=1) and draft (docstatus=0) invoices
+        docstatus_condition = "docstatus IN (0, 1)"
+    else:
+        # Only submitted invoices
+        docstatus_condition = "docstatus = 1"
     
     suppliers = frappe.db.sql(f"""
         SELECT DISTINCT supplier
         FROM `tabPurchase Invoice`
-        WHERE docstatus = 1 {conditions}
+        WHERE {docstatus_condition} {conditions}
         ORDER BY supplier
     """, as_dict=True)
     
@@ -147,15 +162,16 @@ def get_supplier_summary(supplier, filters, report_date):
     # Get paid amount (payments)
     paid_amount = get_paid_amount(supplier, filters)
     
+    # Get advance amount (unallocated payments)
+    advance_amount = get_advance_amount(supplier, filters)
+    
     # Get debit note amount
     debit_note_amount = get_debit_note_amount(supplier, filters)
     
-    # Calculate outstanding amount (include proforma if checkbox is ticked)
-    total_invoiced = invoiced_amount
-    if filters.get("include_proforma_invoices"):
-        total_invoiced += proforma_amount
-        
-    outstanding_amount = opening_balance + total_invoiced - paid_amount - debit_note_amount
+    # Calculate outstanding amount
+    # When include_proforma_invoices is checked, add proforma_amount to the outstanding balance
+    # Advances reduce the outstanding balance
+    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - debit_note_amount
     
     # Get aging analysis (include proforma if checkbox is ticked)
     aging = get_aging_analysis(supplier, filters, report_date)
@@ -165,6 +181,7 @@ def get_supplier_summary(supplier, filters, report_date):
         "opening_balance": opening_balance,
         "invoiced_amount": invoiced_amount,
         "paid_amount": paid_amount,
+        "advance_amount": advance_amount,
         "debit_note_amount": debit_note_amount,
         "outstanding_amount": outstanding_amount,
         "range1": aging.get("range1", 0),
@@ -178,7 +195,7 @@ def get_supplier_summary(supplier, filters, report_date):
         row["proforma_amount"] = proforma_amount
     
     # Only return row if there's activity
-    if any([outstanding_amount, invoiced_amount, proforma_amount, paid_amount]):
+    if any([outstanding_amount, invoiced_amount, proforma_amount, paid_amount, advance_amount]):
         return row
     
     return None
@@ -236,6 +253,38 @@ def get_paid_amount(supplier, filters):
     """, (supplier, company))[0][0] or 0
     
     return flt(amount)
+
+
+def get_advance_amount(supplier, filters):
+    """Get total unallocated advance payments to supplier."""
+    company = filters.get("company")
+    
+    # Get total paid amount to supplier from payment entries
+    total_paid = frappe.db.sql("""
+        SELECT IFNULL(SUM(pe.paid_amount), 0) as amount
+        FROM `tabPayment Entry` pe
+        WHERE pe.party_type = 'Supplier'
+        AND pe.party = %s
+        AND pe.company = %s
+        AND pe.docstatus = 1
+        AND pe.payment_type = 'Pay'
+    """, (supplier, company))[0][0] or 0
+    
+    # Get total allocated amount
+    total_allocated = frappe.db.sql("""
+        SELECT IFNULL(SUM(per.allocated_amount), 0) as amount
+        FROM `tabPayment Entry` pe
+        JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
+        WHERE pe.party_type = 'Supplier'
+        AND pe.party = %s
+        AND pe.company = %s
+        AND pe.docstatus = 1
+    """, (supplier, company))[0][0] or 0
+    
+    # Unallocated advance = Total paid - Total allocated
+    advance_amount = flt(total_paid) - flt(total_allocated)
+    
+    return flt(advance_amount) if advance_amount > 0 else 0
 
 
 def get_debit_note_amount(supplier, filters):
