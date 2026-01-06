@@ -9,10 +9,111 @@ from frappe.utils import flt, today, cstr
 
 class Trip(Document):
     def validate(self):
-        """Prevent modification of invoiced revenue charges"""
+        """Prevent modification of invoiced revenue charges and validate milestones"""
         for charge in self.trip_revenue_charges:
             if charge.is_invoiced and frappe.flags.in_update:
                 frappe.throw(f"You cannot modify an invoiced charge: {charge.charge}")
+        
+        # Validate milestone tracking
+        self.validate_milestone_sequence()
+        self.validate_milestone_dates()
+        self.validate_milestone_requirements()
+
+    def validate_milestone_sequence(self):
+        """Ensure milestones are in proper sequence"""
+        from frappe import _
+        
+        milestones = [
+            ('is_booked', 'Booked'),
+            ('is_loaded', 'Loaded'),
+            ('is_offloaded', 'Offloaded'),
+            ('is_completed', 'Completed')
+        ]
+        
+        previous_milestone = None
+        for milestone_field, milestone_label in milestones:
+            current_state = getattr(self, milestone_field, 0)
+            
+            if current_state and previous_milestone and not getattr(self, previous_milestone[0], 0):
+                frappe.throw(
+                    _("{0} milestone cannot be completed before {1} milestone")
+                    .format(milestone_label, previous_milestone[1])
+                )
+            
+            if current_state:
+                previous_milestone = (milestone_field, milestone_label)
+        
+        # Validate is_returned separately (optional milestone for containerised cargo)
+        if getattr(self, 'is_returned', 0):
+            if self.cargo_type != 'Containerised':
+                frappe.throw(
+                    _("Container return milestone can only be set for Containerised cargo")
+                )
+            if not getattr(self, 'is_offloaded', 0):
+                frappe.throw(
+                    _("Trip must be offloaded before marking as returned")
+                )
+
+    def validate_milestone_dates(self):
+        """Ensure milestone dates are in chronological order and not in future"""
+        from frappe import _
+        from frappe.utils import getdate, nowdate
+        
+        date_fields = [
+            ('booked_on_date', 'Booked Date'),
+            ('loaded_on_date', 'Loaded Date'),
+            ('offloaded_on_date', 'Offloaded Date'),
+            ('returned_on_date', 'Returned Date'),
+            ('completed_on_date', 'Completed Date')
+        ]
+        
+        dates_with_values = []
+        today = getdate(nowdate())
+        
+        for field, label in date_fields:
+            date_value = getattr(self, field, None)
+            if date_value:
+                try:
+                    normalized_date = getdate(date_value)
+                    
+                    # Check for future dates
+                    if normalized_date > today:
+                        frappe.throw(
+                            _("{0} cannot be in the future")
+                            .format(label)
+                        )
+                    
+                    dates_with_values.append((field, label, normalized_date))
+                    
+                except Exception:
+                    frappe.throw(
+                        _("Invalid date format in {0}")
+                        .format(label)
+                    )
+        
+        # Check chronological order
+        for i in range(1, len(dates_with_values)):
+            if dates_with_values[i][2] < dates_with_values[i-1][2]:
+                frappe.throw(
+                    _("{0} cannot be before {1}")
+                    .format(dates_with_values[i][1], dates_with_values[i-1][1])
+                )
+
+    def validate_milestone_requirements(self):
+        """Validate required fields for specific milestones"""
+        from frappe import _
+        
+        # Required for loading
+        if getattr(self, 'is_loaded', 0):
+            if not self.driver:
+                frappe.throw(_("Driver is required for loaded trip"))
+            if not self.truck:
+                frappe.throw(_("Truck is required for loaded trip"))
+        
+        # Required for completion
+        if getattr(self, 'is_completed', 0):
+            if not getattr(self, 'is_offloaded', 0):
+                frappe.throw(_("Trip must be offloaded before marking as completed"))
 
 
 #######################################################################################

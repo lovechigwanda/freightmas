@@ -35,8 +35,8 @@ def execute(filters=None):
 
     # Get forwarding jobs data - matching exact columns from screenshot
     jobs = frappe.db.sql(f"""
-        SELECT name, date_created, customer, consignee, bl_number, 
-               direction, status
+        SELECT name, date_created, customer, consignee, customer_reference, 
+               eta, direction, status
         FROM `tabForwarding Job`
         WHERE {conditions}
         ORDER BY date_created DESC
@@ -49,7 +49,8 @@ def execute(filters=None):
             "date_created": format_date(job.get("date_created")),
             "customer": job.get("customer", ""),
             "consignee": job.get("consignee", ""),
-            "bl_number": job.get("bl_number", ""),
+            "customer_reference": job.get("customer_reference", ""),
+            "eta": format_date(job.get("eta")),
             "direction": job.get("direction", ""),
             "status": job.get("status", ""),
         })
@@ -76,9 +77,10 @@ def get_columns():
         {"label": "Date Created", "fieldname": "date_created", "fieldtype": "Data", "width": 130},
         {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 210},
         {"label": "Consignee", "fieldname": "consignee", "fieldtype": "Link", "options": "Customer", "width": 210},
-        {"label": "BL Number", "fieldname": "bl_number", "fieldtype": "Data", "width": 160},
-        {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 130},
-        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 130},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 160},
+        {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 110},
+        {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 110},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
     ]
 
 

@@ -77,6 +77,35 @@
   "date_loaded",
   "column_break_axue",
   "date_offloaded",
+  "milestone_tracking_section",
+  "is_booked",
+  "booked_on_date",
+  "column_break_mtks1",
+  "is_loaded",
+  "loaded_on_date",
+  "column_break_mtks2",
+  "is_offloaded",
+  "offloaded_on_date",
+  "column_break_mtks3",
+  "is_returned",
+  "returned_on_date",
+  "column_break_mtks4",
+  "is_completed",
+  "completed_on_date",
+  "extended_tracking_section",
+  "border_tracking",
+  "border_name",
+  "border_arrived_on",
+  "border_left_on",
+  "column_break_etks1",
+  "border_2_tracking",
+  "border_2_name",
+  "border_2_arrived_on",
+  "border_2_left_on",
+  "column_break_etks2",
+  "offloading_point",
+  "offloading_arrived_on",
+  "column_break_etks3",
   "trip_tracking_update_section",
   "trip_tracking_update",
   "current_tracking_update_section",
@@ -545,6 +574,185 @@
    "fieldname": "date_offloaded",
    "fieldtype": "Date",
    "label": "Date Offloaded"
+  },
+  {
+   "fieldname": "milestone_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Milestone Tracking"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_booked",
+   "fieldtype": "Check",
+   "label": "Is Booked",
+   "read_only_depends_on": "eval:doc.is_loaded"
+  },
+  {
+   "depends_on": "eval:doc.is_booked",
+   "fieldname": "booked_on_date",
+   "fieldtype": "Date",
+   "label": "Booked On",
+   "mandatory_depends_on": "eval:doc.is_booked",
+   "read_only_depends_on": "eval:doc.is_loaded"
+  },
+  {
+   "fieldname": "column_break_mtks1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_loaded",
+   "fieldtype": "Check",
+   "label": "Is Loaded",
+   "read_only_depends_on": "eval:doc.is_offloaded"
+  },
+  {
+   "depends_on": "eval:doc.is_loaded",
+   "fieldname": "loaded_on_date",
+   "fieldtype": "Date",
+   "label": "Loaded On",
+   "mandatory_depends_on": "eval:doc.is_loaded == 1",
+   "read_only_depends_on": "eval:doc.is_offloaded"
+  },
+  {
+   "fieldname": "column_break_mtks2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_offloaded",
+   "fieldtype": "Check",
+   "label": "Is Offloaded",
+   "read_only_depends_on": "eval:doc.is_returned"
+  },
+  {
+   "depends_on": "eval:doc.is_offloaded",
+   "fieldname": "offloaded_on_date",
+   "fieldtype": "Date",
+   "label": "Offloaded On",
+   "mandatory_depends_on": "eval:doc.is_offloaded",
+   "read_only_depends_on": "eval:doc.is_returned"
+  },
+  {
+   "fieldname": "column_break_mtks3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.cargo_type == 'Containerised'",
+   "fieldname": "is_returned",
+   "fieldtype": "Check",
+   "label": "Is Returned",
+   "read_only_depends_on": "eval:doc.is_completed"
+  },
+  {
+   "depends_on": "eval:doc.is_returned",
+   "fieldname": "returned_on_date",
+   "fieldtype": "Date",
+   "label": "Returned On",
+   "mandatory_depends_on": "eval:doc.is_returned",
+   "read_only_depends_on": "eval:doc.is_completed"
+  },
+  {
+   "fieldname": "column_break_mtks4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_completed",
+   "fieldtype": "Check",
+   "label": "Is Completed"
+  },
+  {
+   "depends_on": "eval:doc.is_completed",
+   "fieldname": "completed_on_date",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "mandatory_depends_on": "eval:doc.is_completed"
+  },
+  {
+   "fieldname": "extended_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Extended Tracking"
+  },
+  {
+   "default": "0",
+   "fieldname": "border_tracking",
+   "fieldtype": "Check",
+   "label": "Border Tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_name",
+   "fieldtype": "Link",
+   "label": "Border Name",
+   "mandatory_depends_on": "eval:doc.border_tracking",
+   "options": "Border Post"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_arrived_on",
+   "fieldtype": "Date",
+   "label": "Border Arrived On",
+   "mandatory_depends_on": "eval:doc.border_tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_tracking",
+   "fieldname": "border_left_on",
+   "fieldtype": "Date",
+   "label": "Border Left On"
+  },
+  {
+   "fieldname": "column_break_etks1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "border_2_tracking",
+   "fieldtype": "Check",
+   "label": "Border 2 Tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_name",
+   "fieldtype": "Link",
+   "label": "Border 2 Name",
+   "mandatory_depends_on": "eval:doc.border_2_tracking",
+   "options": "Border Post"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_arrived_on",
+   "fieldtype": "Date",
+   "label": "Border 2 Arrived On",
+   "mandatory_depends_on": "eval:doc.border_2_tracking"
+  },
+  {
+   "depends_on": "eval:doc.border_2_tracking",
+   "fieldname": "border_2_left_on",
+   "fieldtype": "Date",
+   "label": "Border 2 Left On"
+  },
+  {
+   "fieldname": "column_break_etks2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "offloading_point",
+   "fieldtype": "Check",
+   "label": "Offloading Point"
+  },
+  {
+   "depends_on": "eval:doc.offloading_point",
+   "fieldname": "offloading_arrived_on",
+   "fieldtype": "Date",
+   "label": "Offload Arrived On",
+   "mandatory_depends_on": "eval:doc.offloading_point"
+  },
+  {
+   "fieldname": "column_break_etks3",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "trip_fuel_allocation",
