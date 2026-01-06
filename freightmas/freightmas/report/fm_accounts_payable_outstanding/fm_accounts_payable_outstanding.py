@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, getdate
 
 
 def execute(filters=None):
@@ -44,6 +44,7 @@ def get_data(filters):
     supplier = filters.get("supplier")
     supplier_group = filters.get("supplier_group")
     include_proforma = filters.get("include_proforma_invoices")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
     
     # Build conditions
     conditions = f"AND pi.company = '{company}'"
@@ -60,7 +61,7 @@ def get_data(filters):
     else:
         docstatus_condition = "pi.docstatus = 1"
     
-    # Get supplier outstanding amounts
+    # Get supplier outstanding amounts from invoices
     data = frappe.db.sql(f"""
         SELECT 
             pi.supplier,
@@ -76,13 +77,57 @@ def get_data(filters):
         ORDER BY outstanding_amount DESC, pi.supplier
     """, as_dict=True)
     
-    # Get advance amounts for each supplier
+    # Get suppliers from Journal Entries via Payment Ledger Entry
+    payable_account = frappe.db.get_value("Company", company, "default_payable_account")
+    journal_suppliers = {}
+    
+    if payable_account:
+        je_conditions = f"AND ple.company = '{company}'"
+        if supplier:
+            je_conditions += f" AND ple.party = '{supplier}'"
+        if supplier_group:
+            je_conditions += f" AND ple.party IN (SELECT name FROM `tabSupplier` WHERE supplier_group = '{supplier_group}')"
+        
+        journal_data = frappe.db.sql(f"""
+            SELECT 
+                ple.party as supplier,
+                SUM(ple.amount) as outstanding_amount
+            FROM `tabPayment Ledger Entry` ple
+            WHERE ple.party_type = 'Supplier'
+            AND ple.voucher_type = 'Journal Entry'
+            AND ple.account = '{payable_account}'
+            AND ple.posting_date <= '{report_date}'
+            AND ple.delinked = 0
+            {je_conditions}
+            GROUP BY ple.party
+            HAVING outstanding_amount != 0
+        """, as_dict=True)
+        
+        for row in journal_data:
+            journal_suppliers[row.supplier] = flt(row.outstanding_amount)
+    
+    # Merge invoice and journal entry data
+    supplier_map = {}
     for row in data:
-        advance_amount = get_advance_amount(row.supplier, company)
-        row.outstanding_amount = flt(row.outstanding_amount) - flt(advance_amount)
+        supplier_map[row.supplier] = flt(row.outstanding_amount)
+    
+    # Add journal entry amounts
+    for supplier, je_amount in journal_suppliers.items():
+        supplier_map[supplier] = supplier_map.get(supplier, 0) + je_amount
+    
+    # Rebuild data list
+    data = [{"supplier": supp, "outstanding_amount": amt} for supp, amt in supplier_map.items()]
+    
+    # Get advance amounts for each supplier and subtract from outstanding
+    for row in data:
+        advance_amount = get_advance_amount(row["supplier"], company)
+        row["outstanding_amount"] = flt(row["outstanding_amount"]) - flt(advance_amount)
     
     # Filter out suppliers with zero or negative outstanding after advances
-    data = [row for row in data if row.outstanding_amount > 0]
+    data = [row for row in data if row["outstanding_amount"] > 0]
+    
+    # Sort by outstanding amount descending
+    data = sorted(data, key=lambda x: (-x["outstanding_amount"], x["supplier"]))
     
     return data
 

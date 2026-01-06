@@ -122,9 +122,11 @@ def get_data(filters):
 
 
 def get_suppliers_with_invoices(filters):
-    """Get list of suppliers who have purchase invoices."""
+    """Get list of suppliers who have purchase invoices or journal entries."""
     conditions = get_conditions(filters)
     include_proforma = filters.get("include_proforma_invoices")
+    company = filters.get("company")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
     
     # Build the docstatus condition
     if include_proforma:
@@ -134,14 +136,37 @@ def get_suppliers_with_invoices(filters):
         # Only submitted invoices
         docstatus_condition = "docstatus = 1"
     
-    suppliers = frappe.db.sql(f"""
+    # Get suppliers from Purchase Invoices
+    suppliers_from_invoices = frappe.db.sql(f"""
         SELECT DISTINCT supplier
         FROM `tabPurchase Invoice`
         WHERE {docstatus_condition} {conditions}
-        ORDER BY supplier
     """, as_dict=True)
     
-    return [s.supplier for s in suppliers]
+    # Get suppliers from Journal Entries via Payment Ledger Entry
+    payable_account = frappe.db.get_value("Company", company, "default_payable_account")
+    suppliers_from_journal = []
+    
+    if payable_account:
+        suppliers_from_journal = frappe.db.sql("""
+            SELECT DISTINCT party as supplier
+            FROM `tabPayment Ledger Entry`
+            WHERE party_type = 'Supplier'
+            AND company = %s
+            AND voucher_type = 'Journal Entry'
+            AND account = %s
+            AND posting_date <= %s
+            AND delinked = 0
+        """, (company, payable_account, report_date), as_dict=True)
+    
+    # Combine and deduplicate
+    all_suppliers = set()
+    for s in suppliers_from_invoices:
+        all_suppliers.add(s.supplier)
+    for s in suppliers_from_journal:
+        all_suppliers.add(s.supplier)
+    
+    return sorted(list(all_suppliers))
 
 
 def get_supplier_summary(supplier, filters, report_date):
@@ -168,10 +193,14 @@ def get_supplier_summary(supplier, filters, report_date):
     # Get debit note amount
     debit_note_amount = get_debit_note_amount(supplier, filters)
     
+    # Get journal entry amount (credits - debits from Journal Entries)
+    journal_entry_amount = get_journal_entry_amount(supplier, filters)
+    
     # Calculate outstanding amount
     # When include_proforma_invoices is checked, add proforma_amount to the outstanding balance
     # Advances reduce the outstanding balance
-    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - debit_note_amount
+    # Journal entries are added to the balance (positive = credit/invoice, negative = debit/payment)
+    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - debit_note_amount + journal_entry_amount
     
     # Get aging analysis (include proforma if checkbox is ticked)
     aging = get_aging_analysis(supplier, filters, report_date)
@@ -299,6 +328,39 @@ def get_debit_note_amount(supplier, filters):
         AND is_return = 1
         {conditions}
     """, supplier)[0][0] or 0
+    
+    return flt(amount)
+
+
+def get_journal_entry_amount(supplier, filters):
+    """Get net amount from Journal Entries via Payment Ledger Entry.
+    
+    This includes all Journal Entries posted against supplier's payable account.
+    Positive amount = credits (invoices), Negative amount = debits (payments)
+    """
+    company = filters.get("company")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
+    
+    # Get payable account for the supplier
+    payable_account = frappe.db.get_value("Company", company, "default_payable_account")
+    
+    if not payable_account:
+        return 0
+    
+    # Query Payment Ledger Entry for Journal Entries affecting this supplier
+    # Credit increases payable (we owe supplier), Debit decreases payable (payment to supplier)
+    # Amount in PLE is positive for credits, negative for debits
+    amount = frappe.db.sql("""
+        SELECT IFNULL(SUM(amount), 0) as amount
+        FROM `tabPayment Ledger Entry`
+        WHERE party_type = 'Supplier'
+        AND party = %s
+        AND company = %s
+        AND voucher_type = 'Journal Entry'
+        AND account = %s
+        AND posting_date <= %s
+        AND delinked = 0
+    """, (supplier, company, payable_account, report_date))[0][0] or 0
     
     return flt(amount)
 

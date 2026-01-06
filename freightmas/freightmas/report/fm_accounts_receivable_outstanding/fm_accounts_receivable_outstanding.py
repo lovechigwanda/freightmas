@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, getdate
 
 
 def execute(filters=None):
@@ -44,6 +44,7 @@ def get_data(filters):
     customer = filters.get("customer")
     customer_group = filters.get("customer_group")
     include_proforma = filters.get("include_proforma_invoices")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
     
     # Build conditions
     conditions = f"AND si.company = '{company}'"
@@ -60,7 +61,7 @@ def get_data(filters):
     else:
         docstatus_condition = "si.docstatus = 1"
     
-    # Get customer outstanding amounts
+    # Get customer outstanding amounts from invoices
     data = frappe.db.sql(f"""
         SELECT 
             si.customer,
@@ -76,13 +77,57 @@ def get_data(filters):
         ORDER BY outstanding_amount DESC, si.customer
     """, as_dict=True)
     
-    # Get advance amounts for each customer
+    # Get customers from Journal Entries via Payment Ledger Entry
+    receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
+    journal_customers = {}
+    
+    if receivable_account:
+        je_conditions = f"AND ple.company = '{company}'"
+        if customer:
+            je_conditions += f" AND ple.party = '{customer}'"
+        if customer_group:
+            je_conditions += f" AND ple.party IN (SELECT name FROM `tabCustomer` WHERE customer_group = '{customer_group}')"
+        
+        journal_data = frappe.db.sql(f"""
+            SELECT 
+                ple.party as customer,
+                SUM(ple.amount) as outstanding_amount
+            FROM `tabPayment Ledger Entry` ple
+            WHERE ple.party_type = 'Customer'
+            AND ple.voucher_type = 'Journal Entry'
+            AND ple.account = '{receivable_account}'
+            AND ple.posting_date <= '{report_date}'
+            AND ple.delinked = 0
+            {je_conditions}
+            GROUP BY ple.party
+            HAVING outstanding_amount != 0
+        """, as_dict=True)
+        
+        for row in journal_data:
+            journal_customers[row.customer] = flt(row.outstanding_amount)
+    
+    # Merge invoice and journal entry data
+    customer_map = {}
     for row in data:
-        advance_amount = get_advance_amount(row.customer, company)
-        row.outstanding_amount = flt(row.outstanding_amount) - flt(advance_amount)
+        customer_map[row.customer] = flt(row.outstanding_amount)
+    
+    # Add journal entry amounts
+    for customer, je_amount in journal_customers.items():
+        customer_map[customer] = customer_map.get(customer, 0) + je_amount
+    
+    # Rebuild data list
+    data = [{"customer": cust, "outstanding_amount": amt} for cust, amt in customer_map.items()]
+    
+    # Get advance amounts for each customer and subtract from outstanding
+    for row in data:
+        advance_amount = get_advance_amount(row["customer"], company)
+        row["outstanding_amount"] = flt(row["outstanding_amount"]) - flt(advance_amount)
     
     # Filter out customers with zero or negative outstanding after advances
-    data = [row for row in data if row.outstanding_amount > 0]
+    data = [row for row in data if row["outstanding_amount"] > 0]
+    
+    # Sort by outstanding amount descending
+    data = sorted(data, key=lambda x: (-x["outstanding_amount"], x["customer"]))
     
     return data
 

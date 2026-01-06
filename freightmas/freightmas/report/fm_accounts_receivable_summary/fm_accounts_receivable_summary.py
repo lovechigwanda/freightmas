@@ -122,9 +122,11 @@ def get_data(filters):
 
 
 def get_customers_with_invoices(filters):
-    """Get list of customers who have sales invoices."""
+    """Get list of customers who have sales invoices or journal entries."""
     conditions = get_conditions(filters)
     include_proforma = filters.get("include_proforma_invoices")
+    company = filters.get("company")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
     
     # Build the docstatus condition
     if include_proforma:
@@ -134,14 +136,37 @@ def get_customers_with_invoices(filters):
         # Only submitted invoices
         docstatus_condition = "docstatus = 1"
     
-    customers = frappe.db.sql(f"""
+    # Get customers from Sales Invoices
+    customers_from_invoices = frappe.db.sql(f"""
         SELECT DISTINCT customer
         FROM `tabSales Invoice`
         WHERE {docstatus_condition} {conditions}
-        ORDER BY customer
     """, as_dict=True)
     
-    return [c.customer for c in customers]
+    # Get customers from Journal Entries via Payment Ledger Entry
+    receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
+    customers_from_journal = []
+    
+    if receivable_account:
+        customers_from_journal = frappe.db.sql("""
+            SELECT DISTINCT party as customer
+            FROM `tabPayment Ledger Entry`
+            WHERE party_type = 'Customer'
+            AND company = %s
+            AND voucher_type = 'Journal Entry'
+            AND account = %s
+            AND posting_date <= %s
+            AND delinked = 0
+        """, (company, receivable_account, report_date), as_dict=True)
+    
+    # Combine and deduplicate
+    all_customers = set()
+    for c in customers_from_invoices:
+        all_customers.add(c.customer)
+    for c in customers_from_journal:
+        all_customers.add(c.customer)
+    
+    return sorted(list(all_customers))
 
 
 def get_customer_summary(customer, filters, report_date):
@@ -168,10 +193,14 @@ def get_customer_summary(customer, filters, report_date):
     # Get credit note amount
     credit_note_amount = get_credit_note_amount(customer, filters)
     
+    # Get journal entry amount (debits - credits from Journal Entries)
+    journal_entry_amount = get_journal_entry_amount(customer, filters)
+    
     # Calculate outstanding amount
     # When include_proforma_invoices is checked, add proforma_amount to the outstanding balance
     # Advances reduce the outstanding balance
-    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - credit_note_amount
+    # Journal entries are added to the balance (positive = debit/invoice, negative = credit/payment)
+    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - credit_note_amount + journal_entry_amount
     
     # Get aging analysis (include proforma if checkbox is ticked)
     aging = get_aging_analysis(customer, filters, report_date)
@@ -299,6 +328,38 @@ def get_credit_note_amount(customer, filters):
         AND is_return = 1
         {conditions}
     """, customer)[0][0] or 0
+    
+    return flt(amount)
+
+
+def get_journal_entry_amount(customer, filters):
+    """Get net amount from Journal Entries via Payment Ledger Entry.
+    
+    This includes all Journal Entries posted against customer's receivable account.
+    Positive amount = debits (invoices), Negative amount = credits (payments)
+    """
+    company = filters.get("company")
+    report_date = getdate(filters.get("report_date") or frappe.utils.today())
+    
+    # Get receivable account for the customer
+    receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
+    
+    if not receivable_account:
+        return 0
+    
+    # Query Payment Ledger Entry for Journal Entries affecting this customer
+    # Debit increases receivable (customer owes us), Credit decreases receivable (payment from customer)
+    amount = frappe.db.sql("""
+        SELECT IFNULL(SUM(amount), 0) as amount
+        FROM `tabPayment Ledger Entry`
+        WHERE party_type = 'Customer'
+        AND party = %s
+        AND company = %s
+        AND voucher_type = 'Journal Entry'
+        AND account = %s
+        AND posting_date <= %s
+        AND delinked = 0
+    """, (customer, company, receivable_account, report_date))[0][0] or 0
     
     return flt(amount)
 
