@@ -1,17 +1,14 @@
-# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
+# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd
 # For license information, please see license.txt
 
 import frappe
 from frappe import _
-from frappe.utils import formatdate, getdate, add_days, flt, cint
-from datetime import datetime
+from frappe.utils import flt, getdate
 
 
 def execute(filters=None):
-    """Execute the Accounts Receivable Summary report with Proforma option."""
-    if not filters:
-        filters = {}
-
+    filters = filters or {}
+    
     columns = get_columns(filters)
     data = get_data(filters)
     
@@ -19,386 +16,209 @@ def execute(filters=None):
 
 
 def get_columns(filters):
-    """Get column definitions for the AR Summary report."""
     columns = [
         {
             "fieldname": "customer",
             "label": _("Customer"),
             "fieldtype": "Link",
             "options": "Customer",
-            "width": 200
+            "width": 200,
         },
         {
-            "fieldname": "opening_balance",
-            "label": _("Op Balance"),
+            "fieldname": "outstanding_submitted",
+            "label": _("Outstanding (Submitted)"),
             "fieldtype": "Currency",
-            "width": 120
+            "width": 160,
         },
-        {
-            "fieldname": "invoiced_amount",
-            "label": _("Invoiced"),
-            "fieldtype": "Currency", 
-            "width": 120
-        }
     ]
     
-    # Add Proforma Amount column if checkbox is ticked
     if filters.get("include_proforma_invoices"):
         columns.append({
-            "fieldname": "proforma_amount",
-            "label": _("Proforma"),
+            "fieldname": "outstanding_draft",
+            "label": _("Draft Invoices"),
             "fieldtype": "Currency",
-            "width": 120
+            "width": 140,
         })
     
     columns.extend([
         {
-            "fieldname": "paid_amount",
-            "label": _("Paid"),
+            "fieldname": "total_outstanding",
+            "label": _("Total Outstanding"),
             "fieldtype": "Currency",
-            "width": 120
-        },
-        {
-            "fieldname": "advance_amount",
-            "label": _("Advance"),
-            "fieldtype": "Currency",
-            "width": 120
-        },
-        {
-            "fieldname": "credit_note_amount",
-            "label": _("Credit Note"),
-            "fieldtype": "Currency",
-            "width": 120
-        },
-        {
-            "fieldname": "outstanding_amount",
-            "label": _("Outstanding"),
-            "fieldtype": "Currency",
-            "width": 130
+            "width": 160,
         },
         {
             "fieldname": "range1",
             "label": _("0-30 Days"),
             "fieldtype": "Currency",
-            "width": 100
+            "width": 100,
         },
         {
-            "fieldname": "range2", 
+            "fieldname": "range2",
             "label": _("31-60 Days"),
             "fieldtype": "Currency",
-            "width": 100
+            "width": 100,
         },
         {
             "fieldname": "range3",
             "label": _("61-90 Days"),
             "fieldtype": "Currency",
-            "width": 100
+            "width": 100,
         },
         {
             "fieldname": "range4",
             "label": _("91+ Days"),
             "fieldtype": "Currency",
-            "width": 100
-        }
+            "width": 100,
+        },
     ])
     
     return columns
 
 
 def get_data(filters):
-    """Get data for the AR Summary report."""
+    company = filters.get("company")
+    customer = filters.get("customer")
+    customer_group = filters.get("customer_group")
+    include_drafts = filters.get("include_proforma_invoices")
     report_date = getdate(filters.get("report_date") or frappe.utils.today())
     
-    # Get all customers with invoices
-    customers = get_customers_with_invoices(filters)
+    if not company:
+        frappe.throw(_("Company filter is required"))
     
-    data = []
-    for customer in customers:
-        row = get_customer_summary(customer, filters, report_date)
-        if row:
-            data.append(row)
+    conditions = ["gl.party_type = 'Customer'", "gl.is_cancelled = 0"]
+    si_conditions = ["si.docstatus = 0", "si.is_return = 0"]
     
-    return data
-
-
-def get_customers_with_invoices(filters):
-    """Get list of customers who have sales invoices or journal entries."""
-    conditions = get_conditions(filters)
-    include_proforma = filters.get("include_proforma_invoices")
-    company = filters.get("company")
-    report_date = getdate(filters.get("report_date") or frappe.utils.today())
+    if customer:
+        conditions.append("gl.party = %(customer)s")
+        si_conditions.append("si.customer = %(customer)s")
     
-    # Build the docstatus condition
-    if include_proforma:
-        # Include both submitted (docstatus=1) and draft (docstatus=0) invoices
-        docstatus_condition = "docstatus IN (0, 1)"
-    else:
-        # Only submitted invoices
-        docstatus_condition = "docstatus = 1"
+    if customer_group:
+        conditions.append("gl.party IN (SELECT name FROM `tabCustomer` WHERE customer_group = %(customer_group)s)")
+        si_conditions.append("si.customer IN (SELECT name FROM `tabCustomer` WHERE customer_group = %(customer_group)s)")
     
-    # Get customers from Sales Invoices
-    customers_from_invoices = frappe.db.sql(f"""
-        SELECT DISTINCT customer
-        FROM `tabSales Invoice`
-        WHERE {docstatus_condition} {conditions}
-    """, as_dict=True)
-    
-    # Get customers from Journal Entries via Payment Ledger Entry
-    receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
-    customers_from_journal = []
-    
-    if receivable_account:
-        customers_from_journal = frappe.db.sql("""
-            SELECT DISTINCT party as customer
-            FROM `tabPayment Ledger Entry`
-            WHERE party_type = 'Customer'
-            AND company = %s
-            AND voucher_type = 'Journal Entry'
-            AND account = %s
-            AND posting_date <= %s
-            AND delinked = 0
-        """, (company, receivable_account, report_date), as_dict=True)
-    
-    # Combine and deduplicate
-    all_customers = set()
-    for c in customers_from_invoices:
-        all_customers.add(c.customer)
-    for c in customers_from_journal:
-        all_customers.add(c.customer)
-    
-    return sorted(list(all_customers))
-
-
-def get_customer_summary(customer, filters, report_date):
-    """Get summary data for a single customer."""
-    company = filters.get("company")
-    
-    # Get opening balance (before from_date)
-    opening_balance = get_opening_balance(customer, filters)
-    
-    # Get invoiced amount (submitted invoices in period)
-    invoiced_amount = get_invoiced_amount(customer, filters)
-    
-    # Get proforma amount (draft invoices if checkbox is ticked)
-    proforma_amount = 0
-    if filters.get("include_proforma_invoices"):
-        proforma_amount = get_proforma_amount(customer, filters)
-    
-    # Get paid amount (payments in period)
-    paid_amount = get_paid_amount(customer, filters)
-    
-    # Get advance amount (unallocated payments)
-    advance_amount = get_advance_amount(customer, filters)
-    
-    # Get credit note amount
-    credit_note_amount = get_credit_note_amount(customer, filters)
-    
-    # Get journal entry amount (debits - credits from Journal Entries)
-    journal_entry_amount = get_journal_entry_amount(customer, filters)
-    
-    # Calculate outstanding amount
-    # When include_proforma_invoices is checked, add proforma_amount to the outstanding balance
-    # Advances reduce the outstanding balance
-    # Journal entries are added to the balance (positive = debit/invoice, negative = credit/payment)
-    outstanding_amount = opening_balance + invoiced_amount + proforma_amount - paid_amount - advance_amount - credit_note_amount + journal_entry_amount
-    
-    # Get aging analysis (include proforma if checkbox is ticked)
-    aging = get_aging_analysis(customer, filters, report_date)
-    
-    row = {
+    params = {
+        "company": company,
         "customer": customer,
-        "opening_balance": opening_balance,
-        "invoiced_amount": invoiced_amount,
-        "paid_amount": paid_amount,
-        "advance_amount": advance_amount,
-        "credit_note_amount": credit_note_amount,
-        "outstanding_amount": outstanding_amount,
-        "range1": aging.get("range1", 0),
-        "range2": aging.get("range2", 0), 
-        "range3": aging.get("range3", 0),
-        "range4": aging.get("range4", 0)
+        "customer_group": customer_group,
+        "report_date": report_date,
     }
     
-    # Add proforma amount if checkbox is ticked
-    if filters.get("include_proforma_invoices"):
-        row["proforma_amount"] = proforma_amount
+    # Get GL-based outstanding (submitted)
+    gl_data = frappe.db.sql(
+        f"""
+        SELECT
+            gl.party AS customer,
+            SUM(gl.debit) - SUM(gl.credit) AS outstanding_submitted
+        FROM `tabGL Entry` gl
+        JOIN `tabAccount` acc ON acc.name = gl.account
+        WHERE
+            gl.company = %(company)s
+            AND acc.account_type = 'Receivable'
+            AND gl.posting_date <= %(report_date)s
+            AND {" AND ".join(conditions)}
+        GROUP BY gl.party
+        """,
+        params,
+        as_dict=True,
+    )
     
-    # Only return row if there's activity
-    if any([outstanding_amount, invoiced_amount, proforma_amount, paid_amount, advance_amount]):
-        return row
+    gl_map = {row.customer: flt(row.outstanding_submitted) for row in gl_data}
     
-    return None
-
-
-def get_opening_balance(customer, filters):
-    """Calculate opening balance for customer."""
-    # For AR Summary without date ranges, opening balance is 0
-    # All invoices are considered in the main calculations
-    return 0
-
-
-def get_invoiced_amount(customer, filters):
-    """Get total invoiced amount for customer (submitted invoices only)."""
-    conditions = get_conditions(filters)
+    # Get draft invoices (optional)
+    draft_map = {}
+    if include_drafts:
+        draft_data = frappe.db.sql(
+            f"""
+            SELECT
+                si.customer,
+                SUM(si.grand_total) AS outstanding_draft
+            FROM `tabSales Invoice` si
+            WHERE
+                si.company = %(company)s
+                AND si.posting_date <= %(report_date)s
+                AND {" AND ".join(si_conditions)}
+            GROUP BY si.customer
+            """,
+            params,
+            as_dict=True,
+        )
+        draft_map = {row.customer: flt(row.outstanding_draft) for row in draft_data}
     
-    amount = frappe.db.sql(f"""
-        SELECT IFNULL(SUM(grand_total), 0) as amount
-        FROM `tabSales Invoice`
-        WHERE customer = %s 
-        AND docstatus = 1
-        {conditions}
-    """, customer)[0][0] or 0
+    # Merge results
+    customers = set(gl_map.keys()) | set(draft_map.keys())
+    result = []
     
-    return flt(amount)
-
-
-def get_proforma_amount(customer, filters):
-    """Get total proforma (draft) invoice amount for customer."""
-    conditions = get_conditions(filters, include_draft=True)
+    for cust in customers:
+        submitted = gl_map.get(cust, 0)
+        draft = draft_map.get(cust, 0) if include_drafts else 0
+        total = submitted + draft
+        
+        if total != 0:
+            # Get aging analysis
+            aging = get_aging_analysis(cust, filters, report_date)
+            
+            row = {
+                "customer": cust,
+                "outstanding_submitted": submitted,
+                "total_outstanding": total,
+                "range1": aging.get("range1", 0),
+                "range2": aging.get("range2", 0),
+                "range3": aging.get("range3", 0),
+                "range4": aging.get("range4", 0),
+            }
+            
+            if include_drafts:
+                row["outstanding_draft"] = draft
+            
+            result.append(row)
     
-    amount = frappe.db.sql(f"""
-        SELECT IFNULL(SUM(grand_total), 0) as amount  
-        FROM `tabSales Invoice`
-        WHERE customer = %s
-        AND docstatus = 0
-        {conditions}
-    """, customer)[0][0] or 0
+    # Sort by total outstanding descending
+    result.sort(key=lambda x: (-x["total_outstanding"], x["customer"]))
     
-    return flt(amount)
-
-
-def get_paid_amount(customer, filters):
-    """Get total payments received from customer."""
-    company = filters.get("company")
-    
-    amount = frappe.db.sql("""
-        SELECT IFNULL(SUM(per.allocated_amount), 0) as amount
-        FROM `tabPayment Entry` pe
-        JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
-        WHERE pe.party_type = 'Customer'
-        AND pe.party = %s
-        AND pe.company = %s
-        AND pe.docstatus = 1
-    """, (customer, company))[0][0] or 0
-    
-    return flt(amount)
-
-
-def get_advance_amount(customer, filters):
-    """Get total unallocated advance payments from customer."""
-    company = filters.get("company")
-    
-    # Get total received amount from payment entries
-    total_received = frappe.db.sql("""
-        SELECT IFNULL(SUM(pe.paid_amount), 0) as amount
-        FROM `tabPayment Entry` pe
-        WHERE pe.party_type = 'Customer'
-        AND pe.party = %s
-        AND pe.company = %s
-        AND pe.docstatus = 1
-        AND pe.payment_type = 'Receive'
-    """, (customer, company))[0][0] or 0
-    
-    # Get total allocated amount
-    total_allocated = frappe.db.sql("""
-        SELECT IFNULL(SUM(per.allocated_amount), 0) as amount
-        FROM `tabPayment Entry` pe
-        JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
-        WHERE pe.party_type = 'Customer'
-        AND pe.party = %s
-        AND pe.company = %s
-        AND pe.docstatus = 1
-    """, (customer, company))[0][0] or 0
-    
-    # Unallocated advance = Total received - Total allocated
-    advance_amount = flt(total_received) - flt(total_allocated)
-    
-    return flt(advance_amount) if advance_amount > 0 else 0
-
-
-def get_credit_note_amount(customer, filters):
-    """Get total credit note amount for customer."""
-    conditions = get_conditions(filters)
-    
-    amount = frappe.db.sql(f"""
-        SELECT IFNULL(SUM(grand_total), 0) as amount
-        FROM `tabSales Invoice`
-        WHERE customer = %s
-        AND docstatus = 1
-        AND is_return = 1
-        {conditions}
-    """, customer)[0][0] or 0
-    
-    return flt(amount)
-
-
-def get_journal_entry_amount(customer, filters):
-    """Get net amount from Journal Entries via Payment Ledger Entry.
-    
-    This includes all Journal Entries posted against customer's receivable account.
-    Positive amount = debits (invoices), Negative amount = credits (payments)
-    """
-    company = filters.get("company")
-    report_date = getdate(filters.get("report_date") or frappe.utils.today())
-    
-    # Get receivable account for the customer
-    receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
-    
-    if not receivable_account:
-        return 0
-    
-    # Query Payment Ledger Entry for Journal Entries affecting this customer
-    # Debit increases receivable (customer owes us), Credit decreases receivable (payment from customer)
-    amount = frappe.db.sql("""
-        SELECT IFNULL(SUM(amount), 0) as amount
-        FROM `tabPayment Ledger Entry`
-        WHERE party_type = 'Customer'
-        AND party = %s
-        AND company = %s
-        AND voucher_type = 'Journal Entry'
-        AND account = %s
-        AND posting_date <= %s
-        AND delinked = 0
-    """, (customer, company, receivable_account, report_date))[0][0] or 0
-    
-    return flt(amount)
+    return result
 
 
 def get_aging_analysis(customer, filters, report_date):
-    """Get aging analysis for customer's outstanding invoices."""
+    """Get aging buckets based on invoices."""
     company = filters.get("company")
     aging_based_on = filters.get("ageing_based_on", "Due Date")
-    include_proforma = filters.get("include_proforma_invoices")
     
     # Parse aging ranges
     aging_range = filters.get("range", "30, 60, 90, 120")
-    range_list = [int(x.strip()) for x in aging_range.split(",")]
+    range_list = [int(x.strip()) for x in aging_range.split(",") if x.strip().isdigit()]
     
     if len(range_list) < 4:
-        range_list = [30, 60, 90, 120]  # Default ranges
+        range_list = [30, 60, 90, 120]
     
-    # Get outstanding invoices
     date_field = "due_date" if aging_based_on == "Due Date" else "posting_date"
     
     aging = {"range1": 0, "range2": 0, "range3": 0, "range4": 0}
     
-    # Get submitted invoices with outstanding amounts
-    submitted_invoices = frappe.db.sql(f"""
-        SELECT name, {date_field} as ref_date, outstanding_amount as amount
+    # Get outstanding invoices
+    invoices = frappe.db.sql(
+        f"""
+        SELECT 
+            name,
+            {date_field} as ref_date,
+            outstanding_amount
         FROM `tabSales Invoice`
-        WHERE customer = %s
-        AND company = %s
+        WHERE customer = %(customer)s
+        AND company = %(company)s
         AND docstatus = 1
         AND outstanding_amount > 0
-    """, (customer, company), as_dict=True)
+        AND posting_date <= %(report_date)s
+        """,
+        {"customer": customer, "company": company, "report_date": report_date},
+        as_dict=True,
+    )
     
-    # Process submitted invoices
-    for invoice in submitted_invoices:
+    for invoice in invoices:
         if not invoice.ref_date:
             continue
-            
+        
         days_diff = (report_date - getdate(invoice.ref_date)).days
-        amount = flt(invoice.amount)
+        amount = flt(invoice.outstanding_amount)
         
         if days_diff <= range_list[0]:
             aging["range1"] += amount
@@ -409,55 +229,4 @@ def get_aging_analysis(customer, filters, report_date):
         else:
             aging["range4"] += amount
     
-    # If including proforma invoices, add draft invoices to aging
-    if include_proforma:
-        draft_invoices = frappe.db.sql(f"""
-            SELECT name, {date_field} as ref_date, grand_total as amount
-            FROM `tabSales Invoice`
-            WHERE customer = %s
-            AND company = %s
-            AND docstatus = 0
-            AND grand_total > 0
-        """, (customer, company), as_dict=True)
-        
-        # Process draft invoices
-        for invoice in draft_invoices:
-            if not invoice.ref_date:
-                continue
-                
-            days_diff = (report_date - getdate(invoice.ref_date)).days
-            amount = flt(invoice.amount)
-            
-            if days_diff <= range_list[0]:
-                aging["range1"] += amount
-            elif days_diff <= range_list[1]:
-                aging["range2"] += amount
-            elif days_diff <= range_list[2]:
-                aging["range3"] += amount
-            else:
-                aging["range4"] += amount
-    
     return aging
-
-
-def get_conditions(filters, include_draft=False):
-    """Build SQL conditions based on filters."""
-    conditions = ""
-    
-    company = filters.get("company")
-    if company:
-        conditions += f" AND company = '{company}'"
-    
-    customer = filters.get("customer")
-    if customer:
-        conditions += f" AND customer = '{customer}'"
-    
-    customer_group = filters.get("customer_group")
-    if customer_group:
-        conditions += f" AND customer IN (SELECT name FROM `tabCustomer` WHERE customer_group = '{customer_group}')"
-    
-    # Include only submitted invoices unless specifically including draft
-    if not include_draft:
-        conditions += " AND docstatus = 1"
-    
-    return conditions
