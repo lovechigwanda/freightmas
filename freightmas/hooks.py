@@ -344,6 +344,12 @@ fixtures = [
         ]
     },
     {
+        "dt": "Workflow State",
+        "filters": [
+            ["name", "in", ["Draft", "Pending Approval", "Approved", "Sent to Customer", "Accepted", "Rejected", "Expired", "Cancelled"]]
+        ]
+    },
+    {
         "dt": "Workspace",
         "filters": [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","Trucking Service"]]

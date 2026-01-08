@@ -11,33 +11,6 @@
  {
   "docstatus": 0,
   "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-02-27 22:12:20.708848",
-  "name": "Pending Approval",
-  "style": "",
-  "workflow_state_name": "Pending Approval"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "question-sign",
-  "modified": "2024-10-13 03:09:01.531369",
-  "name": "Pending",
-  "style": "",
-  "workflow_state_name": "Pending"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "ok-sign",
-  "modified": "2025-02-28 01:05:22.599325",
-  "name": "Approved",
-  "style": "Success",
-  "workflow_state_name": "Approved"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
   "icon": "remove",
   "modified": "2025-02-28 01:05:22.600554",
   "name": "Rejected",
@@ -57,72 +30,45 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-10-29 18:13:53.286880",
-  "name": "In Progress",
-  "style": "Info",
-  "workflow_state_name": "In Progress"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-03-02 08:50:16.181730",
-  "name": "Closed",
-  "style": "",
-  "workflow_state_name": "Closed"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2024-11-07 21:55:43.753256",
-  "name": "Offloading",
-  "style": "Primary",
-  "workflow_state_name": "Offloading"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2025-10-29 18:14:35.241579",
-  "name": "Completed",
+  "modified": "2026-01-08 09:11:50.933973",
+  "name": "Accepted",
   "style": "Success",
-  "workflow_state_name": "Completed"
+  "workflow_state_name": "Accepted"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2025-10-29 18:14:24.874262",
-  "name": "Delivered",
-  "style": "Inverse",
-  "workflow_state_name": "Delivered"
+  "modified": "2026-01-08 09:13:29.861374",
+  "name": "Expired",
+  "style": "Warning",
+  "workflow_state_name": "Expired"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-11-07 21:55:00.918971",
-  "name": "In Transit",
+  "modified": "2026-01-08 09:10:23.233071",
+  "name": "Pending Approval",
   "style": "Info",
-  "workflow_state_name": "In Transit"
+  "workflow_state_name": "Pending Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2025-02-28 01:05:22.599325",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
  },
  {
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
-  "modified": "2024-11-07 21:54:04.053444",
-  "name": "Loading",
-  "style": "Warning",
-  "workflow_state_name": "Loading"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow State",
-  "icon": "",
-  "modified": "2024-11-07 21:58:17.834163",
-  "name": "Booking",
-  "style": "Warning",
-  "workflow_state_name": "Booking"
+  "modified": "2026-01-08 09:11:13.404725",
+  "name": "Sent to Customer",
+  "style": "Primary",
+  "workflow_state_name": "Sent to Customer"
  }
 ]
