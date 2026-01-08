@@ -159,6 +159,9 @@ app_include_js = "/assets/freightmas/js/report_commons.js"
 # ---------------
 
 scheduler_events = {
+	"daily": [
+		"freightmas.scheduler.quotation.expire_quotations"
+	],
 	"monthly": [
 		"freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.calculate_all_monthly_storage"
 	],
@@ -263,6 +266,10 @@ doc_events = {
     "File": {
         "after_insert": "freightmas.utils.forwarding_job_folder.file_on_insert",
         "on_update": "freightmas.utils.forwarding_job_folder.file_on_update"
+    },
+    "Quotation": {
+        "validate": "freightmas.freightmas.quotation_workflow.validate_quotation",
+        "on_update_after_submit": "freightmas.freightmas.quotation_workflow.on_quotation_workflow_change"
     }
 }
 
@@ -331,20 +338,16 @@ fixtures = [
         ]
     },
     {
-        "dt": "Workflow"
-    },
-
-    {
-        "dt": "Workflow State"
+        "dt": "Workflow",
+        "filters": [
+            ["name", "=", "Quotation Workflow"]
+        ]
     },
     {
         "dt": "Workspace",
         "filters": [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","Trucking Service"]]
         ]
-    },
-   {
-        "dt": "Workflow Action Master"
     },
     #{
     #    "dt": "Letter Head",
