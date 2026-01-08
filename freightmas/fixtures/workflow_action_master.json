@@ -16,36 +16,43 @@
  {
   "docstatus": 0,
   "doctype": "Workflow Action Master",
-  "modified": "2025-10-15 23:56:11.811548",
-  "name": "Review",
-  "workflow_action_name": "Review"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-10-29 18:16:37.483088",
-  "name": "Start Job",
-  "workflow_action_name": "Start Job"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-10-29 18:18:33.094767",
-  "name": "Mark as Delivered",
-  "workflow_action_name": "Mark as Delivered"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
-  "modified": "2025-10-29 18:18:42.536284",
-  "name": "Mark as Complete",
-  "workflow_action_name": "Mark as Complete"
- },
- {
-  "docstatus": 0,
-  "doctype": "Workflow Action Master",
   "modified": "2025-10-29 18:18:51.598159",
   "name": "Cancel",
   "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-08 09:24:14.562723",
+  "name": "Submit for Approval",
+  "workflow_action_name": "Submit for Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-08 09:27:17.451068",
+  "name": "Mark Accepted",
+  "workflow_action_name": "Mark Accepted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-08 09:27:47.452933",
+  "name": "Mark Rejected",
+  "workflow_action_name": "Mark Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-08 09:25:44.273493",
+  "name": "Send to Customer",
+  "workflow_action_name": "Send to Customer"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-01-08 09:26:28.105268",
+  "name": "Mark Expired",
+  "workflow_action_name": "Mark Expired"
  }
 ]

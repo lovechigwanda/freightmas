@@ -350,6 +350,12 @@ fixtures = [
         ]
     },
     {
+        "dt": "Workflow Action Master",
+        "filters": [
+            ["name", "in", ["Submit for Approval", "Approve", "Reject", "Send to Customer", "Mark Accepted", "Mark Rejected", "Mark Expired", "Cancel"]]
+        ]
+    },
+    {
         "dt": "Workspace",
         "filters": [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","Trucking Service"]]
