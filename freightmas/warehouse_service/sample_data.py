@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Copyright (c) 2025, Navari Limited and contributors
+# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 # For license information, please see license.txt
 
 """

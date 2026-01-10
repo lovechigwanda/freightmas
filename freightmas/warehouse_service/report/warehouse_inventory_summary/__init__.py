@@ -1,2 +1,2 @@
-# Copyright (c) 2026, Navari Limited and contributors
+# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 # For license information, please see license.txt

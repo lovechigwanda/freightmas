@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Navari Limited and Contributors
+# Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
 # See license.txt
 
 # import frappe
