@@ -85,7 +85,7 @@ def get_data(filters):
 			wj.customer,
 			cgri.storage_unit_item as item_code,
 			cgri.description as item_name,
-			cgri.uom,
+		cgri.stock_uom as uom,
 			SUM(cgri.quantity_remaining) as total_quantity,
 			AVG(DATEDIFF(CURDATE(), cgr.receipt_date)) as avg_days_in_warehouse,
 			COUNT(DISTINCT cgri.warehouse_bay) as warehouses_count,
@@ -102,7 +102,7 @@ def get_data(filters):
 			AND wj.status != 'Closed'
 			{conditions}
 		GROUP BY
-			wj.customer, cgri.storage_unit_item, cgri.description, cgri.uom
+			wj.customer, cgri.storage_unit_item, cgri.description, cgri.stock_uom
 		HAVING
 			total_quantity > 0 OR {show_zero}
 		ORDER BY

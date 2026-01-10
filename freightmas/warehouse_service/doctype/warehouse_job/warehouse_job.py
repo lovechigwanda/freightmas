@@ -206,7 +206,7 @@ class WarehouseJob(Document):
 			# Find matching rate by UOM
 			rate_item = None
 			for rate in rate_card.rate_items:
-				if rate.uom == item.uom:
+				if rate.uom == item.stock_uom:
 					rate_item = rate
 					break
 			
@@ -215,7 +215,7 @@ class WarehouseJob(Document):
 			
 			self.append("storage_charges", {
 				"goods_receipt_item": item.name,
-				"uom": item.uom,
+				"uom": item.stock_uom,
 				"quantity": item.quantity_remaining,
 				"start_date": self.storage_start_date or receipt.receipt_date,
 				"end_date": self.storage_end_date,
@@ -314,7 +314,7 @@ class WarehouseJob(Document):
 				END as status,
 				(SELECT COUNT(*) FROM `tabCustomer Goods Receipt Item` 
 				 WHERE parent = `tabCustomer Goods Receipt`.name) as item_count,
-				(SELECT SUM(quantity) FROM `tabCustomer Goods Receipt Item` 
+			(SELECT SUM(actual_stock_quantity) FROM `tabCustomer Goods Receipt Item` 
 				 WHERE parent = `tabCustomer Goods Receipt`.name) as total_quantity
 			FROM `tabCustomer Goods Receipt`
 			WHERE warehouse_job = %(job)s
@@ -357,18 +357,16 @@ class WarehouseJob(Document):
 			FROM (
 				-- Receipts
 				SELECT 
-					gri.uom,
-					gri.warehouse_bay,
-					SUM(gri.quantity) as total_received,
-					0 as total_dispatched,
-					gri.warehouse_bin as bin_name
-				FROM `tabCustomer Goods Receipt Item` gri
-				INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
-				WHERE gr.warehouse_job = %(job)s
-				AND gr.docstatus = 1
-				GROUP BY gri.uom, gri.warehouse_bay, gri.warehouse_bin
-				
-				UNION ALL
+				gri.stock_uom as uom,
+				gri.warehouse_bay,
+				SUM(gri.actual_stock_quantity) as total_received,
+				0 as total_dispatched,
+				gri.warehouse_bin as bin_name
+			FROM `tabCustomer Goods Receipt Item` gri
+			INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
+			WHERE gr.warehouse_job = %(job)s
+			AND gr.docstatus = 1
+			GROUP BY gri.stock_uom, gri.warehouse_bay, gri.warehouse_bin
 				
 				-- Dispatches
 				SELECT 
@@ -645,8 +643,8 @@ def calculate_monthly_storage_for_job(docname, start_date, end_date):
 	# Get all receipt items with their dates
 	receipt_items = frappe.db.sql("""
 		SELECT 
-			cgri.uom,
-			cgri.quantity,
+			cgri.stock_uom as uom,
+			cgri.actual_stock_quantity as quantity,
 			cgr.receipt_date
 		FROM `tabCustomer Goods Receipt Item` cgri
 		INNER JOIN `tabCustomer Goods Receipt` cgr ON cgr.name = cgri.parent

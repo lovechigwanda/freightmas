@@ -12,10 +12,10 @@ class CustomerGoodsReceipt(Document):
 		self.calculate_totals()
 	
 	def set_quantity_remaining(self):
-		"""Set quantity_remaining to quantity for new items"""
+		"""Set quantity_remaining to actual_stock_quantity for new items"""
 		for item in self.items:
 			if not item.quantity_remaining:
-				item.quantity_remaining = item.quantity
+				item.quantity_remaining = item.actual_stock_quantity
 	
 	def calculate_totals(self):
 		"""Calculate total quantities"""
@@ -24,5 +24,5 @@ class CustomerGoodsReceipt(Document):
 		self.total_volume_cbm = 0
 		
 		for item in self.items:
-			if item.uom == "Pallet":
-				self.total_pallets += item.quantity or 0
+			if item.stock_uom == "Pallet":
+				self.total_pallets += item.actual_stock_quantity or 0

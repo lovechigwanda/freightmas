@@ -19,7 +19,7 @@ def execute(filters=None):
 	if filters.get("warehouse_job"):
 		conditions += f" AND cgr.warehouse_job = '{filters['warehouse_job']}'"
 	if filters.get("uom"):
-		conditions += f" AND cgri.uom = '{filters['uom']}'"
+		conditions += f" AND cgri.stock_uom = '{filters['uom']}'"
 	if filters.get("warehouse_bay"):
 		conditions += f" AND cgri.warehouse_bay = '{filters['warehouse_bay']}'"
 
@@ -32,8 +32,8 @@ def execute(filters=None):
 			cgri.storage_unit_item,
 			cgri.customer_reference,
 			cgri.description,
-			cgri.uom,
-			cgri.quantity,
+			cgri.stock_uom as uom,
+			cgri.actual_stock_quantity as quantity,
 			cgri.quantity_remaining,
 			cgri.warehouse_bay,
 			cgri.warehouse_bin,

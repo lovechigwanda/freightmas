@@ -106,10 +106,7 @@ class WarehouseBin(Document):
 		allocations = frappe.db.sql("""
 			SELECT 
 				cgri.quantity_remaining,
-				cgri.uom
-			FROM `tabCustomer Goods Receipt Item` cgri
-			INNER JOIN `tabCustomer Goods Receipt` cgr ON cgri.parent = cgr.name
-			WHERE cgri.warehouse_bin = %s
+			cgri.stock_uom as uom
 			AND cgr.docstatus = 1
 			AND cgri.quantity_remaining > 0
 		""", self.name, as_dict=1)
@@ -166,9 +163,9 @@ class WarehouseBin(Document):
 				cgr.customer,
 				cgri.customer_reference,
 				cgri.description,
-				cgri.quantity as original_qty,
-				cgri.quantity_remaining,
-				cgri.uom,
+			cgri.actual_stock_quantity as original_qty,
+			cgri.quantity_remaining,
+			cgri.stock_uom as uom,
 				cgr.receipt_date,
 				DATEDIFF(CURDATE(), cgr.receipt_date) as days_stored
 			FROM `tabCustomer Goods Receipt Item` cgri

@@ -27,11 +27,14 @@
   "storage_rate_item",
   "section_break_16",
   "storage_charges",
-  "rental_charges_section",
+  "rental_rates_section",
   "space_uom",
   "column_break_rjun",
   "allocated_space",
   "column_break_ohph",
+  "rental_rate",
+  "rental_charges_section",
+  "rental_charges",
   "section_break_18",
   "handling_charges",
   "section_break_20",
@@ -269,11 +272,6 @@
    "label": "Notes"
   },
   {
-   "fieldname": "rental_charges_section",
-   "fieldtype": "Section Break",
-   "label": "Rental Charges"
-  },
-  {
    "fieldname": "space_uom",
    "fieldtype": "Link",
    "label": "Space UOM",
@@ -292,6 +290,27 @@
    "fieldtype": "Float",
    "label": "Allocated Space",
    "precision": "2"
+  },
+  {
+   "fieldname": "rental_rate",
+   "fieldtype": "Float",
+   "label": "Rate Per Day",
+   "precision": "2"
+  },
+  {
+   "fieldname": "rental_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Rental Rates"
+  },
+  {
+   "fieldname": "rental_charges",
+   "fieldtype": "Table",
+   "options": "Warehouse Job Rental Charges"
+  },
+  {
+   "fieldname": "rental_charges_section",
+   "fieldtype": "Section Break",
+   "label": "Rental Charges"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -310,7 +329,7 @@
    "link_fieldname": "warehouse_job_reference"
   }
  ],
- "modified": "2026-01-10 16:03:36.964621",
+ "modified": "2026-01-10 17:42:44.936807",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Job",
