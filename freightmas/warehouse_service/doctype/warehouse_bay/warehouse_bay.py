@@ -63,8 +63,8 @@ def get_bay_with_bins(bay_code):
 	summary = frappe.db.sql("""
 		SELECT 
 			COUNT(*) as total_bins,
-			SUM(CASE WHEN is_occupied = 1 THEN 1 ELSE 0 END) as occupied_bins,
-			SUM(CASE WHEN is_occupied = 0 THEN 1 ELSE 0 END) as available_bins,
+			SUM(CASE WHEN current_capacity_used > 0 THEN 1 ELSE 0 END) as occupied_bins,
+			SUM(CASE WHEN current_capacity_used = 0 OR current_capacity_used IS NULL THEN 1 ELSE 0 END) as available_bins,
 			AVG(CASE WHEN max_capacity > 0 THEN capacity_utilization_pct ELSE 0 END) as avg_utilization
 		FROM `tabWarehouse Bin`
 		WHERE bay = %s
@@ -73,16 +73,16 @@ def get_bay_with_bins(bay_code):
 	# Get capacity breakdown by UOM
 	capacity_by_uom = frappe.db.sql("""
 		SELECT 
-			capacity_uom,
+			uom as capacity_uom,
 			COUNT(*) as bin_count,
 			SUM(max_capacity) as max_capacity,
 			SUM(current_capacity_used) as used_capacity
 		FROM `tabWarehouse Bin`
 		WHERE bay = %s
-		AND capacity_uom IS NOT NULL
+		AND uom IS NOT NULL
 		AND max_capacity > 0
-		GROUP BY capacity_uom
-		ORDER BY capacity_uom
+		GROUP BY uom
+		ORDER BY uom
 	""", bay_code, as_dict=1)
 	
 	# Get all bins
@@ -90,11 +90,11 @@ def get_bay_with_bins(bay_code):
 		SELECT 
 			bin_code,
 			bin_type,
-			capacity_uom,
+			uom as capacity_uom,
 			max_capacity,
 			current_capacity_used,
 			capacity_utilization_pct,
-			is_occupied,
+			CASE WHEN current_capacity_used > 0 THEN 1 ELSE 0 END as is_occupied,
 			max_weight_kg
 		FROM `tabWarehouse Bin`
 		WHERE bay = %s

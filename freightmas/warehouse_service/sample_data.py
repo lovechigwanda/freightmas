@@ -175,9 +175,8 @@ def create_warehouse_bins():
 					"bin_type": config["type"],
 					"max_weight_kg": config["max_weight"],
 					"max_height_cm": 200.0,
-					"is_occupied": 0,
-					# Capacity management fields
-					"capacity_uom": config["capacity_uom"],
+				# Capacity management fields
+				"uom": config["capacity_uom"],
 					"max_capacity": config["max_capacity"]
 				})
 				bin_doc.insert(ignore_permissions=True)
