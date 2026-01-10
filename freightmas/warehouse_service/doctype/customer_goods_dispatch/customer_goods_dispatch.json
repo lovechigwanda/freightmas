@@ -59,7 +59,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "WMS-GDN-.YYYY.-",
+   "options": "WGDN-.#####.-.YY.",
    "reqd": 1
   },
   {
@@ -287,7 +287,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-10 08:29:07.126439",
+ "modified": "2026-01-10 16:05:12.327716",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch",

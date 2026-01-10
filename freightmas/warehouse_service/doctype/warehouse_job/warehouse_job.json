@@ -54,7 +54,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "WMS-JOB-.YYYY.-",
+   "options": "WHJB-.#####.-.YY.",
    "reqd": 1
   },
   {
@@ -310,7 +310,7 @@
    "link_fieldname": "warehouse_job_reference"
   }
  ],
- "modified": "2026-01-10 08:41:26.697692",
+ "modified": "2026-01-10 16:03:36.964621",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Job",
