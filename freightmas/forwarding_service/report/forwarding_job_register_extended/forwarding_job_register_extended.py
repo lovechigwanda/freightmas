@@ -103,21 +103,34 @@ def execute(filters=None):
     columns = get_columns()
     data = []
     
-    # Build conditions for SQL query with essential filtering
-    conditions = "1=1 AND docstatus IN (0, 1)"
-    if filters.get("from_date"):
-        conditions += f" AND date_created >= '{filters['from_date']}'"
-    if filters.get("to_date"):
-        conditions += f" AND date_created <= '{filters['to_date']}'"
-    if filters.get("customer"):
-        conditions += f" AND customer = '{filters['customer']}'"
-    if filters.get("status"):
-        conditions += f" AND status = '{filters['status']}'"
-    if filters.get("direction"):
-        conditions += f" AND direction = '{filters['direction']}'"
+    # Build conditions and parameters for parameterized query
+    conditions = ["docstatus IN (0, 1)"]
+    params = {}
     
-    # Get comprehensive data from database using direct SQL for better performance
-    jobs = frappe.db.sql(f"""
+    if filters.get("from_date"):
+        conditions.append("date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
+    if filters.get("to_date"):
+        conditions.append("date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
+    if filters.get("customer"):
+        conditions.append("customer = %(customer)s")
+        params["customer"] = filters["customer"]
+    
+    if filters.get("status"):
+        conditions.append("status = %(status)s")
+        params["status"] = filters["status"]
+    
+    if filters.get("direction"):
+        conditions.append("direction = %(direction)s")
+        params["direction"] = filters["direction"]
+    
+    where_clause = " AND ".join(conditions)
+    
+    # Get comprehensive data from database using parameterized query
+    jobs = frappe.db.sql("""
         SELECT name, date_created, customer, customer_reference, direction, status,
                shipment_mode, shipment_type, cargo_description, cargo_count,
                shipper, consignee, notify_party,
@@ -135,9 +148,9 @@ def execute(filters=None):
                total_working_revenue_base, total_working_cost, 
                total_working_profit_base, profit_margin_percent
         FROM `tabForwarding Job`
-        WHERE {conditions}
+        WHERE {where_clause}
         ORDER BY date_created DESC
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
     
     # Process comprehensive data with charges analysis
     for job in jobs:

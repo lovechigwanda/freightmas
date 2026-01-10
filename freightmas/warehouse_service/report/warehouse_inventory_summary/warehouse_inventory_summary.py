@@ -12,18 +12,25 @@ def execute(filters=None):
 	columns = get_columns()
 	data = []
 
-	conditions = "cgri.quantity_remaining > 0"
+	conditions = ["cgri.quantity_remaining > 0", "cgr.docstatus = 1"]
+	params = {}
 	
 	if filters.get("customer"):
-		conditions += f" AND cgr.customer = '{filters['customer']}'"
+		conditions.append("cgr.customer = %(customer)s")
+		params["customer"] = filters["customer"]
 	if filters.get("warehouse_job"):
-		conditions += f" AND cgr.warehouse_job = '{filters['warehouse_job']}'"
+		conditions.append("cgr.warehouse_job = %(warehouse_job)s")
+		params["warehouse_job"] = filters["warehouse_job"]
 	if filters.get("uom"):
-		conditions += f" AND cgri.stock_uom = '{filters['uom']}'"
+		conditions.append("cgri.stock_uom = %(uom)s")
+		params["uom"] = filters["uom"]
 	if filters.get("warehouse_bay"):
-		conditions += f" AND cgri.warehouse_bay = '{filters['warehouse_bay']}'"
+		conditions.append("cgri.warehouse_bay = %(warehouse_bay)s")
+		params["warehouse_bay"] = filters["warehouse_bay"]
 
-	items = frappe.db.sql(f"""
+	where_clause = " AND ".join(conditions)
+
+	items = frappe.db.sql("""
 		SELECT 
 			cgr.warehouse_job,
 			cgr.customer,
@@ -40,9 +47,9 @@ def execute(filters=None):
 			cgri.status
 		FROM `tabCustomer Goods Receipt Item` cgri
 		INNER JOIN `tabCustomer Goods Receipt` cgr ON cgri.parent = cgr.name
-		WHERE {conditions} AND cgr.docstatus = 1
+		WHERE {where_clause}
 		ORDER BY cgr.customer, cgr.warehouse_job, cgri.warehouse_bay, cgri.warehouse_bin
-	""", as_dict=True)
+	""".format(where_clause=where_clause), params, as_dict=True)
 
 	for item in items:
 		# Calculate days in warehouse

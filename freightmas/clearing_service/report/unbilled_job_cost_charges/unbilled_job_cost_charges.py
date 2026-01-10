@@ -19,21 +19,29 @@ def execute(filters=None):
     data = []
 
     # Build filter conditions
-    conditions = "1=1"
+    conditions = ["rc.buy_rate > 0", "(rc.is_purchased = 0 OR rc.is_purchased IS NULL)"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND cj.date_created >= '{filters['from_date']}'"
+        conditions.append("cj.date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
     if filters.get("to_date"):
-        conditions += f" AND cj.date_created <= '{filters['to_date']}'"
+        conditions.append("cj.date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
     if filters.get("job_no"):
-        conditions += f" AND cj.name = '{filters['job_no']}'"
+        conditions.append("cj.name = %(job_no)s")
+        params["job_no"] = filters["job_no"]
     if filters.get("currency"):
-        conditions += f" AND cj.currency = '{filters['currency']}'"
+        conditions.append("cj.currency = %(currency)s")
+        params["currency"] = filters["currency"]
+
+    where_clause = " AND ".join(conditions)
 
     # Get company base currency
     base_currency = frappe.get_cached_value("Company", frappe.defaults.get_user_default("company"), "default_currency")
 
     # Query unpurchased charges
-    rows = frappe.db.sql(f"""
+    rows = frappe.db.sql("""
         SELECT
             cj.name AS job_no,
             cj.date_created,
@@ -48,11 +56,9 @@ def execute(filters=None):
             (rc.qty * rc.buy_rate * cj.conversion_rate) AS base_amount
         FROM `tabClearing Job` cj
         JOIN `tabClearing Charges` rc ON rc.parent = cj.name
-        WHERE rc.buy_rate > 0
-        AND (rc.is_purchased = 0 OR rc.is_purchased IS NULL)
-        AND {conditions}
+        WHERE {where_clause}
         ORDER BY cj.name, cj.date_created
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     # Group charges by job and add totals
     grouped = {}

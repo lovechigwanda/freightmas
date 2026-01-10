@@ -128,9 +128,9 @@ def get_data(filters):
             current_milestone_comment,
             modified
         FROM `tabTrip`
-        WHERE docstatus < 2 %s
+        WHERE docstatus < 2 {conditions}
         ORDER BY modified DESC
-    """ % conditions, filters, as_dict=1)
+    """.format(conditions=conditions), filters, as_dict=1)
     
     # Format dates
     for row in data:

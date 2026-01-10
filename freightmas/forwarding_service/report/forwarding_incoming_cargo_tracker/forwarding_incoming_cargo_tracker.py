@@ -11,25 +11,36 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    # Build conditions for SQL query
-    conditions = "1=1"
+    # Build conditions and parameters for parameterized query
+    conditions = ["docstatus IN (0, 1)"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND date_created >= '{filters['from_date']}'"
+        conditions.append("date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
     if filters.get("to_date"):
-        conditions += f" AND date_created <= '{filters['to_date']}'"
+        conditions.append("date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
     if filters.get("customer"):
-        conditions += f" AND customer = '{filters['customer']}'"
+        conditions.append("customer = %(customer)s")
+        params["customer"] = filters["customer"]
+    
     if filters.get("customer_reference"):
-        conditions += f" AND customer_reference LIKE '%{filters['customer_reference']}%'"
+        conditions.append("customer_reference LIKE %(customer_reference)s")
+        params["customer_reference"] = "%" + filters["customer_reference"] + "%"
+
+    where_clause = " AND ".join(conditions)
 
     # Get forwarding jobs data
-    jobs = frappe.db.sql(f"""
+    jobs = frappe.db.sql("""
         SELECT name, date_created, customer, customer_reference, 
                port_of_discharge, eta, ata, discharge_date, cargo_count
         FROM `tabForwarding Job`
-        WHERE {conditions} AND docstatus IN (0, 1)
+        WHERE {where_clause}
         ORDER BY date_created DESC
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     # Process data with incoming cargo logic
     today = getdate()

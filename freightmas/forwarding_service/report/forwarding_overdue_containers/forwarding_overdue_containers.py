@@ -11,30 +11,39 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    # Build conditions for SQL query
-    job_conditions = "1=1 AND fj.docstatus IN (0, 1)"
+    # Build conditions and parameters for parameterized query
+    conditions = ["cpd.cargo_type = 'Containerised'", "cpd.parenttype = 'Forwarding Job'", "fj.docstatus IN (0, 1)"]
+    params = {}
+    
     if filters.get("from_date"):
-        job_conditions += f" AND fj.date_created >= '{filters['from_date']}'"
+        conditions.append("fj.date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
     if filters.get("to_date"):
-        job_conditions += f" AND fj.date_created <= '{filters['to_date']}'"
+        conditions.append("fj.date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
     if filters.get("customer"):
-        job_conditions += f" AND fj.customer = '{filters['customer']}'"
+        conditions.append("fj.customer = %(customer)s")
+        params["customer"] = filters["customer"]
+    
     if filters.get("customer_reference"):
-        job_conditions += f" AND fj.customer_reference LIKE '%{filters['customer_reference']}%'"
+        conditions.append("fj.customer_reference LIKE %(customer_reference)s")
+        params["customer_reference"] = "%" + filters["customer_reference"] + "%"
+
+    where_clause = " AND ".join(conditions)
 
     # Get containerised cargo packages with job data using JOIN
-    containers = frappe.db.sql(f"""
+    containers = frappe.db.sql("""
         SELECT cpd.parent, cpd.name, cpd.container_number, cpd.to_be_returned,
                cpd.load_by_date, cpd.return_by_date, cpd.is_loaded, 
                cpd.loaded_on_date, cpd.is_returned, cpd.returned_on_date,
                fj.date_created, fj.customer, fj.customer_reference
         FROM `tabCargo Parcel Details` cpd
         JOIN `tabForwarding Job` fj ON cpd.parent = fj.name
-        WHERE cpd.cargo_type = 'Containerised' 
-        AND cpd.parenttype = 'Forwarding Job'
-        AND {job_conditions}
+        WHERE {where_clause}
         ORDER BY fj.date_created DESC, cpd.name
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     # Process containers and filter for overdue ones
     today = getdate()

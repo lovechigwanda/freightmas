@@ -12,23 +12,31 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    conditions = "1=1"
+    conditions = ["1=1"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND date_created >= '{filters['from_date']}'"
+        conditions.append("date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
     if filters.get("to_date"):
-        conditions += f" AND date_created <= '{filters['to_date']}'"
+        conditions.append("date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
     if filters.get("customer"):
-        conditions += f" AND customer = '{filters['customer']}'"
+        conditions.append("customer = %(customer)s")
+        params["customer"] = filters["customer"]
     if filters.get("truck"):
-        conditions += f" AND truck = '{filters['truck']}'"
+        conditions.append("truck = %(truck)s")
+        params["truck"] = filters["truck"]
 
-    trips = frappe.db.sql(f"""
+    where_clause = " AND ".join(conditions)
+
+    trips = frappe.db.sql("""
         SELECT name, date_created, customer, truck, route,
                total_estimated_revenue, total_estimated_cost
         FROM `tabTrip`
-        WHERE {conditions}
+        WHERE {where_clause}
         ORDER BY date_created DESC
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     for trip in trips:
         est_revenue = flt(trip.total_estimated_revenue)

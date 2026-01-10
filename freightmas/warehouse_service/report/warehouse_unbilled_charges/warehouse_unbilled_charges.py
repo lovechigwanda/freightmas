@@ -30,14 +30,19 @@ def execute(filters=None):
 
 def get_handling_charges(filters):
 	"""Get unbilled handling charges"""
-	conditions = "hc.is_invoiced = 0"
+	conditions = ["hc.is_invoiced = 0"]
+	params = {}
 	
 	if filters.get("customer"):
-		conditions += f" AND hc.customer = '{filters['customer']}'"
+		conditions.append("hc.customer = %(customer)s")
+		params["customer"] = filters["customer"]
 	if filters.get("warehouse_job"):
-		conditions += f" AND hc.parent = '{filters['warehouse_job']}'"
+		conditions.append("hc.parent = %(warehouse_job)s")
+		params["warehouse_job"] = filters["warehouse_job"]
 
-	charges = frappe.db.sql(f"""
+	where_clause = " AND ".join(conditions)
+
+	charges = frappe.db.sql("""
 		SELECT 
 			hc.parent as warehouse_job,
 			hc.customer,
@@ -51,9 +56,9 @@ def get_handling_charges(filters):
 			'Handling' as charge_type
 		FROM `tabWarehouse Job Handling Charges` hc
 		INNER JOIN `tabWarehouse Job` wj ON hc.parent = wj.name
-		WHERE {conditions}
+		WHERE {where_clause}
 		ORDER BY hc.activity_date DESC
-	""", as_dict=True)
+	""".format(where_clause=where_clause), params, as_dict=True)
 
 	data = []
 	for charge in charges:
@@ -74,14 +79,19 @@ def get_handling_charges(filters):
 
 def get_storage_charges(filters):
 	"""Get unbilled storage charges"""
-	conditions = "sc.is_invoiced = 0"
+	conditions = ["sc.is_invoiced = 0"]
+	params = {}
 	
 	if filters.get("customer"):
-		conditions += f" AND wj.customer = '{filters['customer']}'"
+		conditions.append("wj.customer = %(customer)s")
+		params["customer"] = filters["customer"]
 	if filters.get("warehouse_job"):
-		conditions += f" AND sc.parent = '{filters['warehouse_job']}'"
+		conditions.append("sc.parent = %(warehouse_job)s")
+		params["warehouse_job"] = filters["warehouse_job"]
 
-	charges = frappe.db.sql(f"""
+	where_clause = " AND ".join(conditions)
+
+	charges = frappe.db.sql("""
 		SELECT 
 			sc.parent as warehouse_job,
 			wj.customer,
@@ -94,9 +104,9 @@ def get_storage_charges(filters):
 			sc.amount
 		FROM `tabWarehouse Job Storage Charges` sc
 		INNER JOIN `tabWarehouse Job` wj ON sc.parent = wj.name
-		WHERE {conditions}
+		WHERE {where_clause}
 		ORDER BY sc.end_date DESC
-	""", as_dict=True)
+	""".format(where_clause=where_clause), params, as_dict=True)
 
 	data = []
 	for charge in charges:

@@ -25,18 +25,26 @@ def execute(filters=None):
     data = []
 
     # Build SQL conditions for parent
-    conditions = "cj.direction = 'Import'"
+    conditions = ["cj.direction = 'Import'"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND cj.date_created >= '{filters['from_date']}'"
+        conditions.append("cj.date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
     if filters.get("to_date"):
-        conditions += f" AND cj.date_created <= '{filters['to_date']}'"
+        conditions.append("cj.date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
     if filters.get("customer"):
-        conditions += f" AND cj.customer = '{filters['customer']}'"
+        conditions.append("cj.customer = %(customer)s")
+        params["customer"] = filters["customer"]
     if filters.get("job_no"):
-        conditions += f" AND cj.name = '{filters['job_no']}'"
+        conditions.append("cj.name = %(job_no)s")
+        params["job_no"] = filters["job_no"]
+
+    where_clause = " AND ".join(conditions)
 
     # Fetch parent jobs
-    jobs = frappe.db.sql(f"""
+    jobs = frappe.db.sql("""
         SELECT
             cj.name,
             cj.date_created,
@@ -51,9 +59,9 @@ def execute(filters=None):
             cj.storage_start_date,
             cj.discharge_date
         FROM `tabClearing Job` cj
-        WHERE {conditions}
+        WHERE {where_clause}
         ORDER BY cj.date_created DESC
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     today = frappe.utils.nowdate()
 

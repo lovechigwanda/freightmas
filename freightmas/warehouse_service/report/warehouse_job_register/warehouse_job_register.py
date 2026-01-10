@@ -12,19 +12,28 @@ def execute(filters=None):
 	columns = get_columns()
 	data = []
 
-	conditions = "1=1"
+	conditions = ["1=1"]
+	params = {}
+	
 	if filters.get("from_date"):
-		conditions += f" AND job_date >= '{filters['from_date']}'"
+		conditions.append("job_date >= %(from_date)s")
+		params["from_date"] = filters["from_date"]
 	if filters.get("to_date"):
-		conditions += f" AND job_date <= '{filters['to_date']}'"
+		conditions.append("job_date <= %(to_date)s")
+		params["to_date"] = filters["to_date"]
 	if filters.get("customer"):
-		conditions += f" AND customer = '{filters['customer']}'"
+		conditions.append("customer = %(customer)s")
+		params["customer"] = filters["customer"]
 	if filters.get("status"):
-		conditions += f" AND status = '{filters['status']}'"
+		conditions.append("status = %(status)s")
+		params["status"] = filters["status"]
 	if filters.get("job_type"):
-		conditions += f" AND job_type = '{filters['job_type']}'"
+		conditions.append("job_type = %(job_type)s")
+		params["job_type"] = filters["job_type"]
 
-	jobs = frappe.db.sql(f"""
+	where_clause = " AND ".join(conditions)
+
+	jobs = frappe.db.sql("""
 		SELECT 
 			name, job_date, customer, reference_number,
 			job_type, contract_type, fiscal_year,
@@ -32,9 +41,9 @@ def execute(filters=None):
 			total_handling_charges, total_storage_charges,
 			invoiced_amount
 		FROM `tabWarehouse Job`
-		WHERE {conditions}
+		WHERE {where_clause}
 		ORDER BY job_date DESC
-	""", as_dict=True)
+	""".format(where_clause=where_clause), params, as_dict=True)
 
 	for job in jobs:
 		# Calculate total charges

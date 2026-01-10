@@ -14,20 +14,29 @@ def execute(filters=None):
     data = []
 
     # Build SQL conditions
-    condition = "cj.cargo_type = 'Containerised'"
+    conditions = ["cj.cargo_type = 'Containerised'"]
+    params = {}
+    
     if filters.get("customer"):
-        condition += f" AND cj.customer = '{filters['customer']}'"
+        conditions.append("cj.customer = %(customer)s")
+        params["customer"] = filters["customer"]
     if filters.get("from_date"):
-        condition += f" AND cj.date_created >= '{filters['from_date']}'"
+        conditions.append("cj.date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
     if filters.get("to_date"):
-        condition += f" AND cj.date_created <= '{filters['to_date']}'"
+        conditions.append("cj.date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
     if filters.get("job_no"):
-        condition += f" AND cj.name = '{filters['job_no']}'"
+        conditions.append("cj.name = %(job_no)s")
+        params["job_no"] = filters["job_no"]
     if filters.get("bl_number"):
-        condition += f" AND cj.bl_number = '{filters['bl_number']}'"
+        conditions.append("cj.bl_number = %(bl_number)s")
+        params["bl_number"] = filters["bl_number"]
+
+    where_clause = " AND ".join(conditions)
 
     # Fetch joined data
-    rows = frappe.db.sql(f"""
+    rows = frappe.db.sql("""
         SELECT
             cj.name AS job_no,
             cj.date_created,
@@ -48,9 +57,9 @@ def execute(filters=None):
             cd.storage_days_accumulated
         FROM `tabClearing Job` cj
         JOIN `tabContainer Details` cd ON cd.parent = cj.name
-        WHERE {condition}
+        WHERE {where_clause}
         ORDER BY cj.name, cd.container_number
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     # Build rows for the report
     for row in rows:

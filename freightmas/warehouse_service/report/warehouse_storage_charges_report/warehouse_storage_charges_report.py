@@ -12,24 +12,39 @@ def execute(filters=None):
 	columns = get_columns()
 	data = []
 
-	conditions = "1=1"
+	# Build conditions and parameters for parameterized query
+	conditions = ["1=1"]
+	params = {}
+	
 	if filters.get("from_date"):
-		conditions += f" AND sc.start_date >= '{filters['from_date']}'"
+		conditions.append("sc.start_date >= %(from_date)s")
+		params["from_date"] = filters["from_date"]
+	
 	if filters.get("to_date"):
-		conditions += f" AND sc.end_date <= '{filters['to_date']}'"
+		conditions.append("sc.end_date <= %(to_date)s")
+		params["to_date"] = filters["to_date"]
+	
 	if filters.get("customer"):
-		conditions += f" AND wj.customer = '{filters['customer']}'"
+		conditions.append("wj.customer = %(customer)s")
+		params["customer"] = filters["customer"]
+	
 	if filters.get("warehouse_job"):
-		conditions += f" AND sc.parent = '{filters['warehouse_job']}'"
+		conditions.append("sc.parent = %(warehouse_job)s")
+		params["warehouse_job"] = filters["warehouse_job"]
+	
 	if filters.get("uom"):
-		conditions += f" AND sc.uom = '{filters['uom']}'"
+		conditions.append("sc.uom = %(uom)s")
+		params["uom"] = filters["uom"]
+	
 	if filters.get("invoiced_status"):
 		if filters["invoiced_status"] == "Invoiced":
-			conditions += " AND sc.is_invoiced = 1"
+			conditions.append("sc.is_invoiced = 1")
 		elif filters["invoiced_status"] == "Uninvoiced":
-			conditions += " AND sc.is_invoiced = 0"
+			conditions.append("sc.is_invoiced = 0")
 
-	charges = frappe.db.sql(f"""
+	where_clause = " AND ".join(conditions)
+
+	charges = frappe.db.sql("""
 		SELECT 
 			sc.name,
 			sc.parent as warehouse_job,
@@ -44,9 +59,9 @@ def execute(filters=None):
 			sc.is_invoiced
 		FROM `tabWarehouse Job Storage Charges` sc
 		INNER JOIN `tabWarehouse Job` wj ON sc.parent = wj.name
-		WHERE {conditions}
+		WHERE {where_clause}
 		ORDER BY sc.start_date DESC, wj.customer
-	""", as_dict=True)
+	""".format(where_clause=where_clause), params, as_dict=True)
 
 	for charge in charges:
 		# Calculate rate per day

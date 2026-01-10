@@ -22,8 +22,8 @@ def get_columns():
     ]
 
 def get_data(filters):
-    conditions = get_conditions(filters)
-    quotations = frappe.db.sql(f"""
+    conditions, params = get_conditions(filters)
+    quotations = frappe.db.sql("""
         SELECT
             q.name,
             q.customer_name,
@@ -36,17 +36,28 @@ def get_data(filters):
         FROM `tabQuotation` q
         WHERE 1=1 {conditions}
         ORDER BY q.transaction_date DESC
-    """, as_dict=1)
+    """.format(conditions=conditions), params, as_dict=1)
     return quotations
 
 def get_conditions(filters):
-    conditions = ""
+    conditions = ["1=1"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND q.transaction_date >= '{filters.get('from_date')}'"
+        conditions.append("q.transaction_date >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
     if filters.get("to_date"):
-        conditions += f" AND q.transaction_date <= '{filters.get('to_date')}'"
+        conditions.append("q.transaction_date <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
     if filters.get("customer"):
-        conditions += f" AND q.customer_name = '{filters.get('customer')}'"
+        conditions.append("q.customer_name = %(customer)s")
+        params["customer"] = filters["customer"]
+    
     if filters.get("status"):
-        conditions += f" AND q.status = '{filters.get('status')}'"
-    return conditions
+        conditions.append("q.status = %(status)s")
+        params["status"] = filters["status"]
+    
+    condition_str = " AND ".join(conditions)
+    return condition_str, params

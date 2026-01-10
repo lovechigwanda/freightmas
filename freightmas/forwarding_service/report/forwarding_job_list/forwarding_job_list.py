@@ -13,18 +13,31 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    # Build conditions for SQL query
-    conditions = "1=1 AND docstatus IN (0, 1)"
+    # Build conditions and parameters for parameterized query
+    conditions = ["docstatus IN (0, 1)"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND date_created >= '{filters['from_date']}'"
+        conditions.append("date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
     if filters.get("to_date"):
-        conditions += f" AND date_created <= '{filters['to_date']}'"
+        conditions.append("date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
     if filters.get("customer"):
-        conditions += f" AND customer = '{filters['customer']}'"
+        conditions.append("customer = %(customer)s")
+        params["customer"] = filters["customer"]
+    
     if filters.get("status"):
-        conditions += f" AND status = '{filters['status']}'"
+        conditions.append("status = %(status)s")
+        params["status"] = filters["status"]
+    
     if filters.get("direction"):
-        conditions += f" AND direction = '{filters['direction']}'"
+        conditions.append("direction = %(direction)s")
+        params["direction"] = filters["direction"]
+
+    where_clause = " AND ".join(conditions)
 
     # Handle pagination
     limit_clause = ""
@@ -34,14 +47,14 @@ def execute(filters=None):
         limit_clause = f" LIMIT {page_length} OFFSET {start}"
 
     # Get forwarding jobs data - matching exact columns from screenshot
-    jobs = frappe.db.sql(f"""
+    jobs = frappe.db.sql("""
         SELECT name, date_created, customer, consignee, customer_reference, 
                eta, direction, status
         FROM `tabForwarding Job`
-        WHERE {conditions}
+        WHERE {where_clause}
         ORDER BY date_created DESC
         {limit_clause}
-    """, as_dict=True)
+    """.format(where_clause=where_clause, limit_clause=limit_clause), params, as_dict=True)
 
     for job in jobs:
         data.append({
@@ -60,11 +73,11 @@ def execute(filters=None):
     
     # Add total count for pagination if limit is applied
     if limit_clause:
-        total_count = frappe.db.sql(f"""
-            SELECT COUNT(*) as total
+        total_count = frappe.db.sql("""
+            SELECT COUNT(*) as count
             FROM `tabForwarding Job`
-            WHERE {conditions}
-        """, as_dict=True)[0].total
+            WHERE {where_clause}
+        """.format(where_clause=where_clause), params, as_dict=True)[0].count
         result["total"] = total_count
     
     return columns, data

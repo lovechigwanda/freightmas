@@ -65,10 +65,10 @@ def get_columns():
     ]
 
 def get_data(filters):
-    conditions = get_conditions(filters)
+    conditions, params = get_conditions(filters)
     
     # Get all drivers with their details
-    driver_data = frappe.db.sql(f"""
+    driver_data = frappe.db.sql("""
         SELECT 
             d.name,
             d.full_name,
@@ -88,29 +88,34 @@ def get_data(filters):
         {conditions}
         ORDER BY 
             d.status DESC, d.full_name
-    """, as_dict=1)
+    """.format(conditions=conditions), params, as_dict=1)
     
     return driver_data
 
 def get_conditions(filters):
-    conditions = "WHERE 1=1"
+    conditions = ["1=1"]
+    params = {}
     
     if filters.get("status"):
-        conditions += f" AND d.status = '{filters.get('status')}'"
+        conditions.append("d.status = %(status)s")
+        params["status"] = filters.get("status")
     
     if filters.get("truck_linked"):
         if filters.get("truck_linked") == "Yes":
-            conditions += " AND t.name IS NOT NULL"
+            conditions.append("t.name IS NOT NULL")
         else:
-            conditions += " AND t.name IS NULL"
+            conditions.append("t.name IS NULL")
     
     if filters.get("from_date"):
-        conditions += f" AND d.creation >= '{filters.get('from_date')}'"
+        conditions.append("d.creation >= %(from_date)s")
+        params["from_date"] = filters.get("from_date")
     
     if filters.get("to_date"):
-        conditions += f" AND d.creation <= '{filters.get('to_date')}'"
+        conditions.append("d.creation <= %(to_date)s")
+        params["to_date"] = filters.get("to_date")
     
-    return conditions
+    where_clause = "WHERE " + " AND ".join(conditions)
+    return where_clause, params
 
 
 

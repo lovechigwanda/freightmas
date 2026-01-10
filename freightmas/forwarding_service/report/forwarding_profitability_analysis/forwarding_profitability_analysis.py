@@ -12,23 +12,33 @@ def execute(filters=None):
     columns = get_columns()
     data = []
 
-    conditions = "1=1"
+    # Build conditions and parameters for parameterized query
+    conditions = ["1=1"]
+    params = {}
+    
     if filters.get("from_date"):
-        conditions += f" AND date_created >= '{filters['from_date']}'"
+        conditions.append("date_created >= %(from_date)s")
+        params["from_date"] = filters["from_date"]
+    
     if filters.get("to_date"):
-        conditions += f" AND date_created <= '{filters['to_date']}'"
+        conditions.append("date_created <= %(to_date)s")
+        params["to_date"] = filters["to_date"]
+    
     if filters.get("customer"):
-        conditions += f" AND customer = '{filters['customer']}'"
+        conditions.append("customer = %(customer)s")
+        params["customer"] = filters["customer"]
 
-    jobs = frappe.db.sql(f"""
+    where_clause = " AND ".join(conditions)
+
+    jobs = frappe.db.sql("""
         SELECT name, date_created, customer, customer_reference, direction, shipment_mode,
                port_of_loading, port_of_discharge, cargo_description, bl_number, status,
                total_quoted_revenue_base, total_quoted_cost_base,
                total_working_revenue_base, total_working_cost
         FROM `tabForwarding Job`
-        WHERE {conditions}
+        WHERE {where_clause}
         ORDER BY date_created DESC
-    """, as_dict=True)
+    """.format(where_clause=where_clause), params, as_dict=True)
 
     for job in jobs:
         # Quoted figures
