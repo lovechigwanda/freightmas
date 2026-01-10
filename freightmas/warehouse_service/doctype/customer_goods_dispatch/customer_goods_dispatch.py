@@ -18,17 +18,26 @@ class CustomerGoodsDispatch(Document):
 		"""Update quantity remaining in linked receipt items"""
 		for item in self.items:
 			if item.warehouse_bin:
+				# Initialize remaining quantity to dispatch
+				remaining_to_dispatch = item.quantity
+				
 				# Find matching receipt items in the same bin
 				receipt_items = frappe.db.sql("""
-				SELECT gri.name, gri.quantity_remaining, gri.actual_stock_quantity as quantity
-				FROM `tabCustomer Goods Receipt Item` gri
-				INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
-				WHERE gr.warehouse_job = %(job)s
-				AND gr.docstatus = 1
-				AND gri.stock_uom = %(uom)s
-				AND gri.warehouse_bin = %(bin)s
-				AND gri.quantity_remaining > 0
-				ORDER BY gr.receipt_date ASC, gr.creation ASC
+					SELECT gri.name, gri.quantity_remaining, gri.actual_stock_quantity as quantity
+					FROM `tabCustomer Goods Receipt Item` gri
+					INNER JOIN `tabCustomer Goods Receipt` gr ON gr.name = gri.parent
+					WHERE gr.warehouse_job = %(job)s
+					AND gr.docstatus = 1
+					AND gri.stock_uom = %(uom)s
+					AND gri.warehouse_bin = %(bin)s
+					AND gri.quantity_remaining > 0
+					ORDER BY gr.receipt_date ASC, gr.creation ASC
+				""", {
+					'job': self.warehouse_job,
+					'uom': item.stock_uom,
+					'bin': item.warehouse_bin
+				}, as_dict=1)
+				
 				for receipt_item in receipt_items:
 					if remaining_to_dispatch <= 0:
 						break
