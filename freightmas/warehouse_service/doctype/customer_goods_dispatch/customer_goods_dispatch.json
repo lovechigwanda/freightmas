@@ -159,9 +159,8 @@
   },
   {
    "fieldname": "transporter",
-   "fieldtype": "Link",
-   "label": "Transporter",
-   "options": "Supplier"
+   "fieldtype": "Data",
+   "label": "Transporter"
   },
   {
    "fieldname": "driver_contact",
@@ -288,7 +287,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-03 15:21:31.327318",
+ "modified": "2026-01-10 08:29:07.126439",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Dispatch",

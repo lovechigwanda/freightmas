@@ -304,9 +304,13 @@
   {
    "link_doctype": "Customer Goods Dispatch",
    "link_fieldname": "warehouse_job"
+  },
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "warehouse_job_reference"
   }
  ],
- "modified": "2026-01-03 15:28:14.171674",
+ "modified": "2026-01-10 08:41:26.697692",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Warehouse Job",

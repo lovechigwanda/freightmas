@@ -46,8 +46,8 @@
   "total_pallets",
   "total_volume_cbm",
   "column_break_cpxd",
-  "amended_from",
-  "total_weight_kg"
+  "total_weight_kg",
+  "amended_from"
  ],
  "fields": [
   {
@@ -158,9 +158,8 @@
   },
   {
    "fieldname": "transporter",
-   "fieldtype": "Link",
-   "label": "Transporter",
-   "options": "Supplier"
+   "fieldtype": "Data",
+   "label": "Transporter Name"
   },
   {
    "fieldname": "driver_contact",
@@ -295,7 +294,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-03 15:17:56.936075",
+ "modified": "2026-01-10 08:28:09.724181",
  "modified_by": "Administrator",
  "module": "Warehouse Service",
  "name": "Customer Goods Receipt",

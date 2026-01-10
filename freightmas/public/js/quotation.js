@@ -19,6 +19,34 @@ frappe.ui.form.on('Quotation', {
                     '_blank'
                 );
             });
+            
+            // Add "Create Job Order" button for Accepted Forwarding quotations
+            if (frm.doc.workflow_state === 'Accepted' && frm.doc.job_type === 'Forwarding') {
+                // Check if job order already exists
+                frappe.db.get_value('Job Order', 
+                    {'quotation_reference': frm.doc.name, 'docstatus': ['<', 2]}, 
+                    'name',
+                    (r) => {
+                        if (r && r.name) {
+                            // Job Order exists - add button to view it
+                            frm.add_custom_button(__('View Job Order'), function() {
+                                frappe.set_route('Form', 'Job Order', r.name);
+                            }, __('View'));
+                            
+                            frm.dashboard.add_comment(
+                                __('Job Order {0} has been created from this Quotation', [r.name]),
+                                'blue',
+                                true
+                            );
+                        } else {
+                            // No Job Order exists - add button to create it
+                            frm.add_custom_button(__('Create Job Order'), function() {
+                                create_job_order_from_quotation(frm);
+                            }, __('Create')).addClass('btn-primary');
+                        }
+                    }
+                );
+            }
         }
     },
     validate(frm) {
@@ -53,4 +81,45 @@ function update_cost_amount(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
     frappe.model.set_value(cdt, cdn, "cost_amount", (row.qty || 0) * (row.buy_rate || 0));
     calculate_totals(frm);
+}
+
+// ===================================
+// Job Order Creation
+// ===================================
+
+function create_job_order_from_quotation(frm) {
+    frappe.confirm(
+        __('Create a Job Order from this Quotation?<br><br>This will:<br>- Create a new Job Order document<br>- Copy all service charges<br>- Link the Job Order to this Quotation<br><br>The Job Order will be the official handover from Sales to Operations.'),
+        function() {
+            // User confirmed
+            frappe.call({
+                method: 'freightmas.freightmas.job_order_integration.create_job_order_from_quotation',
+                args: {
+                    quotation_name: frm.doc.name
+                },
+                freeze: true,
+                freeze_message: __('Creating Job Order...'),
+                callback: function(r) {
+                    if (r.message) {
+                        frappe.show_alert({
+                            message: __('Job Order {0} created successfully!', [r.message]),
+                            indicator: 'green'
+                        }, 5);
+                        
+                        frm.reload_doc();
+                        
+                        // Offer to open the new Job Order
+                        setTimeout(function() {
+                            frappe.confirm(
+                                __('Would you like to open the newly created Job Order?'),
+                                function() {
+                                    frappe.set_route('Form', 'Job Order', r.message);
+                                }
+                            );
+                        }, 1000);
+                    }
+                }
+            });
+        }
+    );
 }
