@@ -110,27 +110,8 @@ class JobOrder(Document):
 		if self.has_value_changed("operations_assigned_to"):
 			self.handle_assignment_change()
 	
-	def on_submit(self):
-		"""Update quotation with link to this job order"""
-		if self.quotation_reference:
-			frappe.db.set_value(
-				"Quotation",
-				self.quotation_reference,
-				"job_order_reference",
-				self.name
-			)
-	
 	def on_cancel(self):
-		"""Remove link from quotation on cancel"""
-		if self.quotation_reference:
-			frappe.db.set_value(
-				"Quotation",
-				self.quotation_reference,
-				"job_order_reference",
-				None
-			)
-		
-		# Prevent cancel if already converted to forwarding job
+		"""Prevent cancel if already converted to forwarding job"""
 		if self.forwarding_job_reference:
 			frappe.throw(
 				_("Cannot cancel Job Order {0} as it has already been converted to Forwarding Job {1}")
