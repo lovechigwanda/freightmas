@@ -331,6 +331,7 @@ fixtures = [
                 "Quotation Item-custom_buy_rate",
                 "Quotation Item-custom_job_reference",
                 "Quotation-custom_bundle_charges",
+                "Quotation-custom_customer_reference",
                 "Customer-custom_auto_tracking_email",
                 "Customer-custom_enable_tracking_emails",
                 "Customer-custom_cc_recipients",

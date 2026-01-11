@@ -1,7 +1,7 @@
-// Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd and contributors
+// Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Forwarding Job List"] = {
+frappe.query_reports["Quotation List"] = {
 	"filters": [
 		{
 			fieldname: "date_range",
@@ -96,29 +96,34 @@ frappe.query_reports["Forwarding Job List"] = {
 			fieldname: "status",
 			label: __("Status"),
 			fieldtype: "Select",
-			options: ["", "Draft", "In Progress", "Completed", "Cancelled"]
+			options: ["", "Draft", "Open", "Submitted", "Accepted", "Rejected", "Lost", "Ordered", "Cancelled"]
 		},
 		{
-			fieldname: "direction",
-			label: __("Direction"),
+			fieldname: "job_type",
+			label: __("Job Type"),
 			fieldtype: "Select",
-			options: ["", "Import", "Export"]
+			options: ["", "Air Freight", "Sea Freight", "Road Freight", "Clearing & Forwarding", "Warehousing", "Other"]
 		}
 	],
 
 	onload: function(report) {
+		// Add New Quotation button
+		report.page.set_primary_action(__('Add Quotation'), function() {
+			frappe.new_doc('Quotation');
+		});
+
 		// Add Export buttons
 		report.page.add_inner_button('Export to Excel', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Forwarding Job List&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Quotation List&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 
 		report.page.add_inner_button('Export to PDF', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Forwarding Job List&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_report_to_pdf?report_name=Quotation List&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 

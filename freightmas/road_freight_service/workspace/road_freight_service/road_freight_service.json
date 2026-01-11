@@ -1,7 +1,7 @@
 {
  "charts": [],
  "content": "[{\"id\":\"DmV5kf8qIl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Road Freight Service</span>\",\"col\":12}},{\"id\":\"9Xc8xRPoA9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"-PGrS95BpI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Road Freight Job\",\"col\":3}},{\"id\":\"I6AJNSiF4D\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Port\",\"col\":3}},{\"id\":\"vheZGxqkS3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gHLa7CUyCj\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"flDTgTMLXb\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2025-07-13 18:04:39.097134",
+ "creation": "2026-01-08 12:51:08.313797",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -142,7 +142,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-07-16 11:01:44.339457",
+ "modified": "2026-01-11 08:30:47.591282",
  "modified_by": "Administrator",
  "module": "Road Freight Service",
  "name": "Road Freight Service",
