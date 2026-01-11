@@ -282,9 +282,6 @@ def create_forwarding_job(job_order_name):
 	fwd_job.etd = job_order.etd or None
 	fwd_job.eta = job_order.eta
 	
-	# Cargo Details
-	fwd_job.cargo_description = job_order.job_description
-	
 	# Currency
 	fwd_job.currency = job_order.currency
 	
@@ -320,6 +317,9 @@ def create_forwarding_job(job_order_name):
 			"is_verified": doc.is_verified,
 			"date_verified": doc.date_verified
 		})
+	
+	# Set Job Order reference in Forwarding Job
+	fwd_job.job_order_reference = job_order.name
 	
 	# Save the forwarding job
 	fwd_job.insert()

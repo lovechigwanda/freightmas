@@ -315,6 +315,16 @@ def create_job_order_from_quotation(quotation_name):
 	# Save the job order
 	job_order.insert()
 	
+	# Update quotation with Job Order reference and workflow state
+	frappe.db.set_value(
+		"Quotation",
+		quotation_name,
+		{
+			"job_order_reference": job_order.name,
+			"workflow_state": "JO Created"
+		}
+	)
+	
 	frappe.msgprint(
 		_("Job Order {0} created successfully").format(job_order.name),
 		alert=True

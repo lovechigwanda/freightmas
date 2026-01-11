@@ -69,7 +69,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "FWJO-.#####-.YY",
+   "options": "FWJO-.#####.-.YY",
    "reqd": 1
   },
   {
@@ -378,7 +378,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-11 18:40:18.135190",
+ "modified": "2026-01-11 20:23:25.208872",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Job Order",

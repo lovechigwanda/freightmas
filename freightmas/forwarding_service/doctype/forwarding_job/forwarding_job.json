@@ -50,6 +50,8 @@
   "eta",
   "ata",
   "discharge_date",
+  "section_break_lppq",
+  "job_order_reference",
   "cargo_tab",
   "cargo_details_section",
   "cargo_description",
@@ -902,6 +904,18 @@
    "fieldname": "discharge_date",
    "fieldtype": "Date",
    "label": "Discharge Date"
+  },
+  {
+   "fieldname": "section_break_lppq",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "job_order_reference",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Job Order Reference",
+   "options": "Job Order"
   }
  ],
  "grid_page_length": 50,
@@ -922,7 +936,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-11 16:11:57.367880",
+ "modified": "2026-01-11 20:26:54.118871",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
