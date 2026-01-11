@@ -22,44 +22,25 @@ class JobOrder(Document):
 			self.assign_to_user(self.operations_assigned_to)
 	
 	def validate_quotation(self):
-		"""Ensure quotation exists and is in Accepted state"""
+		"""Ensure quotation exists and is valid"""
 		if not self.quotation_reference:
 			return
 		
-		quotation = frappe.get_doc("Quotation", self.quotation_reference)
-		
-		# Check if quotation has workflow_state field
-		if hasattr(quotation, 'workflow_state'):
-			if quotation.workflow_state != "Accepted":
-				frappe.throw(
-					_("Quotation {0} must be in 'Accepted' state to create a Job Order. Current state: {1}")
-					.format(self.quotation_reference, quotation.workflow_state)
-				)
-		else:
-			# Fallback: Check docstatus
-			if quotation.docstatus != 1:
-				frappe.throw(
-					_("Quotation {0} must be submitted to create a Job Order")
-					.format(self.quotation_reference)
-				)
-		
-		# Ensure quotation is for Forwarding service
-		if hasattr(quotation, 'job_type') and quotation.job_type != "Forwarding":
-			frappe.throw(
-				_("Job Order can only be created for Forwarding quotations. This quotation is for {0}")
-				.format(quotation.job_type)
-			)
+		# Use db.get_value for efficient checking without loading full document
+		if not frappe.db.exists("Quotation", self.quotation_reference):
+			frappe.throw(_("Quotation {0} does not exist").format(self.quotation_reference))
 	
 	def validate_duplicate_job_order(self):
 		"""Prevent creating multiple job orders from same quotation"""
 		if self.is_new() and self.quotation_reference:
-			existing = frappe.db.exists(
+			existing = frappe.db.get_value(
 				"Job Order",
 				{
 					"quotation_reference": self.quotation_reference,
-					"docstatus": ["<", 2],  # Not cancelled
+					"docstatus": ["<", 2],
 					"name": ["!=", self.name]
-				}
+				},
+				"name"
 			)
 			if existing:
 				frappe.throw(
@@ -270,7 +251,6 @@ class JobOrder(Document):
 def create_forwarding_job(job_order_name):
 	"""
 	Create a complete Forwarding Job from a submitted Job Order.
-	Validates all required fields before creation and auto-saves.
 	
 	Args:
 		job_order_name: Name of the Job Order document
@@ -278,7 +258,6 @@ def create_forwarding_job(job_order_name):
 	Returns:
 		str: Name of the created Forwarding Job
 	"""
-	# Get the job order
 	job_order = frappe.get_doc("Job Order", job_order_name)
 	
 	# Validate job order is submitted
@@ -291,9 +270,6 @@ def create_forwarding_job(job_order_name):
 			_("This Job Order has already been converted to Forwarding Job {0}")
 			.format(job_order.forwarding_job_reference)
 		)
-	
-	# Validate required fields for conversion
-	validate_job_order_for_conversion(job_order)
 	
 	# Create new Forwarding Job
 	fwd_job = frappe.new_doc("Forwarding Job")
@@ -308,22 +284,22 @@ def create_forwarding_job(job_order_name):
 	# Service Details
 	fwd_job.direction = job_order.direction
 	fwd_job.shipment_mode = job_order.shipment_mode
-	fwd_job.shipment_type = getattr(job_order, 'shipment_type', None)
+	fwd_job.shipment_type = job_order.shipment_type
 	fwd_job.incoterms = job_order.incoterms
 	
 	# Party Information
-	fwd_job.shipper = getattr(job_order, 'shipper', None)
-	fwd_job.consignee = getattr(job_order, 'consignee', None)
+	fwd_job.shipper = job_order.shipper or None
+	fwd_job.consignee = job_order.consignee
 	
 	# Routing Information
-	fwd_job.port_of_loading = getattr(job_order, 'port_of_loading', None)
-	fwd_job.port_of_discharge = getattr(job_order, 'port_of_discharge', None)
-	fwd_job.destination = getattr(job_order, 'destination', None)
+	fwd_job.port_of_loading = job_order.port_of_loading
+	fwd_job.port_of_discharge = job_order.port_of_discharge
+	fwd_job.destination = job_order.destination
 	
 	# Dates
-	fwd_job.booking_date = getattr(job_order, 'booking_date', None)
-	fwd_job.etd = getattr(job_order, 'etd', None)
-	fwd_job.eta = getattr(job_order, 'eta', None)
+	fwd_job.booking_date = job_order.booking_date or None
+	fwd_job.etd = job_order.etd or None
+	fwd_job.eta = job_order.eta
 	
 	# Cargo Details
 	fwd_job.cargo_description = job_order.job_description
@@ -374,24 +350,10 @@ def create_forwarding_job(job_order_name):
 	job_order.flags.ignore_permissions = True
 	job_order.save()
 	
-	frappe.db.commit()
-	
 	frappe.msgprint(
 		_("Forwarding Job {0} created successfully").format(fwd_job.name),
 		alert=True
 	)
 	
 	return fwd_job.name
-
-
-def validate_job_order_for_conversion(job_order):
-	"""
-	Validate that all required fields are filled before converting to Forwarding Job.
-	
-	Args:
-		job_order: Job Order document object
-	"""
-	# This validation is now optional since fields are already validated at submission
-	# Just log that validation was called
-	pass
 

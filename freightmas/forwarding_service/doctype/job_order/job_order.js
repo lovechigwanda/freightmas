@@ -65,13 +65,6 @@ frappe.ui.form.on('Job Order', {
 
 // Child table events for job_order_charges
 frappe.ui.form.on('Job Order Charges', {
-	job_order_charges_add: function(frm, cdt, cdn) {
-		// Prevent manual addition of charges
-		frappe.model.clear_table(frm.doc, 'job_order_charges');
-		frm.refresh_field('job_order_charges');
-		frappe.msgprint(__('Charges are automatically loaded from the Quotation. Please select a Quotation Reference.'));
-	},
-	
 	qty: function(frm, cdt, cdn) {
 		calculate_row_amounts(frm, cdt, cdn);
 	},
@@ -192,9 +185,8 @@ function calculate_row_amounts(frm, cdt, cdn) {
 
 function create_forwarding_job_from_order(frm) {
 	frappe.confirm(
-		__('Create Forwarding Job from this Job Order?<br><br>This will:<br>- Validate all required fields are complete<br>- Create and save a complete Forwarding Job<br>- Link the Job Order to the Forwarding Job'),
+		__('Create Forwarding Job from this Job Order?<br><br>This will create and save a complete Forwarding Job linked to this Job Order.'),
 		function() {
-			// User confirmed
 			frappe.call({
 				method: 'freightmas.forwarding_service.doctype.job_order.job_order.create_forwarding_job',
 				args: {
@@ -204,10 +196,8 @@ function create_forwarding_job_from_order(frm) {
 				freeze_message: __('Creating Forwarding Job...'),
 				callback: function(r) {
 					if (r.message) {
-						// Reload the Job Order to show the link
 						frm.reload_doc();
 						
-						// Show success message
 						frappe.show_alert({
 							message: __('Forwarding Job {0} created successfully!', [r.message]),
 							indicator: 'green'
@@ -223,14 +213,6 @@ function create_forwarding_job_from_order(frm) {
 							);
 						}, 1000);
 					}
-				},
-				error: function(r) {
-					// Error already displayed by validation
-					frappe.msgprint({
-						title: __('Conversion Failed'),
-						message: __('Please check the error message and complete the required fields.'),
-						indicator: 'red'
-					});
 				}
 			});
 		}

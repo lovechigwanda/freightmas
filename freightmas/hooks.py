@@ -268,15 +268,13 @@ doc_events = {
         "on_update": "freightmas.utils.forwarding_job_folder.file_on_update"
     },
     "Quotation": {
-        "validate": "freightmas.freightmas.quotation_workflow.validate_quotation",
-        "on_update_after_submit": "freightmas.freightmas.quotation_workflow.on_quotation_workflow_change"
-    }
+		"validate": "freightmas.utils.quotation.validate_quotation",
+		"on_update_after_submit": "freightmas.utils.quotation.on_quotation_workflow_change"
+	}
 }
 
 
 ################################################################
-
-###FIXTURES
 
 fixtures = [
     {

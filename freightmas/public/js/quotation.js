@@ -93,7 +93,7 @@ function create_job_order_from_quotation(frm) {
         function() {
             // User confirmed
             frappe.call({
-                method: 'freightmas.freightmas.job_order_integration.create_job_order_from_quotation',
+                method: 'freightmas.utils.quotation.create_job_order_from_quotation',
                 args: {
                     quotation_name: frm.doc.name
                 },
