@@ -1,7 +1,7 @@
 [
  {
   "charts": [],
-  "content": "[{\"id\":\"R_FVKkbcPq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Sales</span>\",\"col\":12}},{\"id\":\"fDy44J857K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"UPjcwaYo7I\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Lead\",\"col\":3}},{\"id\":\"9I72AUaV6N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"k_vvSAloTZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation List\",\"col\":3}},{\"id\":\"gNBTyzv0ql\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"F0dzHkN68_\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Reports\",\"col\":4}}]",
+  "content": "[{\"id\":\"R_FVKkbcPq\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Sales</span>\",\"col\":12}},{\"id\":\"fDy44J857K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"UPjcwaYo7I\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Lead\",\"col\":3}},{\"id\":\"9I72AUaV6N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"k_vvSAloTZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation List\",\"col\":3}},{\"id\":\"qFKLs4oF74\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"gNBTyzv0ql\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"F0dzHkN68_\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Reports\",\"col\":4}}]",
   "custom_blocks": [],
   "docstatus": 0,
   "doctype": "Workspace",
@@ -67,7 +67,7 @@
     "type": "Link"
    }
   ],
-  "modified": "2026-01-11 10:01:32.180588",
+  "modified": "2026-01-11 13:36:29.501877",
   "module": null,
   "name": "FreightMas Sales",
   "number_cards": [],
@@ -86,6 +86,23 @@
     "kanban_board": null,
     "label": "Lead",
     "link_to": "Lead",
+    "parent": "FreightMas Sales",
+    "parentfield": "shortcuts",
+    "parenttype": "Workspace",
+    "report_ref_doctype": null,
+    "restrict_to_domain": null,
+    "stats_filter": "[]",
+    "type": "DocType",
+    "url": null
+   },
+   {
+    "color": "Grey",
+    "doc_view": "List",
+    "format": null,
+    "icon": null,
+    "kanban_board": null,
+    "label": "Job Order",
+    "link_to": "Job Order",
     "parent": "FreightMas Sales",
     "parentfield": "shortcuts",
     "parenttype": "Workspace",

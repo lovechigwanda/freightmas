@@ -96,13 +96,12 @@ frappe.query_reports["Quotation List"] = {
 			fieldname: "status",
 			label: __("Status"),
 			fieldtype: "Select",
-			options: ["", "Draft", "Open", "Submitted", "Accepted", "Rejected", "Lost", "Ordered", "Cancelled"]
+			options: ["", "Draft", "Pending Approval", "Approved", "Sent to Customer", "Accepted", "Rejected", "Expired", "Cancelled"]
 		},
 		{
-			fieldname: "job_type",
-			label: __("Job Type"),
-			fieldtype: "Select",
-			options: ["", "Air Freight", "Sea Freight", "Road Freight", "Clearing & Forwarding", "Warehousing", "Other"]
+			fieldname: "customer_reference",
+			label: __("Reference"),
+			fieldtype: "Data"
 		}
 	],
 

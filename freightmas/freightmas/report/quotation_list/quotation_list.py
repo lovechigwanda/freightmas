@@ -30,12 +30,12 @@ def execute(filters=None):
         params["customer"] = filters["customer"]
     
     if filters.get("status"):
-        conditions.append("status = %(status)s")
+        conditions.append("workflow_state = %(status)s")
         params["status"] = filters["status"]
     
-    if filters.get("job_type"):
-        conditions.append("job_type = %(job_type)s")
-        params["job_type"] = filters["job_type"]
+    if filters.get("customer_reference"):
+        conditions.append("customer_reference LIKE %(customer_reference)s")
+        params["customer_reference"] = f"%{filters['customer_reference']}%"
 
     where_clause = " AND ".join(conditions) if conditions else "1=1"
 
@@ -49,7 +49,7 @@ def execute(filters=None):
     # Get quotation data
     quotations = frappe.db.sql("""
         SELECT name, transaction_date, party_name as customer, customer_reference,
-               valid_till, job_type, grand_total, status
+               valid_till, job_type, grand_total, workflow_state
         FROM `tabQuotation`
         WHERE {where_clause}
         ORDER BY transaction_date DESC
@@ -65,7 +65,7 @@ def execute(filters=None):
             "valid_till": format_date(quote.get("valid_till")),
             "job_type": quote.get("job_type", ""),
             "grand_total": quote.get("grand_total", 0),
-            "status": quote.get("status", ""),
+            "status": quote.get("workflow_state", ""),
         })
 
     # Return data for pagination
@@ -88,12 +88,12 @@ def get_columns():
     return [
         {"label": "Quotation No", "fieldname": "id", "fieldtype": "Link", "options": "Quotation", "width": 190},
         {"label": "Created", "fieldname": "transaction_date", "fieldtype": "Data", "width": 110},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Data", "width": 250},
-        {"label": "Customer Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 170},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Data", "width": 270},
+        {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 150},
         {"label": "Valid Till", "fieldname": "valid_till", "fieldtype": "Data", "width": 110},
-        {"label": "Job Type", "fieldname": "job_type", "fieldtype": "Data", "width": 120},
+        {"label": "Job Type", "fieldname": "job_type", "fieldtype": "Data", "width": 100},
         {"label": "Total Amount", "fieldname": "grand_total", "fieldtype": "Currency", "width": 130},
-        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 130},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 150},
     ]
 
 

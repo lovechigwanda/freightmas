@@ -251,8 +251,7 @@
    "fieldname": "shipper",
    "fieldtype": "Link",
    "label": "Shipper",
-   "options": "Customer",
-   "reqd": 1
+   "options": "Customer"
   },
   {
    "fieldname": "column_break_tggg",
@@ -352,8 +351,7 @@
   {
    "fieldname": "booking_date",
    "fieldtype": "Date",
-   "label": "Booking Date",
-   "reqd": 1
+   "label": "Booking Date"
   },
   {
    "fieldname": "cargo_ready_date",
@@ -367,8 +365,7 @@
   {
    "fieldname": "etd",
    "fieldtype": "Date",
-   "label": "Estimated Departure",
-   "reqd": 1
+   "label": "Estimated Departure"
   },
   {
    "fieldname": "atd",
@@ -656,8 +653,7 @@
   {
    "fieldname": "loading_address",
    "fieldtype": "Data",
-   "label": "Loading Address",
-   "mandatory_depends_on": "eval:doc.is_trucking_required"
+   "label": "Loading Address"
   },
   {
    "fieldname": "column_break_mkbb",
@@ -675,8 +671,7 @@
   {
    "fieldname": "offloadiing_address",
    "fieldtype": "Data",
-   "label": "Offloading Address",
-   "mandatory_depends_on": "eval:doc.is_trucking_required"
+   "label": "Offloading Address"
   },
   {
    "fieldname": "parcel_tab",
@@ -689,7 +684,7 @@
    "label": "Loading Master"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "is_trucking_required",
    "fieldtype": "Check",
    "label": "Is Trucking Required",
@@ -708,7 +703,6 @@
    "fieldname": "road_freight_route",
    "fieldtype": "Link",
    "label": "Road Freight Route",
-   "mandatory_depends_on": "eval:doc.is_trucking_required",
    "options": "Road Freight Route"
   },
   {
@@ -928,7 +922,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2025-12-12 21:45:24.982905",
+ "modified": "2026-01-11 16:11:57.367880",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
@@ -957,19 +951,6 @@
    "report": 1,
    "role": "FreightMas Manager",
    "select": 1,
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
    "share": 1,
    "submit": 1,
    "write": 1

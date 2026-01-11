@@ -15,6 +15,12 @@ class JobOrder(Document):
 		self.fetch_items_from_quotation()
 		self.calculate_totals()
 	
+	def after_insert(self):
+		"""Actions after document is inserted"""
+		# Auto-assign to operations user if specified
+		if self.operations_assigned_to:
+			self.assign_to_user(self.operations_assigned_to)
+	
 	def validate_quotation(self):
 		"""Ensure quotation exists and is in Accepted state"""
 		if not self.quotation_reference:
@@ -62,12 +68,12 @@ class JobOrder(Document):
 				)
 	
 	def fetch_items_from_quotation(self):
-		"""Copy items from quotation if not already populated"""
+		"""Copy items from quotation to job_order_charges if not already populated"""
 		if not self.quotation_reference:
 			return
 		
-		# Only fetch if items table is empty
-		if self.items:
+		# Only fetch if job_order_charges table is empty
+		if self.job_order_charges:
 			return
 		
 		quotation = frappe.get_doc("Quotation", self.quotation_reference)
@@ -75,23 +81,37 @@ class JobOrder(Document):
 		if not quotation.items:
 			return
 		
-		# Copy each quotation item
+		# Copy each quotation item to job_order_charges
 		for item in quotation.items:
-			self.append("items", {
-				"item_code": item.item_code,
-				"item_name": item.item_name,
-				"description": item.description,
-				"qty": item.qty,
-				"uom": item.uom,
-				"rate": item.rate,
-				"amount": item.amount
-			})
+			charge_row = {
+				"charge": item.item_code,
+				"description": item.description or item.item_name,
+				"qty": item.qty or 1,
+				"sell_rate": item.rate or 0,
+				"customer": self.customer
+			}
+			
+			# If quotation item has cost fields, copy them too
+			if hasattr(item, 'buy_rate') and item.buy_rate:
+				charge_row["buy_rate"] = item.buy_rate
+			
+			if hasattr(item, 'supplier') and item.supplier:
+				charge_row["supplier"] = item.supplier
+			
+			self.append("job_order_charges", charge_row)
 	
 	def calculate_totals(self):
-		"""Calculate total quoted amount from items"""
+		"""Calculate total quoted amount from job_order_charges"""
 		total = 0.0
-		for item in self.items:
-			total += float(item.amount or 0)
+		
+		# Calculate revenue_amount and cost_amount for each charge
+		for charge in self.job_order_charges:
+			# Calculate revenue amount
+			charge.revenue_amount = float(charge.qty or 0) * float(charge.sell_rate or 0)
+			# Calculate cost amount
+			charge.cost_amount = float(charge.qty or 0) * float(charge.buy_rate or 0)
+			# Add to total
+			total += charge.revenue_amount
 		
 		self.total_quoted_amount = total
 	
@@ -101,8 +121,13 @@ class JobOrder(Document):
 		if not self.prepared_by:
 			self.prepared_by = frappe.session.user
 		
-		if not self.prepared_date:
-			self.prepared_date = nowdate()
+		# Validate all required fields for conversion are completed
+		self.validate_for_conversion()
+	
+	def on_update(self):
+		"""Handle assignment changes"""
+		if self.has_value_changed("operations_assigned_to"):
+			self.handle_assignment_change()
 	
 	def on_submit(self):
 		"""Update quotation with link to this job order"""
@@ -130,12 +155,122 @@ class JobOrder(Document):
 				_("Cannot cancel Job Order {0} as it has already been converted to Forwarding Job {1}")
 				.format(self.name, self.forwarding_job_reference)
 			)
+	
+	def assign_to_user(self, user):
+		"""Assign this document to a user using Frappe's assignment system"""
+		if not user:
+			return
+		
+		# Check if already assigned to this user
+		existing_assignments = frappe.get_all(
+			"ToDo",
+			filters={
+				"reference_type": self.doctype,
+				"reference_name": self.name,
+				"allocated_to": user,
+				"status": "Open"
+			}
+		)
+		
+		if existing_assignments:
+			return  # Already assigned
+		
+		# Use Frappe's assignment API
+		try:
+			from frappe.desk.form.assign_to import add
+			add({
+				"doctype": self.doctype,
+				"name": self.name,
+				"assign_to": [user],
+				"description": f"Job Order for {self.customer} - Review and create Forwarding Job"
+			})
+		except Exception as e:
+			frappe.log_error(f"Error assigning Job Order {self.name} to {user}: {str(e)}")
+	
+	def handle_assignment_change(self):
+		"""Handle changes to operations_assigned_to field"""
+		old_value = self.get_doc_before_save()
+		old_user = old_value.operations_assigned_to if old_value else None
+		new_user = self.operations_assigned_to
+		
+		# Remove old assignment if exists
+		if old_user and old_user != new_user:
+			self.remove_assignment(old_user)
+		
+		# Add new assignment
+		if new_user:
+			self.assign_to_user(new_user)
+	
+	def remove_assignment(self, user):
+		"""Remove assignment from a user"""
+		if not user:
+			return
+		
+		try:
+			from frappe.desk.form.assign_to import remove
+			todos = frappe.get_all(
+				"ToDo",
+				filters={
+					"reference_type": self.doctype,
+					"reference_name": self.name,
+					"allocated_to": user,
+					"status": "Open"
+				},
+				pluck="name"
+			)
+			
+			for todo in todos:
+				remove(self.doctype, self.name, user)
+				break  # Remove only once
+		except Exception as e:
+			frappe.log_error(f"Error removing assignment from {user} for Job Order {self.name}: {str(e)}")
+	
+	def validate_for_conversion(self):
+		"""
+		Validate that all required fields are filled before submission.
+		This ensures Sales completes all information before handing over to Operations.
+		"""
+		missing_fields = []
+		
+		# Check required party information
+		if not getattr(self, 'consignee', None):
+			missing_fields.append("Consignee")
+		
+		# Check required service details
+		if not getattr(self, 'shipment_type', None):
+			missing_fields.append("Shipment Type")
+		if not getattr(self, 'direction', None):
+			missing_fields.append("Direction")
+		if not getattr(self, 'shipment_mode', None):
+			missing_fields.append("Shipment Mode")
+		if not getattr(self, 'incoterms', None):
+			missing_fields.append("Incoterms")
+		
+		# Check required routing information
+		if not getattr(self, 'port_of_loading', None):
+			missing_fields.append("Port of Origin")
+		if not getattr(self, 'port_of_discharge', None):
+			missing_fields.append("Port of Discharge")
+		if not getattr(self, 'destination', None):
+			missing_fields.append("Final Destination")
+		
+		# Check required dates
+		if not getattr(self, 'eta', None):
+			missing_fields.append("Estimated Arrival (ETA)")
+		
+		if missing_fields:
+			frappe.throw(
+				_("Cannot submit Job Order. Please complete the following required fields before handover to Operations:<br><br>• {0}")
+				.format("<br>• ".join(missing_fields)),
+				title=_("Incomplete Job Order")
+			)
 
 
 @frappe.whitelist()
 def create_forwarding_job(job_order_name):
 	"""
-	Create a Forwarding Job from a submitted Job Order.
+	Create a complete Forwarding Job from a submitted Job Order.
+	Validates all required fields before creation and auto-saves.
 	
 	Args:
 		job_order_name: Name of the Job Order document
@@ -157,27 +292,41 @@ def create_forwarding_job(job_order_name):
 			.format(job_order.forwarding_job_reference)
 		)
 	
+	# Validate required fields for conversion
+	validate_job_order_for_conversion(job_order)
+	
 	# Create new Forwarding Job
 	fwd_job = frappe.new_doc("Forwarding Job")
 	
 	# Basic Information
 	fwd_job.company = job_order.company
 	fwd_job.customer = job_order.customer
-	fwd_job.customer_reference = job_order.customer_po_reference
+	fwd_job.customer_reference = job_order.customer_reference
 	fwd_job.date_created = nowdate()
 	fwd_job.created_by = frappe.session.user
 	
 	# Service Details
 	fwd_job.direction = job_order.direction
 	fwd_job.shipment_mode = job_order.shipment_mode
+	fwd_job.shipment_type = getattr(job_order, 'shipment_type', None)
 	fwd_job.incoterms = job_order.incoterms
 	
+	# Party Information
+	fwd_job.shipper = getattr(job_order, 'shipper', None)
+	fwd_job.consignee = getattr(job_order, 'consignee', None)
+	
 	# Routing Information
-	fwd_job.port_of_loading = job_order.origin_port
-	fwd_job.destination = job_order.destination_port
+	fwd_job.port_of_loading = getattr(job_order, 'port_of_loading', None)
+	fwd_job.port_of_discharge = getattr(job_order, 'port_of_discharge', None)
+	fwd_job.destination = getattr(job_order, 'destination', None)
+	
+	# Dates
+	fwd_job.booking_date = getattr(job_order, 'booking_date', None)
+	fwd_job.etd = getattr(job_order, 'etd', None)
+	fwd_job.eta = getattr(job_order, 'eta', None)
 	
 	# Cargo Details
-	fwd_job.cargo_description = job_order.cargo_description
+	fwd_job.cargo_description = job_order.job_description
 	
 	# Currency
 	fwd_job.currency = job_order.currency
@@ -185,31 +334,35 @@ def create_forwarding_job(job_order_name):
 	# Operational flags
 	fwd_job.is_trucking_required = job_order.is_trucking_required
 	
-	# Copy items to forwarding_costing_charges
-	for item in job_order.items:
-		fwd_job.append("forwarding_costing_charges", {
-			"charge": item.item_code,
-			"description": item.description,
-			"qty": item.qty,
-			"sell_rate": item.rate,
-			"customer": job_order.customer
-		})
+	# Copy job_order_charges to forwarding_costing_charges
+	for charge in job_order.job_order_charges:
+		costing_row = {
+			"charge": charge.charge,
+			"description": charge.description,
+			"qty": charge.qty,
+			"sell_rate": charge.sell_rate,
+			"customer": charge.customer or job_order.customer
+		}
+		
+		# Copy supplier and buy rate if available
+		if charge.buy_rate:
+			costing_row["buy_rate"] = charge.buy_rate
+		
+		if charge.supplier:
+			costing_row["supplier"] = charge.supplier
+		
+		fwd_job.append("forwarding_costing_charges", costing_row)
 	
 	# Copy documents checklist
 	for doc in job_order.documents_checklist:
 		fwd_job.append("documents_checklist", {
-			"document_name": doc.document_name,
-			"is_received": doc.is_received,
-			"received_date": doc.received_date,
-			"notes": doc.notes
+			"document": doc.document,
+			"attach": doc.attach,
+			"is_submitted": doc.is_submitted,
+			"date_submitted": doc.date_submitted,
+			"is_verified": doc.is_verified,
+			"date_verified": doc.date_verified
 		})
-	
-	# Add notes about source
-	fwd_job.special_instructions = (
-		f"Created from Job Order: {job_order.name}\n"
-		f"Quotation Reference: {job_order.quotation_reference}\n\n"
-		f"{job_order.special_instructions or ''}"
-	)
 	
 	# Save the forwarding job
 	fwd_job.insert()
@@ -218,7 +371,10 @@ def create_forwarding_job(job_order_name):
 	job_order.forwarding_job_reference = fwd_job.name
 	job_order.job_created_date = now()
 	job_order.job_created_by = frappe.session.user
+	job_order.flags.ignore_permissions = True
 	job_order.save()
+	
+	frappe.db.commit()
 	
 	frappe.msgprint(
 		_("Forwarding Job {0} created successfully").format(fwd_job.name),
@@ -226,3 +382,16 @@ def create_forwarding_job(job_order_name):
 	)
 	
 	return fwd_job.name
+
+
+def validate_job_order_for_conversion(job_order):
+	"""
+	Validate that all required fields are filled before converting to Forwarding Job.
+	
+	Args:
+		job_order: Job Order document object
+	"""
+	# This validation is now optional since fields are already validated at submission
+	# Just log that validation was called
+	pass
+

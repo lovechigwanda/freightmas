@@ -40,6 +40,18 @@ def create_job_order_from_quotation(quotation_name):
 			.format(quotation.job_type)
 		)
 	
+	# Check if quotation is for a Lead (not Customer)
+	if quotation.quotation_to == "Lead":
+		frappe.throw(
+			_("Cannot create Job Order from a quotation to Lead.<br><br>Please convert the Lead <b>{0}</b> to a Customer first, then create a new Quotation for the Customer.")
+			.format(quotation.party_name),
+			title=_("Lead Not Converted")
+		)
+	
+	# Ensure there's a valid customer
+	if not quotation.party_name or quotation.quotation_to != "Customer":
+		frappe.throw(_("This quotation must be linked to a Customer to create a Job Order"))
+	
 	# Check if job order already exists
 	existing = frappe.db.exists(
 		"Job Order",
@@ -61,32 +73,40 @@ def create_job_order_from_quotation(quotation_name):
 	# Basic Information
 	job_order.quotation_reference = quotation_name
 	job_order.company = quotation.company
-	job_order.customer = quotation.customer_name
+	job_order.customer = quotation.party_name  # This is the Customer name
 	job_order.order_date = frappe.utils.nowdate()
+	job_order.prepared_by = frappe.session.user  # Set the user who created it
 	
 	# Service Details (will be fetched automatically via fetch_from)
 	job_order.service_type = "Forwarding"
 	
 	# Cargo Summary
-	if hasattr(quotation, 'cargo_description'):
-		job_order.cargo_description = quotation.cargo_description
+	if hasattr(quotation, 'job_description'):
+		job_order.job_description = quotation.job_description
 	
 	# Currency
 	if hasattr(quotation, 'currency'):
 		job_order.currency = quotation.currency
 	
-	# Copy items from quotation
+	# Copy items from quotation to job_order_charges
 	if quotation.items:
 		for item in quotation.items:
-			job_order.append("items", {
-				"item_code": item.item_code,
-				"item_name": item.item_name,
-				"description": item.description,
-				"qty": item.qty,
-				"uom": item.uom,
-				"rate": item.rate,
-				"amount": item.amount
-			})
+			charge_row = {
+				"charge": item.item_code,
+				"description": item.description or item.item_name,
+				"qty": item.qty or 1,
+				"sell_rate": item.rate or 0,
+				"customer": quotation.party_name  # Customer name from quotation
+			}
+			
+			# Copy cost fields if available
+			if hasattr(item, 'buy_rate') and item.buy_rate:
+				charge_row["buy_rate"] = item.buy_rate
+			
+			if hasattr(item, 'supplier') and item.supplier:
+				charge_row["supplier"] = item.supplier
+			
+			job_order.append("job_order_charges", charge_row)
 	
 	# Save the job order
 	job_order.insert()

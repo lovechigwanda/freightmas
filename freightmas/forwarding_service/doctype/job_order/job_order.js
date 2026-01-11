@@ -63,22 +63,40 @@ frappe.ui.form.on('Job Order', {
 	}
 });
 
-// Child table events for items
-frappe.ui.form.on('Job Order Items', {
-	items_add: function(frm, cdt, cdn) {
-		// Prevent manual addition of items
-		frappe.model.clear_table(frm.doc, 'items');
-		frm.refresh_field('items');
-		frappe.msgprint(__('Items are automatically loaded from the Quotation. Please select a Quotation Reference.'));
+// Child table events for job_order_charges
+frappe.ui.form.on('Job Order Charges', {
+	job_order_charges_add: function(frm, cdt, cdn) {
+		// Prevent manual addition of charges
+		frappe.model.clear_table(frm.doc, 'job_order_charges');
+		frm.refresh_field('job_order_charges');
+		frappe.msgprint(__('Charges are automatically loaded from the Quotation. Please select a Quotation Reference.'));
+	},
+	
+	qty: function(frm, cdt, cdn) {
+		calculate_row_amounts(frm, cdt, cdn);
+	},
+	
+	sell_rate: function(frm, cdt, cdn) {
+		calculate_row_amounts(frm, cdt, cdn);
+	},
+	
+	buy_rate: function(frm, cdt, cdn) {
+		calculate_row_amounts(frm, cdt, cdn);
 	}
 });
 
 // Child table events for documents checklist
-frappe.ui.form.on('Job Order Documents Checklist', {
-	is_received: function(frm, cdt, cdn) {
+frappe.ui.form.on('Forwarding Documents Checklist', {
+	is_submitted: function(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
-		if (row.is_received && !row.received_date) {
-			frappe.model.set_value(cdt, cdn, 'received_date', frappe.datetime.nowdate());
+		if (row.is_submitted && !row.date_submitted) {
+			frappe.model.set_value(cdt, cdn, 'date_submitted', frappe.datetime.nowdate());
+		}
+	},
+	is_verified: function(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+		if (row.is_verified && !row.date_verified) {
+			frappe.model.set_value(cdt, cdn, 'date_verified', frappe.datetime.nowdate());
 		}
 	}
 });
@@ -106,29 +124,39 @@ function load_quotation_data(frm) {
 				frm.set_value('origin_port', quotation.origin_port);
 				frm.set_value('destination_port', quotation.destination_port);
 				frm.set_value('incoterms', quotation.incoterms);
-				frm.set_value('cargo_description', quotation.cargo_description);
+				frm.set_value('job_description', quotation.job_description);
 				frm.set_value('currency', quotation.currency);
 				
-				// Clear and populate items
-				frm.clear_table('items');
+				// Clear and populate job_order_charges
+				frm.clear_table('job_order_charges');
 				
 				if (quotation.items && quotation.items.length > 0) {
 					quotation.items.forEach(function(item) {
-						let child = frm.add_child('items');
-						child.item_code = item.item_code;
-						child.item_name = item.item_name;
-						child.description = item.description;
-						child.qty = item.qty;
-						child.uom = item.uom;
-						child.rate = item.rate;
-						child.amount = item.amount;
+						let child = frm.add_child('job_order_charges');
+						child.charge = item.item_code;
+						child.description = item.description || item.item_name;
+						child.qty = item.qty || 1;
+						child.sell_rate = item.rate || 0;
+						child.customer = frm.doc.customer;
+						
+						// Copy cost fields if available
+						if (item.buy_rate) {
+							child.buy_rate = item.buy_rate;
+						}
+						if (item.supplier) {
+							child.supplier = item.supplier;
+						}
+						
+						// Calculate amounts
+						child.revenue_amount = (child.qty || 0) * (child.sell_rate || 0);
+						child.cost_amount = (child.qty || 0) * (child.buy_rate || 0);
 					});
 					
-					frm.refresh_field('items');
+					frm.refresh_field('job_order_charges');
 					calculate_total(frm);
 					
 					frappe.show_alert({
-						message: __('Loaded {0} items from Quotation', [quotation.items.length]),
+						message: __('Loaded {0} charges from Quotation', [quotation.items.length]),
 						indicator: 'green'
 					}, 5);
 				}
@@ -140,18 +168,31 @@ function load_quotation_data(frm) {
 function calculate_total(frm) {
 	let total = 0;
 	
-	if (frm.doc.items) {
-		frm.doc.items.forEach(function(item) {
-			total += flt(item.amount);
+	if (frm.doc.job_order_charges) {
+		frm.doc.job_order_charges.forEach(function(charge) {
+			total += flt(charge.revenue_amount || 0);
 		});
 	}
 	
 	frm.set_value('total_quoted_amount', total);
 }
 
+function calculate_row_amounts(frm, cdt, cdn) {
+	let row = locals[cdt][cdn];
+	
+	// Calculate revenue amount
+	row.revenue_amount = flt(row.qty || 0) * flt(row.sell_rate || 0);
+	
+	// Calculate cost amount
+	row.cost_amount = flt(row.qty || 0) * flt(row.buy_rate || 0);
+	
+	frm.refresh_field('job_order_charges');
+	calculate_total(frm);
+}
+
 function create_forwarding_job_from_order(frm) {
 	frappe.confirm(
-		__('Are you sure you want to create a Forwarding Job from this Job Order?<br><br>This will:<br>- Create a new Forwarding Job<br>- Copy all service charges and documents<br>- Link the Job Order to the Forwarding Job'),
+		__('Create Forwarding Job from this Job Order?<br><br>This will:<br>- Validate all required fields are complete<br>- Create and save a complete Forwarding Job<br>- Link the Job Order to the Forwarding Job'),
 		function() {
 			// User confirmed
 			frappe.call({
@@ -163,14 +204,16 @@ function create_forwarding_job_from_order(frm) {
 				freeze_message: __('Creating Forwarding Job...'),
 				callback: function(r) {
 					if (r.message) {
+						// Reload the Job Order to show the link
 						frm.reload_doc();
 						
-						// Offer to open the new Forwarding Job
+						// Show success message
 						frappe.show_alert({
 							message: __('Forwarding Job {0} created successfully!', [r.message]),
 							indicator: 'green'
 						}, 5);
 						
+						// Offer to open the new Forwarding Job
 						setTimeout(function() {
 							frappe.confirm(
 								__('Would you like to open the newly created Forwarding Job?'),
@@ -180,6 +223,14 @@ function create_forwarding_job_from_order(frm) {
 							);
 						}, 1000);
 					}
+				},
+				error: function(r) {
+					// Error already displayed by validation
+					frappe.msgprint({
+						title: __('Conversion Failed'),
+						message: __('Please check the error message and complete the required fields.'),
+						indicator: 'red'
+					});
 				}
 			});
 		}

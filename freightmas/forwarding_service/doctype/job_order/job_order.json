@@ -2,60 +2,62 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-01-08 10:00:00",
+ "creation": "2026-01-11 14:48:30.848028",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "basic_information_section",
-  "naming_series",
   "quotation_reference",
+  "customer",
   "column_break_basic",
   "order_date",
-  "customer",
+  "customer_reference",
   "column_break_yyqv",
   "company",
-  "customer_po_reference",
-  "section_break_service",
+  "naming_series",
   "service_type",
-  "direction",
-  "column_break_service",
-  "origin_port",
-  "shipment_mode",
-  "column_break_imkq",
-  "destination_port",
+  "section_break_service_details",
+  "port_of_loading",
+  "consignee",
   "incoterms",
-  "section_break_cargo",
-  "cargo_description",
-  "column_break_cargo",
-  "total_packages",
-  "total_weight",
-  "items_section",
-  "currency",
-  "items",
-  "total_quoted_amount",
+  "column_break_hfws",
+  "port_of_discharge",
+  "shipment_type",
+  "direction",
+  "column_break_byrx",
+  "destination",
+  "eta",
+  "shipment_mode",
+  "section_break_job",
+  "job_description",
+  "section_break_tfcw",
+  "special_instructions",
   "section_break_operations",
   "requested_service_date",
-  "special_instructions",
   "column_break_ops",
   "is_trucking_required",
-  "is_customs_clearance_required",
+  "section_break_tracking",
+  "amended_from",
+  "documents_tab",
   "section_break_documents",
   "documents_checklist",
+  "charges_tab",
+  "items_section",
+  "currency",
+  "job_order_charges",
+  "total_quoted_amount",
+  "connections_tab",
   "section_break_handover",
   "prepared_by",
-  "prepared_date",
   "column_break_handover",
   "operations_assigned_to",
   "column_break_hctp",
-  "operations_notes",
   "section_break_conversion",
   "forwarding_job_reference",
   "column_break_conversion",
   "job_created_by",
   "column_break_kvkp",
-  "job_created_date",
-  "section_break_tracking",
-  "amended_from"
+  "job_created_date"
  ],
  "fields": [
   {
@@ -64,11 +66,10 @@
    "label": "Basic Information"
   },
   {
-   "default": "FWJO-.#####-.YYYY",
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "FWJO-.#####-.YYYY",
+   "options": "FWJO-.#####-.YY",
    "reqd": 1
   },
   {
@@ -111,17 +112,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "customer_po_reference",
-   "fieldtype": "Data",
-   "label": "Customer PO Reference",
-   "length": 140
-  },
-  {
-   "fieldname": "section_break_service",
-   "fieldtype": "Section Break",
-   "label": "Service Details"
-  },
-  {
    "default": "Forwarding",
    "fieldname": "service_type",
    "fieldtype": "Select",
@@ -131,81 +121,9 @@
    "reqd": 1
   },
   {
-   "fieldname": "direction",
-   "fieldtype": "Select",
-   "label": "Direction",
-   "options": "\nImport\nExport",
-   "read_only": 1
-  },
-  {
-   "fieldname": "shipment_mode",
-   "fieldtype": "Select",
-   "label": "Shipment Mode",
-   "options": "\nSea\nAir",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_service",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "quotation_reference.origin_port",
-   "fieldname": "origin_port",
-   "fieldtype": "Data",
-   "label": "Origin Port",
-   "read_only": 1
-  },
-  {
-   "fetch_from": "quotation_reference.destination_port",
-   "fieldname": "destination_port",
-   "fieldtype": "Data",
-   "label": "Destination Port",
-   "read_only": 1
-  },
-  {
-   "fieldname": "incoterms",
-   "fieldtype": "Data",
-   "label": "Incoterms",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_cargo",
-   "fieldtype": "Section Break",
-   "label": "Cargo Summary"
-  },
-  {
-   "fetch_from": "quotation_reference.job_description",
-   "fieldname": "cargo_description",
-   "fieldtype": "Small Text",
-   "label": "Cargo Description",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_cargo",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_packages",
-   "fieldtype": "Int",
-   "label": "Total Packages"
-  },
-  {
-   "fieldname": "total_weight",
-   "fieldtype": "Float",
-   "label": "Total Weight (KG)",
-   "precision": "2"
-  },
-  {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
    "label": "Service Charges (From Quotation)"
-  },
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "Job Order Items",
-   "read_only": 1
   },
   {
    "fieldname": "total_quoted_amount",
@@ -231,12 +149,13 @@
   {
    "fieldname": "requested_service_date",
    "fieldtype": "Date",
-   "label": "Requested Service Date"
+   "label": "Requested Service Date",
+   "options": "Today"
   },
   {
    "fieldname": "special_instructions",
-   "fieldtype": "Long Text",
-   "label": "Special Instructions"
+   "fieldtype": "Small Text",
+   "label": "Scope of Work & Special Instructions"
   },
   {
    "fieldname": "column_break_ops",
@@ -249,21 +168,8 @@
    "label": "Is Trucking Required?"
   },
   {
-   "default": "0",
-   "fieldname": "is_customs_clearance_required",
-   "fieldtype": "Check",
-   "label": "Is Customs Clearance Required?"
-  },
-  {
    "fieldname": "section_break_documents",
-   "fieldtype": "Section Break",
-   "label": "Documents Checklist"
-  },
-  {
-   "fieldname": "documents_checklist",
-   "fieldtype": "Table",
-   "label": "Documents Checklist",
-   "options": "Job Order Documents Checklist"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "section_break_handover",
@@ -279,13 +185,6 @@
    "read_only": 1
   },
   {
-   "default": "Today",
-   "fieldname": "prepared_date",
-   "fieldtype": "Date",
-   "label": "Prepared Date",
-   "read_only": 1
-  },
-  {
    "fieldname": "column_break_handover",
    "fieldtype": "Column Break"
   },
@@ -296,17 +195,13 @@
    "options": "User"
   },
   {
-   "fieldname": "operations_notes",
-   "fieldtype": "Small Text",
-   "label": "Operations Notes"
-  },
-  {
    "collapsible": 1,
    "fieldname": "section_break_conversion",
    "fieldtype": "Section Break",
    "label": "Conversion to Forwarding Job"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "forwarding_job_reference",
    "fieldtype": "Link",
    "label": "Forwarding Job Reference",
@@ -314,6 +209,7 @@
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "job_created_date",
    "fieldtype": "Datetime",
    "label": "Job Created Date",
@@ -324,6 +220,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "job_created_by",
    "fieldtype": "Link",
    "label": "Job Created By",
@@ -349,22 +246,139 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_imkq",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_hctp",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "column_break_kvkp",
    "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "quotation_reference.customer_reference",
+   "fieldname": "customer_reference",
+   "fieldtype": "Data",
+   "label": "Customer Reference"
+  },
+  {
+   "fieldname": "section_break_job",
+   "fieldtype": "Section Break",
+   "label": "Job Details"
+  },
+  {
+   "fetch_from": "quotation_reference.job_description",
+   "fieldname": "job_description",
+   "fieldtype": "Small Text",
+   "label": "Job Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_tfcw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "documents_tab",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
+   "fieldname": "documents_checklist",
+   "fieldtype": "Table",
+   "label": "Documents Checklist",
+   "options": "Forwarding Documents Checklist"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "fieldname": "job_order_charges",
+   "fieldtype": "Table",
+   "label": "Job Order Charges",
+   "options": "Job Order Charges",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "quotation_reference.origin_port",
+   "fieldname": "port_of_loading",
+   "fieldtype": "Link",
+   "label": "Port of Origin",
+   "options": "Port",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_hfws",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_of_discharge",
+   "fieldtype": "Link",
+   "label": "Port of Discharge",
+   "options": "Port"
+  },
+  {
+   "fieldname": "column_break_byrx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "quotation_reference.destination_port",
+   "fieldname": "destination",
+   "fieldtype": "Link",
+   "label": "Final Destination",
+   "options": "Port",
+   "read_only": 1
+  },
+  {
+   "fieldname": "consignee",
+   "fieldtype": "Link",
+   "label": "Consignee",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "shipment_type",
+   "fieldtype": "Select",
+   "label": "Shipment Type",
+   "options": "\nFCL\nLCL\nConsol"
+  },
+  {
+   "fieldname": "eta",
+   "fieldtype": "Date",
+   "label": "ETA"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Direction",
+   "options": "\nImport\nExport\nLocal\nTransit"
+  },
+  {
+   "fieldname": "shipment_mode",
+   "fieldtype": "Select",
+   "label": "Shipment Mode",
+   "options": "\nSea\nAir\nRoad"
+  },
+  {
+   "fieldname": "incoterms",
+   "fieldtype": "Link",
+   "label": "Incoterms",
+   "options": "Incoterm"
+  },
+  {
+   "fieldname": "section_break_service_details",
+   "fieldtype": "Section Break",
+   "label": "Service Details"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-08 18:41:55.788520",
+ "modified": "2026-01-11 18:40:18.135190",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Job Order",
