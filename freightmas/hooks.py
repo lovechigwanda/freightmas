@@ -11,7 +11,7 @@ def clear_old_workspaces():
     """Delete only FreightMas-related Workspace records before importing fixtures"""
     frappe.db.sql("""
         DELETE FROM `tabWorkspace`
-        WHERE name IN ('Port Clearing Service', 'Road Freight Service', 'Forwarding Service', 'Trucking Service')
+        WHERE name IN ('Port Clearing Service', 'Road Freight Service', 'Forwarding Service', 'FreightMas Sales', 'Trucking Service')
     """)
     frappe.db.commit()
 
@@ -361,7 +361,7 @@ fixtures = [
     {
         "dt": "Workspace",
         "filters": [
-            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","Trucking Service"]]
+            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","FreightMas Sales","Trucking Service"]]
         ]
     },
     #{

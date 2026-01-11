@@ -107,6 +107,11 @@ frappe.query_reports["Forwarding Job List"] = {
 	],
 
 	onload: function(report) {
+		// Add New Forwarding Job button
+		report.page.set_primary_action(__('Add Forwarding Job'), function() {
+			frappe.new_doc('Forwarding Job');
+		});
+
 		// Add Export buttons
 		report.page.add_inner_button('Export to Excel', function() {
 			const filters = report.get_filter_values(true);
@@ -132,5 +137,21 @@ frappe.query_reports["Forwarding Job List"] = {
 			// Trigger report refresh after clearing filters
 			report.refresh();
 		});
+	},
+
+	get_datatable_options(options) {
+		return Object.assign(options, {
+			checkboxColumn: false,
+			events: {
+				onCheckRow: function() {},
+			}
+		});
+	},
+
+	onRowClick: function(row) {
+		// row is the data object for the clicked row
+		if (row && row.id) {
+			frappe.set_route('Form', 'Forwarding Job', row.id);
+		}
 	}
 };

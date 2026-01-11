@@ -88,7 +88,7 @@ def get_columns():
     return [
         {"label": "Quotation No", "fieldname": "id", "fieldtype": "Link", "options": "Quotation", "width": 190},
         {"label": "Created", "fieldname": "transaction_date", "fieldtype": "Data", "width": 110},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 250},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Data", "width": 250},
         {"label": "Customer Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 170},
         {"label": "Valid Till", "fieldname": "valid_till", "fieldtype": "Data", "width": 110},
         {"label": "Job Type", "fieldname": "job_type", "fieldtype": "Data", "width": 120},

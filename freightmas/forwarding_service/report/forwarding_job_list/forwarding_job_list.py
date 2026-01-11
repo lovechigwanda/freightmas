@@ -88,8 +88,8 @@ def get_columns():
     return [
         {"label": "ID", "fieldname": "id", "fieldtype": "Link", "options": "Forwarding Job", "width": 150},
         {"label": "Date Created", "fieldname": "date_created", "fieldtype": "Data", "width": 130},
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 210},
-        {"label": "Consignee", "fieldname": "consignee", "fieldtype": "Link", "options": "Customer", "width": 210},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Data", "width": 210},
+        {"label": "Consignee", "fieldname": "consignee", "fieldtype": "Data", "width": 210},
         {"label": "Reference", "fieldname": "customer_reference", "fieldtype": "Data", "width": 160},
         {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 110},
         {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 110},
