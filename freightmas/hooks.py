@@ -326,6 +326,7 @@ fixtures = [
                 "Quotation-custom_quotation_cost_col_break",
                 "Quotation-custom_quotation_cost_col_break_2",
                 "Quotation-custom_quotation_costing_totals",
+                "Quotation-custom_job_order_reference",
                 "Quotation Item-custom_buy_rate",
                 "Quotation Item-custom_job_reference",
                 "Quotation-custom_bundle_charges",
@@ -347,7 +348,7 @@ fixtures = [
     {
         "dt": "Workflow State",
         "filters": [
-            ["name", "in", ["Draft", "Pending Approval", "Approved", "Sent to Customer", "Accepted", "Rejected", "Expired", "Cancelled"]]
+            ["name", "in", ["Draft", "Pending Approval", "Approved", "Sent to Customer", "Accepted", "Rejected", "Expired","JO Created", "Cancelled"]]
         ]
     },
     {

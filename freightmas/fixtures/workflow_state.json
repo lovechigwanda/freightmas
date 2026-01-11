@@ -66,6 +66,15 @@
   "docstatus": 0,
   "doctype": "Workflow State",
   "icon": "",
+  "modified": "2026-01-11 20:17:33.262859",
+  "name": "JO Created",
+  "style": "Inverse",
+  "workflow_state_name": "JO Created"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
   "modified": "2026-01-08 09:11:50.933973",
   "name": "Accepted",
   "style": "Success",
