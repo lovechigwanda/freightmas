@@ -269,7 +269,6 @@ def create_forwarding_job(job_order_name):
 	fwd_job.incoterms = job_order.incoterms
 	
 	# Party Information
-	fwd_job.shipper = job_order.shipper or None
 	fwd_job.consignee = job_order.consignee
 	
 	# Routing Information

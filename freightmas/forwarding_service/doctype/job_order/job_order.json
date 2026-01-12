@@ -36,17 +36,6 @@
   "requested_service_date",
   "column_break_ops",
   "is_trucking_required",
-  "section_break_tracking",
-  "amended_from",
-  "documents_tab",
-  "section_break_documents",
-  "documents_checklist",
-  "charges_tab",
-  "items_section",
-  "currency",
-  "job_order_charges",
-  "total_quoted_amount",
-  "connections_tab",
   "section_break_handover",
   "prepared_by",
   "column_break_handover",
@@ -57,7 +46,18 @@
   "column_break_conversion",
   "job_created_by",
   "column_break_kvkp",
-  "job_created_date"
+  "job_created_date",
+  "section_break_tracking",
+  "amended_from",
+  "documents_tab",
+  "section_break_documents",
+  "documents_checklist",
+  "charges_tab",
+  "items_section",
+  "currency",
+  "job_order_charges",
+  "total_quoted_amount",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -78,6 +78,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Quotation Reference",
+   "no_copy": 1,
    "options": "Quotation",
    "reqd": 1
   },
@@ -205,8 +206,10 @@
    "fieldname": "forwarding_job_reference",
    "fieldtype": "Link",
    "label": "Forwarding Job Reference",
+   "no_copy": 1,
    "options": "Forwarding Job",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "allow_on_submit": 1,
@@ -257,7 +260,8 @@
    "fetch_from": "quotation_reference.customer_reference",
    "fieldname": "customer_reference",
    "fieldtype": "Data",
-   "label": "Customer Reference"
+   "label": "Customer Reference",
+   "no_copy": 1
   },
   {
    "fieldname": "section_break_job",
@@ -349,7 +353,8 @@
   {
    "fieldname": "eta",
    "fieldtype": "Date",
-   "label": "ETA"
+   "label": "ETA",
+   "no_copy": 1
   },
   {
    "fieldname": "direction",
@@ -377,8 +382,17 @@
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-01-11 20:23:25.208872",
+ "links": [
+  {
+   "link_doctype": "Forwarding Job",
+   "link_fieldname": "job_order_reference"
+  },
+  {
+   "link_doctype": "Quotation",
+   "link_fieldname": "job_order_reference"
+  }
+ ],
+ "modified": "2026-01-12 08:20:41.214367",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Job Order",

@@ -893,7 +893,8 @@
   {
    "fieldname": "quoted_costing_section",
    "fieldtype": "Section Break",
-   "label": "Quoted Charges"
+   "label": "Quoted Charges",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_vvtr",
@@ -915,6 +916,7 @@
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Job Order Reference",
+   "no_copy": 1,
    "options": "Job Order"
   }
  ],
@@ -933,10 +935,14 @@
    "link_doctype": "Purchase Invoice",
    "link_fieldname": "forwarding_job_reference",
    "table_fieldname": "Purchase Invoice"
+  },
+  {
+   "link_doctype": "Job Order",
+   "link_fieldname": "forwarding_job_reference"
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-11 20:26:54.118871",
+ "modified": "2026-01-12 08:23:56.760987",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
