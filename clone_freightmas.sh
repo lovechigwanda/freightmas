@@ -130,6 +130,10 @@ print_success "Using site: $SITE_NAME"
 # Navigate to bench directory
 cd "$BENCH_PATH"
 
+# Initialize skip flags
+SKIP_CLONE=false
+SKIP_INSTALL=false
+
 # Check if FreightMas already exists
 if [ -d "apps/freightmas" ]; then
     print_info "FreightMas app already exists in apps directory"
