@@ -1,0 +1,50 @@
+{
+ "app": "freightmas",
+ "creation": "2026-01-14 23:17:28.938814",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "loan",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Forwarding Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Forwarding Job",
+   "link_to": "Forwarding Job",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Port",
+   "link_to": "Port",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-15 00:06:44.652140",
+ "modified_by": "lchigwanda@outlook.com",
+ "module": "Forwarding Service",
+ "name": "Forwarding Service",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Forwarding Service"
+}

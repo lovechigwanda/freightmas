@@ -21,15 +21,14 @@ def clear_old_workspaces():
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "freightmas",
-# 		"logo": "/assets/freightmas/logo.png",
-# 		"title": "FreightMas",
-# 		"route": "/freightmas",
-# 		"has_permission": "freightmas.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "freightmas",
+		"logo": "/assets/freightmas/logo.png",
+		"title": "FreightMas",
+		"route": "/desk/Port Clearing Service",
+	}
+]
 
 # Includes in <head>
 # ------------------
@@ -361,6 +360,12 @@ fixtures = [
         "dt": "Workspace",
         "filters": [
             ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","FreightMas Sales","Trucking Service"]]
+        ]
+    },
+    {
+        "dt": "Workspace Sidebar",
+        "filters": [
+            ["app", "=", "freightmas"]
         ]
     },
     #{

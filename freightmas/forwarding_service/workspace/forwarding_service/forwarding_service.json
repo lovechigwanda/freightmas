@@ -1,4 +1,5 @@
 {
+ "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"OcrzF_Xk9R\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Forwarding Service</span>\",\"col\":12}},{\"id\":\"2bVXm8Hniq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"V11XUcKj2l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Port\",\"col\":3}},{\"id\":\"-wkUZEvauG\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"WrWvx5J3IT\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"8nKXkGZn_T\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2025-08-15 20:17:04.926510",
@@ -142,8 +143,8 @@
    "type": "Link"
   }
  ],
- "modified": "2025-08-17 06:25:59.401274",
- "modified_by": "Administrator",
+ "modified": "2026-01-15 00:20:58.241179",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Forwarding Service",
  "name": "Forwarding Service",
  "number_cards": [],
@@ -171,5 +172,6 @@
    "type": "DocType"
   }
  ],
- "title": "Forwarding Service"
+ "title": "Forwarding Service",
+ "type": "Workspace"
 }
