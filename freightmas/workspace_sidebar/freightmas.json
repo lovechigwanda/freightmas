@@ -1,0 +1,82 @@
+{
+ "app": "freightmas",
+ "creation": "2026-01-15 00:53:07.731597",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "truck",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Home",
+   "link_to": "Port Clearing Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Port Clearing",
+   "link_to": "Port Clearing Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Trucking",
+   "link_to": "Trucking Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Forwarding",
+   "link_to": "Forwarding Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Road Freight",
+   "link_to": "Road Freight Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "FreightMas Accounts",
+   "link_to": "FreightMas Accounts",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-15 00:53:07.731597",
+ "modified_by": "Administrator",
+ "name": "FreightMas",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "FreightMas"
+}
