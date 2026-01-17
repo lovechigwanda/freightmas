@@ -12,6 +12,18 @@
    "icon": "ship",
    "indent": 0,
    "keep_closed": 0,
+   "label": "FreightMas",
+   "link_to": "FreightMas",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "ship",
+   "indent": 0,
+   "keep_closed": 0,
    "label": "Forwarding Service",
    "link_to": "Forwarding Service",
    "link_type": "Workspace",
@@ -91,8 +103,9 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-17 16:44:51.213217",
+ "modified": "2026-01-17 17:40:10.147590",
  "modified_by": "Administrator",
+ "module": "Clearing Service",
  "name": "FreightMas",
  "owner": "Administrator",
  "standard": 1,

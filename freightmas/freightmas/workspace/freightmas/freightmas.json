@@ -1,0 +1,41 @@
+{
+ "app": "freightmas",
+ "charts": [],
+ "content": "[{\"id\":\"x3IZGxegiX\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas</span>\",\"col\":12}},{\"id\":\"pKP8Wzypjf\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ls30niDhXi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fowarding Job\",\"col\":3}}]",
+ "creation": "2026-01-17 17:29:31.719210",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "ship",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "FreightMas",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-01-17 17:36:15.874402",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "FreightMas",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 39.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Fowarding Job",
+   "link_to": "Forwarding Job",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "FreightMas",
+ "type": "Workspace"
+}

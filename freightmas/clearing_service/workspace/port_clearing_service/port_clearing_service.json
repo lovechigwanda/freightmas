@@ -1,4 +1,5 @@
 {
+ "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"4tVlcCQ2dz\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Port Clearing Service</span>\",\"col\":12}},{\"id\":\"Eu83s6r93Z\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"NE93uGaJCn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"rKKJGvqS0F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wjLsEQCza3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"KA5y6u8muz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"-tdquVnOmO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"VirFN49Wo8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charges Template\",\"col\":3}},{\"id\":\"1A3hlXKeBw\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Banking Details\",\"col\":3}},{\"id\":\"D8kUC9A41q\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Shipping Line\",\"col\":3}},{\"id\":\"nOBksPiZn9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"DAlKNeg_rS\",\"type\":\"card\",\"data\":{\"card_name\":\"Customer Reports\",\"col\":4}},{\"id\":\"WXbbTrsZbp\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":4}},{\"id\":\"ejtjXB191j\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance Reports\",\"col\":4}}]",
  "creation": "2026-01-08 12:51:08.245761",
@@ -221,13 +222,13 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-11 08:30:47.639112",
+ "modified": "2026-01-17 17:35:18.477323",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Port Clearing Service",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "FreightMas",
  "public": 1,
  "quick_lists": [],
  "roles": [],
@@ -298,5 +299,6 @@
    "type": "DocType"
   }
  ],
- "title": "Port Clearing Service"
+ "title": "Port Clearing Service",
+ "type": "Workspace"
 }
