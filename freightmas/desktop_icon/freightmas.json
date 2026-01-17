@@ -1,0 +1,22 @@
+{
+ "app": "freightmas",
+ "creation": "2026-01-17 16:49:56.339197",
+ "docstatus": 0,
+ "doctype": "Desktop Icon",
+ "hidden": 0,
+ "icon": "ship",
+ "icon_type": "Link",
+ "idx": 0,
+ "label": "FreightMas",
+ "link_to": "FreightMas",
+ "link_type": "Workspace Sidebar",
+ "logo_url": "/assets/erpnext/images/erpnext-logo.svg",
+ "modified": "2026-01-17 16:53:49.851876",
+ "modified_by": "Administrator",
+ "name": "FreightMas",
+ "owner": "Administrator",
+ "restrict_removal": 0,
+ "roles": [],
+ "sidebar": "",
+ "standard": 1
+}
