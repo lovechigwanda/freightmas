@@ -1,4 +1,5 @@
 {
+ "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}}]",
  "creation": "2026-01-08 12:51:08.589677",
@@ -221,13 +222,13 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-11 08:30:47.749281",
+ "modified": "2026-01-17 19:12:12.465177",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Accounts",
  "number_cards": [],
  "owner": "Administrator",
- "parent_page": "",
+ "parent_page": "FreightMas",
  "public": 1,
  "quick_lists": [],
  "roles": [
@@ -257,5 +258,6 @@
    "type": "DocType"
   }
  ],
- "title": "FreightMas Accounts"
+ "title": "FreightMas Accounts",
+ "type": "Workspace"
 }

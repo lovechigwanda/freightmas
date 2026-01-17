@@ -1,0 +1,65 @@
+{
+ "app": "freightmas",
+ "charts": [],
+ "content": "[{\"id\":\"Qtxq2mkEeT\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Warehousing</span>\",\"col\":12}},{\"id\":\"RuEnDDkM3w\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"T7c_BnN7Tz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse Job\",\"col\":3}},{\"id\":\"pTm0CqJ-W4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Goods Receipt\",\"col\":3}},{\"id\":\"3-nHlLvXbD\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Goods Dispatch\",\"col\":3}},{\"id\":\"jbgDDbvq9F\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse Bin\",\"col\":3}}]",
+ "creation": "2026-01-17 19:07:00.466126",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "warehouse",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Warehousing",
+ "link_type": "DocType",
+ "links": [],
+ "modified": "2026-01-17 19:11:40.204693",
+ "modified_by": "Administrator",
+ "module": "Warehouse Service",
+ "name": "Warehousing",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "FreightMas",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 40.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Warehouse Job",
+   "link_to": "Warehouse Job",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Goods Receipt",
+   "link_to": "Customer Goods Receipt",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Goods Dispatch",
+   "link_to": "Customer Goods Dispatch",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Warehouse Bin",
+   "link_to": "Warehouse Bin",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Warehousing",
+ "type": "Workspace"
+}

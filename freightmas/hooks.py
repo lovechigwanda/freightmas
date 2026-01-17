@@ -7,14 +7,6 @@ app_license = "mit"
 
 import frappe
 
-def clear_old_workspaces():
-    """Delete only FreightMas-related Workspace records before importing fixtures"""
-    frappe.db.sql("""
-        DELETE FROM `tabWorkspace`
-        WHERE name IN ('Port Clearing Service', 'Road Freight Service', 'Forwarding Service', 'FreightMas Sales', 'Trucking Service')
-    """)
-    frappe.db.commit()
-
 # Apps
 # ------------------
 
@@ -360,7 +352,13 @@ fixtures = [
     {
         "dt": "Workspace",
         "filters": [
-            ["name", "in", ["Port Clearing Service", "Road Freight Service", "Forwarding Service","FreightMas Accounts","Warehouse Service","FreightMas Sales","Trucking Service"]]
+            ["name", "in", ["FreightMas", "FreightMas Accounts", "FreightMas Sales", "Road Freight Service", "Port Clearing Service", "Trucking Service", "Forwarding Service", "Warehousing"]]
+        ]
+    },
+    {
+        "dt": "Workspace Sidebar",
+        "filters": [
+            ["name", "=", "FreightMas"]
         ]
     },
     #{
