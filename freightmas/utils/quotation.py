@@ -317,7 +317,7 @@ def create_job_order_from_quotation(quotation_name):
 	
 	# Update quotation with Job Order reference and workflow state
 	quotation_doc = frappe.get_doc("Quotation", quotation_name)
-	quotation_doc.db_set("job_order_reference", job_order.name)
+	quotation_doc.db_set("custom_job_order_reference", job_order.name)
 	quotation_doc.db_set("workflow_state", "JO Created")
 	
 	frappe.msgprint(

@@ -24,13 +24,6 @@ frappe.ui.form.on('Job Order', {
 				frm.add_custom_button(__('View Forwarding Job'), function() {
 					frappe.set_route('Form', 'Forwarding Job', frm.doc.forwarding_job_reference);
 				}, __('View'));
-				
-				// Show info message
-				frm.dashboard.add_comment(
-					__('This Job Order has been converted to Forwarding Job {0}', [frm.doc.forwarding_job_reference]),
-					'green',
-					true
-				);
 			}
 		}
 		

@@ -276,9 +276,7 @@ def create_forwarding_job(job_order_name):
 	fwd_job.port_of_discharge = job_order.port_of_discharge
 	fwd_job.destination = job_order.destination
 	
-	# Dates
-	fwd_job.booking_date = job_order.booking_date or None
-	fwd_job.etd = job_order.etd or None
+	# Dates - Job Order only has eta, other date fields will be set on Forwarding Job
 	fwd_job.eta = job_order.eta
 	
 	# Currency
