@@ -504,7 +504,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     display: none;
     align-items: center;
     justify-content: center;
@@ -516,77 +516,137 @@
   .modal-box {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 10px;
+    border-radius: 8px;
     width: 100%;
-    max-width: 560px;
-    max-height: 90vh;
+    max-width: 480px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
 
   .modal-header {
-    background: var(--bg-tertiary);
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border-color);
+    background: var(--accent-purple);
+    padding: 10px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
   .modal-title {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #fff;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .modal-close {
-    background: transparent;
+    background: rgba(255,255,255,0.2);
     border: none;
-    color: var(--text-secondary);
-    font-size: 20px;
+    color: #fff;
+    font-size: 16px;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 2px 8px;
     line-height: 1;
     border-radius: 4px;
   }
 
-  .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
 
   .modal-body {
-    padding: 16px;
-    max-height: 60vh;
-    overflow-y: auto;
+    padding: 12px 14px;
   }
 
   .modal-footer {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border-color);
+    padding: 10px 14px;
+    background: var(--bg-tertiary);
     display: flex;
     justify-content: flex-end;
     gap: 8px;
   }
 
-  /* Form */
-  .form-row {
+  /* Fetch Truck Section */
+  .fetch-truck-section {
+    background: var(--bg-tertiary);
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .fetch-truck-section .form-group {
+    flex: 1;
+    margin: 0;
+  }
+
+  .fetch-truck-section .form-label {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .fetch-truck-section .form-input {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .btn-fetch {
+    background: var(--accent-blue);
+    color: #fff;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-fetch:hover { background: #4c9aed; }
+
+  .or-divider {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 10px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+
+  .or-divider::before,
+  .or-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  .or-divider::before { left: 0; }
+  .or-divider::after { right: 0; }
+
+  /* Form - Compact */
+  .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 8px;
   }
 
   .form-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
   }
 
   .form-group.full { grid-column: 1 / -1; }
+  .form-group.span-3 { grid-column: span 1; }
 
   .form-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
@@ -596,8 +656,8 @@
   .form-input {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 9px 12px;
+    border-radius: 4px;
+    padding: 7px 10px;
     color: var(--text-primary);
     font-size: 13px;
     transition: border-color 0.2s;
@@ -1024,52 +1084,58 @@
 <div class="modal-overlay" id="truckModal">
   <div class="modal-box">
     <div class="modal-header">
-      <h3 class="modal-title">Truck Assignment</h3>
+      <h3 class="modal-title"><i class="fa fa-truck"></i> Truck Assignment</h3>
       <button class="modal-close" onclick="closeTruckModal()">&times;</button>
     </div>
     <div class="modal-body">
+      <!-- Fetch from Truck -->
+      <div class="fetch-truck-section">
+        <div class="form-group" style="position: relative;">
+          <label class="form-label">Quick Load from Truck</label>
+          <input type="text" class="form-input" id="fetchTruckInput" placeholder="Search truck reg..." autocomplete="off">
+          <div class="supplier-dropdown" id="truckDropdown"></div>
+        </div>
+        <button type="button" class="btn-fetch" onclick="fetchFromTruck()">
+          <i class="fa fa-download"></i> Fetch
+        </button>
+      </div>
+      
+      <div class="or-divider">OR ENTER MANUALLY</div>
+      
       <form id="truckForm" onsubmit="saveTruckDetails(event)">
-        <div class="form-row">
+        <div class="form-grid">
           <div class="form-group full" style="position: relative;">
             <label class="form-label">Transporter <span class="required">*</span></label>
             <input type="text" class="form-input" id="transporterInput" placeholder="Search transporter..." autocomplete="off">
             <div class="supplier-dropdown" id="supplierDropdown"></div>
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label class="form-label">Truck Reg <span class="required">*</span></label>
-            <input type="text" class="form-input" id="truckRegInput" placeholder="ABC-123-GP" style="text-transform: uppercase;">
+            <input type="text" class="form-input" id="truckRegInput" placeholder="Enter truck reg" style="text-transform: uppercase;">
           </div>
           <div class="form-group">
             <label class="form-label">Trailer Reg</label>
-            <input type="text" class="form-input" id="trailerRegInput" placeholder="XYZ-456-GP" style="text-transform: uppercase;">
+            <input type="text" class="form-input" id="trailerRegInput" placeholder="Enter trailer reg" style="text-transform: uppercase;">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Driver Name <span class="required">*</span></label>
-            <input type="text" class="form-input" id="driverNameInput" placeholder="Full name">
+            <label class="form-label">Driver <span class="required">*</span></label>
+            <input type="text" class="form-input" id="driverNameInput" placeholder="Enter driver name">
           </div>
           <div class="form-group">
             <label class="form-label">Contact 1 <span class="required">*</span></label>
-            <input type="tel" class="form-input" id="contact1Input" placeholder="0771234567">
+            <input type="tel" class="form-input" id="contact1Input" placeholder="Enter phone number">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label class="form-label">Contact 2</label>
-            <input type="tel" class="form-input" id="contact2Input" placeholder="0771234567">
+            <input type="tel" class="form-input" id="contact2Input" placeholder="Enter alt. number">
           </div>
           <div class="form-group">
-            <label class="form-label">Passport No</label>
-            <input type="text" class="form-input" id="passportInput" placeholder="Passport number" style="text-transform: uppercase;">
+            <label class="form-label">Passport</label>
+            <input type="text" class="form-input" id="passportInput" placeholder="Enter passport no." style="text-transform: uppercase;">
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group full">
             <label class="form-label">Licence No</label>
-            <input type="text" class="form-input" id="licenceInput" placeholder="Licence number" style="text-transform: uppercase;">
+            <input type="text" class="form-input" id="licenceInput" placeholder="Enter licence no." style="text-transform: uppercase;">
           </div>
         </div>
       </form>
@@ -1118,7 +1184,32 @@ let pendingBulkMilestone = null;
 frappe.ready(function() {
   setupFilters();
   setupSupplierSearch();
+  setupTruckSearch();
   setupCheckboxListeners();
+  
+  // Override frappe's default error handler to use toast
+  if (frappe.request) {
+    const originalErrorHandler = frappe.request.error_handlers[''] || function(){};
+    frappe.request.error_handlers[''] = function(xhr) {
+      // Don't show default dialog, just toast
+      try {
+        const response = JSON.parse(xhr.responseText);
+        if (response._server_messages) {
+          const msgs = JSON.parse(response._server_messages);
+          msgs.forEach(m => {
+            const msg = JSON.parse(m);
+            showToast(msg.message || 'An error occurred', 'error');
+          });
+        } else if (response.exc_type) {
+          showToast(response.exc_type + ': Check permissions', 'error');
+        } else {
+          showToast('An error occurred', 'error');
+        }
+      } catch(e) {
+        showToast('An error occurred', 'error');
+      }
+    };
+  }
 });
 
 // ========================================
@@ -1397,40 +1488,20 @@ function setupSupplierSearch() {
   const dropdown = document.getElementById('supplierDropdown');
   if (!input || !dropdown) return;
   
-  input.addEventListener('focus', () => loadSuppliers());
+  // Pre-load suppliers
+  loadSuppliers();
   
-  input.addEventListener('input', function() {
+  input.addEventListener('focus', async function() {
+    await loadSuppliers();
+    // Show all if empty or show filtered
     const term = this.value.toLowerCase().trim();
-    if (term.length < 2) {
-      dropdown.classList.remove('show');
-      return;
-    }
-    
-    const filtered = allSuppliers.filter(s => 
-      (s.supplier_name || '').toLowerCase().includes(term) || 
-      (s.name || '').toLowerCase().includes(term)
-    ).slice(0, 10);
-    
-    if (filtered.length > 0) {
-      dropdown.innerHTML = filtered.map(s => `
-        <div class="supplier-item" data-value="${s.name}">
-          <div class="supplier-name">${s.supplier_name || s.name}</div>
-          ${s.supplier_name ? `<div class="supplier-code">${s.name}</div>` : ''}
-        </div>
-      `).join('');
-      
-      dropdown.querySelectorAll('.supplier-item').forEach(item => {
-        item.addEventListener('click', () => {
-          input.value = item.querySelector('.supplier-name').textContent;
-          input.dataset.supplierId = item.dataset.value;
-          dropdown.classList.remove('show');
-        });
-      });
-      
-      dropdown.classList.add('show');
-    } else {
-      dropdown.classList.remove('show');
-    }
+    showSupplierDropdown(term, input, dropdown);
+  });
+  
+  input.addEventListener('input', async function() {
+    await loadSuppliers();
+    const term = this.value.toLowerCase().trim();
+    showSupplierDropdown(term, input, dropdown);
   });
   
   document.addEventListener('click', (e) => {
@@ -1440,14 +1511,51 @@ function setupSupplierSearch() {
   });
 }
 
+function showSupplierDropdown(term, input, dropdown) {
+  let filtered;
+  if (term.length < 1) {
+    // Show first 10 if no search term
+    filtered = allSuppliers.slice(0, 10);
+  } else {
+    filtered = allSuppliers.filter(s => 
+      (s.supplier_name || '').toLowerCase().includes(term) || 
+      (s.name || '').toLowerCase().includes(term)
+    ).slice(0, 10);
+  }
+  
+  if (filtered.length > 0) {
+    dropdown.innerHTML = filtered.map(s => `
+      <div class="supplier-item" data-value="${s.name}">
+        <div class="supplier-name">${s.supplier_name || s.name}</div>
+        ${s.supplier_name && s.supplier_name !== s.name ? `<div class="supplier-code">${s.name}</div>` : ''}
+      </div>
+    `).join('');
+    
+    dropdown.querySelectorAll('.supplier-item').forEach(item => {
+      item.addEventListener('click', () => {
+        input.value = item.querySelector('.supplier-name').textContent;
+        input.dataset.supplierId = item.dataset.value;
+        dropdown.classList.remove('show');
+      });
+    });
+    
+    dropdown.classList.add('show');
+  } else {
+    dropdown.classList.remove('show');
+  }
+}
+
 function openTruckModal(idx) {
   currentCargoIdx = idx;
   loadSuppliers();
+  loadTrucks();
   
   // Reset form
   document.getElementById('truckForm').reset();
+  document.getElementById('fetchTruckInput').value = '';
   document.getElementById('transporterInput').removeAttribute('data-supplier-id');
   document.getElementById('supplierDropdown').classList.remove('show');
+  document.getElementById('truckDropdown').classList.remove('show');
   
   // Load existing data
   const row = document.querySelector(`.cargo-row[data-idx="${idx}"]`);
@@ -1468,18 +1576,170 @@ function openTruckModal(idx) {
           document.getElementById('passportInput').value = d.driver_passport_no || '';
           document.getElementById('licenceInput').value = d.driver_licence_no || '';
         }
-      }
+      },
+      error: () => {} // Silently fail - form will just be empty
     });
   }
   
   document.getElementById('truckModal').classList.add('show');
-  setTimeout(() => document.getElementById('transporterInput').focus(), 100);
+  setTimeout(() => document.getElementById('fetchTruckInput').focus(), 100);
 }
 
 function closeTruckModal() {
   document.getElementById('truckModal').classList.remove('show');
   document.getElementById('supplierDropdown').classList.remove('show');
+  document.getElementById('truckDropdown').classList.remove('show');
+  document.getElementById('fetchTruckInput').value = '';
   currentCargoIdx = null;
+}
+
+// ========================================
+// FETCH FROM TRUCK
+// ========================================
+let allTrucks = [];
+
+function loadTrucks() {
+  if (allTrucks.length > 0) return Promise.resolve();
+  
+  return new Promise((resolve) => {
+    frappe.call({
+      method: 'frappe.client.get_list',
+      args: {
+        doctype: 'Truck',
+        fields: ['name', 'horse', 'assigned_trailer', 'assigned_driver', 'assigned_driver_name', 'cell_number', 'cell_number2', 'passport_number', 'license_number'],
+        limit_page_length: 500
+      },
+      callback: (r) => {
+        if (r.message) allTrucks = r.message;
+        resolve();
+      },
+      error: () => resolve()
+    });
+  });
+}
+
+function setupTruckSearch() {
+  const input = document.getElementById('fetchTruckInput');
+  const dropdown = document.getElementById('truckDropdown');
+  if (!input || !dropdown) return;
+  
+  input.addEventListener('focus', () => loadTrucks());
+  
+  input.addEventListener('input', function() {
+    const term = this.value.toLowerCase().trim();
+    if (term.length < 2) {
+      dropdown.classList.remove('show');
+      return;
+    }
+    
+    const filtered = allTrucks.filter(t => 
+      (t.horse || '').toLowerCase().includes(term) ||
+      (t.name || '').toLowerCase().includes(term) ||
+      (t.assigned_driver_name || '').toLowerCase().includes(term)
+    ).slice(0, 8);
+    
+    if (filtered.length > 0) {
+      dropdown.innerHTML = filtered.map(t => `
+        <div class="supplier-item" data-truck='${JSON.stringify(t)}'>
+          <div class="supplier-name">${t.horse || t.name}</div>
+          <div class="supplier-code">${t.assigned_driver_name || 'No driver'} | ${t.assigned_trailer || 'No trailer'}</div>
+        </div>
+      `).join('');
+      
+      dropdown.querySelectorAll('.supplier-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const truck = JSON.parse(item.dataset.truck);
+          fillTruckDetails(truck);
+          dropdown.classList.remove('show');
+          input.value = truck.horse || truck.name;
+        });
+      });
+      
+      dropdown.classList.add('show');
+    } else {
+      dropdown.classList.remove('show');
+    }
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+
+function fillTruckDetails(truck) {
+  document.getElementById('truckRegInput').value = truck.horse || '';
+  document.getElementById('trailerRegInput').value = truck.assigned_trailer || '';
+  document.getElementById('driverNameInput').value = truck.assigned_driver_name || '';
+  document.getElementById('contact1Input').value = truck.cell_number || '';
+  document.getElementById('contact2Input').value = truck.cell_number2 || '';
+  document.getElementById('passportInput').value = truck.passport_number || '';
+  document.getElementById('licenceInput').value = truck.license_number || '';
+  
+  // If driver details missing but driver is linked, fetch from Driver doctype
+  if (truck.assigned_driver && (!truck.cell_number || !truck.passport_number || !truck.license_number)) {
+    frappe.call({
+      method: 'frappe.client.get_value',
+      args: {
+        doctype: 'Driver',
+        filters: { name: truck.assigned_driver },
+        fieldname: ['cell_number', 'cell_number2', 'passport_number', 'license_number']
+      },
+      callback: (r) => {
+        if (r.message) {
+          const d = r.message;
+          if (!document.getElementById('contact1Input').value && d.cell_number)
+            document.getElementById('contact1Input').value = d.cell_number;
+          if (!document.getElementById('contact2Input').value && d.cell_number2)
+            document.getElementById('contact2Input').value = d.cell_number2;
+          if (!document.getElementById('passportInput').value && d.passport_number)
+            document.getElementById('passportInput').value = d.passport_number;
+          if (!document.getElementById('licenceInput').value && d.license_number)
+            document.getElementById('licenceInput').value = d.license_number;
+        }
+      }
+    });
+  }
+  showToast('Truck details loaded', 'success');
+}
+
+function fetchFromTruck() {
+  const input = document.getElementById('fetchTruckInput');
+  const searchTerm = input.value.trim().toUpperCase();
+  
+  if (!searchTerm) {
+    showToast('Enter truck registration', 'error');
+    return;
+  }
+  
+  // Find matching truck
+  const truck = allTrucks.find(t => 
+    (t.horse || '').toUpperCase() === searchTerm ||
+    (t.name || '').toUpperCase() === searchTerm
+  );
+  
+  if (truck) {
+    fillTruckDetails(truck);
+  } else {
+    // Try to fetch from server
+    frappe.call({
+      method: 'frappe.client.get_value',
+      args: {
+        doctype: 'Truck',
+        filters: { horse: ['like', `%${searchTerm}%`] },
+        fieldname: ['name', 'horse', 'assigned_trailer', 'assigned_driver', 'assigned_driver_name', 'cell_number', 'cell_number2', 'passport_number', 'license_number']
+      },
+      callback: (r) => {
+        if (r.message && r.message.name) {
+          fillTruckDetails(r.message);
+        } else {
+          showToast('Truck not found', 'error');
+        }
+      },
+      error: () => showToast('Truck not found', 'error')
+    });
+  }
 }
 
 function saveTruckDetails(event) {
@@ -1540,7 +1800,7 @@ function showToast(message, type = 'success') {
   toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  setTimeout(() => toast.remove(), 6000);
 }
 
 // ========================================
