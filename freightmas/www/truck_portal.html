@@ -5,669 +5,817 @@
 {% block page_content %}
 <style>
   /* ============================
-     True Dark Theme - Global
+     Dark Theme - Compact Desktop UI
      ============================ */
+  :root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-hover: #30363d;
+    --border-color: #30363d;
+    --border-light: #21262d;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-muted: #6e7681;
+    --accent-purple: #8b5cf6;
+    --accent-purple-dark: #7c3aed;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-yellow: #d29922;
+    --accent-red: #f85149;
+    --accent-orange: #db6d28;
+  }
+
   html, body {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #0f1720 0%, #111827 100%);
-    color: #e6eef8;
-    min-height: 100vh;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.4;
   }
 
-  /* prevent page scroll when modal open */
-  body.modal-open {
-    overflow: hidden !important;
-    touch-action: none !important;
-    -webkit-overflow-scrolling: auto !important;
-  }
-
-  .page-header-actions-block,
-  .page-head-content,
-  .standard-sidebar,
-  nav.navbar,
-  footer,
-  .web-footer,
-  .footer-powered,
-  .page-footer {
+  .page-header-actions-block, .page-head-content, .standard-sidebar,
+  nav.navbar, footer, .web-footer, .footer-powered, .page-footer {
     display: none !important;
   }
 
-  .container-fluid {
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: none !important;
-  }
+  .container-fluid { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 
-  /* Back to Desk - keep accent purple but readable on dark bg */
-  .back-to-desk {
+  /* Back Button */
+  .back-btn {
     position: fixed;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(109,40,217,0.95));
+    top: 12px;
+    right: 16px;
+    background: var(--accent-purple);
     color: #fff;
-    padding: 8px 20px;
-    border-radius: 8px;
+    padding: 6px 14px;
+    border-radius: 6px;
     text-decoration: none;
     font-weight: 600;
-    font-size: 13px;
-    z-index: 120000; /* ensure above modals */
-    border: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 22px rgba(109,40,217,0.25);
-    backdrop-filter: blur(8px);
+    font-size: 12px;
+    z-index: 1000;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: var(--accent-purple-dark); transform: translateY(-1px); }
+
+  /* Main Container */
+  .portal-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 12px 16px 24px;
   }
 
-  .back-to-desk:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 26px rgba(109,40,217,0.32);
-  }
-
-  /* portal container - slightly lighter than background to create contrast */
-  .portal-wrapper {
-    max-width: 1400px;
-    margin: 12px auto;
-    padding: 18px 16px 32px;
-    background: linear-gradient(180deg, rgba(16,20,28,0.6), rgba(13,16,22,0.55));
-    border-radius: 12px;
-    box-shadow: 0 8px 40px rgba(2,6,23,0.65);
-    border: 1px solid rgba(255,255,255,0.03);
-  }
-
-  /* Header card - dark card */
+  /* Header */
   .portal-header {
-    background: linear-gradient(180deg, rgba(16,18,25,0.95), rgba(14,16,22,0.95));
-    backdrop-filter: blur(8px);
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255,255,255,0.03);
-    box-shadow: 0 6px 24px rgba(2,6,18,0.6);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
-  .job-info-row {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:nowrap; /* keep on one line */
-    gap:12px;
+  .job-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
   }
 
-  /* Left-side title area: job title plus reference inline */
-  .job-title-area {
-    display:flex;
-    align-items:baseline;
-    gap:12px;
-    min-width: 0; /* allow truncation if necessary */
-  }
-
-  .job-name {
-    font-size:22px;
-    font-weight:700;
-    color:#f8fafc;
-    margin:0;
-    letter-spacing:-0.01em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-
-  /* customer_reference style matches other meta elements (compact) */
   .job-ref {
-    font-size:13px;
-    color:#aab6c9;
-    font-weight:500;
-    white-space:nowrap;
-    margin-left:6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: 10px;
   }
 
   .job-meta {
-    display:flex;
-    gap:16px;
-    font-size:13px;
-    color:#aab6c9;
-    flex-wrap:nowrap;
-    align-items:center;
-    min-width:0;
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text-secondary);
   }
 
-  .job-meta-item { display:flex; align-items:center; gap:6px; white-space:nowrap; }
-  .job-meta-label { font-weight:600; color:#dbe6fb; }
+  .job-meta-item span:first-child {
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
 
-  /* Search & Filter */
-  .control-bar {
+  /* Stats Bar */
+  .stats-bar {
     display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 16px;
+    min-width: 100px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .stat-card.completed .stat-value { color: var(--accent-green); }
+  .stat-card.pending .stat-value { color: var(--accent-yellow); }
+  .stat-card.in-transit .stat-value { color: var(--accent-blue); }
+
+  /* Toolbar */
+  .toolbar {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
     flex-wrap: wrap;
   }
 
-  .search-box { flex:1; min-width:280px; }
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .search-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.02);
-    font-size: 14px;
-    color: #e6eef8;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(6px);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 12px;
+    color: var(--text-primary);
+    font-size: 12px;
+    width: 260px;
+    transition: border-color 0.2s;
   }
 
   .search-input:focus {
     outline: none;
-    border-color: rgba(124,58,237,0.9);
-    box-shadow: 0 0 0 5px rgba(124,58,237,0.06);
-    background: rgba(255,255,255,0.02);
+    border-color: var(--accent-purple);
   }
 
-  .search-input::placeholder { color:#96a3b9; font-weight:400; }
+  .search-input::placeholder { color: var(--text-muted); }
 
-  /* Status filter - custom arrow + dark styling */
-  .status-filter {
-    padding: 10px 42px 10px 14px; /* extra right padding for custom arrow */
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.03);
-    font-size: 14px;
-    color: #e6eef8;
-    font-weight: 500;
+  .filter-select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 7px 28px 7px 10px;
+    color: var(--text-primary);
+    font-size: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(6px);
     appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image:
-      url("data:image/svg+xml;charset=UTF-8,%3Csvg width='14' height='10' viewBox='0 0 14 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10L0 0h14L7 10z' fill='%23d8cbff'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 14px 10px;
+    background-position: right 8px center;
   }
 
-  .status-filter:focus {
-    outline: none;
-    border-color: rgba(124,58,237,0.8);
-    box-shadow: 0 0 0 4px rgba(124,58,237,0.05);
-  }
+  .filter-select:focus { outline: none; border-color: var(--accent-purple); }
 
-  /* Option style (works in most browsers but some limited) */
-  .status-filter option {
-    background: #0f1720;
-    color: #e6eef8;
-    font-weight: 500;
-  }
-
-  .btn-clear {
-    padding: 10px 18px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.03);
-    color: #c8bff0;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.02);
-  }
-
-  .btn-clear:hover {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    color: #ffffff !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(109,40,217,0.36) !important;
-    border: none !important;
-  }
-
-  /* Cargo Table */
-  .cargo-table { display: flex; flex-direction: column; gap: 12px; }
-
-  .table-header {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 1.2fr 1.2fr 1fr 120px;
-    gap: 16px;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.02);
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #cdbdf7;
-    border: 1px solid rgba(255,255,255,0.02);
-    backdrop-filter: blur(6px);
-  }
-
-  .cargo-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.03);
-    box-shadow: 0 6px 30px rgba(2,6,18,0.6);
-    transition: all 0.3s ease;
-    backdrop-filter: blur(6px);
-  }
-
-  .cargo-card:hover { box-shadow: 0 14px 48px rgba(2,6,18,0.7); transform: translateY(-1px); }
-  .cargo-card.expanded { box-shadow: 0 20px 60px rgba(2,6,18,0.75); transform: translateY(-1px); }
-
-  .cargo-summary {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 1.2fr 1.2fr 1fr 120px;
-    gap: 16px;
-    padding: 14px 16px;
-    align-items: center;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-  }
-
-  .cargo-summary:hover {
-    background: rgba(255,255,255,0.01);
-  }
-
-  .cargo-id { font-weight: 700; color: #f8fafc; font-size: 15px; letter-spacing: -0.01em; }
-  .cargo-type { color: #98a7bf; font-size: 12px; margin-top: 2px; font-weight: 500; }
-  .cargo-transporter, .cargo-truck, .cargo-driver { color: #dbe6fb; font-weight: 600; }
-
-  .cargo-status {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: all 0.3s ease;
-  }
-
-  .status-draft { background: linear-gradient(135deg, #4b5563, #374151); color: #f3f4f6; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
-  .status-pending { background: linear-gradient(135deg, #5b21b6, #7c3aed); color: #fff; box-shadow: 0 1px 4px rgba(99,102,241,0.18); }
-  .status-loading { background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; box-shadow: 0 1px 4px rgba(59,130,246,0.18); }
-  .status-in-transit { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; box-shadow: 0 1px 4px rgba(59,130,246,0.18); }
-  .status-completed { background: linear-gradient(135deg, #065f46, #10b981); color: #fff; box-shadow: 0 1px 4px rgba(34,197,94,0.18); }
-
-  .cargo-actions { display: flex; gap: 6px; justify-content: flex-end; }
-
-  .btn-icon {
-    padding: 6px 12px;
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 6px;
-    background: rgba(255,255,255,0.02);
-    cursor: pointer;
-    transition: all 0.22s ease;
-    font-size: 11px;
-    font-weight: 600;
-    color: #e6eef8;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-  }
-
-  .btn-icon:hover {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    color: #fff !important;
-    border: none !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 8px 30px rgba(109,40,217,0.34) !important;
-  }
-
-  .btn-icon i { font-size: 10px; }
-
-  /* 50/50 Details Section - Simplified */
-  .cargo-details {
-    display: none;
-    padding: 16px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
-    border-top: 1px solid rgba(255,255,255,0.02);
-  }
-
-  .cargo-details.show { display: block; }
-
-  .details-container { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-
-  .details-section { position: relative; }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.02);
-  }
-
-  .section-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #f8fafc;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: -0.01em;
-  }
-
-  .section-title i { font-size: 16px; color: #c8bff0; }
-
-  /* Info-card - dark card with tight padding as requested */
-  .info-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(124,58,237,0.06);
-    border-radius: 10px;
-    padding: 10px;           /* tight padding */
-    box-shadow: 0 8px 24px rgba(3,8,20,0.55);
-    margin-bottom: 8px;
-  }
-
-  /* Tight detail card */
-  .detail-card {
-    display: inline-block;
-    padding: 6px 8px;
-    min-width: 48px;
-    max-width: 100%;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.03);
-    box-shadow: 0 6px 18px rgba(2,6,18,0.6);
-    font-size: 13px;
-    color: #e6eef8;
-    font-weight: 700;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; line-height: 1.4; }
-
-  .info-row { display: flex; flex-direction: column; gap: 6px; }
-  .info-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #96a3b9; letter-spacing: 0.08em; }
-  .info-value { font-size: 13px; color: #e6eef8; font-weight: 600; }
-
-  /* Timeline - Simplified */
-  .timeline-container { margin: 16px 0; }
-  .timeline-track { display: flex; align-items: center; gap: 4px; padding: 12px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 16px; }
-
-  .milestone-item { flex: 1; text-align: center; position: relative; }
-  .milestone-item:not(:last-child)::after { content: ""; position: absolute; top: 12px; left: 60%; right: -40%; height: 2px; background: rgba(255,255,255,0.03); border-radius: 1px; }
-  .milestone-item.completed:not(:last-child)::after { background: linear-gradient(90deg, #16a34a, #22c55e); }
-
-  .milestone-dot { width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.03); margin: 0 auto 6px; display: grid; place-items: center; font-size: 10px; color: white; position: relative; z-index: 2; transition: all 0.3s ease; border: 2px solid rgba(255,255,255,0.02); box-shadow: 0 4px 12px rgba(0,0,0,0.6); }
-  .milestone-item.completed .milestone-dot { background: linear-gradient(135deg, #22c55e, #16a34a); transform: scale(1.05); }
-  .milestone-item.next .milestone-dot { background: linear-gradient(135deg, #3b82f6, #2563eb); animation: pulse 2s infinite; }
-
-  @keyframes pulse { 0%, 100% { box-shadow: 0 1px 4px rgba(0,0,0,0.3), 0 0 0 0 rgba(59,130,246,0.06); } 50% { box-shadow: 0 1px 4px rgba(0,0,0,0.3), 0 0 0 6px rgba(59,130,246,0.06); } }
-  .milestone-label { font-size: 10px; font-weight: 700; color: #cbd9ee; margin-bottom: 2px; }
-  .milestone-date { font-size: 9px; color: #96a3b9; font-weight: 500; }
-
-  /* Tracking Info - Simplified */
-  .tracking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 16px; }
-  .tracking-comment { grid-column: 1 / -1; margin-top: 8px; }
-
-  /* Buttons */
-  .btn-action {
-    padding: 8px 16px;
-    border: none;
+  .btn {
+    padding: 7px 14px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.22s ease !important;
+    transition: all 0.2s;
+    border: 1px solid transparent;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    gap: 5px;
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 30px rgba(109,40,217,0.28) !important;
-    border: none !important;
+    background: var(--accent-purple);
+    color: #fff;
   }
-  .btn-primary:hover { background: linear-gradient(135deg, #6d28d9, #5b21b6) !important; transform: translateY(-1px) !important; box-shadow: 0 14px 40px rgba(109,40,217,0.36) !important; }
-
-  .btn-success {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 30px rgba(22,163,74,0.2) !important;
-    border: none !important;
-  }
-  .btn-success:hover { background: linear-gradient(135deg, #16a34a, #15803d) !important; transform: translateY(-1px) !important; box-shadow: 0 14px 40px rgba(22,163,74,0.28) !important; }
-
-  .btn-info {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 30px rgba(37,99,235,0.18) !important;
-    border: none !important;
-  }
-  .btn-info:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; transform: translateY(-1px) !important; box-shadow: 0 14px 40px rgba(37,99,235,0.28) !important; }
+  .btn-primary:hover { background: var(--accent-purple-dark); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .btn-secondary {
-    background: linear-gradient(135deg, #4b5563, #374151) !important;
-    color: #ffffff !important;
-    box-shadow: 0 8px 26px rgba(43,47,57,0.12) !important;
-    border: none !important;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
   }
-  .btn-secondary:hover { background: linear-gradient(135deg, #374151, #2b3138) !important; transform: translateY(-1px) !important; box-shadow: 0 12px 34px rgba(43,47,57,0.18) !important; }
+  .btn-secondary:hover { background: var(--bg-hover); }
 
-  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .btn-success {
+    background: var(--accent-green);
+    color: #fff;
+  }
+  .btn-success:hover { background: #2ea043; }
 
-  /* Modal overlay - full screen and guaranteed on top */
-  .modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(2,6,12,0.75) !important;
-    backdrop-filter: blur(6px) !important;
-    display: none !important;
-    justify-content: center !important;
-    align-items: center !important;
-    z-index: 110000 !important;
+  .btn-sm {
+    padding: 4px 10px;
+    font-size: 11px;
   }
 
-  .modal-overlay.show { display: flex !important; animation: fadeIn 0.18s ease-out !important; }
+  .btn-icon {
+    padding: 6px 8px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
 
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
+  /* Checkbox */
+  .checkbox-wrap {
+    display: flex;
+    align-items: center;
+  }
 
-  /* Modal - dark card */
-  .modal-content {
-    background: linear-gradient(180deg, rgba(16,18,24,0.98), rgba(12,14,18,0.98));
-    border-radius: 12px;
-    padding: 0;
-    max-width: 720px;
-    width: 94%;
-    max-height: 88vh;
+  .cargo-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-purple);
+  }
+
+  /* Main Table */
+  .cargo-table {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 24px 60px rgba(2,6,18,0.8);
+  }
+
+  .table-header {
+    display: grid;
+    grid-template-columns: 40px 2fr 1.2fr 1fr 1.5fr 2fr 160px 100px;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    align-items: center;
+  }
+
+  .cargo-row {
+    display: grid;
+    grid-template-columns: 40px 2fr 1.2fr 1fr 1.5fr 2fr 160px 100px;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+    align-items: center;
+    transition: background 0.15s;
+  }
+
+  .cargo-row:hover { background: var(--bg-tertiary); }
+  .cargo-row:last-child { border-bottom: none; }
+
+  .cargo-row.selected { background: rgba(139, 92, 246, 0.1); }
+
+  .cargo-id {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .cargo-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .truck-info {
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .truck-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .driver-info {
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .driver-contact {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Inline Input */
+  .inline-input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px 8px;
+    color: var(--text-primary);
+    font-size: 11px;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  .inline-input:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+  }
+
+  .inline-input::placeholder { color: var(--text-muted); }
+
+  .location-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* Milestone Pills */
+  .milestone-pills {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .milestone-pill {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid var(--border-color);
+    background: transparent;
+    color: var(--text-muted);
     position: relative;
-    transform: translateZ(0);
-    border: 1px solid rgba(255,255,255,0.02);
   }
 
-  .modal-accent {
-    height: 8px;
-    background: linear-gradient(90deg,#7c3aed,#6d28d9);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+  .milestone-pill.completed {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #fff;
   }
 
-  .modal-inner {
-    padding: 20px;
-    background: linear-gradient(180deg, rgba(18,20,26,0.95), rgba(14,16,20,0.95));
+  .milestone-pill.next {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    animation: pulse-border 2s infinite;
   }
 
-  .modal-narrow { max-width: 420px; }
+  .milestone-pill:hover:not(.completed) {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    transform: scale(1.1);
+  }
 
-  .modal-header { margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .modal-title { font-size:20px; font-weight:800; color:#eef6ff; margin:0; }
+  .milestone-pill[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 100;
+    margin-bottom: 4px;
+    border: 1px solid var(--border-color);
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.1); }
+  }
+
+  /* Status Badge */
+  .status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .status-draft { background: var(--bg-tertiary); color: var(--text-muted); }
+  .status-pending { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+  .status-loading { background: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+  .status-in-transit { background: rgba(210, 153, 34, 0.2); color: var(--accent-yellow); }
+  .status-completed { background: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+
+  /* Row Actions */
+  .row-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+  }
+
+  /* Extended Tracking Row */
+  .extended-row {
+    display: none;
+    grid-column: 1 / -1;
+    background: var(--bg-primary);
+    padding: 12px 16px;
+    margin: 0 12px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+  }
+
+  .extended-row.show { display: block; }
+
+  .extended-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .extended-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .extended-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .extended-value {
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .extended-input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 10px;
+    color: var(--text-primary);
+    font-size: 12px;
+    width: 100%;
+  }
+
+  .extended-input:focus { outline: none; border-color: var(--accent-purple); }
+
+  .extended-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    background: var(--bg-tertiary);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
 
   .modal-close {
-    font-size:18px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.03);
-    color: #d7e6ff;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
     cursor: pointer;
-    padding:6px 8px;
-    line-height:1;
-    border-radius:6px;
-    transition: all 0.18s ease;
-    display:inline-flex; align-items:center; justify-content:center;
+    padding: 4px 8px;
+    line-height: 1;
+    border-radius: 4px;
   }
 
-  .modal-close:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); color:#fff; border-color: rgba(124,58,237,0.18); }
+  .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
 
-  .modal-content .modal-close.corner { position:absolute; top:12px; right:12px; z-index:10; background: rgba(255,255,255,0.02); }
-
-  /* Forms */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-bottom: 16px; }
-  .form-grid-single { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
-  .form-group.full-width { grid-column: 1 / -1; }
-  .form-group { margin-bottom: 0; position: relative; }
-
-  .form-label { font-size: 11px; margin-bottom: 6px; letter-spacing: 0.04em; font-weight: 700; color: #98a3bb; text-transform: uppercase; display: block; }
-  .form-control {
-    padding: 10px 12px; border: 1px solid rgba(255,255,255,0.04); border-radius: 6px; font-size: 13px; width: 100%;
-    transition: border-color 0.2s, box-shadow 0.2s; background: rgba(255,255,255,0.02); color: #eef6ff;
+  .modal-body {
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
   }
 
-  .form-control::placeholder { color: #8f9db3; }
-  .form-control:focus { outline: none; border-color: rgba(102,126,234,0.9); box-shadow: 0 8px 30px rgba(102,126,234,0.06); }
-
-  /* Modal button forcing to ensure contrast */
-  .modal-inner .btn-group { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
-  .modal-content .btn-primary, .modal-content .btn-secondary, .modal-content .btn-success, .modal-content .btn-info, .modal-content .btn-action {
-    padding: 8px 16px !important; font-size: 13px !important; border-radius: 6px !important; transition: all 0.22s ease !important; border: none !important;
+  .modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
-  .btn-action, .btn-icon, .btn-update, .btn-primary, .btn-secondary, .btn-success, .btn-info, .btn-clear {
-    transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease !important;
+  /* Form */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
   }
 
-  /* Supplier dropdown */
-  #transporter-dropdown {
-    position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: rgba(7,10,14,0.98); border: 1px solid rgba(255,255,255,0.03); border-radius: 6px; box-shadow: 0 10px 40px rgba(2,6,18,0.8); z-index: 120500; margin-top: 2px; max-height: 180px; overflow-y: auto; display: none;
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .dropdown-item { padding: 8px 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background-color 0.12s ease; color: #e6eef8; }
-  .dropdown-item:hover { background: rgba(124,58,237,0.06); }
-  .dropdown-item-name { font-weight: 600; color: #e6eef8; font-size: 13px; }
-  .dropdown-item-code { font-size: 11px; color: #9fb0c9; }
+  .form-group.full { grid-column: 1 / -1; }
 
-  /* Spinner - white for colored buttons and visible on dark */
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .form-label .required { color: var(--accent-red); }
+
+  .form-input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus { outline: none; border-color: var(--accent-purple); }
+  .form-input::placeholder { color: var(--text-muted); }
+
+  /* Supplier Dropdown */
+  .supplier-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    margin-top: 4px;
+  }
+
+  .supplier-dropdown.show { display: block; }
+
+  .supplier-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .supplier-item:hover { background: var(--bg-tertiary); }
+  .supplier-item:last-child { border-bottom: none; }
+
+  .supplier-name { font-weight: 600; color: var(--text-primary); }
+  .supplier-code { font-size: 11px; color: var(--text-muted); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    z-index: 20000;
+    animation: slideIn 0.3s ease;
+  }
+
+  .toast.success { background: var(--accent-green); color: #fff; }
+  .toast.error { background: var(--accent-red); color: #fff; }
+
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  /* Bulk Action Bar */
+  .bulk-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    padding: 12px 20px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 500;
+  }
+
+  .bulk-action-bar.show { display: flex; }
+
+  .bulk-info {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .bulk-info strong { color: var(--accent-purple); }
+
+  .bulk-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Expand Toggle */
+  .expand-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 10px;
+    transition: color 0.2s;
+  }
+
+  .expand-toggle:hover { color: var(--accent-purple); }
+  .expand-toggle.expanded { color: var(--accent-purple); }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state i { font-size: 40px; margin-bottom: 12px; }
+
+  /* Spinner */
   .spinner {
-    display: inline-block; width: 14px; height: 14px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.16) !important; border-top-color: #ffffff !important;
-    box-sizing: border-box; animation: spin 0.9s linear infinite !important; vertical-align: middle; margin-right: 6px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
   }
+
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Milestone modal specifics */
-  .milestone-modal .modal-content { max-width: 520px; padding: 0; }
-  .milestone-modal .modal-inner { padding: 16px; }
-  .milestone-modal .modal-title { font-size: 18px; }
-  .milestone-textarea {
-    width: 100%; min-height: 86px; padding: 10px 12px; border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.04); resize: vertical; font-size: 14px; background: rgba(255,255,255,0.02); color: #eef6ff;
+  /* No Truck Assigned */
+  .no-truck {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 11px;
   }
 
-  /* Ensure update buttons remain purple and visible on dark background */
-  .section-header .btn-update, .details-section .btn-update {
-    padding: 6px 14px !important; background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
-    color: #ffffff !important; border: none !important; border-radius: 6px !important; font-size: 12px !important; font-weight: 700 !important; cursor: pointer !important;
-    transition: all 0.22s ease !important; box-shadow: 0 10px 30px rgba(109,40,217,0.28) !important; text-transform: uppercase !important; letter-spacing: 0.04em !important;
-  }
-  .section-header .btn-update:hover, .details-section .btn-update:hover { background: linear-gradient(135deg,#6d28d9,#5b21b6) !important; transform: translateY(-1px) !important; box-shadow: 0 14px 40px rgba(109,40,217,0.36) !important; }
-
-  /* Alert toast on top */
-  .portal-alert {
-    position: fixed; right: 20px; bottom: 20px; z-index: 220000 !important; padding: 10px 14px; border-radius: 8px; color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,0.5);
-    font-weight: 700; min-width: 180px; max-width: 360px;
+  .assign-link {
+    color: var(--accent-purple);
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 11px;
   }
 
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .form-grid { grid-template-columns: 1fr; gap: 12px; }
-    .modal-content { max-width: 95%; margin: 10px; }
-    .modal-inner { padding: 14px; }
-    .modal-content .modal-title { font-size: 18px; }
-    .job-info-row { flex-wrap: wrap; gap: 8px; }
-  }
+  .assign-link:hover { text-decoration: underline; }
 </style>
 
-<a class="back-to-desk" href="/app">← Back to Desk</a>
+<a class="back-btn" href="/app">← Back to Desk</a>
 
-<div class="portal-wrapper">
+<div class="portal-container">
+  <!-- Header -->
   <div class="portal-header">
-    <div class="job-info-row">
-      <div class="job-title-area">
-        <h1 class="job-name">{{ doc.name }}</h1>
-        {% if doc.customer_reference %}
-          <div class="job-ref">Ref: {{ doc.customer_reference }}</div>
-        {% endif %}
-      </div>
-
-      <div class="job-meta">
-        <div class="job-meta-item">
-          <span class="job-meta-label">Customer:</span>
-          <span>{{ doc.customer }}</span>
-        </div>
-        <div class="job-meta-item">
-          <span class="job-meta-label">Direction:</span>
-          <span>{{ doc.direction or "N/A" }}</span>
-        </div>
-        <div class="job-meta-item">
-          <span class="job-meta-label">Cargo:</span>
-          <span>{{ doc.cargo_description or "N/A" }}</span>
-        </div>
-        <div class="job-meta-item">
-          <span class="job-meta-label">Trucks:</span>
-          <span>{{ total_cargo }}</span>
-        </div>
-        <div class="job-meta-item">
-          <span class="job-meta-label">Date:</span>
-          <span>{{ doc.date_created.strftime('%d-%b-%y') if doc.date_created else 'N/A' }}</span>
-        </div>
-      </div>
+    <div style="display: flex; align-items: baseline; gap: 8px;">
+      <h1 class="job-title">{{ doc.name }}</h1>
+      {% if doc.customer_reference %}
+        <span class="job-ref">Ref: {{ doc.customer_reference }}</span>
+      {% endif %}
+    </div>
+    <div class="job-meta">
+      <div class="job-meta-item"><span>Customer:</span> {{ doc.customer_name or doc.customer }}</div>
+      <div class="job-meta-item"><span>Direction:</span> {{ doc.direction or "N/A" }}</div>
+      <div class="job-meta-item"><span>Cargo:</span> {{ doc.cargo_description or "N/A" }}</div>
+      <div class="job-meta-item"><span>Date:</span> {{ doc.date_created.strftime('%d-%b-%y') if doc.date_created else 'N/A' }}</div>
     </div>
   </div>
 
-  <div class="control-bar">
-    <div class="search-box">
-      <input type="text" class="search-input" id="searchInput" placeholder="Search by container, truck, driver or transporter...">
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-value">{{ total_cargo }}</div>
+      <div class="stat-label">Total Cargo</div>
     </div>
-    <select class="status-filter" id="statusFilter">
-      <option value="">All Statuses</option>
-      <option value="draft">Draft</option>
-      <option value="pending">Pending</option>
-      <option value="loading">Loading</option>
-      <option value="in-transit">In Transit</option>
-      <option value="completed">Completed</option>
-    </select>
-    <button class="btn-clear" onclick="clearFilters()">Clear</button>
+    <div class="stat-card completed">
+      <div class="stat-value">{{ completed_cargo }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card in-transit">
+      <div class="stat-value">{{ doc.cargo_parcel_details | selectattr('is_loaded') | rejectattr('is_completed') | list | length }}</div>
+      <div class="stat-label">In Transit</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-value">{{ pending_cargo }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
   </div>
 
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search container, truck, driver...">
+      <select class="filter-select" id="statusFilter">
+        <option value="">All Status</option>
+        <option value="draft">Draft</option>
+        <option value="pending">Pending</option>
+        <option value="loading">Loading</option>
+        <option value="in-transit">In Transit</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-secondary btn-sm" onclick="toggleSelectAll()">
+        <i class="fa fa-check-square-o"></i> Select All
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="expandAll()">
+        <i class="fa fa-expand"></i> Expand All
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="collapseAll()">
+        <i class="fa fa-compress"></i> Collapse All
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Table -->
   <div class="cargo-table">
     <div class="table-header">
-      <div>CARGO</div>
-      <div>TRANSPORTER</div>
-      <div>TRUCK REG</div>
-      <div>DRIVER NAME</div>
-      <div>STATUS</div>
-      <div>ACTIONS</div>
+      <div><input type="checkbox" class="cargo-checkbox" id="selectAllCheckbox" onchange="handleSelectAll(this)"></div>
+      <div>Cargo</div>
+      <div>Truck</div>
+      <div>Driver</div>
+      <div>Location / Comment</div>
+      <div>Milestones</div>
+      <div>Status</div>
+      <div style="text-align: right;">Actions</div>
     </div>
 
     {% for cargo in doc.cargo_parcel_details %}
@@ -679,407 +827,554 @@
       {% else %}draft
       {% endif %}
     {% endset %}
+    {% set next_milestone %}
+      {% if not cargo.is_booked and cargo.truck_reg_no %}booked
+      {% elif cargo.is_booked and not cargo.is_loaded %}loaded
+      {% elif cargo.is_loaded and not cargo.is_offloaded %}offloaded
+      {% elif cargo.is_offloaded and cargo.to_be_returned and not cargo.is_returned %}returned
+      {% elif (cargo.is_offloaded and not cargo.to_be_returned) or (cargo.is_returned and cargo.to_be_returned) %}completed
+      {% else %}none
+      {% endif %}
+    {% endset %}
 
-    <div class="cargo-card"
-         data-cargo-idx="{{ loop.index0 }}"
+    <div class="cargo-row"
+         data-idx="{{ loop.index0 }}"
          data-status="{{ cargo_status.strip() }}"
          data-search="{{ (cargo.container_number or cargo.cargo_item_description or '') | lower }} {{ (cargo.transporter or '') | lower }} {{ (cargo.truck_reg_no or '') | lower }} {{ (cargo.driver_name or '') | lower }}"
-         data-transporter="{{ (cargo.transporter or '')|e }}"
-         data-truck-reg-no="{{ (cargo.truck_reg_no or '')|e }}"
-         data-trailer-reg="{{ (cargo.trailer_reg_no or '')|e }}"
-         data-driver-name="{{ (cargo.driver_name or '')|e }}"
-         data-contact1="{{ (cargo.driver_contact_no or '')|e }}"
-         data-contact2="{{ (cargo.driver_contact_no_2 or '')|e }}"
-         data-passport="{{ (cargo.driver_passport_no or '')|e }}"
-         data-licence="{{ (cargo.driver_licence_no or '')|e }}">
+         data-has-extended="{{ '1' if (cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point) else '0' }}">
+      
+      <div class="checkbox-wrap">
+        <input type="checkbox" class="cargo-checkbox row-checkbox" data-idx="{{ loop.index0 }}">
+      </div>
 
-      <div class="cargo-summary" onclick="toggleDetails({{ loop.index0 }})">
-        <div>
-          <div class="cargo-id">
-            {% if cargo.container_number %}
-              {{ cargo.container_number }}
-            {% else %}
-              {{ cargo.cargo_item_description or ("Cargo " ~ loop.index) }}
-            {% endif %}
-          </div>
-          <div class="cargo-type">{{ cargo.container_type or (cargo.cargo_quantity|string ~ " " ~ (cargo.cargo_uom or "")) }}</div>
+      <div>
+        <div class="cargo-id">
+          {% if cargo.container_number %}{{ cargo.container_number }}
+          {% else %}{{ cargo.cargo_item_description or ("Cargo " ~ loop.index) }}{% endif %}
         </div>
-        <div class="cargo-transporter">{{ cargo.transporter or "-" }}</div>
-        <div class="cargo-truck">{{ cargo.truck_reg_no or "-" }}</div>
-        <div class="cargo-driver">{{ cargo.driver_name or "-" }}</div>
-        <div>
-          <span class="cargo-status status-{{ cargo_status.strip() }}">
-            {{ cargo_status.strip().upper() }}
-          </span>
+        <div class="cargo-sub">{{ cargo.container_type or (cargo.cargo_quantity|string ~ " " ~ (cargo.cargo_uom or "pcs")) }}</div>
+      </div>
+
+      <div>
+        {% if cargo.truck_reg_no %}
+          <div class="truck-info">{{ cargo.truck_reg_no }}</div>
+          <div class="truck-sub">{{ cargo.transporter or "-" }}</div>
+        {% else %}
+          <span class="no-truck">No truck</span>
+          <a class="assign-link" onclick="openTruckModal({{ loop.index0 }})">+ Assign</a>
+        {% endif %}
+      </div>
+
+      <div>
+        {% if cargo.driver_name %}
+          <div class="driver-info">{{ cargo.driver_name }}</div>
+          <div class="driver-contact">{{ cargo.driver_contact_no or "" }}</div>
+        {% else %}
+          <span class="no-truck">-</span>
+        {% endif %}
+      </div>
+
+      <div class="location-cell">
+        <input type="text" class="inline-input location-input" 
+               data-idx="{{ loop.index0 }}"
+               value="{{ cargo.truck_location or '' }}"
+               placeholder="Enter location..."
+               onchange="saveInlineLocation({{ loop.index0 }})">
+        <input type="text" class="inline-input comment-input" 
+               data-idx="{{ loop.index0 }}"
+               value="{{ cargo.tracking_comment or '' }}"
+               placeholder="Comment..."
+               onchange="saveInlineComment({{ loop.index0 }})">
+      </div>
+
+      <div class="milestone-pills">
+        <div class="milestone-pill {{ 'completed' if cargo.is_booked else ('next' if next_milestone.strip() == 'booked' else '') }}"
+             title="Booked{{ ': ' ~ cargo.booked_on_date.strftime('%d-%b') if cargo.booked_on_date else '' }}"
+             onclick="quickMilestone({{ loop.index0 }}, 'booked', {{ 'true' if cargo.is_booked else 'false' }})">
+          {% if cargo.is_booked %}<i class="fa fa-check"></i>{% else %}B{% endif %}
         </div>
-        <div class="cargo-actions" onclick="event.stopPropagation()">
-          {% if not cargo.is_truck_required %}
-            <button class="btn-icon" onclick="enableTrucking({{ loop.index0 }})" title="Enable Trucking">
-              <i class="fa fa-truck"></i>
-            </button>
-          {% elif not cargo.truck_reg_no %}
-            <button class="btn-icon" onclick="showTruckForm({{ loop.index0 }})" title="Assign Truck">
-              <i class="fa fa-plus"></i> Add
-            </button>
-          {% else %}
-            <button class="btn-icon" onclick="toggleDetails({{ loop.index0 }})" title="View Details">
-              Details
-            </button>
-          {% endif %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_loaded else ('next' if next_milestone.strip() == 'loaded' else '') }}"
+             title="Loaded{{ ': ' ~ cargo.loaded_on_date.strftime('%d-%b') if cargo.loaded_on_date else '' }}"
+             onclick="quickMilestone({{ loop.index0 }}, 'loaded', {{ 'true' if cargo.is_loaded else 'false' }})">
+          {% if cargo.is_loaded %}<i class="fa fa-check"></i>{% else %}L{% endif %}
+        </div>
+        <div class="milestone-pill {{ 'completed' if cargo.is_offloaded else ('next' if next_milestone.strip() == 'offloaded' else '') }}"
+             title="Offloaded{{ ': ' ~ cargo.offloaded_on_date.strftime('%d-%b') if cargo.offloaded_on_date else '' }}"
+             onclick="quickMilestone({{ loop.index0 }}, 'offloaded', {{ 'true' if cargo.is_offloaded else 'false' }})">
+          {% if cargo.is_offloaded %}<i class="fa fa-check"></i>{% else %}O{% endif %}
+        </div>
+        {% if cargo.to_be_returned %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_returned else ('next' if next_milestone.strip() == 'returned' else '') }}"
+             title="Returned{{ ': ' ~ cargo.returned_on_date.strftime('%d-%b') if cargo.returned_on_date else '' }}"
+             onclick="quickMilestone({{ loop.index0 }}, 'returned', {{ 'true' if cargo.is_returned else 'false' }})">
+          {% if cargo.is_returned %}<i class="fa fa-check"></i>{% else %}R{% endif %}
+        </div>
+        {% endif %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_completed else ('next' if next_milestone.strip() == 'completed' else '') }}"
+             title="Completed{{ ': ' ~ cargo.completed_on_date.strftime('%d-%b') if cargo.completed_on_date else '' }}"
+             onclick="quickMilestone({{ loop.index0 }}, 'completed', {{ 'true' if cargo.is_completed else 'false' }})">
+          {% if cargo.is_completed %}<i class="fa fa-check"></i>{% else %}C{% endif %}
         </div>
       </div>
 
-      <div class="cargo-details" id="details-{{ loop.index0 }}">
-        <div class="details-container">
-          <!-- Truck Assignment Section -->
-          <div class="details-section">
-            <div class="info-card">
-              <div class="section-header">
-                <div class="section-title">
-                  <i class="fa fa-truck"></i> Truck Assignment
-                </div>
-                <button class="btn-update" onclick="openTruckModal({{ loop.index0 }})">Update</button>
-              </div>
+      <div>
+        <span class="status-badge status-{{ cargo_status.strip() }}">{{ cargo_status.strip().replace('-', ' ') }}</span>
+      </div>
 
-              <div class="info-grid">
-                <div class="info-row">
-                  <div class="info-label">Transporter</div>
-                  <div class="info-value {{ 'empty' if not cargo.transporter }}">
-                    <div class="detail-card">{{ cargo.transporter or "Not assigned" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Truck Registration</div>
-                  <div class="info-value {{ 'empty' if not cargo.truck_reg_no }}">
-                    <div class="detail-card">{{ cargo.truck_reg_no or "Not assigned" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Trailer Registration</div>
-                  <div class="info-value {{ 'empty' if not cargo.trailer_reg_no }}">
-                    <div class="detail-card">{{ cargo.trailer_reg_no or "Not provided" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Driver Name</div>
-                  <div class="info-value {{ 'empty' if not cargo.driver_name }}">
-                    <div class="detail-card">{{ cargo.driver_name or "Not assigned" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Contact 1</div>
-                  <div class="info-value {{ 'empty' if not cargo.driver_contact_no }}">
-                    <div class="detail-card">{{ cargo.driver_contact_no or "Not provided" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Contact 2</div>
-                  <div class="info-value {{ 'empty' if not cargo.driver_contact_no_2 }}">
-                    <div class="detail-card">{{ cargo.driver_contact_no_2 or "Not provided" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Passport No</div>
-                  <div class="info-value {{ 'empty' if not cargo.driver_passport_no }}">
-                    <div class="detail-card">{{ cargo.driver_passport_no or "Not provided" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Licence No</div>
-                  <div class="info-value {{ 'empty' if not cargo.driver_licence_no }}">
-                    <div class="detail-card">{{ cargo.driver_licence_no or "Not provided" }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tracking & Timeline Section -->
-          <div class="details-section">
-            <div class="info-card">
-              <div class="section-header">
-                <div class="section-title">
-                  <i class="fa fa-map-marker"></i> Tracking & Timeline
-                </div>
-                <button class="btn-update" onclick="openTrackingModal({{ loop.index0 }})">Update</button>
-              </div>
-
-              <div class="timeline-container">
-                <div class="timeline-track">
-                  <div class="milestone-item {% if cargo.is_booked %}completed{% elif cargo.is_truck_required and cargo.truck_reg_no %}next{% endif %}">
-                    <div class="milestone-dot">
-                      {% if cargo.is_booked %}<i class="fa fa-check"></i>{% endif %}
-                    </div>
-                    <div class="milestone-label">Booked</div>
-                    {% if cargo.booked_on_date %}
-                    <div class="milestone-date">{{ cargo.booked_on_date.strftime('%d-%b') }}</div>
-                    {% endif %}
-                  </div>
-
-                  <div class="milestone-item {% if cargo.is_loaded %}completed{% elif cargo.is_booked %}next{% endif %}">
-                    <div class="milestone-dot">
-                      {% if cargo.is_loaded %}<i class="fa fa-check"></i>{% endif %}
-                    </div>
-                    <div class="milestone-label">Loaded</div>
-                    {% if cargo.loaded_on_date %}
-                    <div class="milestone-date">{{ cargo.loaded_on_date.strftime('%d-%b') }}</div>
-                    {% endif %}
-                  </div>
-
-                  <div class="milestone-item {% if cargo.is_offloaded %}completed{% elif cargo.is_loaded %}next{% endif %}">
-                    <div class="milestone-dot">
-                      {% if cargo.is_offloaded %}<i class="fa fa-check"></i>{% endif %}
-                    </div>
-                    <div class="milestone-label">Offloaded</div>
-                    {% if cargo.offloaded_on_date %}
-                    <div class="milestone-date">{{ cargo.offloaded_on_date.strftime('%d-%b') }}</div>
-                    {% endif %}
-                  </div>
-
-                  {% if cargo.to_be_returned %}
-                  <div class="milestone-item {% if cargo.is_returned %}completed{% elif cargo.is_offloaded %}next{% endif %}">
-                    <div class="milestone-dot">
-                      {% if cargo.is_returned %}<i class="fa fa-check"></i>{% endif %}
-                    </div>
-                    <div class="milestone-label">Returned</div>
-                    {% if cargo.returned_on_date %}
-                    <div class="milestone-date">{{ cargo.returned_on_date.strftime('%d-%b') }}</div>
-                    {% endif %}
-                  </div>
-                  {% endif %}
-
-                  <div class="milestone-item {% if cargo.is_completed %}completed{% elif (cargo.to_be_returned and cargo.is_returned) or (not cargo.to_be_returned and cargo.is_offloaded) %}next{% endif %}">
-                    <div class="milestone-dot">
-                      {% if cargo.is_completed %}<i class="fa fa-check"></i>{% endif %}
-                    </div>
-                    <div class="milestone-label">Complete</div>
-                    {% if cargo.completed_on_date %}
-                    <div class="milestone-date">{{ cargo.completed_on_date.strftime('%d-%b') }}</div>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-
-              <div class="tracking-grid">
-                <div class="info-row">
-                  <div class="info-label">Current Location</div>
-                  <div class="info-value {{ 'empty' if not cargo.truck_location }}">
-                    <div class="detail-card">{{ cargo.truck_location or "Not updated" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Last Updated</div>
-                  <div class="info-value {{ 'empty' if not cargo.updated_on }}">
-                    <div class="detail-card">{{ cargo.updated_on.strftime('%d-%b-%y %H:%M') if cargo.updated_on else "-" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Updated By</div>
-                  <div class="info-value {{ 'empty' if not cargo.updated_by }}">
-                    <div class="detail-card">{{ cargo.updated_by or "-" }}</div>
-                  </div>
-                </div>
-                <div class="info-row">
-                  <div class="info-label">Load By Date</div>
-                  <div class="info-value {{ 'empty' if not cargo.load_by_date }}">
-                    <div class="detail-card">{{ cargo.load_by_date.strftime('%d-%b-%y') if cargo.load_by_date else "Not set" }}</div>
-                  </div>
-                </div>
-                <div class="info-row tracking-comment">
-                  <div class="info-label">Tracking Comment</div>
-                  <div class="info-value {{ 'empty' if not cargo.tracking_comment }}">
-                    <div class="detail-card">{{ cargo.tracking_comment or "No comments" }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="btn-group" style="margin-top:12px;">
-              {% if not cargo.is_booked and cargo.truck_reg_no %}
-                <button class="btn-action btn-success" onclick="updateMilestone({{ loop.index0 }}, 'booked')">
-                  <i class="fa fa-check"></i> Mark Booked
-                </button>
-              {% elif not cargo.is_loaded and cargo.is_booked %}
-                <button class="btn-action btn-success" onclick="updateMilestone({{ loop.index0 }}, 'loaded')">
-                  <i class="fa fa-upload"></i> Mark Loaded
-                </button>
-              {% elif not cargo.is_offloaded and cargo.is_loaded %}
-                <button class="btn-action btn-success" onclick="updateMilestone({{ loop.index0 }}, 'offloaded')">
-                  <i class="fa fa-download"></i> Mark Offloaded
-                </button>
-              {% elif cargo.to_be_returned and not cargo.is_returned and cargo.is_offloaded %}
-                <button class="btn-action btn-success" onclick="updateMilestone({{ loop.index0 }}, 'returned')">
-                  <i class="fa fa-undo"></i> Mark Returned
-                </button>
-              {% elif not cargo.is_completed and ((cargo.to_be_returned and cargo.is_returned) or (not cargo.to_be_returned and cargo.is_offloaded)) %}
-                <button class="btn-action btn-success" onclick="updateMilestone({{ loop.index0 }}, 'completed')">
-                  <i class="fa fa-flag-checkered"></i> Mark Complete
-                </button>
-              {% endif %}
-            </div>
-          </div>
-        </div>
+      <div class="row-actions">
+        {% if cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point %}
+        <button class="btn-icon expand-toggle" onclick="toggleExtended({{ loop.index0 }})" title="Extended Tracking">
+          <i class="fa fa-road"></i>
+        </button>
+        {% endif %}
+        <button class="btn-icon" onclick="openTruckModal({{ loop.index0 }})" title="Edit Truck Details">
+          <i class="fa fa-truck"></i>
+        </button>
       </div>
     </div>
+
+    <!-- Extended Tracking Row -->
+    {% if cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point %}
+    <div class="extended-row" id="extended-{{ loop.index0 }}" data-idx="{{ loop.index0 }}">
+      <div class="extended-grid">
+        {% if cargo.border_tracking %}
+        <div class="extended-item">
+          <div class="extended-label">Border 1: {{ cargo.border_name or "Border" }}</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1;">
+              <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
+              <input type="datetime-local" class="extended-input" 
+                     id="border1_arrived_{{ loop.index0 }}"
+                     value="{{ cargo.border_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_arrived_on else '' }}">
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 10px; color: var(--text-muted);">Left</div>
+              <input type="datetime-local" class="extended-input"
+                     id="border1_left_{{ loop.index0 }}"
+                     value="{{ cargo.border_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_left_on else '' }}">
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if cargo.border_2_tracking %}
+        <div class="extended-item">
+          <div class="extended-label">Border 2: {{ cargo.border_2_name or "Border" }}</div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1;">
+              <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
+              <input type="datetime-local" class="extended-input"
+                     id="border2_arrived_{{ loop.index0 }}"
+                     value="{{ cargo.border_2_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_arrived_on else '' }}">
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 10px; color: var(--text-muted);">Left</div>
+              <input type="datetime-local" class="extended-input"
+                     id="border2_left_{{ loop.index0 }}"
+                     value="{{ cargo.border_2_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_left_on else '' }}">
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        
+        {% if cargo.offloading_point %}
+        <div class="extended-item">
+          <div class="extended-label">Offloading Point</div>
+          <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
+          <input type="datetime-local" class="extended-input"
+                 id="offloading_arrived_{{ loop.index0 }}"
+                 value="{{ cargo.offloading_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.offloading_arrived_on else '' }}">
+        </div>
+        {% endif %}
+      </div>
+      <div class="extended-actions">
+        <button class="btn btn-primary btn-sm" onclick="saveExtendedTracking({{ loop.index0 }})">
+          Save Extended Tracking
+        </button>
+      </div>
+    </div>
+    {% endif %}
+
     {% endfor %}
+
+    {% if not doc.cargo_parcel_details %}
+    <div class="empty-state">
+      <i class="fa fa-box-open"></i>
+      <p>No cargo items found</p>
+    </div>
+    {% endif %}
   </div>
 </div>
 
-<!-- Truck Details Modal - Two Column Layout -->
-<div class="modal-overlay" id="truckModal" aria-hidden="true">
-  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="truckModalTitle">
-    <div class="modal-accent"></div>
-    <div class="modal-inner">
-      <button class="modal-close corner" onclick="closeTruckModal()" aria-label="Close dialog">&times;</button>
-      <div class="modal-header">
-        <h3 class="modal-title" id="truckModalTitle">Update Truck Details</h3>
-      </div>
-      <form id="truckForm" onsubmit="saveTruckDetails(event)" novalidate>
-        
-        <div class="form-grid">
-          <!-- First row - most important fields -->
-          <div class="form-group full-width">
-            <label class="form-label">Transporter <span style="color: #ef4444;">*</span></label>
-            <input type="text" class="form-control" id="transporterInput" 
-                   placeholder="Start typing to search..." required autocomplete="off">
-            <div id="transporter-dropdown"></div>
+<!-- Bulk Action Bar -->
+<div class="bulk-action-bar" id="bulkActionBar">
+  <div class="bulk-info">
+    <strong id="selectedCount">0</strong> items selected
+  </div>
+  <div class="bulk-actions">
+    <button class="btn btn-secondary btn-sm" onclick="clearSelection()">Clear</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('booked')">Mark Booked</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('loaded')">Mark Loaded</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('offloaded')">Mark Offloaded</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('completed')">Mark Completed</button>
+  </div>
+</div>
+
+<!-- Truck Details Modal -->
+<div class="modal-overlay" id="truckModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title">Truck Assignment</h3>
+      <button class="modal-close" onclick="closeTruckModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="truckForm" onsubmit="saveTruckDetails(event)">
+        <div class="form-row">
+          <div class="form-group full" style="position: relative;">
+            <label class="form-label">Transporter <span class="required">*</span></label>
+            <input type="text" class="form-input" id="transporterInput" placeholder="Search transporter..." autocomplete="off">
+            <div class="supplier-dropdown" id="supplierDropdown"></div>
           </div>
-          
-          <!-- Second row -->
+        </div>
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Truck Registration <span style="color: #ef4444;">*</span></label>
-            <input type="text" class="form-control" id="truckRegInput" 
-                   placeholder="e.g., ABC-123-GP" required style="text-transform: uppercase;">
+            <label class="form-label">Truck Reg <span class="required">*</span></label>
+            <input type="text" class="form-input" id="truckRegInput" placeholder="ABC-123-GP" style="text-transform: uppercase;">
           </div>
-          
           <div class="form-group">
-            <label class="form-label">Trailer Registration</label>
-            <input type="text" class="form-control" id="trailerRegInput" 
-                   placeholder="e.g., XYZ-456-GP" style="text-transform: uppercase;">
+            <label class="form-label">Trailer Reg</label>
+            <input type="text" class="form-input" id="trailerRegInput" placeholder="XYZ-456-GP" style="text-transform: uppercase;">
           </div>
-          
-          <!-- Third row -->
+        </div>
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Driver Name <span style="color: #ef4444;">*</span></label>
-            <input type="text" class="form-control" id="driverNameInput" 
-                   placeholder="Full name" required>
+            <label class="form-label">Driver Name <span class="required">*</span></label>
+            <input type="text" class="form-input" id="driverNameInput" placeholder="Full name">
           </div>
-          
           <div class="form-group">
-            <label class="form-label">Contact 1 <span style="color: #ef4444;">*</span></label>
-            <input type="tel" class="form-control" id="contact1Input" 
-                   placeholder="0771234567" required>
+            <label class="form-label">Contact 1 <span class="required">*</span></label>
+            <input type="tel" class="form-input" id="contact1Input" placeholder="0771234567">
           </div>
-          
-          <!-- Fourth row -->
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label class="form-label">Contact 2</label>
-            <input type="tel" class="form-control" id="contact2Input" 
-                   placeholder="0771234567">
+            <input type="tel" class="form-input" id="contact2Input" placeholder="0771234567">
           </div>
-          
           <div class="form-group">
             <label class="form-label">Passport No</label>
-            <input type="text" class="form-control" id="passportInput" 
-                   placeholder="Passport number" style="text-transform: uppercase;">
-          </div>
-          
-          <!-- Fifth row -->
-          <div class="form-group full-width">
-            <label class="form-label">Licence No</label>
-            <input type="text" class="form-control" id="licenceInput" 
-                   placeholder="Licence number" style="text-transform: uppercase;">
+            <input type="text" class="form-input" id="passportInput" placeholder="Passport number" style="text-transform: uppercase;">
           </div>
         </div>
-        
-        <div class="btn-group">
-          <button type="button" class="btn-action btn-secondary" onclick="closeTruckModal()">
-            Cancel
-          </button>
-          <button type="submit" class="btn-action btn-primary" id="saveTruckBtn">
-            <span class="spinner" style="display: none;"></span>
-            Save
-          </button>
+        <div class="form-row">
+          <div class="form-group full">
+            <label class="form-label">Licence No</label>
+            <input type="text" class="form-input" id="licenceInput" placeholder="Licence number" style="text-transform: uppercase;">
+          </div>
         </div>
       </form>
     </div>
-  </div>
-</div>
-
-<!-- Tracking Modal - Single Column -->
-<div class="modal-overlay" id="trackingModal" aria-hidden="true">
-  <div class="modal-content modal-narrow" role="dialog" aria-modal="true" aria-labelledby="trackingModalTitle">
-    <div class="modal-accent"></div>
-    <div class="modal-inner">
-      <button class="modal-close corner" onclick="closeTrackingModal()" aria-label="Close dialog">&times;</button>
-      <div class="modal-header">
-        <h3 class="modal-title" id="trackingModalTitle">Update Tracking</h3>
-      </div>
-      <form id="trackingForm" onsubmit="saveTracking(event)" novalidate>
-        
-        <div class="form-grid-single">
-          <div class="form-group">
-            <label class="form-label">Location <span style="color: #ef4444;">*</span></label>
-            <input type="text" class="form-control" name="truck_location" 
-                   placeholder="e.g., Beitbridge Border Post" required>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Comment <span style="color: #ef4444;">*</span></label>
-            <textarea class="form-control" name="comment" rows="4" 
-                      placeholder="Provide details about current status..." required></textarea>
-          </div>
-        </div>
-        
-        <div class="btn-group">
-          <button type="button" class="btn-action btn-secondary" onclick="closeTrackingModal()">
-            Cancel
-          </button>
-          <button type="submit" class="btn-action btn-primary">
-            <span class="spinner" style="display: none;"></span>
-            Update
-          </button>
-        </div>
-      </form>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTruckModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveTruckBtn" onclick="saveTruckDetails(event)">
+        <span class="spinner" style="display: none;" id="truckSpinner"></span>
+        Save
+      </button>
     </div>
   </div>
 </div>
 
 <!-- Milestone Comment Modal -->
-<div class="modal-overlay milestone-modal" id="milestoneModal" aria-hidden="true">
-  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="milestoneModalTitle">
-    <div class="modal-accent"></div>
-    <div class="modal-inner">
-      <button class="modal-close corner" onclick="closeMilestoneModal()" aria-label="Close dialog">&times;</button>
-      <div class="modal-header">
-        <h3 class="modal-title" id="milestoneModalTitle">Enter milestone comment</h3>
+<div class="modal-overlay" id="milestoneModal">
+  <div class="modal-box" style="max-width: 400px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="milestoneTitle">Update Milestone</h3>
+      <button class="modal-close" onclick="closeMilestoneModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Comment (Optional)</label>
+        <textarea class="form-input" id="milestoneComment" rows="3" placeholder="Add a comment..."></textarea>
       </div>
-      <div style="margin-bottom:8px;color:#cbd9ee;font-weight:600">Enter comment for the milestone (optional):</div>
-      <textarea id="milestoneComment" class="milestone-textarea" placeholder="Add a short comment..."></textarea>
-      <div class="btn-group" style="margin-top:12px;">
-        <button type="button" class="btn-action btn-secondary" onclick="closeMilestoneModal()">Cancel</button>
-        <button type="button" class="btn-action btn-primary" onclick="confirmMilestone()">OK</button>
-      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMilestoneModal()">Cancel</button>
+      <button class="btn btn-success" onclick="confirmMilestone()">Confirm</button>
     </div>
   </div>
 </div>
 
 <script>
-  const jobName = '{{ doc.name }}';
-  let currentCargoIdx = null;
-  let allSuppliers = [];
+const jobName = '{{ doc.name }}';
+let currentCargoIdx = null;
+let allSuppliers = [];
+let pendingMilestone = null;
+let pendingMilestoneIdx = null;
+let pendingBulkMilestone = null;
 
-  // variables for milestone modal
-  let pendingMilestone = null;
-  let pendingMilestoneIdx = null;
+// ========================================
+// INITIALIZATION
+// ========================================
+frappe.ready(function() {
+  setupFilters();
+  setupSupplierSearch();
+  setupCheckboxListeners();
+});
 
-  // ========================================
-  // SIMPLIFIED SUPPLIER SEARCH
-  // ========================================
+// ========================================
+// FILTERS
+// ========================================
+function setupFilters() {
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('statusFilter').addEventListener('change', applyFilters);
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
   
-  function loadSuppliers() {
-    if (allSuppliers.length > 0) return;
+  document.querySelectorAll('.cargo-row').forEach(row => {
+    const matchSearch = !search || row.dataset.search.includes(search);
+    const matchStatus = !status || row.dataset.status === status;
+    row.style.display = (matchSearch && matchStatus) ? '' : 'none';
     
+    // Also hide extended row if parent is hidden
+    const extRow = document.getElementById('extended-' + row.dataset.idx);
+    if (extRow && row.style.display === 'none') {
+      extRow.classList.remove('show');
+    }
+  });
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('statusFilter').value = '';
+  applyFilters();
+}
+
+// ========================================
+// SELECTION & BULK ACTIONS
+// ========================================
+function setupCheckboxListeners() {
+  document.querySelectorAll('.row-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBulkBar);
+  });
+}
+
+function updateBulkBar() {
+  const selected = document.querySelectorAll('.row-checkbox:checked').length;
+  const bar = document.getElementById('bulkActionBar');
+  document.getElementById('selectedCount').textContent = selected;
+  bar.classList.toggle('show', selected > 0);
+  
+  // Update row highlighting
+  document.querySelectorAll('.cargo-row').forEach(row => {
+    const cb = row.querySelector('.row-checkbox');
+    row.classList.toggle('selected', cb && cb.checked);
+  });
+}
+
+function handleSelectAll(cb) {
+  document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+    if (checkbox.closest('.cargo-row').style.display !== 'none') {
+      checkbox.checked = cb.checked;
+    }
+  });
+  updateBulkBar();
+}
+
+function toggleSelectAll() {
+  const checkboxes = document.querySelectorAll('.row-checkbox');
+  const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+  checkboxes.forEach(cb => { cb.checked = !allChecked; });
+  document.getElementById('selectAllCheckbox').checked = !allChecked;
+  updateBulkBar();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = false; });
+  document.getElementById('selectAllCheckbox').checked = false;
+  updateBulkBar();
+}
+
+// ========================================
+// BULK MILESTONE
+// ========================================
+function bulkMilestone(milestone) {
+  const selectedIdxs = Array.from(document.querySelectorAll('.row-checkbox:checked'))
+    .map(cb => parseInt(cb.dataset.idx));
+  
+  if (selectedIdxs.length === 0) {
+    showToast('No items selected', 'error');
+    return;
+  }
+  
+  pendingBulkMilestone = { milestone, indices: selectedIdxs };
+  document.getElementById('milestoneTitle').textContent = `Mark ${selectedIdxs.length} items as ${milestone}`;
+  document.getElementById('milestoneComment').value = '';
+  document.getElementById('milestoneModal').classList.add('show');
+}
+
+// ========================================
+// INLINE LOCATION/COMMENT SAVE
+// ========================================
+function saveInlineLocation(idx) {
+  const input = document.querySelector(`.location-input[data-idx="${idx}"]`);
+  const location = input.value.trim();
+  
+  frappe.call({
+    method: 'freightmas.www.truck_portal.update_tracking',
+    args: { job: jobName, cargo_idx: idx, truck_location: location },
+    callback: (r) => {
+      if (r.message && r.message.success) {
+        showToast('Location saved', 'success');
+      }
+    },
+    error: () => showToast('Failed to save', 'error')
+  });
+}
+
+function saveInlineComment(idx) {
+  const input = document.querySelector(`.comment-input[data-idx="${idx}"]`);
+  const comment = input.value.trim();
+  
+  frappe.call({
+    method: 'freightmas.www.truck_portal.update_tracking',
+    args: { job: jobName, cargo_idx: idx, comment: comment },
+    callback: (r) => {
+      if (r.message && r.message.success) {
+        showToast('Comment saved', 'success');
+      }
+    },
+    error: () => showToast('Failed to save', 'error')
+  });
+}
+
+// ========================================
+// QUICK MILESTONE
+// ========================================
+function quickMilestone(idx, milestone, isCompleted) {
+  if (isCompleted) return; // Already done
+  
+  pendingMilestoneIdx = idx;
+  pendingMilestone = milestone;
+  pendingBulkMilestone = null;
+  
+  document.getElementById('milestoneTitle').textContent = `Mark as ${milestone.charAt(0).toUpperCase() + milestone.slice(1)}`;
+  document.getElementById('milestoneComment').value = '';
+  document.getElementById('milestoneModal').classList.add('show');
+}
+
+function closeMilestoneModal() {
+  document.getElementById('milestoneModal').classList.remove('show');
+  pendingMilestone = null;
+  pendingMilestoneIdx = null;
+  pendingBulkMilestone = null;
+}
+
+function confirmMilestone() {
+  const comment = document.getElementById('milestoneComment').value.trim();
+  
+  if (pendingBulkMilestone) {
+    // Bulk update
+    const { milestone, indices } = pendingBulkMilestone;
+    let completed = 0;
+    
+    indices.forEach(idx => {
+      frappe.call({
+        method: 'freightmas.www.truck_portal.update_milestone',
+        args: {
+          job: jobName,
+          cargo_idx: idx,
+          milestone: milestone,
+          date: new Date().toISOString().split('T')[0],
+          comment: comment
+        },
+        async: false,
+        callback: () => { completed++; }
+      });
+    });
+    
+    showToast(`Updated ${completed} items`, 'success');
+    closeMilestoneModal();
+    clearSelection();
+    setTimeout(() => location.reload(), 800);
+    
+  } else if (pendingMilestone && pendingMilestoneIdx !== null) {
+    // Single update
+    frappe.call({
+      method: 'freightmas.www.truck_portal.update_milestone',
+      args: {
+        job: jobName,
+        cargo_idx: pendingMilestoneIdx,
+        milestone: pendingMilestone,
+        date: new Date().toISOString().split('T')[0],
+        comment: comment
+      },
+      callback: (r) => {
+        if (r.message && r.message.success) {
+          showToast('Milestone updated', 'success');
+          closeMilestoneModal();
+          setTimeout(() => location.reload(), 800);
+        }
+      },
+      error: () => showToast('Failed to update', 'error')
+    });
+  }
+}
+
+// ========================================
+// EXTENDED TRACKING
+// ========================================
+function toggleExtended(idx) {
+  const row = document.getElementById('extended-' + idx);
+  const btn = document.querySelector(`.cargo-row[data-idx="${idx}"] .expand-toggle`);
+  if (row) {
+    row.classList.toggle('show');
+    btn.classList.toggle('expanded', row.classList.contains('show'));
+  }
+}
+
+function expandAll() {
+  document.querySelectorAll('.extended-row').forEach(row => row.classList.add('show'));
+  document.querySelectorAll('.expand-toggle').forEach(btn => btn.classList.add('expanded'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.extended-row').forEach(row => row.classList.remove('show'));
+  document.querySelectorAll('.expand-toggle').forEach(btn => btn.classList.remove('expanded'));
+}
+
+function saveExtendedTracking(idx) {
+  const data = {
+    job: jobName,
+    cargo_idx: idx,
+    border_arrived_on: document.getElementById('border1_arrived_' + idx)?.value || null,
+    border_left_on: document.getElementById('border1_left_' + idx)?.value || null,
+    border_2_arrived_on: document.getElementById('border2_arrived_' + idx)?.value || null,
+    border_2_left_on: document.getElementById('border2_left_' + idx)?.value || null,
+    offloading_arrived_on: document.getElementById('offloading_arrived_' + idx)?.value || null
+  };
+  
+  frappe.call({
+    method: 'freightmas.www.truck_portal.update_extended_tracking',
+    args: data,
+    callback: (r) => {
+      if (r.message && r.message.success) {
+        showToast('Extended tracking saved', 'success');
+      }
+    },
+    error: () => showToast('Failed to save', 'error')
+  });
+}
+
+// ========================================
+// TRUCK MODAL
+// ========================================
+function loadSuppliers() {
+  if (allSuppliers.length > 0) return Promise.resolve();
+  
+  return new Promise((resolve) => {
     frappe.call({
       method: 'frappe.client.get_list',
       args: {
@@ -1090,480 +1385,181 @@
         order_by: 'supplier_name asc'
       },
       callback: (r) => {
-        if (r.message) {
-          allSuppliers = r.message;
-          console.log('Loaded suppliers:', allSuppliers.length);
-        }
-      },
-      error: (err) => {
-        console.error('Error loading suppliers:', err);
+        if (r.message) allSuppliers = r.message;
+        resolve();
       }
     });
-  }
+  });
+}
 
-  function setupSupplierSearch() {
-    const input = document.getElementById('transporterInput');
-    const dropdown = document.getElementById('transporter-dropdown');
-    
-    if (!input || !dropdown) {
+function setupSupplierSearch() {
+  const input = document.getElementById('transporterInput');
+  const dropdown = document.getElementById('supplierDropdown');
+  if (!input || !dropdown) return;
+  
+  input.addEventListener('focus', () => loadSuppliers());
+  
+  input.addEventListener('input', function() {
+    const term = this.value.toLowerCase().trim();
+    if (term.length < 2) {
+      dropdown.classList.remove('show');
       return;
     }
     
-    // Load suppliers when input is focused
-    input.addEventListener('focus', function() {
-      loadSuppliers();
-    });
+    const filtered = allSuppliers.filter(s => 
+      (s.supplier_name || '').toLowerCase().includes(term) || 
+      (s.name || '').toLowerCase().includes(term)
+    ).slice(0, 10);
     
-    // Filter and show suppliers as user types
-    input.addEventListener('input', function() {
-      const searchTerm = this.value.toLowerCase().trim();
+    if (filtered.length > 0) {
+      dropdown.innerHTML = filtered.map(s => `
+        <div class="supplier-item" data-value="${s.name}">
+          <div class="supplier-name">${s.supplier_name || s.name}</div>
+          ${s.supplier_name ? `<div class="supplier-code">${s.name}</div>` : ''}
+        </div>
+      `).join('');
       
-      if (searchTerm.length < 2) {
-        dropdown.style.display = 'none';
-        return;
-      }
-      
-      const filtered = allSuppliers.filter(supplier => {
-        const name = (supplier.supplier_name || '').toLowerCase();
-        const code = (supplier.name || '').toLowerCase();
-        return name.includes(searchTerm) || code.includes(searchTerm);
+      dropdown.querySelectorAll('.supplier-item').forEach(item => {
+        item.addEventListener('click', () => {
+          input.value = item.querySelector('.supplier-name').textContent;
+          input.dataset.supplierId = item.dataset.value;
+          dropdown.classList.remove('show');
+        });
       });
       
-      if (filtered.length > 0) {
-        dropdown.innerHTML = '';
-        filtered.forEach(supplier => {
-          const item = document.createElement('div');
-          item.className = 'dropdown-item';
-          item.setAttribute('data-value', supplier.name);
-          
-          // Create elements safely to prevent XSS
-          const nameDiv = document.createElement('div');
-          nameDiv.className = 'dropdown-item-name';
-          nameDiv.textContent = supplier.supplier_name || supplier.name;
-          item.appendChild(nameDiv);
-          
-          if (supplier.supplier_name) {
-            const codeDiv = document.createElement('div');
-            codeDiv.className = 'dropdown-item-code';
-            codeDiv.textContent = supplier.name;
-            item.appendChild(codeDiv);
-          }
-          
-          item.addEventListener('click', function() {
-            input.value = supplier.supplier_name || supplier.name;
-            input.setAttribute('data-supplier-id', supplier.name);
-            dropdown.style.display = 'none';
-          });
-          
-          dropdown.appendChild(item);
-        });
-        dropdown.style.display = 'block';
-      } else {
-        dropdown.style.display = 'none';
+      dropdown.classList.add('show');
+    } else {
+      dropdown.classList.remove('show');
+    }
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+
+function openTruckModal(idx) {
+  currentCargoIdx = idx;
+  loadSuppliers();
+  
+  // Reset form
+  document.getElementById('truckForm').reset();
+  document.getElementById('transporterInput').removeAttribute('data-supplier-id');
+  document.getElementById('supplierDropdown').classList.remove('show');
+  
+  // Load existing data
+  const row = document.querySelector(`.cargo-row[data-idx="${idx}"]`);
+  if (row) {
+    frappe.call({
+      method: 'freightmas.www.truck_portal.get_cargo_details',
+      args: { job: jobName, cargo_idx: idx },
+      callback: (r) => {
+        if (r.message) {
+          const d = r.message.truck_details;
+          document.getElementById('transporterInput').value = d.transporter_name || d.transporter || '';
+          if (d.transporter) document.getElementById('transporterInput').dataset.supplierId = d.transporter;
+          document.getElementById('truckRegInput').value = d.truck_reg_no || '';
+          document.getElementById('trailerRegInput').value = d.trailer_reg_no || '';
+          document.getElementById('driverNameInput').value = d.driver_name || '';
+          document.getElementById('contact1Input').value = d.driver_contact_no || '';
+          document.getElementById('contact2Input').value = d.driver_contact_no_2 || '';
+          document.getElementById('passportInput').value = d.driver_passport_no || '';
+          document.getElementById('licenceInput').value = d.driver_licence_no || '';
+        }
       }
     });
-    
-    // Hide dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.style.display = 'none';
-      }
-    });
-  }
-
-  // ========================================
-  // MODAL FUNCTIONS - use class toggle for reliable positioning
-  // ========================================
-  function showModalOverlay(el) {
-    if (!el) return;
-    el.classList.add('show');
-    el.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-  }
-
-  function hideModalOverlay(el) {
-    if (!el) return;
-    el.classList.remove('show');
-    el.setAttribute('aria-hidden', 'true');
-    // Remove body class only if no other modal is visible
-    setTimeout(() => {
-      const anyShown = document.querySelectorAll('.modal-overlay.show').length > 0;
-      if (!anyShown) document.body.classList.remove('modal-open');
-    }, 10);
   }
   
-  function openTruckModal(idx) {
-    currentCargoIdx = idx;
-    
-    // Reset form
-    const form = document.getElementById('truckForm');
-    if (form) form.reset();
-    
-    // Clear supplier data
-    const transporterInput = document.getElementById('transporterInput');
-    if (transporterInput) transporterInput.removeAttribute('data-supplier-id');
-    
-    // Hide dropdown
-    const dropdown = document.getElementById('transporter-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-    
-    // Load suppliers & attach search handlers
-    loadSuppliers();
-    setupSupplierSearch();
-    
-    // Populate form fields from cargo-card data attributes (if present)
-    const cargoEl = document.querySelector(`.cargo-card[data-cargo-idx="${idx}"]`);
-    if (cargoEl) {
-      const t = cargoEl.dataset.transporter || '';
-      const truck = cargoEl.dataset.truckRegNo || '';
-      const trailer = cargoEl.dataset.trailerReg || '';
-      const driver = cargoEl.dataset.driverName || '';
-      const c1 = cargoEl.dataset.contact1 || '';
-      const c2 = cargoEl.dataset.contact2 || '';
-      const passport = cargoEl.dataset.passport || '';
-      const licence = cargoEl.dataset.licence || '';
-      
-      const transporterInputEl = document.getElementById('transporterInput');
-      const truckRegEl = document.getElementById('truckRegInput');
-      const trailerRegEl = document.getElementById('trailerRegInput');
-      const driverNameEl = document.getElementById('driverNameInput');
-      const contact1El = document.getElementById('contact1Input');
-      const contact2El = document.getElementById('contact2Input');
-      const passportEl = document.getElementById('passportInput');
-      const licenceEl = document.getElementById('licenceInput');
+  document.getElementById('truckModal').classList.add('show');
+  setTimeout(() => document.getElementById('transporterInput').focus(), 100);
+}
 
-      if (transporterInputEl) {
-        transporterInputEl.value = t;
-        if (t) transporterInputEl.setAttribute('data-supplier-id', t);
-      }
-      if (truckRegEl) truckRegEl.value = truck ? truck.toUpperCase() : '';
-      if (trailerRegEl) trailerRegEl.value = trailer ? trailer.toUpperCase() : '';
-      if (driverNameEl) driverNameEl.value = driver || '';
-      if (contact1El) contact1El.value = c1 || '';
-      if (contact2El) contact2El.value = c2 || '';
-      if (passportEl) passportEl.value = passport ? passport.toUpperCase() : '';
-      if (licenceEl) licenceEl.value = licence ? licence.toUpperCase() : '';
-    }
-    
-    // Show modal (use class to avoid transform stacking issues)
-    showModalOverlay(document.getElementById('truckModal'));
-    
-    // focus first field for accessibility
-    setTimeout(() => {
-      const inp = document.getElementById('transporterInput');
-      if (inp) inp.focus();
-    }, 120);
+function closeTruckModal() {
+  document.getElementById('truckModal').classList.remove('show');
+  document.getElementById('supplierDropdown').classList.remove('show');
+  currentCargoIdx = null;
+}
+
+function saveTruckDetails(event) {
+  event.preventDefault();
+  if (currentCargoIdx === null) return;
+  
+  const transporterInput = document.getElementById('transporterInput');
+  const supplierId = transporterInput.dataset.supplierId || transporterInput.value;
+  const truckReg = document.getElementById('truckRegInput').value.toUpperCase().trim();
+  const driverName = document.getElementById('driverNameInput').value.trim();
+  const contact1 = document.getElementById('contact1Input').value.trim();
+  
+  // Validation
+  if (!supplierId || !truckReg || !driverName || !contact1) {
+    showToast('Please fill required fields', 'error');
+    return;
   }
-
-  function closeTruckModal() {
-    hideModalOverlay(document.getElementById('truckModal'));
-    const dropdown = document.getElementById('transporter-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-    currentCargoIdx = null;
-  }
-
-  // ========================================
-  // Portal alert (replaces native alert) - always on top
-  // ========================================
-  function showAlert(type, message) {
-    const bg = type === 'success' ? 'linear-gradient(135deg,#22c55e,#16a34a)' : (type === 'danger' ? 'linear-gradient(135deg,#ef4444,#c026d3)' : 'linear-gradient(135deg,#7c3aed,#6d28d9)');
-    const el = document.createElement('div');
-    el.className = 'portal-alert';
-    el.style.background = bg;
-    el.style.color = '#fff';
-    el.style.fontWeight = '700';
-    el.style.zIndex = '220000';
-    el.innerText = message || (type === 'success' ? 'Success' : 'Notice');
-    document.body.appendChild(el);
-    setTimeout(() => {
-      if (el && el.remove) el.remove();
-    }, 4200);
-  }
-
-  // ========================================
-  // Save truck details
-  // ========================================
-  function saveTruckDetails(event) {
-    event.preventDefault();
-    
-    if (currentCargoIdx === null) return;
-    
-    const button = document.getElementById('saveTruckBtn');
-    const spinner = button.querySelector('.spinner');
-    
-    // Get supplier ID or use display name
-    const transporterInput = document.getElementById('transporterInput');
-    const supplierId = transporterInput ? transporterInput.getAttribute('data-supplier-id') : null;
-    const supplierName = transporterInput ? transporterInput.value : null;
-    
-    const data = {
+  
+  const btn = document.getElementById('saveTruckBtn');
+  const spinner = document.getElementById('truckSpinner');
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  
+  frappe.call({
+    method: 'freightmas.www.truck_portal.update_truck_details',
+    args: {
       job: jobName,
       cargo_idx: currentCargoIdx,
-      transporter: supplierId || supplierName,
-      truck_reg_no: document.getElementById('truckRegInput').value.toUpperCase(),
+      transporter: supplierId,
+      truck_reg_no: truckReg,
       trailer_reg_no: document.getElementById('trailerRegInput').value.toUpperCase(),
-      driver_name: document.getElementById('driverNameInput').value,
-      driver_contact_no: document.getElementById('contact1Input').value,
+      driver_name: driverName,
+      driver_contact_no: contact1,
       driver_contact_no_2: document.getElementById('contact2Input').value,
       driver_passport_no: document.getElementById('passportInput').value.toUpperCase(),
       driver_licence_no: document.getElementById('licenceInput').value.toUpperCase()
-    };
-    
-    // Simple validation
-    if (!data.transporter || !data.truck_reg_no || !data.driver_name || !data.driver_contact_no) {
-      showAlert('danger', 'Please fill all required fields');
-      return;
-    }
-    
-    // Show loading
-    button.disabled = true;
-    spinner.style.display = 'inline-block';
-    
-    frappe.call({
-      method: 'freightmas.www.truck_portal.update_truck_details',
-      args: data,
-      callback: (r) => {
-        if (r.message && r.message.success) {
-          closeTruckModal();
-          showAlert('success', 'Truck details updated successfully!');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showAlert('danger', 'Error updating truck details');
-        }
-      },
-      error: (err) => {
-        console.error('Error:', err);
-        showAlert('danger', 'Error updating truck details');
-      },
-      always: () => {
-        button.disabled = false;
-        spinner.style.display = 'none';
+    },
+    callback: (r) => {
+      if (r.message && r.message.success) {
+        showToast('Truck details saved', 'success');
+        closeTruckModal();
+        setTimeout(() => location.reload(), 800);
       }
-    });
-  }
-
-  // ========================================
-  // INITIALIZE
-  // ========================================
-  frappe.ready(function() {
-    setupSupplierSearch();
-    setupFilters();
-  });
-
-  function toggleDetails(idx) {
-    const details = document.getElementById(`details-${idx}`);
-    if (!details) return;
-    const card = details.closest('.cargo-card');
-    const isOpen = details.classList.contains('show');
-
-    // close all first
-    document.querySelectorAll('.cargo-details').forEach(d => d.classList.remove('show'));
-    document.querySelectorAll('.cargo-card').forEach(c => c.classList.remove('expanded'));
-
-    if (!isOpen) {
-      details.classList.add('show');
-      if (card) card.classList.add('expanded');
-    }
-  }
-
-  function setupFilters() {
-    const searchInput = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-  }
-
-  function applyFilters() {
-    const searchTerm = (document.getElementById('searchInput') || {value:''}).value.toLowerCase();
-    const statusValue = (document.getElementById('statusFilter') || {value:''}).value;
-    
-    document.querySelectorAll('.cargo-card').forEach(card => {
-      const searchData = card.dataset.search || '';
-      const status = card.dataset.status || '';
-      
-      const matchesSearch = !searchTerm || searchData.includes(searchTerm);
-      const matchesStatus = !statusValue || status === statusValue;
-      
-      card.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-    });
-  }
-
-  function clearFilters() {
-    const si = document.getElementById('searchInput');
-    const sf = document.getElementById('statusFilter');
-    if (si) si.value = '';
-    if (sf) sf.value = '';
-    applyFilters();
-  }
-
-  // Modified openTrackingModal to show blank form and use class toggles
-  function openTrackingModal(idx) {
-    currentCargoIdx = idx;
-    
-    const form = document.getElementById('trackingForm');
-    if (form) form.reset();
-    
-    showModalOverlay(document.getElementById('trackingModal'));
-    setTimeout(() => {
-      const el = document.querySelector('#trackingModal .form-control');
-      if (el) el.focus();
-    }, 80);
-  }
-
-  function closeTrackingModal() {
-    hideModalOverlay(document.getElementById('trackingModal'));
-    currentCargoIdx = null;
-  }
-
-  function saveTracking(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    const button = form.querySelector('button[type="submit"]');
-    
-    if (button) {
-      button.disabled = true;
-      button.innerHTML = '<span class="spinner"></span> Updating...';
-    }
-
-    frappe.call({
-      method: 'freightmas.www.truck_portal.update_tracking',
-      args: {
-        job: jobName,
-        cargo_idx: currentCargoIdx,
-        truck_location: formData.get('truck_location'),
-        comment: formData.get('comment')
-      },
-      callback: function(r) {
-        if (r.message && r.message.success) {
-          showAlert('success', r.message.message || 'Tracking updated');
-          closeTrackingModal();
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showAlert('danger', 'Failed to update tracking');
-        }
-      },
-      error: function(err) {
-        showAlert('danger', 'Failed to update tracking: ' + (err.message || 'Unknown error'));
-      },
-      always: function() {
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = '<i class="fa fa-map-marker"></i> Update Tracking';
-        }
-      }
-    });
-  }
-
-  // ========================================
-  // Milestone modal flow
-  // ========================================
-  function updateMilestone(idx, milestone) {
-    pendingMilestone = milestone;
-    pendingMilestoneIdx = idx;
-    const modal = document.getElementById('milestoneModal');
-    const textarea = document.getElementById('milestoneComment');
-    if (textarea) textarea.value = '';
-    showModalOverlay(modal);
-    setTimeout(() => {
-      const ta = document.getElementById('milestoneComment');
-      if (ta) ta.focus();
-    }, 80);
-  }
-
-  function closeMilestoneModal() {
-    pendingMilestone = null;
-    pendingMilestoneIdx = null;
-    hideModalOverlay(document.getElementById('milestoneModal'));
-  }
-
-  function confirmMilestone() {
-    const commentEl = document.getElementById('milestoneComment');
-    const comment = commentEl ? commentEl.value.trim() : '';
-    if (!pendingMilestone || (pendingMilestoneIdx === null || pendingMilestoneIdx === undefined)) {
-      closeMilestoneModal();
-      return;
-    }
-
-    frappe.call({
-      method: 'freightmas.www.truck_portal.update_milestone',
-      args: {
-        job: jobName,
-        cargo_idx: pendingMilestoneIdx,
-        milestone: pendingMilestone,
-        date: new Date().toISOString().split('T')[0],
-        comment: comment
-      },
-      callback: function(r) {
-        if (r.message && r.message.success) {
-          showAlert('success', r.message.message || 'Milestone updated');
-          closeMilestoneModal();
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showAlert('danger', 'Failed to update milestone');
-        }
-      },
-      error: function(err) {
-        showAlert('danger', 'Failed to update milestone: ' + (err.message || 'Unknown error'));
-      }
-    });
-
-    pendingMilestone = null;
-    pendingMilestoneIdx = null;
-  }
-
-  // ========================================
-  // Other helpers
-  // ========================================
-  window.enableTrucking = function(idx) {
-    if (!confirm('Enable trucking for this cargo?')) return;
-    
-    frappe.call({
-      method: 'freightmas.www.truck_portal.enable_trucking_for_cargo',
-      args: { job: jobName, cargo_idx: idx },
-      callback: function(r) {
-        if (r.message && r.message.success) {
-          showAlert('success', r.message.message || 'Trucking enabled');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showAlert('danger', 'Failed to enable trucking');
-        }
-      },
-      error: function(err) {
-        showAlert('danger', 'Failed to enable trucking: ' + (err.message || 'Unknown error'));
-      }
-    });
-  };
-
-  window.showTruckForm = function(idx) {
-    openTruckModal(idx);
-  };
-
-  // close modals when clicking overlay
-  document.addEventListener('click', function(e) {
-    const overlayTruck = document.getElementById('truckModal');
-    const overlayTracking = document.getElementById('trackingModal');
-    const overlayMilestone = document.getElementById('milestoneModal');
-
-    if (e.target === overlayTruck) {
-      closeTruckModal();
-    } else if (e.target === overlayTracking) {
-      closeTrackingModal();
-    } else if (e.target === overlayMilestone) {
-      closeMilestoneModal();
+    },
+    error: () => showToast('Failed to save', 'error'),
+    always: () => {
+      btn.disabled = false;
+      spinner.style.display = 'none';
     }
   });
+}
 
-  // Escape key to close any open modal
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.show').forEach(modal => {
-        modal.classList.remove('show');
-      });
-      document.body.classList.remove('modal-open');
-      pendingMilestone = null;
-      pendingMilestoneIdx = null;
+// ========================================
+// TOAST
+// ========================================
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ========================================
+// KEYBOARD SHORTCUTS
+// ========================================
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeTruckModal();
+    closeMilestoneModal();
+  }
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('show');
     }
   });
+});
 </script>
 {% endblock %}
