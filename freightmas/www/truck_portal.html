@@ -703,24 +703,70 @@
   .supplier-code { font-size: 11px; color: var(--text-muted); }
 
   /* Toast */
-  .toast {
+  .custom-toast {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    padding: 12px 20px;
-    border-radius: 6px;
+    padding: 14px 20px;
+    padding-right: 40px;
+    border-radius: 8px;
     font-weight: 600;
-    font-size: 13px;
-    z-index: 20000;
-    animation: slideIn 0.3s ease;
+    font-size: 14px;
+    z-index: 999999;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    animation: toastSlideIn 0.3s ease forwards;
+    max-width: 450px;
+    word-wrap: break-word;
+  }
+  
+  .custom-toast button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.7;
+    line-height: 1;
+  }
+  
+  .custom-toast button:hover {
+    opacity: 1;
   }
 
-  .toast.success { background: var(--accent-green); color: #fff; }
-  .toast.error { background: var(--accent-red); color: #fff; }
+  .custom-toast.success { 
+    background: #22c55e; 
+    color: #fff; 
+    border: 2px solid #16a34a;
+  }
+  
+  .custom-toast.error { 
+    background: #ef4444; 
+    color: #fff; 
+    border: 2px solid #dc2626;
+  }
+  
+  .custom-toast.fade-out {
+    animation: toastSlideOut 0.3s ease forwards;
+  }
 
-  @keyframes slideIn {
+  @keyframes toastSlideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes toastSlideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  
+  /* Hide Frappe's default message dialogs on this page */
+  .modal.msgprint-dialog,
+  .msgprint-dialog,
+  .frappe-control.frappe-alert {
+    display: none !important;
   }
 
   /* Bulk Action Bar */
@@ -1033,7 +1079,7 @@
          data-idx="{{ loop.index0 }}"
          data-status="{{ cargo_status.strip() }}"
          data-search="{{ (cargo.container_number or cargo.cargo_item_description or '') | lower }} {{ (cargo.transporter or '') | lower }} {{ (cargo.truck_reg_no or '') | lower }} {{ (cargo.driver_name or '') | lower }}"
-         data-has-extended="{{ '1' if (cargo.border_tracking or cargo.offloading_point) else '0' }}">
+         data-has-extended="{{ '1' if cargo.border_2_tracking else '0' }}">
       
       <div class="checkbox-wrap">
         <input type="checkbox" class="cargo-checkbox row-checkbox" data-idx="{{ loop.index0 }}">
@@ -1152,8 +1198,8 @@
       </div>
 
       <div class="row-actions">
-        {% if cargo.border_tracking or cargo.offloading_point %}
-        <button class="btn-icon expand-toggle" onclick="toggleExtended({{ loop.index0 }})" title="Extended Tracking">
+        {% if cargo.border_2_tracking %}
+        <button class="btn-icon expand-toggle" onclick="toggleExtended({{ loop.index0 }})" title="Border 2 Tracking">
           <i class="fa fa-road"></i>
         </button>
         {% endif %}
@@ -1163,43 +1209,31 @@
       </div>
     </div>
 
-    <!-- Extended Tracking Row -->
-    {% if cargo.border_tracking or cargo.offloading_point %}
+    <!-- Extended Tracking Row - Border 2 (optional second border crossing) -->
+    {% if cargo.border_2_tracking %}
     <div class="extended-row" id="extended-{{ loop.index0 }}" data-idx="{{ loop.index0 }}">
       <div class="extended-grid">
-        {% if cargo.border_tracking %}
         <div class="extended-item">
-          <div class="extended-label">Border: {{ cargo.border_name or "Border" }}</div>
+          <div class="extended-label">Border 2: {{ cargo.border_2_name or "Second Border" }}</div>
           <div style="display: flex; gap: 8px;">
             <div style="flex: 1;">
               <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
               <input type="datetime-local" class="extended-input" 
-                     id="border1_arrived_{{ loop.index0 }}"
-                     value="{{ cargo.border_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_arrived_on else '' }}">
+                     id="border2_arrived_{{ loop.index0 }}"
+                     value="{{ cargo.border_2_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_arrived_on else '' }}">
             </div>
             <div style="flex: 1;">
               <div style="font-size: 10px; color: var(--text-muted);">Left</div>
               <input type="datetime-local" class="extended-input"
-                     id="border1_left_{{ loop.index0 }}"
-                     value="{{ cargo.border_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_left_on else '' }}">
+                     id="border2_left_{{ loop.index0 }}"
+                     value="{{ cargo.border_2_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_left_on else '' }}">
             </div>
           </div>
         </div>
-        {% endif %}
-        
-        {% if cargo.offloading_point %}
-        <div class="extended-item">
-          <div class="extended-label">Offloading Point</div>
-          <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
-          <input type="datetime-local" class="extended-input"
-                 id="offloading_arrived_{{ loop.index0 }}"
-                 value="{{ cargo.offloading_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.offloading_arrived_on else '' }}">
-        </div>
-        {% endif %}
       </div>
       <div class="extended-actions">
         <button class="btn btn-primary btn-sm" onclick="saveExtendedTracking({{ loop.index0 }})">
-          Save Extended Tracking
+          Save Border 2 Tracking
         </button>
       </div>
     </div>
@@ -1349,6 +1383,102 @@ let allBorderPosts = [];
 let pendingMilestone = null;
 let pendingMilestoneIdx = null;
 let pendingBulkMilestone = null;
+
+// ========================================
+// OVERRIDE FRAPPE MESSAGE HANDLERS
+// ========================================
+// Custom toast function (defined early so overrides can use it)
+function showToast(message, type = 'success') {
+  // Remove any existing toasts
+  document.querySelectorAll('.custom-toast').forEach(t => t.remove());
+  
+  const toast = document.createElement('div');
+  toast.className = `custom-toast ${type}`;
+  toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">&times;</button>`;
+  document.body.appendChild(toast);
+  
+  // Fade out after 8 seconds
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 8000);
+}
+
+// Override Frappe's msgprint to prevent default dialogs
+if (typeof frappe !== 'undefined') {
+  // Store original functions
+  const originalMsgprint = frappe.msgprint;
+  const originalThrow = frappe.throw;
+  
+  // Override msgprint
+  frappe.msgprint = function(msg, title) {
+    let message = msg;
+    if (typeof msg === 'object') {
+      message = msg.message || msg.body || msg.indicator || JSON.stringify(msg);
+    }
+    showToast(message, 'error');
+    console.error('Frappe message:', msg);
+  };
+  
+  // Override throw
+  frappe.throw = function(msg) {
+    showToast(msg, 'error');
+    console.error('Frappe error:', msg);
+  };
+  
+  // Override show_alert
+  frappe.show_alert = function(message, seconds) {
+    if (typeof message === 'object') {
+      showToast(message.message || message.body || JSON.stringify(message), message.indicator === 'red' ? 'error' : 'success');
+    } else {
+      showToast(message, 'success');
+    }
+  };
+  
+  // Wrap frappe.call to ensure errors go through our toast
+  const originalCall = frappe.call;
+  frappe.call = function(opts) {
+    const originalError = opts.error;
+    const originalCallback = opts.callback;
+    
+    opts.error = function(r) {
+      let errorMsg = 'An error occurred';
+      if (r && r.responseText) {
+        try {
+          const response = JSON.parse(r.responseText);
+          if (response._server_messages) {
+            const msgs = JSON.parse(response._server_messages);
+            msgs.forEach(m => {
+              try {
+                const msg = JSON.parse(m);
+                showToast(msg.message || errorMsg, 'error');
+              } catch(e) {
+                showToast(m, 'error');
+              }
+            });
+            if (originalError) originalError(r);
+            return;
+          } else if (response.exc_type) {
+            errorMsg = response.exc_type;
+          }
+        } catch(e) {}
+      }
+      showToast(errorMsg, 'error');
+      if (originalError) originalError(r);
+    };
+    
+    // Also check callback for error responses
+    opts.callback = function(r) {
+      if (r && r.exc) {
+        showToast('An error occurred', 'error');
+        console.error('Frappe exc:', r.exc);
+      }
+      if (originalCallback) originalCallback(r);
+    };
+    
+    return originalCall.call(this, opts);
+  };
+}
 
 // ========================================
 // INITIALIZATION
@@ -1774,9 +1904,8 @@ function saveExtendedTracking(idx) {
   const data = {
     job: jobName,
     cargo_idx: idx,
-    border_arrived_on: document.getElementById('border1_arrived_' + idx)?.value || null,
-    border_left_on: document.getElementById('border1_left_' + idx)?.value || null,
-    offloading_arrived_on: document.getElementById('offloading_arrived_' + idx)?.value || null
+    border_2_arrived_on: document.getElementById('border2_arrived_' + idx)?.value || null,
+    border_2_left_on: document.getElementById('border2_left_' + idx)?.value || null
   };
   
   frappe.call({
@@ -1784,7 +1913,7 @@ function saveExtendedTracking(idx) {
     args: data,
     callback: (r) => {
       if (r.message && r.message.success) {
-        showToast('Extended tracking saved', 'success');
+        showToast('Border 2 tracking saved', 'success');
       }
     },
     error: () => showToast('Failed to save', 'error')
@@ -2159,17 +2288,6 @@ function addJobTracking() {
       console.error(r);
     }
   });
-}
-
-// ========================================
-// TOAST
-// ========================================
-function showToast(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 6000);
 }
 
 // ========================================

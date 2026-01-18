@@ -272,11 +272,10 @@ def enable_trucking_for_cargo(job, cargo_idx):
 def update_extended_tracking(
     job,
     cargo_idx,
-    border_arrived_on=None,
-    border_left_on=None,
-    offloading_arrived_on=None,
+    border_2_arrived_on=None,
+    border_2_left_on=None,
 ):
-    """Update extended tracking fields (border crossing, offloading point)"""
+    """Update extended tracking fields (Border 2 crossing)"""
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -286,15 +285,11 @@ def update_extended_tracking(
 
         cargo = doc.cargo_parcel_details[cargo_idx]
 
-        # Update border tracking
-        if border_arrived_on:
-            cargo.border_arrived_on = get_datetime(border_arrived_on)
-        if border_left_on:
-            cargo.border_left_on = get_datetime(border_left_on)
-
-        # Update offloading point tracking
-        if offloading_arrived_on:
-            cargo.offloading_arrived_on = get_datetime(offloading_arrived_on)
+        # Update border 2 tracking
+        if border_2_arrived_on:
+            cargo.border_2_arrived_on = get_datetime(border_2_arrived_on)
+        if border_2_left_on:
+            cargo.border_2_left_on = get_datetime(border_2_left_on)
 
         cargo.updated_on = now()
         cargo.updated_by = frappe.session.user
@@ -302,7 +297,7 @@ def update_extended_tracking(
         doc.save(ignore_permissions=True)
         frappe.db.commit()
 
-        return {"success": True, "message": _("Extended tracking updated successfully.")}
+        return {"success": True, "message": _("Border 2 tracking updated successfully.")}
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Update Extended Tracking Error")
         frappe.throw(_("Failed to update extended tracking: {0}").format(str(e)))
