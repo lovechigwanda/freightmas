@@ -306,3 +306,30 @@ def update_extended_tracking(
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Update Extended Tracking Error")
         frappe.throw(_("Failed to update extended tracking: {0}").format(str(e)))
+
+
+@frappe.whitelist()
+def add_job_tracking(job, comment):
+    """Add a job-level tracking comment"""
+    try:
+        doc = frappe.get_doc("Forwarding Job", job)
+        
+        # Add to the tracking table
+        doc.append("forwarding_tracking", {
+            "comment": comment,
+            "updated_by": frappe.session.user,
+            "updated_on": now()
+        })
+        
+        # Update the current comment fields
+        doc.current_comment = comment
+        doc.last_updated_by = frappe.session.user
+        doc.last_updated_on = now()
+        
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        
+        return {"success": True, "message": _("Tracking added successfully.")}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Add Job Tracking Error")
+        frappe.throw(_("Failed to add tracking: {0}").format(str(e)))
