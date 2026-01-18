@@ -1576,3 +1576,198 @@ function update_cargo_addresses_silently(frm, rows_to_update) {
         }, 3);
     }
 }
+
+// ==========================================================
+// FETCH TRUCK DETAILS FROM INTERNAL TRUCK
+// ==========================================================
+
+frappe.ui.form.on('Cargo Parcel Details', {
+    form_render: function(frm, cdt, cdn) {
+        // Add "Fetch from Truck" button when the child row form is rendered
+        let row = locals[cdt][cdn];
+        
+        // Only show if trucking is required
+        if (row.is_truck_required) {
+            // Add button after a short delay to ensure form is rendered
+            setTimeout(() => {
+                add_fetch_truck_button(frm, cdt, cdn);
+            }, 100);
+        }
+    },
+    
+    is_truck_required: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.is_truck_required) {
+            setTimeout(() => {
+                add_fetch_truck_button(frm, cdt, cdn);
+            }, 100);
+        }
+    }
+});
+
+function add_fetch_truck_button(frm, cdt, cdn) {
+    // Find the child row's form wrapper
+    let grid_row = frm.fields_dict.cargo_parcel_details.grid.grid_rows_by_docname[cdn];
+    if (!grid_row || !grid_row.grid_form) return;
+    
+    let form_wrapper = grid_row.grid_form.wrapper;
+    
+    // Check if button already exists
+    if ($(form_wrapper).find('.btn-fetch-truck').length > 0) return;
+    
+    // Find the "Truck Details" section (loading_details_section)
+    let section = $(form_wrapper).find('[data-fieldname="loading_details_section"]');
+    if (section.length === 0) return;
+    
+    // Create the button
+    let btn = $(`
+        <button class="btn btn-xs btn-primary btn-fetch-truck" style="margin-left: 10px;">
+            <i class="fa fa-truck"></i> Fetch from Truck
+        </button>
+    `);
+    
+    // Insert button next to section label
+    let section_head = section.find('.section-head, .head');
+    if (section_head.length > 0) {
+        section_head.append(btn);
+    } else {
+        section.prepend(btn);
+    }
+    
+    // Button click handler
+    btn.on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        show_truck_selection_dialog(frm, cdt, cdn);
+    });
+}
+
+function show_truck_selection_dialog(frm, cdt, cdn) {
+    let dialog = new frappe.ui.Dialog({
+        title: __('Select Internal Truck'),
+        size: 'small',
+        fields: [
+            {
+                fieldname: 'truck',
+                fieldtype: 'Link',
+                label: __('Truck'),
+                options: 'Truck',
+                reqd: 1,
+                get_query: function() {
+                    return {
+                        filters: {
+                            'truck_status': 'Available'
+                        }
+                    };
+                },
+                description: __('Search by truck registration or driver name')
+            },
+            {
+                fieldname: 'truck_preview',
+                fieldtype: 'HTML',
+                label: __('Truck Details Preview')
+            }
+        ],
+        primary_action_label: __('Fetch Details'),
+        primary_action: function(values) {
+            if (!values.truck) {
+                frappe.msgprint(__('Please select a truck'));
+                return;
+            }
+            
+            fetch_and_populate_truck_details(frm, cdt, cdn, values.truck);
+            dialog.hide();
+        }
+    });
+    
+    // Show preview when truck is selected
+    dialog.fields_dict.truck.$input.on('awesomplete-selectcomplete', function() {
+        let truck_name = dialog.get_value('truck');
+        if (truck_name) {
+            frappe.call({
+                method: 'frappe.client.get',
+                args: {
+                    doctype: 'Truck',
+                    name: truck_name
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        let truck = r.message;
+                        let preview_html = `
+                            <div style="padding: 10px; background: var(--bg-light-gray); border-radius: 4px; margin-top: 10px;">
+                                <table style="width: 100%; font-size: 12px;">
+                                    <tr><td><strong>Truck:</strong></td><td>${truck.horse || '-'}</td></tr>
+                                    <tr><td><strong>Trailer:</strong></td><td>${truck.assigned_trailer || '-'}</td></tr>
+                                    <tr><td><strong>Driver:</strong></td><td>${truck.assigned_driver_name || '-'}</td></tr>
+                                    <tr><td><strong>Contact:</strong></td><td>${truck.cell_number || '-'}</td></tr>
+                                    <tr><td><strong>Status:</strong></td><td>${truck.truck_status || '-'}</td></tr>
+                                </table>
+                            </div>
+                        `;
+                        dialog.fields_dict.truck_preview.$wrapper.html(preview_html);
+                    }
+                }
+            });
+        }
+    });
+    
+    dialog.show();
+}
+
+function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
+    frappe.call({
+        method: 'frappe.client.get',
+        args: {
+            doctype: 'Truck',
+            name: truck_name
+        },
+        callback: function(r) {
+            if (r.message) {
+                let truck = r.message;
+                
+                // Populate truck registration fields directly
+                frappe.model.set_value(cdt, cdn, 'truck_reg_no', truck.horse || '');
+                frappe.model.set_value(cdt, cdn, 'trailer_reg_no', truck.assigned_trailer || '');
+                
+                // Fetch driver details directly from Driver doctype
+                // (Truck's driver fields are fetch_from/Read Only and may not be stored)
+                if (truck.assigned_driver) {
+                    frappe.call({
+                        method: 'frappe.client.get',
+                        args: {
+                            doctype: 'Driver',
+                            name: truck.assigned_driver
+                        },
+                        callback: function(driver_response) {
+                            if (driver_response.message) {
+                                let driver = driver_response.message;
+                                
+                                frappe.model.set_value(cdt, cdn, 'driver_name', driver.full_name || '');
+                                frappe.model.set_value(cdt, cdn, 'driver_passport_no', driver.passport_number || '');
+                                frappe.model.set_value(cdt, cdn, 'driver_licence_no', driver.license_number || '');
+                                frappe.model.set_value(cdt, cdn, 'driver_contact_no', driver.cell_number || '');
+                                frappe.model.set_value(cdt, cdn, 'driver_contact_no_2', driver.cell_number2 || '');
+                                
+                                frm.refresh_field('cargo_parcel_details');
+                            }
+                        }
+                    });
+                } else {
+                    // No driver assigned, use whatever is on truck (may be empty)
+                    frappe.model.set_value(cdt, cdn, 'driver_name', truck.assigned_driver_name || '');
+                    frappe.model.set_value(cdt, cdn, 'driver_passport_no', truck.passport_number || '');
+                    frappe.model.set_value(cdt, cdn, 'driver_licence_no', truck.license_number || '');
+                    frappe.model.set_value(cdt, cdn, 'driver_contact_no', truck.cell_number || '');
+                    frappe.model.set_value(cdt, cdn, 'driver_contact_no_2', truck.cell_number2 || '');
+                    
+                    frm.refresh_field('cargo_parcel_details');
+                }
+                
+                frappe.show_alert({
+                    message: __('Truck details fetched from {0}', [truck_name]),
+                    indicator: 'green'
+                }, 5);
+            }
+        }
+    });
+}
