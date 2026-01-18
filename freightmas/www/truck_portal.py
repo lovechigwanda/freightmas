@@ -85,7 +85,7 @@ def get_cargo_details(job, cargo_idx):
 
 
 @frappe.whitelist()
-def update_milestone(job, cargo_idx, milestone, date=None, comment=None):
+def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_post=None):
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -96,6 +96,27 @@ def update_milestone(job, cargo_idx, milestone, date=None, comment=None):
         cargo = doc.cargo_parcel_details[cargo_idx]
         milestone_date = get_datetime(date) if date else today()
 
+        # Milestone sequence validation
+        validation_rules = {
+            "booked": (cargo.truck_reg_no, "Assign truck first"),
+            "loaded": (cargo.is_booked, "Cannot mark as Loaded before Booked"),
+            "border1_arrived": (cargo.is_loaded, "Cannot mark Border Arrived before Loaded"),
+            "border1_left": (cargo.border_arrived_on, "Cannot mark Border Left before Border Arrived"),
+            "offload_arrived": (cargo.border_left_on, "Cannot mark Offloading Point before Border Left"),
+            "offloaded": (cargo.offloading_arrived_on, "Cannot mark as Offloaded before Offloading Point"),
+            "returned": (cargo.is_offloaded, "Cannot mark as Returned before Offloaded"),
+            "completed": (
+                cargo.is_returned if cargo.to_be_returned else cargo.is_offloaded,
+                "Cannot mark as Completed before " + ("Returned" if cargo.to_be_returned else "Offloaded")
+            ),
+        }
+
+        if milestone in validation_rules:
+            is_valid, error_msg = validation_rules[milestone]
+            if not is_valid:
+                frappe.throw(_(error_msg))
+
+        # Standard milestones
         milestone_map = {
             "booked": ("is_booked", "booked_on_date"),
             "loaded": ("is_loaded", "loaded_on_date"),
@@ -108,6 +129,33 @@ def update_milestone(job, cargo_idx, milestone, date=None, comment=None):
             flag_field, date_field = milestone_map[milestone]
             setattr(cargo, flag_field, 1)
             setattr(cargo, date_field, milestone_date)
+        
+        # Border 1 Arrived
+        elif milestone == "border1_arrived":
+            cargo.border_tracking = 1
+            if border_post:
+                cargo.border_name = border_post
+            cargo.border_arrived_on = milestone_date
+        
+        # Border 1 Left
+        elif milestone == "border1_left":
+            cargo.border_left_on = milestone_date
+        
+        # Border 2 Arrived
+        elif milestone == "border2_arrived":
+            cargo.border_2_tracking = 1
+            if border_post:
+                cargo.border_2_name = border_post
+            cargo.border_2_arrived_on = milestone_date
+        
+        # Border 2 Left
+        elif milestone == "border2_left":
+            cargo.border_2_left_on = milestone_date
+        
+        # Offloading point arrival
+        elif milestone == "offload_arrived":
+            cargo.offloading_point = 1
+            cargo.offloading_arrived_on = milestone_date
 
         if comment:
             cargo.tracking_comment = comment
@@ -226,11 +274,9 @@ def update_extended_tracking(
     cargo_idx,
     border_arrived_on=None,
     border_left_on=None,
-    border_2_arrived_on=None,
-    border_2_left_on=None,
     offloading_arrived_on=None,
 ):
-    """Update extended tracking fields (border crossings, offloading point)"""
+    """Update extended tracking fields (border crossing, offloading point)"""
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -240,17 +286,11 @@ def update_extended_tracking(
 
         cargo = doc.cargo_parcel_details[cargo_idx]
 
-        # Update border 1 tracking
+        # Update border tracking
         if border_arrived_on:
             cargo.border_arrived_on = get_datetime(border_arrived_on)
         if border_left_on:
             cargo.border_left_on = get_datetime(border_left_on)
-
-        # Update border 2 tracking
-        if border_2_arrived_on:
-            cargo.border_2_arrived_on = get_datetime(border_2_arrived_on)
-        if border_2_left_on:
-            cargo.border_2_left_on = get_datetime(border_2_left_on)
 
         # Update offloading point tracking
         if offloading_arrived_on:

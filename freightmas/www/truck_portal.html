@@ -383,13 +383,24 @@
     color: #fff;
   }
 
+  .milestone-pill.locked {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .milestone-pill.locked:hover {
+    transform: none;
+    border-color: var(--border-color);
+    color: var(--text-muted);
+  }
+
   .milestone-pill.next {
     border-color: var(--accent-blue);
     color: var(--accent-blue);
     animation: pulse-border 2s infinite;
   }
 
-  .milestone-pill:hover:not(.completed) {
+  .milestone-pill:hover:not(.completed):not(.locked) {
     border-color: var(--accent-purple);
     color: var(--accent-purple);
     transform: scale(1.1);
@@ -901,7 +912,7 @@
          data-idx="{{ loop.index0 }}"
          data-status="{{ cargo_status.strip() }}"
          data-search="{{ (cargo.container_number or cargo.cargo_item_description or '') | lower }} {{ (cargo.transporter or '') | lower }} {{ (cargo.truck_reg_no or '') | lower }} {{ (cargo.driver_name or '') | lower }}"
-         data-has-extended="{{ '1' if (cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point) else '0' }}">
+         data-has-extended="{{ '1' if (cargo.border_tracking or cargo.offloading_point) else '0' }}">
       
       <div class="checkbox-wrap">
         <input type="checkbox" class="cargo-checkbox row-checkbox" data-idx="{{ loop.index0 }}">
@@ -948,31 +959,69 @@
       </div>
 
       <div class="milestone-pills">
-        <div class="milestone-pill {{ 'completed' if cargo.is_booked else ('next' if next_milestone.strip() == 'booked' else '') }}"
-             title="Booked{{ ': ' ~ cargo.booked_on_date.strftime('%d-%b') if cargo.booked_on_date else '' }}"
-             onclick="quickMilestone({{ loop.index0 }}, 'booked', {{ 'true' if cargo.is_booked else 'false' }})">
+        <!-- Booked - requires truck assigned -->
+        {% set booked_locked = not cargo.truck_reg_no %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_booked else ('locked' if booked_locked else 'next') }}"
+             title="{{ 'Assign truck first' if booked_locked else ('Booked' ~ (': ' ~ cargo.booked_on_date.strftime('%d-%b') if cargo.booked_on_date else '')) }}"
+             onclick="{% if not booked_locked %}quickMilestone({{ loop.index0 }}, 'booked', {{ 'true' if cargo.is_booked else 'false' }}){% endif %}">
           {% if cargo.is_booked %}<i class="fa fa-check"></i>{% else %}B{% endif %}
         </div>
-        <div class="milestone-pill {{ 'completed' if cargo.is_loaded else ('next' if next_milestone.strip() == 'loaded' else '') }}"
-             title="Loaded{{ ': ' ~ cargo.loaded_on_date.strftime('%d-%b') if cargo.loaded_on_date else '' }}"
-             onclick="quickMilestone({{ loop.index0 }}, 'loaded', {{ 'true' if cargo.is_loaded else 'false' }})">
+        
+        <!-- Loaded - requires Booked -->
+        {% set loaded_locked = not cargo.is_booked %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_loaded else ('locked' if loaded_locked else ('next' if cargo.is_booked and not cargo.is_loaded else '')) }}"
+             title="{{ 'Requires Booked first' if loaded_locked else ('Loaded' ~ (': ' ~ cargo.loaded_on_date.strftime('%d-%b') if cargo.loaded_on_date else '')) }}"
+             onclick="{% if not loaded_locked %}quickMilestone({{ loop.index0 }}, 'loaded', {{ 'true' if cargo.is_loaded else 'false' }}){% endif %}">
           {% if cargo.is_loaded %}<i class="fa fa-check"></i>{% else %}L{% endif %}
         </div>
-        <div class="milestone-pill {{ 'completed' if cargo.is_offloaded else ('next' if next_milestone.strip() == 'offloaded' else '') }}"
-             title="Offloaded{{ ': ' ~ cargo.offloaded_on_date.strftime('%d-%b') if cargo.offloaded_on_date else '' }}"
-             onclick="quickMilestone({{ loop.index0 }}, 'offloaded', {{ 'true' if cargo.is_offloaded else 'false' }})">
+        
+        <!-- Border Arrived - requires Loaded -->
+        {% set b1a_locked = not cargo.is_loaded %}
+        <div class="milestone-pill {{ 'completed' if cargo.border_arrived_on else ('locked' if b1a_locked else ('next' if cargo.is_loaded and not cargo.border_arrived_on else '')) }}"
+             title="{{ 'Requires Loaded first' if b1a_locked else ('Border Arrived' ~ (': ' ~ cargo.border_name ~ ' - ' ~ cargo.border_arrived_on.strftime('%d-%b') if cargo.border_arrived_on else '')) }}"
+             onclick="{% if not b1a_locked %}quickMilestone({{ loop.index0 }}, 'border1_arrived', {{ 'true' if cargo.border_arrived_on else 'false' }}){% endif %}">
+          {% if cargo.border_arrived_on %}<i class="fa fa-check"></i>{% else %}BA{% endif %}
+        </div>
+        
+        <!-- Border Left - requires Border Arrived -->
+        {% set b1l_locked = not cargo.border_arrived_on %}
+        <div class="milestone-pill {{ 'completed' if cargo.border_left_on else ('locked' if b1l_locked else ('next' if cargo.border_arrived_on and not cargo.border_left_on else '')) }}"
+             title="{{ 'Requires Border Arrived first' if b1l_locked else ('Border Left' ~ (': ' ~ cargo.border_name ~ ' - ' ~ cargo.border_left_on.strftime('%d-%b') if cargo.border_left_on else '')) }}"
+             onclick="{% if not b1l_locked %}quickMilestone({{ loop.index0 }}, 'border1_left', {{ 'true' if cargo.border_left_on else 'false' }}){% endif %}">
+          {% if cargo.border_left_on %}<i class="fa fa-check"></i>{% else %}BL{% endif %}
+        </div>
+        
+        <!-- Offloading Point Arrived - requires Border Left -->
+        {% set opa_locked = not cargo.border_left_on %}
+        <div class="milestone-pill {{ 'completed' if cargo.offloading_arrived_on else ('locked' if opa_locked else ('next' if cargo.border_left_on and not cargo.offloading_arrived_on else '')) }}"
+             title="{{ 'Requires Border Left first' if opa_locked else ('Offloading Point' ~ (': ' ~ cargo.offloading_arrived_on.strftime('%d-%b') if cargo.offloading_arrived_on else '')) }}"
+             onclick="{% if not opa_locked %}quickMilestone({{ loop.index0 }}, 'offload_arrived', {{ 'true' if cargo.offloading_arrived_on else 'false' }}){% endif %}">
+          {% if cargo.offloading_arrived_on %}<i class="fa fa-check"></i>{% else %}P{% endif %}
+        </div>
+        
+        <!-- Offloaded - requires Offloading Point -->
+        {% set off_locked = not cargo.offloading_arrived_on %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_offloaded else ('locked' if off_locked else ('next' if cargo.offloading_arrived_on and not cargo.is_offloaded else '')) }}"
+             title="{{ 'Requires Offloading Point first' if off_locked else ('Offloaded' ~ (': ' ~ cargo.offloaded_on_date.strftime('%d-%b') if cargo.offloaded_on_date else '')) }}"
+             onclick="{% if not off_locked %}quickMilestone({{ loop.index0 }}, 'offloaded', {{ 'true' if cargo.is_offloaded else 'false' }}){% endif %}">
           {% if cargo.is_offloaded %}<i class="fa fa-check"></i>{% else %}O{% endif %}
         </div>
+        
         {% if cargo.to_be_returned %}
-        <div class="milestone-pill {{ 'completed' if cargo.is_returned else ('next' if next_milestone.strip() == 'returned' else '') }}"
-             title="Returned{{ ': ' ~ cargo.returned_on_date.strftime('%d-%b') if cargo.returned_on_date else '' }}"
-             onclick="quickMilestone({{ loop.index0 }}, 'returned', {{ 'true' if cargo.is_returned else 'false' }})">
+        <!-- Returned - requires Offloaded -->
+        {% set ret_locked = not cargo.is_offloaded %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_returned else ('locked' if ret_locked else ('next' if cargo.is_offloaded and not cargo.is_returned else '')) }}"
+             title="{{ 'Requires Offloaded first' if ret_locked else ('Returned' ~ (': ' ~ cargo.returned_on_date.strftime('%d-%b') if cargo.returned_on_date else '')) }}"
+             onclick="{% if not ret_locked %}quickMilestone({{ loop.index0 }}, 'returned', {{ 'true' if cargo.is_returned else 'false' }}){% endif %}">
           {% if cargo.is_returned %}<i class="fa fa-check"></i>{% else %}R{% endif %}
         </div>
         {% endif %}
-        <div class="milestone-pill {{ 'completed' if cargo.is_completed else ('next' if next_milestone.strip() == 'completed' else '') }}"
-             title="Completed{{ ': ' ~ cargo.completed_on_date.strftime('%d-%b') if cargo.completed_on_date else '' }}"
-             onclick="quickMilestone({{ loop.index0 }}, 'completed', {{ 'true' if cargo.is_completed else 'false' }})">
+        
+        <!-- Completed - requires Offloaded (or Returned if to_be_returned) -->
+        {% set comp_locked = (cargo.to_be_returned and not cargo.is_returned) or (not cargo.to_be_returned and not cargo.is_offloaded) %}
+        <div class="milestone-pill {{ 'completed' if cargo.is_completed else ('locked' if comp_locked else ('next' if not cargo.is_completed else '')) }}"
+             title="{{ 'Requires ' ~ ('Returned' if cargo.to_be_returned else 'Offloaded') ~ ' first' if comp_locked else ('Completed' ~ (': ' ~ cargo.completed_on_date.strftime('%d-%b') if cargo.completed_on_date else '')) }}"
+             onclick="{% if not comp_locked %}quickMilestone({{ loop.index0 }}, 'completed', {{ 'true' if cargo.is_completed else 'false' }}){% endif %}">
           {% if cargo.is_completed %}<i class="fa fa-check"></i>{% else %}C{% endif %}
         </div>
       </div>
@@ -982,7 +1031,7 @@
       </div>
 
       <div class="row-actions">
-        {% if cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point %}
+        {% if cargo.border_tracking or cargo.offloading_point %}
         <button class="btn-icon expand-toggle" onclick="toggleExtended({{ loop.index0 }})" title="Extended Tracking">
           <i class="fa fa-road"></i>
         </button>
@@ -994,12 +1043,12 @@
     </div>
 
     <!-- Extended Tracking Row -->
-    {% if cargo.border_tracking or cargo.border_2_tracking or cargo.offloading_point %}
+    {% if cargo.border_tracking or cargo.offloading_point %}
     <div class="extended-row" id="extended-{{ loop.index0 }}" data-idx="{{ loop.index0 }}">
       <div class="extended-grid">
         {% if cargo.border_tracking %}
         <div class="extended-item">
-          <div class="extended-label">Border 1: {{ cargo.border_name or "Border" }}</div>
+          <div class="extended-label">Border: {{ cargo.border_name or "Border" }}</div>
           <div style="display: flex; gap: 8px;">
             <div style="flex: 1;">
               <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
@@ -1012,26 +1061,6 @@
               <input type="datetime-local" class="extended-input"
                      id="border1_left_{{ loop.index0 }}"
                      value="{{ cargo.border_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_left_on else '' }}">
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        
-        {% if cargo.border_2_tracking %}
-        <div class="extended-item">
-          <div class="extended-label">Border 2: {{ cargo.border_2_name or "Border" }}</div>
-          <div style="display: flex; gap: 8px;">
-            <div style="flex: 1;">
-              <div style="font-size: 10px; color: var(--text-muted);">Arrived</div>
-              <input type="datetime-local" class="extended-input"
-                     id="border2_arrived_{{ loop.index0 }}"
-                     value="{{ cargo.border_2_arrived_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_arrived_on else '' }}">
-            </div>
-            <div style="flex: 1;">
-              <div style="font-size: 10px; color: var(--text-muted);">Left</div>
-              <input type="datetime-local" class="extended-input"
-                     id="border2_left_{{ loop.index0 }}"
-                     value="{{ cargo.border_2_left_on.strftime('%Y-%m-%dT%H:%M') if cargo.border_2_left_on else '' }}">
             </div>
           </div>
         </div>
@@ -1073,10 +1102,13 @@
   </div>
   <div class="bulk-actions">
     <button class="btn btn-secondary btn-sm" onclick="clearSelection()">Clear</button>
-    <button class="btn btn-success btn-sm" onclick="bulkMilestone('booked')">Mark Booked</button>
-    <button class="btn btn-success btn-sm" onclick="bulkMilestone('loaded')">Mark Loaded</button>
-    <button class="btn btn-success btn-sm" onclick="bulkMilestone('offloaded')">Mark Offloaded</button>
-    <button class="btn btn-success btn-sm" onclick="bulkMilestone('completed')">Mark Completed</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('booked')">Booked</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('loaded')">Loaded</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('border1_arrived')">Border Arrived</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('border1_left')">Border Left</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('offload_arrived')">Offload Arrived</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('offloaded')">Offloaded</button>
+    <button class="btn btn-success btn-sm" onclick="bulkMilestone('completed')">Completed</button>
   </div>
 </div>
 
@@ -1152,15 +1184,33 @@
 
 <!-- Milestone Comment Modal -->
 <div class="modal-overlay" id="milestoneModal">
-  <div class="modal-box" style="max-width: 400px;">
+  <div class="modal-box" style="max-width: 450px;">
     <div class="modal-header">
       <h3 class="modal-title" id="milestoneTitle">Update Milestone</h3>
       <button class="modal-close" onclick="closeMilestoneModal()">&times;</button>
     </div>
     <div class="modal-body">
+      <!-- Date field - always visible -->
+      <div class="form-group">
+        <label class="form-label">Date <span class="required">*</span></label>
+        <input type="date" class="form-input" id="milestoneDate">
+      </div>
+      
+      <!-- Border fields - only for border milestones -->
+      <div id="borderFieldsContainer" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Border Post <span class="required">*</span></label>
+          <div style="position: relative;">
+            <input type="text" class="form-input" id="borderPostInput" placeholder="Search border post..." autocomplete="off">
+            <div class="supplier-dropdown" id="borderPostDropdown"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Comment field - always visible -->
       <div class="form-group">
         <label class="form-label">Comment (Optional)</label>
-        <textarea class="form-input" id="milestoneComment" rows="3" placeholder="Add a comment..."></textarea>
+        <textarea class="form-input" id="milestoneComment" rows="2" placeholder="Add a comment..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -1174,6 +1224,7 @@
 const jobName = '{{ doc.name }}';
 let currentCargoIdx = null;
 let allSuppliers = [];
+let allBorderPosts = [];
 let pendingMilestone = null;
 let pendingMilestoneIdx = null;
 let pendingBulkMilestone = null;
@@ -1186,6 +1237,8 @@ frappe.ready(function() {
   setupSupplierSearch();
   setupTruckSearch();
   setupCheckboxListeners();
+  setupBorderPostSearch();
+  loadBorderPosts();
   
   // Override frappe's default error handler to use toast
   if (frappe.request) {
@@ -1301,8 +1354,29 @@ function bulkMilestone(milestone) {
   }
   
   pendingBulkMilestone = { milestone, indices: selectedIdxs };
-  document.getElementById('milestoneTitle').textContent = `Mark ${selectedIdxs.length} items as ${milestone}`;
+  
+  // Set title based on milestone type
+  const titleMap = {
+    'booked': 'Booked',
+    'loaded': 'Loaded',
+    'border1_arrived': 'Border Arrival',
+    'border1_left': 'Border Departure',
+    'offload_arrived': 'Offloading Arrival',
+    'offloaded': 'Offloaded',
+    'completed': 'Completed'
+  };
+  
+  let title = `${titleMap[milestone] || milestone} (${selectedIdxs.length} items)`;
+  
+  document.getElementById('milestoneTitle').textContent = title;
   document.getElementById('milestoneComment').value = '';
+  document.getElementById('milestoneDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('borderPostInput').value = '';
+  
+  // Show border post field only for border ARRIVED milestone
+  const isBorderArrived = (milestone === 'border1_arrived');
+  document.getElementById('borderFieldsContainer').style.display = isBorderArrived ? 'block' : 'none';
+  
   document.getElementById('milestoneModal').classList.add('show');
 }
 
@@ -1351,13 +1425,35 @@ function quickMilestone(idx, milestone, isCompleted) {
   pendingMilestone = milestone;
   pendingBulkMilestone = null;
   
-  document.getElementById('milestoneTitle').textContent = `Mark as ${milestone.charAt(0).toUpperCase() + milestone.slice(1)}`;
+  // Set title based on milestone type
+  const titleMap = {
+    'booked': 'Mark as Booked',
+    'loaded': 'Mark as Loaded',
+    'border1_arrived': 'Border Arrival',
+    'border1_left': 'Border Departure',
+    'offload_arrived': 'Offloading Point Arrival',
+    'offloaded': 'Mark as Offloaded',
+    'returned': 'Mark as Returned',
+    'completed': 'Mark as Completed'
+  };
+  
+  let title = titleMap[milestone] || `Mark as ${milestone.charAt(0).toUpperCase() + milestone.slice(1)}`;
+  
+  document.getElementById('milestoneTitle').textContent = title;
   document.getElementById('milestoneComment').value = '';
+  document.getElementById('milestoneDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('borderPostInput').value = '';
+  
+  // Show border post field only for border ARRIVED milestone
+  const isBorderArrived = (milestone === 'border1_arrived');
+  document.getElementById('borderFieldsContainer').style.display = isBorderArrived ? 'block' : 'none';
+  
   document.getElementById('milestoneModal').classList.add('show');
 }
 
 function closeMilestoneModal() {
   document.getElementById('milestoneModal').classList.remove('show');
+  document.getElementById('borderPostDropdown').classList.remove('show');
   pendingMilestone = null;
   pendingMilestoneIdx = null;
   pendingBulkMilestone = null;
@@ -1365,6 +1461,22 @@ function closeMilestoneModal() {
 
 function confirmMilestone() {
   const comment = document.getElementById('milestoneComment').value.trim();
+  const milestoneDate = document.getElementById('milestoneDate').value;
+  const borderPost = document.getElementById('borderPostInput').value.trim();
+  
+  if (!milestoneDate) {
+    showToast('Please select a date', 'error');
+    return;
+  }
+  
+  // Validate border post for border ARRIVED milestone
+  const currentMilestone = pendingMilestone || (pendingBulkMilestone ? pendingBulkMilestone.milestone : null);
+  const isBorderArrived = currentMilestone === 'border1_arrived';
+  
+  if (isBorderArrived && !borderPost) {
+    showToast('Please select a border post', 'error');
+    return;
+  }
   
   if (pendingBulkMilestone) {
     // Bulk update
@@ -1378,8 +1490,9 @@ function confirmMilestone() {
           job: jobName,
           cargo_idx: idx,
           milestone: milestone,
-          date: new Date().toISOString().split('T')[0],
-          comment: comment
+          date: milestoneDate,
+          comment: comment,
+          border_post: borderPost || null
         },
         async: false,
         callback: () => { completed++; }
@@ -1393,24 +1506,124 @@ function confirmMilestone() {
     
   } else if (pendingMilestone && pendingMilestoneIdx !== null) {
     // Single update
+    console.log('Sending milestone update:', {
+      job: jobName,
+      cargo_idx: pendingMilestoneIdx,
+      milestone: pendingMilestone,
+      date: milestoneDate,
+      comment: comment,
+      border_post: borderPost || null
+    });
+    
     frappe.call({
       method: 'freightmas.www.truck_portal.update_milestone',
       args: {
         job: jobName,
         cargo_idx: pendingMilestoneIdx,
         milestone: pendingMilestone,
-        date: new Date().toISOString().split('T')[0],
-        comment: comment
+        date: milestoneDate,
+        comment: comment,
+        border_post: borderPost || null
       },
+      freeze: true,
+      freeze_message: 'Updating...',
       callback: (r) => {
-        if (r.message && r.message.success) {
+        console.log('Milestone update response:', r);
+        if (r.exc) {
+          // Server threw an exception
+          showToast('Error: Check console for details', 'error');
+          console.error('Server exception:', r.exc);
+        } else if (r.message && r.message.success) {
           showToast('Milestone updated', 'success');
           closeMilestoneModal();
-          setTimeout(() => location.reload(), 800);
+          // Force reload with cache busting
+          setTimeout(() => window.location.href = window.location.href.split('?')[0] + '?job=' + jobName + '&_=' + Date.now(), 800);
+        } else {
+          showToast('Unexpected response', 'error');
+          console.log('Unexpected response:', r);
         }
       },
-      error: () => showToast('Failed to update', 'error')
+      error: (r) => {
+        console.error('Milestone update error:', r);
+        showToast('Failed to update: ' + (r.message || r.exc || 'Unknown error'), 'error');
+      }
     });
+  }
+}
+
+// ========================================
+// BORDER POST SEARCH
+// ========================================
+function loadBorderPosts() {
+  if (allBorderPosts.length > 0) return Promise.resolve();
+  
+  return new Promise((resolve) => {
+    frappe.call({
+      method: 'frappe.client.get_list',
+      args: {
+        doctype: 'Border Post',
+        fields: ['name'],
+        limit_page_length: 200,
+        order_by: 'name asc'
+      },
+      callback: (r) => {
+        if (r.message) allBorderPosts = r.message;
+        resolve();
+      },
+      error: () => resolve()
+    });
+  });
+}
+
+function setupBorderPostSearch() {
+  const input = document.getElementById('borderPostInput');
+  const dropdown = document.getElementById('borderPostDropdown');
+  if (!input || !dropdown) return;
+  
+  input.addEventListener('focus', async function() {
+    await loadBorderPosts();
+    showBorderPostDropdown(this.value.toLowerCase().trim(), input, dropdown);
+  });
+  
+  input.addEventListener('input', async function() {
+    await loadBorderPosts();
+    showBorderPostDropdown(this.value.toLowerCase().trim(), input, dropdown);
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+
+function showBorderPostDropdown(term, input, dropdown) {
+  let filtered;
+  if (term.length < 1) {
+    filtered = allBorderPosts.slice(0, 10);
+  } else {
+    filtered = allBorderPosts.filter(b => 
+      (b.name || '').toLowerCase().includes(term)
+    ).slice(0, 10);
+  }
+  
+  if (filtered.length > 0) {
+    dropdown.innerHTML = filtered.map(b => `
+      <div class="supplier-item" data-value="${b.name}">
+        <div class="supplier-name">${b.name}</div>
+      </div>
+    `).join('');
+    
+    dropdown.querySelectorAll('.supplier-item').forEach(item => {
+      item.addEventListener('click', () => {
+        input.value = item.dataset.value;
+        dropdown.classList.remove('show');
+      });
+    });
+    
+    dropdown.classList.add('show');
+  } else {
+    dropdown.classList.remove('show');
   }
 }
 
@@ -1442,8 +1655,6 @@ function saveExtendedTracking(idx) {
     cargo_idx: idx,
     border_arrived_on: document.getElementById('border1_arrived_' + idx)?.value || null,
     border_left_on: document.getElementById('border1_left_' + idx)?.value || null,
-    border_2_arrived_on: document.getElementById('border2_arrived_' + idx)?.value || null,
-    border_2_left_on: document.getElementById('border2_left_' + idx)?.value || null,
     offloading_arrived_on: document.getElementById('offloading_arrived_' + idx)?.value || null
   };
   
