@@ -85,6 +85,121 @@ def get_cargo_details(job, cargo_idx):
 
 
 @frappe.whitelist()
+def bulk_update_milestone(job, cargo_indices, milestone, date=None, comment=None, border_post=None):
+    """
+    Update milestone for multiple cargo items in a single transaction.
+    This avoids the "document modified" error that occurs with sequential updates.
+    """
+    try:
+        doc = frappe.get_doc("Forwarding Job", job)
+        cargo_indices = frappe.parse_json(cargo_indices) if isinstance(cargo_indices, str) else cargo_indices
+        milestone_date = get_datetime(date) if date else today()
+        
+        updated_count = 0
+        errors = []
+        
+        for cargo_idx in cargo_indices:
+            cargo_idx = int(cargo_idx)
+            
+            if cargo_idx < 0 or cargo_idx >= len(doc.cargo_parcel_details):
+                errors.append(f"Invalid cargo index: {cargo_idx}")
+                continue
+            
+            cargo = doc.cargo_parcel_details[cargo_idx]
+            
+            # Milestone sequence validation
+            validation_rules = {
+                "booked": (cargo.truck_reg_no, "Assign truck first"),
+                "loaded": (cargo.is_booked, "Cannot mark as Loaded before Booked"),
+                "border1_arrived": (cargo.is_loaded, "Cannot mark Border Arrived before Loaded"),
+                "border1_left": (cargo.border_arrived_on, "Cannot mark Border Left before Border Arrived"),
+                "offload_arrived": (cargo.border_left_on, "Cannot mark Offloading Point before Border Left"),
+                "offloaded": (cargo.offloading_arrived_on, "Cannot mark as Offloaded before Offloading Point"),
+                "returned": (cargo.is_offloaded, "Cannot mark as Returned before Offloaded"),
+                "completed": (
+                    cargo.is_returned if cargo.to_be_returned else cargo.is_offloaded,
+                    "Cannot mark as Completed before " + ("Returned" if cargo.to_be_returned else "Offloaded")
+                ),
+            }
+
+            if milestone in validation_rules:
+                is_valid, error_msg = validation_rules[milestone]
+                if not is_valid:
+                    errors.append(f"{cargo.container_no or cargo_idx}: {error_msg}")
+                    continue
+
+            # Standard milestones
+            milestone_map = {
+                "booked": ("is_booked", "booked_on_date"),
+                "loaded": ("is_loaded", "loaded_on_date"),
+                "offloaded": ("is_offloaded", "offloaded_on_date"),
+                "returned": ("is_returned", "returned_on_date"),
+                "completed": ("is_completed", "completed_on_date"),
+            }
+
+            if milestone in milestone_map:
+                flag_field, date_field = milestone_map[milestone]
+                setattr(cargo, flag_field, 1)
+                setattr(cargo, date_field, milestone_date)
+            
+            # Border 1 Arrived
+            elif milestone == "border1_arrived":
+                cargo.border_tracking = 1
+                if border_post:
+                    cargo.border_name = border_post
+                cargo.border_arrived_on = milestone_date
+            
+            # Border 1 Left
+            elif milestone == "border1_left":
+                cargo.border_left_on = milestone_date
+            
+            # Border 2 Arrived
+            elif milestone == "border2_arrived":
+                cargo.border_2_tracking = 1
+                if border_post:
+                    cargo.border_2_name = border_post
+                cargo.border_2_arrived_on = milestone_date
+            
+            # Border 2 Left
+            elif milestone == "border2_left":
+                cargo.border_2_left_on = milestone_date
+            
+            # Offloading point arrival
+            elif milestone == "offload_arrived":
+                cargo.offloading_point = 1
+                cargo.offloading_arrived_on = milestone_date
+
+            if comment:
+                cargo.tracking_comment = comment
+
+            cargo.updated_on = now()
+            cargo.updated_by = frappe.session.user
+            updated_count += 1
+
+        # Save document once for all updates
+        if updated_count > 0:
+            doc.save(ignore_permissions=True)
+            frappe.db.commit()
+
+        if errors:
+            return {
+                "success": updated_count > 0,
+                "message": _("{0} items updated. {1} failed.").format(updated_count, len(errors)),
+                "errors": errors,
+                "updated_count": updated_count
+            }
+        
+        return {
+            "success": True,
+            "message": _("{0} items updated successfully.").format(updated_count),
+            "updated_count": updated_count
+        }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Bulk Update Milestone Error")
+        frappe.throw(_("Failed to update milestones: {0}").format(str(e)))
+
+
+@frappe.whitelist()
 def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_post=None):
     try:
         doc = frappe.get_doc("Forwarding Job", job)

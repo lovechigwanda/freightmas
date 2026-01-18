@@ -1730,30 +1730,45 @@ function confirmMilestone() {
   }
   
   if (pendingBulkMilestone) {
-    // Bulk update
+    // Bulk update - use single API call to avoid document modification conflicts
     const { milestone, indices } = pendingBulkMilestone;
-    let completed = 0;
     
-    indices.forEach(idx => {
-      frappe.call({
-        method: 'freightmas.www.truck_portal.update_milestone',
-        args: {
-          job: jobName,
-          cargo_idx: idx,
-          milestone: milestone,
-          date: milestoneDate,
-          comment: comment,
-          border_post: borderPost || null
-        },
-        async: false,
-        callback: () => { completed++; }
-      });
+    frappe.call({
+      method: 'freightmas.www.truck_portal.bulk_update_milestone',
+      args: {
+        job: jobName,
+        cargo_indices: JSON.stringify(indices),
+        milestone: milestone,
+        date: milestoneDate,
+        comment: comment,
+        border_post: borderPost || null
+      },
+      freeze: true,
+      freeze_message: 'Updating ' + indices.length + ' items...',
+      callback: (r) => {
+        if (r.message && r.message.success) {
+          showToast(r.message.message, 'success');
+          if (r.message.errors && r.message.errors.length > 0) {
+            // Show errors after a delay
+            setTimeout(() => {
+              r.message.errors.forEach(err => showToast(err, 'error'));
+            }, 500);
+          }
+          closeMilestoneModal();
+          clearSelection();
+          setTimeout(() => location.reload(), 1000);
+        } else if (r.message && r.message.errors) {
+          showToast('Some items failed to update', 'error');
+          r.message.errors.forEach(err => console.error(err));
+        } else {
+          showToast('Unexpected response', 'error');
+        }
+      },
+      error: (r) => {
+        showToast('Failed to update items', 'error');
+        console.error('Bulk update error:', r);
+      }
     });
-    
-    showToast(`Updated ${completed} items`, 'success');
-    closeMilestoneModal();
-    clearSelection();
-    setTimeout(() => location.reload(), 800);
     
   } else if (pendingMilestone && pendingMilestoneIdx !== null) {
     // Single update
