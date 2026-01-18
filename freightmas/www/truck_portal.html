@@ -106,12 +106,7 @@
     margin-right: 4px;
   }
 
-  /* Stats Bar */
-  .stats-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
+  /* Stats Bar - original definition removed, now in stats-tracking-row section */
 
   .stat-card {
     background: var(--bg-secondary);
@@ -810,78 +805,104 @@
   .assign-link:hover { text-decoration: underline; }
 
   /* Job Tracking Section */
+  .stats-tracking-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
   .job-tracking-section {
+    flex: 1;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 16px;
     overflow: hidden;
   }
 
   .tracking-header {
     background: var(--bg-tertiary);
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     border-bottom: 1px solid var(--border-color);
   }
 
-  .tracking-header i {
-    margin-right: 8px;
-    color: var(--accent-purple);
-  }
-
-  .tracking-content {
-    padding: 16px;
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-  }
-
-  .current-tracking {
-    flex: 1;
-  }
-
-  .tracking-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-  }
-
-  .tracking-comment {
-    font-size: 14px;
-    color: var(--text-primary);
-    font-weight: 500;
-    margin-bottom: 4px;
-  }
-
-  .tracking-meta {
+  .tracking-title {
     font-size: 11px;
-    color: var(--text-muted);
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .tracking-title i {
+    margin-right: 6px;
+    color: var(--accent-purple);
   }
 
   .add-tracking {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     flex: 1;
   }
 
   .tracking-input {
     flex: 1;
-    background: var(--bg-tertiary);
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 8px 12px;
+    border-radius: 4px;
+    padding: 4px 8px;
     color: var(--text-primary);
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .tracking-input:focus {
     outline: none;
     border-color: var(--accent-purple);
+  }
+
+  .tracking-content {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .current-tracking {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tracking-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .tracking-comment {
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .tracking-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
   }
 </style>
 
@@ -904,46 +925,47 @@
     </div>
   </div>
 
-  <!-- Stats Bar -->
-  <div class="stats-bar">
-    <div class="stat-card">
-      <div class="stat-value">{{ total_cargo }}</div>
-      <div class="stat-label">Total Cargo</div>
-    </div>
-    <div class="stat-card completed">
-      <div class="stat-value">{{ completed_cargo }}</div>
-      <div class="stat-label">Completed</div>
-    </div>
-    <div class="stat-card in-transit">
-      <div class="stat-value">{{ doc.cargo_parcel_details | selectattr('is_loaded') | rejectattr('is_completed') | list | length }}</div>
-      <div class="stat-label">In Transit</div>
-    </div>
-    <div class="stat-card pending">
-      <div class="stat-value">{{ pending_cargo }}</div>
-      <div class="stat-label">Pending</div>
-    </div>
-  </div>
-
-  <!-- Job Tracking Section -->
-  <div class="job-tracking-section">
-    <div class="tracking-header">
-      <i class="fa fa-comments"></i> Job Tracking
-    </div>
-    <div class="tracking-content">
-      <div class="current-tracking">
-        <div class="tracking-label">Current Status</div>
-        <div class="tracking-comment">{{ doc.current_comment or "No tracking comment yet" }}</div>
-        {% if doc.last_updated_by %}
-        <div class="tracking-meta">
-          Last updated by {{ doc.last_updated_by }} on {{ doc.last_updated_on.strftime('%d-%b-%Y %H:%M') if doc.last_updated_on else '' }}
-        </div>
-        {% endif %}
+  <!-- Stats & Tracking Row -->
+  <div class="stats-tracking-row">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_cargo }}</div>
+        <div class="stat-label">Total Cargo</div>
       </div>
-      <div class="add-tracking">
-        <input type="text" class="form-input tracking-input" id="newTrackingComment" placeholder="Enter new tracking comment...">
-        <button class="btn btn-primary btn-sm" onclick="addJobTracking()">
-          <i class="fa fa-plus"></i> Add
-        </button>
+      <div class="stat-card completed">
+        <div class="stat-value">{{ completed_cargo }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="stat-card in-transit">
+        <div class="stat-value">{{ doc.cargo_parcel_details | selectattr('is_loaded') | rejectattr('is_completed') | list | length }}</div>
+        <div class="stat-label">In Transit</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-value">{{ pending_cargo }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+
+    <!-- Job Tracking Section -->
+    <div class="job-tracking-section">
+      <div class="tracking-header">
+        <div class="tracking-title"><i class="fa fa-comments"></i> Job Tracking</div>
+        <div class="add-tracking">
+          <input type="text" class="form-input tracking-input" id="newTrackingComment" placeholder="Add comment...">
+          <button class="btn btn-primary btn-sm" onclick="addJobTracking()" style="padding: 3px 8px; font-size: 10px;">
+            <i class="fa fa-plus"></i> Add
+          </button>
+        </div>
+      </div>
+      <div class="tracking-content">
+        <div class="current-tracking">
+          <div class="tracking-label">Status:</div>
+          <div class="tracking-comment" title="{{ doc.current_comment or '' }}">{{ doc.current_comment or "No comment yet" }}</div>
+          {% if doc.last_updated_by %}
+          <div class="tracking-meta">({{ doc.last_updated_by }} - {{ doc.last_updated_on.strftime('%d-%b %H:%M') if doc.last_updated_on else '' }})</div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
