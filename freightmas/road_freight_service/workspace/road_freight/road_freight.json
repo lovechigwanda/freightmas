@@ -1,8 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"DmV5kf8qIl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Road Freight Service</span>\",\"col\":12}},{\"id\":\"9Xc8xRPoA9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"-PGrS95BpI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Road Freight Job\",\"col\":3}},{\"id\":\"I6AJNSiF4D\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Port\",\"col\":3}},{\"id\":\"vheZGxqkS3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gHLa7CUyCj\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"flDTgTMLXb\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2026-01-08 12:51:08.313797",
+ "content": "[{\"id\":\"DmV5kf8qIl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Road Freight</span>\",\"col\":12}},{\"id\":\"9Xc8xRPoA9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"-PGrS95BpI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Road Freight Job\",\"col\":3}},{\"id\":\"I6AJNSiF4D\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Port\",\"col\":3}},{\"id\":\"vheZGxqkS3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gHLa7CUyCj\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"flDTgTMLXb\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -12,7 +11,7 @@
  "idx": 0,
  "indicator_color": "green",
  "is_hidden": 0,
- "label": "Road Freight Service",
+ "label": "Road Freight",
  "links": [
   {
    "hidden": 0,
@@ -143,17 +142,15 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-17 19:12:35.332727",
- "modified_by": "Administrator",
  "module": "Road Freight Service",
- "name": "Road Freight Service",
+ "name": "Road Freight",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "FreightMas",
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 34.0,
+ "sequence_id": 35.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -172,6 +169,6 @@
    "type": "DocType"
   }
  ],
- "title": "Road Freight Service",
+ "title": "Road Freight",
  "type": "Workspace"
 }

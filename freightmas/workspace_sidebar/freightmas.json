@@ -1,6 +1,6 @@
 {
  "app": "freightmas",
- "creation": "2026-01-17 16:44:51.213217",
+ "creation": "2026-01-20 01:46:29.257734",
  "docstatus": 0,
  "doctype": "Workspace Sidebar",
  "header_icon": "ship",
@@ -24,8 +24,8 @@
    "icon": "ship-wheel",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Forwarding Service",
-   "link_to": "Forwarding Service",
+   "label": "Freight Forwarding",
+   "link_to": "Freight Forwarding",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -36,8 +36,8 @@
    "icon": "truck",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Trucking Service",
-   "link_to": "Trucking Service",
+   "label": "Trucking",
+   "link_to": "Trucking",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -48,8 +48,8 @@
    "icon": "truck-electric",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Road Freight Service",
-   "link_to": "Road Freight Service",
+   "label": "Road Freight",
+   "link_to": "Road Freight",
    "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
@@ -103,7 +103,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-17 19:20:02.157402",
+ "modified": "2026-01-20 01:51:19.074861",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "FreightMas",

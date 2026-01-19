@@ -305,8 +305,7 @@
    "fieldname": "job_order_charges",
    "fieldtype": "Table",
    "label": "Job Order Charges",
-   "options": "Job Order Charges",
-   "read_only": 1
+   "options": "Job Order Charges"
   },
   {
    "fetch_from": "quotation_reference.origin_port",
@@ -392,7 +391,7 @@
    "link_fieldname": "custom_job_order_reference"
   }
  ],
- "modified": "2026-01-18 01:37:55.270180",
+ "modified": "2026-01-19 12:43:52.278561",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Job Order",
