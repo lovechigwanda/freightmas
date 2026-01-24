@@ -186,7 +186,7 @@
       {% set containers = job_doc.cargo_parcel_details or [] %}
       
       <!-- Job Header -->
-      <div class="job-title">Job {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}</div>
+      <div class="job-title">Job {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
       
       <!-- Job Details Compact Layout -->
       <div class="job-details-compact">
