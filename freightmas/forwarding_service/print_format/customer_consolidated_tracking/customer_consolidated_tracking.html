@@ -47,18 +47,26 @@
     
     .heading-label { 
       font-size: 20px; 
-      font-weight: 600; 
+      font-weight: 700; 
       text-align: center; 
-      color: #222; 
+      color: #000; 
       margin-bottom: 2px; 
       letter-spacing: 1px; 
       text-transform: uppercase; 
     }
     
+    .company-name {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #000;
+      margin-bottom: 4px;
+    }
+    
     .customer-name {
       text-align: center;
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       color: #000;
       margin-bottom: 4px;
     }
@@ -200,6 +208,8 @@
   <div class="page-border"></div>
 
   <!-- Main Header -->
+  {% set company_name = frappe.db.get_single_value("Global Defaults", "default_company") or "" %}
+  <div class="company-name">{{ company_name }}</div>
   <div class="heading-label">Consolidated Tracking Report</div>
   <div class="customer-name">{{ doc.customer_name }}</div>
   <div class="header-subtitle">
