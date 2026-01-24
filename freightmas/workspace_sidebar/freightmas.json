@@ -19,7 +19,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "ship-wheel",
    "indent": 0,
@@ -31,7 +31,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "truck",
    "indent": 0,
@@ -43,7 +43,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "truck-electric",
    "indent": 0,
@@ -55,7 +55,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "anchor",
    "indent": 0,
@@ -67,7 +67,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "warehouse",
    "indent": 0,
@@ -79,7 +79,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "money-coins-1",
    "indent": 0,
@@ -103,7 +103,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-20 01:51:19.074861",
+ "modified": "2026-01-24 19:22:49.472697",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "FreightMas",

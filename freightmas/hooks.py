@@ -358,8 +358,7 @@ fixtures = [
     {
         "dt": "Workspace Sidebar",
         "filters": [
-            ["name", "=", "FreightMas"]
-        ]
+            ["name", "=", "FreightMas", "Freight Forwarding"]      ]
     },
     #{
     #    "dt": "Letter Head",
