@@ -57,7 +57,7 @@
     
     .customer-name {
       text-align: center;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       color: #000;
       margin-bottom: 4px;
@@ -214,10 +214,10 @@
         <thead>
           <tr>
             <th style="width: 4%;">#</th>
-            <th style="width: 15%;">Job ID</th>
-            <th style="width: 15%;">Reference</th>
+            <th style="width: 17%;">Job ID</th>
+            <th style="width: 18%;">Reference</th>
             <th style="width: 10%;">ETA</th>
-            <th style="width: 56%;">Tracking Updates</th>
+            <th style="width: 51%;">Tracking Updates</th>
           </tr>
         </thead>
         <tbody>
@@ -240,14 +240,14 @@
 
     <!-- Detailed Job Tracking Section -->
     <div class="section">
-      <div class="section-title">DETAILED JOB TRACKING</div>
+      <div class="section-title" style="margin-bottom: 16px;">DETAILED JOB TRACKING</div>
 
       {% for job in active_jobs %}
         {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
         {% set containers = job_doc.cargo_parcel_details or [] %}
         
         <!-- Job Header -->
-        <div class="job-title">Job {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
+        <div class="job-title">JOB {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
         
         <!-- Job Details Compact Layout -->
         <!-- Job Details Table Layout -->
