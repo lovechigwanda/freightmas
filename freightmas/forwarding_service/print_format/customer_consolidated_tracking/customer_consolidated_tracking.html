@@ -16,252 +16,296 @@
 
 <div class="print-format">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; font-size: 10px; color: #000; line-height: 1.3; background: #fff; }
-    .print-format { width: 100%; max-width: 100%; padding: 15px; }
+    html, body { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      font-family: Arial, sans-serif; 
+      font-size: 14px; 
+    }
     
-    @page { size: A4; margin: 20mm; }
+    .print-format { 
+      width: 100%; 
+      max-width: 100%; 
+      padding: 3mm; 
+      font-family: Arial, sans-serif; 
+      font-size: 14px; 
+    }
     
-    .header-title { 
+    @page { size: A4; margin: 15mm; }
+    
+    .page-border {
+      position: fixed;
+      top: 0mm;
+      left: 0mm;
+      right: 0mm;
+      bottom: 0mm;
+      border: 1px solid #000;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .heading-label { 
+      font-size: 20px; 
+      font-weight: 600; 
       text-align: center; 
-      font-size: 18px; 
-      font-weight: bold; 
-      margin-bottom: 8px; 
+      color: #222; 
+      margin-bottom: 2px; 
+      letter-spacing: 1px; 
       text-transform: uppercase; 
-      color: #000;
-      letter-spacing: 1px;
     }
     
     .customer-name {
       text-align: center;
       font-size: 16px;
-      font-weight: bold;
+      font-weight: 600;
       color: #000;
-      margin-bottom: 8px;
-      text-transform: uppercase;
+      margin-bottom: 4px;
     }
     
     .header-subtitle {
       text-align: center;
-      font-size: 11px;
+      font-size: 14px;
       color: #000;
-      margin-bottom: 25px;
-      line-height: 1.4;
+      margin-bottom: 12px;
+      line-height: 1.3;
     }
     
+    .section { margin-bottom: 8px; }
+    
     .section-title { 
-      font-weight: bold; 
-      font-size: 12px; 
-      margin: 15px 0 8px 0; 
-      text-transform: uppercase; 
-      color: #000;
-      background: #f0f0f0;
-      border: 1px solid #000;
-      padding: 6px 8px;
-      letter-spacing: 0.5px;
+      font-size: 14px; 
+      font-weight: 600; 
+      border-bottom: 1px solid #000; 
+      color: #000; 
+      margin-bottom: 10px; 
+      padding-bottom: 2px; 
     }
     
     .job-title {
-      font-weight: bold; 
-      font-size: 12px; 
-      margin: 15px 0 10px 0; 
-      text-transform: uppercase; 
-      color: #000;
-      background: #fff;
-      border-bottom: 1px solid #000;
-      padding: 4px 0;
-      letter-spacing: 0.3px;
+      font-size: 14px; 
+      font-weight: 600; 
+      border-bottom: 1px solid #000; 
+      color: #000; 
+      margin: 15px 0 6px 0; 
+      padding-bottom: 2px; 
+    }
+    
+    .info-table, .summary-table, .tracking-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+    }
+    
+    .info-table td { 
+      padding: 2px 0; 
+      vertical-align: top; 
+      font-size: 14px; 
+    }
+    
+    .summary-table th { 
+      background: #fff; 
+      color: #000; 
+      border-bottom: 1px solid #000; 
+      padding: 3px 4px; 
+      font-weight: 700; 
+      font-size: 14px; 
       text-align: left;
     }
     
-    .summary-table, .details-table, .tracking-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 15px;
-      border: 1px solid #000;
-      background: #fff;
-      font-size: 11px;
-    }    .summary-table th, .details-table th, .tracking-table th { 
-      background-color: #f0f0f0; 
-      color: #000;
-      padding: 5px 4px; 
-      border: 1px solid #000;
-      text-align: center; 
-      font-weight: bold; 
-      font-size: 11px;
-      text-transform: uppercase;
-      line-height: 1.2;
+    .summary-table td { 
+      padding: 3px 4px; 
+      border-bottom: none; 
+      vertical-align: top; 
+      line-height: 1.15; 
+      font-size: 14px; 
     }
     
-    .summary-table td, .details-table td, .tracking-table td { 
-      padding: 4px; 
-      border: 1px solid #000; 
-      text-align: left; 
-      font-size: 11px;
-      line-height: 1.2;
-      vertical-align: top;
+    .tracking-table th { 
+      background: #fff; 
+      color: #000; 
+      border-bottom: 1px solid #000; 
+      padding: 3px 4px; 
+      font-weight: 700; 
+      font-size: 14px; 
+      text-align: left;
     }
     
-    .job-info {
-      font-size: 11px;
-      margin-bottom: 8px;
+    .tracking-table td { 
+      padding: 3px 4px; 
+      border-bottom: none; 
+      vertical-align: top; 
+      line-height: 1.15; 
+      font-size: 14px; 
+    }
+    
+    .job-details-row {
+      margin-bottom: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .job-details-row strong {
+      font-weight: 600;
+    }
+    
+    .tracking-comment {
+      font-size: 14px;
+      margin-bottom: 6px;
       line-height: 1.3;
       color: #000;
     }
     
-    .job-details-compact {
-      margin-bottom: 10px;
-      font-size: 11px;
-      border: 1px solid #000;
-      padding: 5px 8px;
-      background: #fff;
-      line-height: 1.4;
-    }
+    .rt { text-align: right; }
+    .cn { text-align: center; }
     
-    .job-details-label {
-      font-weight: bold;
-      color: #000;
-    }
-    
-    .job-details-value {
-      color: #000;
-      margin-right: 20px;
-    }
-    
-    .footer { 
-      margin-top: 20px; 
-      text-align: center; 
-      font-size: 9px; 
+    .footer-note { 
+      font-size: 11px; 
       color: #000; 
-      border-top: 1px solid #000; 
+      text-align: center; 
+      margin-top: 15px; 
       padding-top: 8px;
+      border-top: 1px solid #000;
+    }
+    
+    .job-separator {
+      margin: 10px 0;
+      border-bottom: 1px dashed #ccc;
     }
     
     @media print { 
       body { padding: 0; margin: 0; }
-      .print-format { padding: 10px; }
-      .page-break { page-break-before: always; }
-      .summary-table, .details-table, .tracking-table { page-break-inside: avoid; }
+      .print-format { padding: 3mm; }
+      .summary-table, .tracking-table { page-break-inside: avoid; }
     }
   </style>
 
+  <div class="page-border"></div>
+
   <!-- Main Header -->
-  <div class="header-title">Consolidated Tracking Report</div>
+  <div class="heading-label">Consolidated Tracking Report</div>
   <div class="customer-name">{{ doc.customer_name }}</div>
   <div class="header-subtitle">
-    Report Generated: {{ frappe.utils.format_datetime(frappe.utils.now(), "dd-MMM-yyyy HH:mm") }} Total Active Jobs: {{ active_jobs|length }}
+    Report Generated: {{ frappe.utils.format_datetime(frappe.utils.now(), "dd-MMM-yyyy HH:mm") }} | Total Active Jobs: {{ active_jobs|length }}
   </div>
 
   {% if active_jobs %}
     <!-- Job Summary Section -->
-    <div class="section-title">Job Summary</div>
-    <table class="summary-table">
-      <thead>
-        <tr>
-          <th>Job ID</th>
-          <th>Reference</th>
-          <th>ETA</th>
-          <th>Tracking Updates</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for job in active_jobs %}
-          {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
-          <tr>
-            <td>{{ job.name }}</td>
-            <td>{{ job.customer_reference or '—' }}</td>
-            <td>{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
-            <td>{{ job_doc.current_comment or '—' }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <!-- Detailed Job Tracking Section -->
-    <div class="section-title" style="margin-top: 25px;">Detailed Job Tracking</div>
-
-    <!-- Individual Job Details -->
-    {% for job in active_jobs %}
-      {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
-      {% set containers = job_doc.cargo_parcel_details or [] %}
-      
-      <!-- Job Header -->
-      <div class="job-title">Job {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
-      
-      <!-- Job Details Compact Layout -->
-      <div class="job-details-compact">
-        <span class="job-details-label">Mode:</span> <span class="job-details-value">{{ (job.shipment_mode or "Sea") ~ " " ~ (job.direction or "Import") }}</span>
-        <span class="job-details-label">Job Date:</span> <span class="job-details-value">{{ frappe.utils.formatdate(job.date_created, "dd-MMM-yy") if job.date_created else "—" }}</span>
-        <span class="job-details-label">Cargo:</span> <span class="job-details-value">{{ job.cargo_count or "—" }}</span>
-        <span class="job-details-label">Origin:</span> <span class="job-details-value">{{ job.port_of_loading or "—" }}</span>
-        <span class="job-details-label">Destination:</span> <span class="job-details-value">{{ job.destination or job.port_of_discharge or "—" }}</span>
-        <span class="job-details-label">Cargo Desc:</span> <span class="job-details-value">{{ job.cargo_description or "—" }}</span>
-        <span class="job-details-label">ETA:</span> <span class="job-details-value">{{ frappe.utils.formatdate(job_doc.eta, "dd-MMM-yy") if job_doc.eta else "—" }}</span>
-        <span class="job-details-label">ATA:</span> <span class="job-details-value">{{ frappe.utils.formatdate(job_doc.ata, "dd-MMM-yy") if job_doc.ata else "—" }}</span>
-        <span class="job-details-label">Discharge:</span> <span class="job-details-value">{{ frappe.utils.formatdate(job_doc.discharge_date, "dd-MMM-yy") if job_doc.discharge_date else "—" }}</span>
-      </div>
-      
-      <!-- Tracking Comment -->
-      {% if job_doc.current_comment %}
-      <div class="job-info">
-        <strong>Tracking Comment:</strong> {{ job_doc.current_comment }} &nbsp;&nbsp; <strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
-      </div>
-      {% endif %}
-      
-      <!-- Container/Cargo Tracking Table -->
-      <table class="tracking-table">
+    <div class="section">
+      <div class="section-title">JOB SUMMARY</div>
+      <table class="summary-table">
         <thead>
           <tr>
-            <th>Cargo/Container</th>
-            <th>Loaded</th>
-            <th>Offloaded</th>
-            <th>Returned</th>
-            <th>Completed</th>
-            <th>Tracking Comment</th>
+            <th style="width: 4%;">#</th>
+            <th style="width: 15%;">Job ID</th>
+            <th style="width: 15%;">Reference</th>
+            <th style="width: 10%;">ETA</th>
+            <th style="width: 56%;">Tracking Updates</th>
           </tr>
         </thead>
         <tbody>
-          {% for row in containers %}
-          <tr>
-            <td>
-              {%- if row.cargo_type == "Containerised" or row.cargo_type == "General Cargo" -%}
-                {{ row.container_number or "—" }}
-              {%- else -%}
-                {{ row.cargo_item_description or "—" }}
-              {%- endif -%}
-            </td>
-            <td>{{ frappe.utils.formatdate(row.loaded_on_date, "dd-MMM-yy") if row.loaded_on_date else "—" }}</td>
-            <td>{{ frappe.utils.formatdate(row.offloaded_on_date, "dd-MMM-yy") if row.offloaded_on_date else "—" }}</td>
-            <td>{{ frappe.utils.formatdate(row.returned_on_date, "dd-MMM-yy") if row.returned_on_date else "—" }}</td>
-            <td>{{ frappe.utils.formatdate(row.completed_on_date, "dd-MMM-yy") if row.completed_on_date else "—" }}</td>
-            <td>{{ row.tracking_comment or "—" }}</td>
-          </tr>
+          {% for job in active_jobs %}
+            {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ job.name }}</td>
+              <td>{{ job.customer_reference or '—' }}</td>
+              <td>{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
+              <td>{{ job_doc.current_comment or '—' }}</td>
+            </tr>
           {% endfor %}
-          {% if not containers %}
-          <tr>
-            <td colspan="6" style="text-align: center; font-style: italic; color: #666;">
-              No cargo details available
-            </td>
-          </tr>
-          {% endif %}
         </tbody>
       </table>
-      
-      {% if not loop.last %}
-      <div style="margin: 20px 0; border-bottom: 1px solid #ccc;"></div>
-      {% endif %}
-    {% endfor %}
+    </div>
+
+    <!-- Section Separator -->
+    <div style="margin: 15px 0; border-bottom: 1px dashed #ccc;"></div>
+
+    <!-- Detailed Job Tracking Section -->
+    <div class="section">
+      <div class="section-title">DETAILED JOB TRACKING</div>
+
+      {% for job in active_jobs %}
+        {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
+        {% set containers = job_doc.cargo_parcel_details or [] %}
+        
+        <!-- Job Header -->
+        <div class="job-title">Job {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
+        
+        <!-- Job Details Compact Layout -->
+        <div class="job-details-row">
+          <strong>Mode:</strong> {{ (job.shipment_mode or "Sea") ~ " " ~ (job.direction or "Import") }} &nbsp;&nbsp;
+          <strong>Job Date:</strong> {{ frappe.utils.formatdate(job.date_created, "dd-MMM-yy") if job.date_created else "—" }} &nbsp;&nbsp;
+          <strong>Cargo:</strong> {{ job.cargo_count or "—" }} &nbsp;&nbsp;
+          <strong>Origin:</strong> {{ job.port_of_loading or "—" }} &nbsp;&nbsp;
+          <strong>Destination:</strong> {{ job.destination or job.port_of_discharge or "—" }}
+        </div>
+        <div class="job-details-row">
+          <strong>Cargo Desc:</strong> {{ job.cargo_description or "—" }} &nbsp;&nbsp;
+          <strong>ETA:</strong> {{ frappe.utils.formatdate(job_doc.eta, "dd-MMM-yy") if job_doc.eta else "—" }} &nbsp;&nbsp;
+          <strong>ATA:</strong> {{ frappe.utils.formatdate(job_doc.ata, "dd-MMM-yy") if job_doc.ata else "—" }} &nbsp;&nbsp;
+          <strong>Discharge:</strong> {{ frappe.utils.formatdate(job_doc.discharge_date, "dd-MMM-yy") if job_doc.discharge_date else "—" }}
+        </div>
+        
+        <!-- Tracking Comment -->
+        {% if job_doc.current_comment %}
+        <div class="tracking-comment">
+          <strong>Tracking Comment:</strong> {{ job_doc.current_comment }} &nbsp;&nbsp; <strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
+        </div>
+        {% endif %}
+        
+        <!-- Container/Cargo Tracking Table -->
+        <table class="tracking-table">
+          <thead>
+            <tr>
+              <th style="width: 22%;">Cargo/Container</th>
+              <th style="width: 13%;">Loaded</th>
+              <th style="width: 13%;">Offloaded</th>
+              <th style="width: 13%;">Returned</th>
+              <th style="width: 13%;">Completed</th>
+              <th style="width: 26%;">Tracking Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in containers %}
+            <tr>
+              <td>
+                {%- if row.cargo_type == "Containerised" or row.cargo_type == "General Cargo" -%}
+                  {{ row.container_number or "—" }}
+                {%- else -%}
+                  {{ row.cargo_item_description or "—" }}
+                {%- endif -%}
+              </td>
+              <td>{{ frappe.utils.formatdate(row.loaded_on_date, "dd-MMM-yy") if row.loaded_on_date else "—" }}</td>
+              <td>{{ frappe.utils.formatdate(row.offloaded_on_date, "dd-MMM-yy") if row.offloaded_on_date else "—" }}</td>
+              <td>{{ frappe.utils.formatdate(row.returned_on_date, "dd-MMM-yy") if row.returned_on_date else "—" }}</td>
+              <td>{{ frappe.utils.formatdate(row.completed_on_date, "dd-MMM-yy") if row.completed_on_date else "—" }}</td>
+              <td>{{ row.tracking_comment or "—" }}</td>
+            </tr>
+            {% endfor %}
+            {% if not containers %}
+            <tr>
+              <td colspan="6" style="text-align: center; font-style: italic; color: #666;">
+                No cargo details available
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+        
+        {% if not loop.last %}
+        <div class="job-separator"></div>
+        {% endif %}
+      {% endfor %}
+    </div>
   {% else %}
-    <div style="text-align: center; padding: 50px 20px; color: #666;">
-      <h3>No Active Jobs Found</h3>
+    <div style="text-align: center; padding: 40px 20px; color: #666;">
+      <p style="font-size: 14px; font-weight: 600;">No Active Jobs Found</p>
       <p>This customer currently has no active forwarding jobs.</p>
     </div>
   {% endif %}
 
   <!-- Footer -->
-  <div class="footer">
-    <p>FreightMas</p>
-    <p>Please contact your account manager if you need clarity on anything</p>
-    <p>Generated on {{ frappe.utils.formatdate(frappe.utils.now(), "dd-MMM-yyyy") }}</p>
+  <div class="footer-note">
+    FreightMas | Please contact your account manager if you need clarity on anything | Generated on {{ frappe.utils.formatdate(frappe.utils.now(), "dd-MMM-yyyy") }}
   </div>
 </div>
