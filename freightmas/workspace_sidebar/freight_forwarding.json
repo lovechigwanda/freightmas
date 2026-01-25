@@ -12,7 +12,7 @@
    "icon": "ship",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Forwarding Home",
+   "label": "Home",
    "link_to": "Freight Forwarding",
    "link_type": "Workspace",
    "show_arrow": 0,
@@ -62,6 +62,18 @@
    "keep_closed": 0,
    "label": "FW Job List",
    "link_to": "Forwarding Job List",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "locate",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Consolidated Tracking",
+   "link_to": "FWJB Consolidated Tracking",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -166,7 +178,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-24 21:09:22.048739",
+ "modified": "2026-01-25 13:17:32.545825",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
