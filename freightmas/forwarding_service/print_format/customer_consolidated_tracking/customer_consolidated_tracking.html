@@ -118,6 +118,7 @@
       font-weight: 700; 
       font-size: 12px; 
       text-align: left;
+      white-space: nowrap;
     }
     
     .summary-table td { 
@@ -126,6 +127,10 @@
       vertical-align: top; 
       line-height: 1.15; 
       font-size: 12px; 
+    }
+    
+    .summary-table td.nowrap {
+      white-space: nowrap;
     }
     
     .tracking-table th { 
@@ -146,6 +151,10 @@
       font-size: 12px; 
     }
     
+    .tracking-table td.nowrap {
+      white-space: nowrap;
+    }
+    
     .job-details-row {
       margin-bottom: 6px;
       font-size: 12px;
@@ -156,29 +165,34 @@
       font-weight: 600;
     }
     
-    .job-details-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 6px;
-    }
-    
-    .job-details-table td {
-      padding: 4px 8px;
+    .job-summary-text {
       font-size: 12px;
-      line-height: 1.3;
-      vertical-align: top;
-      border: 1px solid #ccc;
+      line-height: 1.5;
+      margin-bottom: 6px;
+      color: #333;
     }
     
-    .job-details-table td strong {
-      font-weight: 600;
+    .job-summary-text .sep {
+      color: #999;
+      margin: 0 6px;
     }
     
     .tracking-comment {
       font-size: 12px;
-      margin-bottom: 6px;
-      line-height: 1.3;
+      margin-bottom: 8px;
+      line-height: 1.4;
       color: #000;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+    }
+    
+    .tracking-comment strong {
+      font-weight: 600;
+    }
+    
+    .tracking-comment .sep {
+      color: #999;
+      margin: 0 6px;
     }
     
     .rt { text-align: right; }
@@ -211,7 +225,7 @@
   {% set company_name = frappe.db.get_single_value("Global Defaults", "default_company") or "" %}
   <div class="company-name">{{ company_name }}</div>
   <div class="heading-label">Consolidated Tracking Report</div>
-  <div class="customer-name">{{ doc.customer_name }}</div>
+  <div class="customer-name">For: {{ doc.customer_name }}</div>
   <div class="header-subtitle">
     Report Generated: {{ frappe.utils.format_datetime(frappe.utils.now(), "dd-MMM-yyyy HH:mm") }} | Total Active Jobs: {{ active_jobs|length }}
   </div>
@@ -223,21 +237,21 @@
       <table class="summary-table">
         <thead>
           <tr>
-            <th style="width: 4%;">#</th>
-            <th style="width: 17%;">Job ID</th>
-            <th style="width: 18%;">Reference</th>
-            <th style="width: 10%;">ETA</th>
-            <th style="width: 51%;">Tracking Updates</th>
+            <th style="width: 3ch;">#</th>
+            <th style="width: 15ch;">Job ID</th>
+            <th style="width: 17ch;">Reference</th>
+            <th style="width: 10ch;">ETA</th>
+            <th>Tracking Updates</th>
           </tr>
         </thead>
         <tbody>
           {% for job in active_jobs %}
             {% set job_doc = frappe.get_doc('Forwarding Job', job.name) %}
             <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ job.name }}</td>
-              <td>{{ job.customer_reference or '—' }}</td>
-              <td>{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
+              <td class="nowrap">{{ loop.index }}</td>
+              <td class="nowrap">{{ job.name }}</td>
+              <td class="nowrap">{{ job.customer_reference or '—' }}</td>
+              <td class="nowrap">{{ frappe.utils.formatdate(job.eta, 'dd-MMM-yy') if job.eta else '—' }}</td>
               <td>{{ job_doc.current_comment or '—' }}</td>
             </tr>
           {% endfor %}
@@ -259,28 +273,15 @@
         <!-- Job Header -->
         <div class="job-title">JOB {{ loop.index }}: {{ job.name }} - {{ job.customer_reference or job.name }}{% if job_doc.consignee %} - {{ job_doc.consignee }}{% endif %}</div>
         
-        <!-- Job Details Compact Layout -->
-        <!-- Job Details Table Layout -->
-        <table class="job-details-table">
-          <tr>
-            <td><strong>Mode:</strong> {{ (job.shipment_mode or "Sea") ~ " " ~ (job.direction or "Import") }}</td>
-            <td><strong>Job Date:</strong> {{ frappe.utils.formatdate(job.date_created, "dd-MMM-yy") if job.date_created else "—" }}</td>
-            <td><strong>Cargo:</strong> {{ job.cargo_count or "—" }}</td>
-            <td><strong>Origin:</strong> {{ job.port_of_loading or "—" }}</td>
-            <td><strong>Destination:</strong> {{ job.destination or job.port_of_discharge or "—" }}</td>
-          </tr>
-          <tr>
-            <td><strong>ETA:</strong> {{ frappe.utils.formatdate(job_doc.eta, "dd-MMM-yy") if job_doc.eta else "—" }}</td>
-            <td><strong>ATA:</strong> {{ frappe.utils.formatdate(job_doc.ata, "dd-MMM-yy") if job_doc.ata else "—" }}</td>
-            <td><strong>Discharge:</strong> {{ frappe.utils.formatdate(job_doc.discharge_date, "dd-MMM-yy") if job_doc.discharge_date else "—" }}</td>
-            <td colspan="2"><strong>Cargo Desc:</strong> {{ job.cargo_description or "—" }}</td>
-          </tr>
-        </table>
+        <!-- Job Details Flowing Sentence -->
+        <div class="job-summary-text">
+          {{ (job.shipment_mode or "Sea") ~ " " ~ (job.direction or "Import") }} job dated {{ frappe.utils.formatdate(job.date_created, "dd-MMM-yy") if job.date_created else "—" }}<span class="sep">•</span>{{ job.cargo_count or "—" }} from {{ job.port_of_loading or "—" }} to {{ job.destination or job.port_of_discharge or "—" }}<span class="sep">•</span>ETA: {{ frappe.utils.formatdate(job_doc.eta, "dd-MMM-yy") if job_doc.eta else "—" }}{% if job_doc.ata %}<span class="sep">•</span>ATA: {{ frappe.utils.formatdate(job_doc.ata, "dd-MMM-yy") }}{% endif %}{% if job_doc.discharge_date %}<span class="sep">•</span>Discharged: {{ frappe.utils.formatdate(job_doc.discharge_date, "dd-MMM-yy") }}{% endif %}{% if job.cargo_description %}<span class="sep">•</span>{{ job.cargo_description }}{% endif %}
+        </div>
         
         <!-- Tracking Comment -->
         {% if job_doc.current_comment %}
         <div class="tracking-comment">
-          <strong>Tracking Comment:</strong> {{ job_doc.current_comment }} &nbsp;&nbsp; <strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
+          <strong>Tracking Comment:</strong> {{ job_doc.current_comment }}<span class="sep">•</span><strong>Updated:</strong> {{ frappe.utils.formatdate(job_doc.last_updated_on, "dd-MMM-yy") if job_doc.last_updated_on else "—" }}
         </div>
         {% endif %}
         
@@ -288,28 +289,28 @@
         <table class="tracking-table">
           <thead>
             <tr>
-              <th style="width: 24%;">Cargo/Container</th>
-              <th style="width: 11%;">Loaded</th>
-              <th style="width: 11%;">Offloaded</th>
-              <th style="width: 11%;">Returned</th>
-              <th style="width: 11%;">Completed</th>
-              <th style="width: 32%;">Tracking Comment</th>
+              <th style="width: 18%;">Cargo/Container</th>
+              <th style="width: 10%;">Loaded</th>
+              <th style="width: 10%;">Offloaded</th>
+              <th style="width: 10%;">Returned</th>
+              <th style="width: 10%;">Completed</th>
+              <th style="width: 42%;">Comment</th>
             </tr>
           </thead>
           <tbody>
             {% for row in containers %}
             <tr>
-              <td>
+              <td class="nowrap">
                 {%- if row.cargo_type == "Containerised" or row.cargo_type == "General Cargo" -%}
                   {{ row.container_number or "—" }}
                 {%- else -%}
                   {{ row.cargo_item_description or "—" }}
                 {%- endif -%}
               </td>
-              <td>{{ frappe.utils.formatdate(row.loaded_on_date, "dd-MMM-yy") if row.loaded_on_date else "—" }}</td>
-              <td>{{ frappe.utils.formatdate(row.offloaded_on_date, "dd-MMM-yy") if row.offloaded_on_date else "—" }}</td>
-              <td>{{ frappe.utils.formatdate(row.returned_on_date, "dd-MMM-yy") if row.returned_on_date else "—" }}</td>
-              <td>{{ frappe.utils.formatdate(row.completed_on_date, "dd-MMM-yy") if row.completed_on_date else "—" }}</td>
+              <td class="nowrap">{{ frappe.utils.formatdate(row.loaded_on_date, "dd-MMM-yy") if row.loaded_on_date else "—" }}</td>
+              <td class="nowrap">{{ frappe.utils.formatdate(row.offloaded_on_date, "dd-MMM-yy") if row.offloaded_on_date else "—" }}</td>
+              <td class="nowrap">{{ frappe.utils.formatdate(row.returned_on_date, "dd-MMM-yy") if row.returned_on_date else "—" }}</td>
+              <td class="nowrap">{{ frappe.utils.formatdate(row.completed_on_date, "dd-MMM-yy") if row.completed_on_date else "—" }}</td>
               <td>{{ row.tracking_comment or "—" }}</td>
             </tr>
             {% endfor %}
@@ -337,6 +338,6 @@
 
   <!-- Footer -->
   <div class="footer-note">
-    FreightMas | Please contact your account manager if you need clarity on anything | Generated on {{ frappe.utils.formatdate(frappe.utils.now(), "dd-MMM-yyyy") }}
+    Please contact your account manager if you need clarity on anything | Generated on {{ frappe.utils.formatdate(frappe.utils.now(), "dd-MMM-yyyy") }}
   </div>
 </div>
