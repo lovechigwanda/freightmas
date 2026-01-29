@@ -969,7 +969,6 @@
    "search_index": 1
   },
   {
-   "depends_on": "!doc.revenue_recognised",
    "fieldname": "set_rr_date",
    "fieldtype": "Button",
    "label": "Set Revenue Recognition Date",
@@ -999,7 +998,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-29 23:21:51.402652",
+ "modified": "2026-01-29 23:54:35.860282",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
