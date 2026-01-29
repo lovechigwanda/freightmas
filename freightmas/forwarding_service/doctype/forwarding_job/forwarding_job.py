@@ -1133,8 +1133,8 @@ def create_sales_invoice_with_rows(docname, row_names):
         si.conversion_rate = job.conversion_rate
 
     cargo_desc = job.get("cargo_description") or "N/A"
-    charge_list = ", ".join([row.charge for row in selected_rows if row.charge])
-    si.remarks = f"Forwarding Job {job.name} (Cargo: {cargo_desc}): {charge_list}"
+    customer_ref = job.get("customer_reference") or "N/A"
+    si.remarks = f"Forwarding Job {job.name}, Reference {customer_ref}, Cargo: {cargo_desc}"
 
     for row in selected_rows:
         si.append(
@@ -1200,9 +1200,26 @@ def create_purchase_invoice_with_rows(docname, row_names):
     if getattr(job, "conversion_rate", None):
         pi.conversion_rate = job.conversion_rate
 
-    cargo_desc = job.get("cargo_description") or "N/A"
-    charge_list = ", ".join([row.charge for row in selected_rows if row.charge])
-    pi.remarks = f"Forwarding Job {job.name} (Cargo: {cargo_desc}): {charge_list}"
+    # Get supplier invoice details from selected rows (use first available)
+    supplier_inv_no = None
+    supplier_inv_date = None
+    for row in selected_rows:
+        if not supplier_inv_no and row.get("supplier_invoice_no"):
+            supplier_inv_no = row.supplier_invoice_no
+        if not supplier_inv_date and row.get("supplier_invoice_date"):
+            supplier_inv_date = row.supplier_invoice_date
+        if supplier_inv_no and supplier_inv_date:
+            break
+
+    # Set bill_no and bill_date on Purchase Invoice
+    if supplier_inv_no:
+        pi.bill_no = supplier_inv_no
+    if supplier_inv_date:
+        pi.bill_date = supplier_inv_date
+
+    customer_ref = job.get("customer_reference") or "N/A"
+    supplier_inv_display = supplier_inv_no or "N/A"
+    pi.remarks = f"Forwarding Job {job.name}, Ref: {customer_ref}, Invoice: {supplier_inv_display}"
 
     for row in selected_rows:
         pi.append(
