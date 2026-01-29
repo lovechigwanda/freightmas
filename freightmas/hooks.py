@@ -262,7 +262,13 @@ doc_events = {
     "Quotation": {
 		"validate": "freightmas.utils.quotation.validate_quotation",
 		"on_update_after_submit": "freightmas.utils.quotation.on_quotation_workflow_change"
-	}
+	},
+    "Sales Invoice": {
+        "on_cancel": "freightmas.utils.invoice_unlink.on_sales_invoice_cancel"
+    },
+    "Purchase Invoice": {
+        "on_cancel": "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel"
+    }
 }
 
 
