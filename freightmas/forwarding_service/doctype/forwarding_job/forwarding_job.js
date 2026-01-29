@@ -57,6 +57,13 @@ frappe.ui.form.on('Forwarding Job', {
         }
     },
     
+    // ========================================
+    // REVENUE RECOGNITION - Set Date Button Click Handler
+    // ========================================
+    set_rr_date: function(frm) {
+        show_recognition_date_dialog(frm);
+    },
+    
     validate(frm) {
         calculate_costing_totals(frm);
         calculate_actual_totals(frm);
@@ -1770,4 +1777,44 @@ function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
             }
         }
     });
+}
+
+// ========================================
+// REVENUE RECOGNITION DATE DIALOG
+// ========================================
+function show_recognition_date_dialog(frm) {
+    const dialog = new frappe.ui.Dialog({
+        title: __('Set Revenue Recognition Date'),
+        fields: [
+            {
+                fieldname: 'info',
+                fieldtype: 'HTML',
+                options: `<p class="text-muted">
+                    ${__('Set the date when revenue should be recognized for this job.')}
+                    <br><br>
+                    ${__('This is typically the job completion date. Once set, you can submit the job to recognize revenue.')}
+                </p>`
+            },
+            {
+                fieldname: 'revenue_recognised_on',
+                fieldtype: 'Date',
+                label: __('Revenue Recognition Date'),
+                reqd: 1,
+                default: frm.doc.completed_on || frappe.datetime.get_today()
+            }
+        ],
+        primary_action_label: __('Set Date'),
+        primary_action: function(values) {
+            frm.set_value('revenue_recognised_on', values.revenue_recognised_on);
+            frm.save().then(() => {
+                dialog.hide();
+                frappe.show_alert({
+                    message: __('Revenue Recognition Date set to {0}. You can now submit the job.', 
+                        [frappe.datetime.str_to_user(values.revenue_recognised_on)]),
+                    indicator: 'green'
+                }, 7);
+            });
+        }
+    });
+    dialog.show();
 }

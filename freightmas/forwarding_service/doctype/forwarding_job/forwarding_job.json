@@ -128,6 +128,13 @@
   "total_working_profit_base",
   "column_break_crbh",
   "profit_margin_percent",
+  "revenue_recognition_section",
+  "set_rr_date",
+  "revenue_recognised",
+  "revenue_recognised_on",
+  "column_break_rr1",
+  "revenue_recognition_journal_entry",
+  "total_recognised_revenue",
   "tracking_tab",
   "forwarding_tracking",
   "section_break_eooh",
@@ -860,6 +867,47 @@
    "precision": "2"
   },
   {
+   "collapsible": 1,
+   "fieldname": "revenue_recognition_section",
+   "fieldtype": "Section Break",
+   "label": "Revenue Recognition"
+  },
+  {
+   "default": "0",
+   "fieldname": "revenue_recognised",
+   "fieldtype": "Check",
+   "label": "Revenue Recognised",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "revenue_recognised_on",
+   "fieldtype": "Date",
+   "label": "Revenue Recognised On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rr1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "revenue_recognition_journal_entry",
+   "fieldtype": "Link",
+   "label": "Revenue Recognition Journal Entry",
+   "no_copy": 1,
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recognised_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Recognised Revenue",
+   "no_copy": 1,
+   "options": "base_currency",
+   "read_only": 1
+  },
+  {
    "fieldname": "fetch_revenue_from_job_costing",
    "fieldtype": "Button",
    "label": "Fetch Revenue from Job Costing"
@@ -917,7 +965,16 @@
    "hidden": 1,
    "label": "Job Order Reference",
    "no_copy": 1,
-   "options": "Job Order"
+   "options": "Job Order",
+   "search_index": 1
+  },
+  {
+   "depends_on": "!doc.revenue_recognised",
+   "fieldname": "set_rr_date",
+   "fieldtype": "Button",
+   "label": "Set Revenue Recognition Date",
+   "no_copy": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
@@ -942,7 +999,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-12 08:23:56.760987",
+ "modified": "2026-01-29 23:21:51.402652",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

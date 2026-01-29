@@ -5,6 +5,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "revenue_recognition_tab",
+  "enable_revenue_recognition",
+  "column_break_rrev1",
+  "unearned_revenue_account",
+  "revenue_accounts_section",
+  "forwarding_revenue_account",
+  "trucking_revenue_account",
+  "column_break_rrev2",
+  "clearing_revenue_account",
+  "road_freight_revenue_account",
   "trucking_service_tab",
   "driver_commission_mode",
   "driver_bonus_parent_account",
@@ -13,6 +23,67 @@
   "port_clearing_tab"
  ],
  "fields": [
+  {
+   "fieldname": "revenue_recognition_tab",
+   "fieldtype": "Tab Break",
+   "label": "Revenue Recognition"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_revenue_recognition",
+   "fieldtype": "Check",
+   "label": "Enable Revenue Recognition"
+  },
+  {
+   "fieldname": "column_break_rrev1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "unearned_revenue_account",
+   "fieldtype": "Link",
+   "label": "Unearned Revenue Account",
+   "mandatory_depends_on": "eval:doc.enable_revenue_recognition",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "revenue_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Service Revenue Accounts"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "forwarding_revenue_account",
+   "fieldtype": "Link",
+   "label": "Forwarding Revenue Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "trucking_revenue_account",
+   "fieldtype": "Link",
+   "label": "Trucking Revenue Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_rrev2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "clearing_revenue_account",
+   "fieldtype": "Link",
+   "label": "Clearing Revenue Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "road_freight_revenue_account",
+   "fieldtype": "Link",
+   "label": "Road Freight Revenue Account",
+   "options": "Account"
+  },
   {
    "fieldname": "driver_commission_mode",
    "fieldtype": "Select",

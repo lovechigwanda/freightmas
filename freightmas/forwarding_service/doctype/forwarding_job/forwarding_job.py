@@ -45,6 +45,16 @@ class ForwardingJob(Document):
         # Validate cargo milestone progression
         self.validate_cargo_milestones()
 
+    def on_submit(self):
+        """Handle job submission - trigger revenue recognition"""
+        from freightmas.utils.revenue_recognition import recognize_revenue_for_job
+        recognize_revenue_for_job(self, "forwarding")
+
+    def on_cancel(self):
+        """Handle job cancellation - reverse revenue recognition"""
+        from freightmas.utils.revenue_recognition import reverse_revenue_recognition
+        reverse_revenue_recognition(self)
+
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
         if not getattr(self, "base_currency", None) and getattr(self, "company", None):
@@ -1136,16 +1146,30 @@ def create_sales_invoice_with_rows(docname, row_names):
     customer_ref = job.get("customer_reference") or "N/A"
     si.remarks = f"Forwarding Job {job.name}, Reference {customer_ref}, Cargo: {cargo_desc}"
 
-    for row in selected_rows:
-        si.append(
-            "items",
-            {
-                "item_code": row.charge,
-                "description": row.description or row.charge,
-                "qty": row.qty or 1,
-                "rate": row.sell_rate or 0,
-            },
+    # Get Unearned Revenue account if revenue recognition is enabled
+    unearned_revenue_account = None
+    try:
+        from freightmas.utils.revenue_recognition import (
+            is_revenue_recognition_enabled,
+            get_unearned_revenue_account,
         )
+        if is_revenue_recognition_enabled():
+            unearned_revenue_account = get_unearned_revenue_account()
+    except Exception:
+        pass
+
+    for row in selected_rows:
+        item_dict = {
+            "item_code": row.charge,
+            "description": row.description or row.charge,
+            "qty": row.qty or 1,
+            "rate": row.sell_rate or 0,
+        }
+        # Force Unearned Revenue account if revenue recognition is enabled
+        if unearned_revenue_account:
+            item_dict["income_account"] = unearned_revenue_account
+        
+        si.append("items", item_dict)
 
     si.insert()
 
