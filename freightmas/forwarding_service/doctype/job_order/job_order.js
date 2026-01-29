@@ -107,8 +107,9 @@ function load_quotation_data(frm) {
 				// Populate service details
 				frm.set_value('direction', quotation.direction);
 				frm.set_value('shipment_mode', quotation.shipment_mode);
-				frm.set_value('origin_port', quotation.origin_port);
-				frm.set_value('destination_port', quotation.destination_port);
+				frm.set_value('port_of_loading', quotation.origin_port);
+				frm.set_value('port_of_discharge', quotation.port_of_discharge);
+				frm.set_value('destination', quotation.destination_port);
 				frm.set_value('incoterms', quotation.incoterms);
 				frm.set_value('job_description', quotation.job_description);
 				frm.set_value('currency', quotation.currency);

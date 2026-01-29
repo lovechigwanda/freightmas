@@ -284,6 +284,14 @@ def create_job_order_from_quotation(quotation_name):
 	# Service Details
 	job_order.service_type = "Forwarding"
 	
+	# Port mapping: origin_port → port_of_loading, port_of_discharge → port_of_discharge, destination_port → destination
+	if hasattr(quotation, 'origin_port') and quotation.origin_port:
+		job_order.port_of_loading = quotation.origin_port
+	if hasattr(quotation, 'port_of_discharge') and quotation.port_of_discharge:
+		job_order.port_of_discharge = quotation.port_of_discharge
+	if hasattr(quotation, 'destination_port') and quotation.destination_port:
+		job_order.destination = quotation.destination_port
+	
 	# Cargo Summary
 	if hasattr(quotation, 'job_description'):
 		job_order.job_description = quotation.job_description

@@ -308,6 +308,7 @@ fixtures = [
                 "Quotation-custom_job_description",
                 "Quotation-custom_destination_port", 
                 "Quotation-custom_origin_port",
+                "Quotation-custom_port_of_discharge",
                 "Quotation-custom_job_type",
                 "Quotation-custom_is_freight_quote",
                 "Quotation Item-custom_supplier",
