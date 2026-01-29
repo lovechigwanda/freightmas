@@ -1783,38 +1783,74 @@ function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
 // REVENUE RECOGNITION DATE DIALOG
 // ========================================
 function show_recognition_date_dialog(frm) {
-    const dialog = new frappe.ui.Dialog({
-        title: __('Set Revenue Recognition Date'),
-        fields: [
-            {
-                fieldname: 'info',
-                fieldtype: 'HTML',
-                options: `<p class="text-muted">
-                    ${__('Set the date when revenue should be recognized for this job.')}
-                    <br><br>
-                    ${__('This is typically the job completion date. Once set, you can submit the job to recognize revenue.')}
-                </p>`
-            },
-            {
-                fieldname: 'revenue_recognised_on',
-                fieldtype: 'Date',
-                label: __('Revenue Recognition Date'),
-                reqd: 1,
-                default: frm.doc.completed_on || frappe.datetime.get_today()
+    // First, get the earliest invoice date to validate against
+    frappe.call({
+        method: "freightmas.utils.revenue_recognition.get_earliest_invoice_date",
+        args: {
+            job_doctype: "Forwarding Job",
+            job_name: frm.doc.name
+        },
+        callback: function(r) {
+            const invoice_info = r.message || {};
+            const earliest_date = invoice_info.earliest_date;
+            const invoice_count = invoice_info.invoice_count || 0;
+            
+            let info_html = `<p class="text-muted">
+                ${__('Set the date when revenue should be recognized for this job.')}
+                <br><br>
+                ${__('This is typically the job completion date. Once set, you can submit the job to recognize revenue.')}
+            </p>`;
+            
+            if (invoice_count > 0 && earliest_date) {
+                info_html += `<p class="text-warning">
+                    <strong>${__('Note:')}</strong> ${__('There are {0} submitted invoice(s) linked to this job. The earliest invoice date is {1}. The recognition date cannot be earlier than this.', [invoice_count, frappe.datetime.str_to_user(earliest_date)])}
+                </p>`;
+            } else {
+                info_html += `<p class="text-info">
+                    ${__('No submitted invoices found yet. Revenue will be recognized when invoices are submitted after job completion.')}
+                </p>`;
             }
-        ],
-        primary_action_label: __('Set Date'),
-        primary_action: function(values) {
-            frm.set_value('revenue_recognised_on', values.revenue_recognised_on);
-            frm.save().then(() => {
-                dialog.hide();
-                frappe.show_alert({
-                    message: __('Revenue Recognition Date set to {0}. You can now submit the job.', 
-                        [frappe.datetime.str_to_user(values.revenue_recognised_on)]),
-                    indicator: 'green'
-                }, 7);
+            
+            const dialog = new frappe.ui.Dialog({
+                title: __('Set Revenue Recognition Date'),
+                fields: [
+                    {
+                        fieldname: 'info',
+                        fieldtype: 'HTML',
+                        options: info_html
+                    },
+                    {
+                        fieldname: 'revenue_recognised_on',
+                        fieldtype: 'Date',
+                        label: __('Revenue Recognition Date'),
+                        reqd: 1,
+                        default: frm.doc.completed_on || frappe.datetime.get_today()
+                    }
+                ],
+                primary_action_label: __('Set Date'),
+                primary_action: function(values) {
+                    // Client-side validation
+                    if (earliest_date && values.revenue_recognised_on < earliest_date) {
+                        frappe.msgprint({
+                            title: __('Invalid Date'),
+                            indicator: 'red',
+                            message: __('Revenue Recognition Date cannot be earlier than the earliest invoice date ({0}).', [frappe.datetime.str_to_user(earliest_date)])
+                        });
+                        return;
+                    }
+                    
+                    frm.set_value('revenue_recognised_on', values.revenue_recognised_on);
+                    frm.save().then(() => {
+                        dialog.hide();
+                        frappe.show_alert({
+                            message: __('Revenue Recognition Date set to {0}. You can now submit the job.', 
+                                [frappe.datetime.str_to_user(values.revenue_recognised_on)]),
+                            indicator: 'green'
+                        }, 7);
+                    });
+                }
             });
+            dialog.show();
         }
     });
-    dialog.show();
 }

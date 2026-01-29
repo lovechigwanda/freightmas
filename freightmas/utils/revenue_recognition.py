@@ -54,6 +54,32 @@ def is_revenue_recognition_enabled():
     return settings.get("enabled", False)
 
 
+@frappe.whitelist()
+def get_earliest_invoice_date(job_doctype, job_name):
+    """
+    Get the earliest invoice date for a job.
+    Used by client-side to validate RR date selection.
+    
+    Returns:
+        dict with earliest_date and invoice_count
+    """
+    invoices = get_linked_sales_invoices(job_doctype, job_name)
+    
+    if not invoices:
+        return {
+            "earliest_date": None,
+            "invoice_count": 0
+        }
+    
+    from frappe.utils import getdate
+    earliest_date = min(getdate(inv.posting_date) for inv in invoices)
+    
+    return {
+        "earliest_date": str(earliest_date),
+        "invoice_count": len(invoices)
+    }
+
+
 def get_unearned_revenue_account():
     """Get the configured Unearned Revenue account."""
     settings = get_recognition_settings()
@@ -360,6 +386,21 @@ def recognize_revenue_for_job(job_doc, service_type):
         job_doc.revenue_recognised = 1
         job_doc.total_recognised_revenue = 0
         return
+    
+    # Validate RR date is not before earliest invoice date
+    from frappe.utils import getdate
+    rr_date = getdate(job_doc.revenue_recognised_on)
+    earliest_invoice_date = min(getdate(inv.posting_date) for inv in invoices)
+    
+    if rr_date < earliest_invoice_date:
+        frappe.throw(
+            _("Revenue Recognition Date ({0}) cannot be earlier than the earliest "
+              "invoice date ({1}). The Unearned Revenue account would not have a "
+              "balance to recognize from.").format(
+                frappe.format_value(rr_date, {"fieldtype": "Date"}),
+                frappe.format_value(earliest_invoice_date, {"fieldtype": "Date"})
+            )
+        )
     
     # Create recognition Journal Entry
     je_name, total_recognized = create_recognition_journal_entry(
