@@ -135,6 +135,11 @@
   "column_break_rr1",
   "revenue_recognition_journal_entry",
   "total_recognised_revenue",
+  "cost_recognition_section",
+  "cost_recognised",
+  "column_break_cr1",
+  "cost_recognition_journal_entry",
+  "total_recognised_cost",
   "tracking_tab",
   "forwarding_tracking",
   "section_break_eooh",
@@ -903,6 +908,40 @@
    "fieldname": "total_recognised_revenue",
    "fieldtype": "Currency",
    "label": "Total Recognised Revenue",
+   "no_copy": 1,
+   "options": "base_currency",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "cost_recognition_section",
+   "fieldtype": "Section Break",
+   "label": "Cost Recognition"
+  },
+  {
+   "default": "0",
+   "fieldname": "cost_recognised",
+   "fieldtype": "Check",
+   "label": "Cost Recognised",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cr1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cost_recognition_journal_entry",
+   "fieldtype": "Link",
+   "label": "Cost Recognition Journal Entry",
+   "no_copy": 1,
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recognised_cost",
+   "fieldtype": "Currency",
+   "label": "Total Recognised Cost",
    "no_copy": 1,
    "options": "base_currency",
    "read_only": 1

@@ -15,6 +15,14 @@
   "column_break_rrev2",
   "clearing_revenue_account",
   "road_freight_revenue_account",
+  "cost_recognition_section",
+  "deferred_cost_account",
+  "cost_accounts_section",
+  "forwarding_cost_account",
+  "trucking_cost_account",
+  "column_break_cost1",
+  "clearing_cost_account",
+  "road_freight_cost_account",
   "trucking_service_tab",
   "driver_commission_mode",
   "driver_bonus_parent_account",
@@ -82,6 +90,58 @@
    "fieldname": "road_freight_revenue_account",
    "fieldtype": "Link",
    "label": "Road Freight Revenue Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "cost_recognition_section",
+   "fieldtype": "Section Break",
+   "label": "Cost Recognition"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "deferred_cost_account",
+   "fieldtype": "Link",
+   "label": "Deferred Cost Account",
+   "mandatory_depends_on": "eval:doc.enable_revenue_recognition",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "cost_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Service Cost Accounts"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "forwarding_cost_account",
+   "fieldtype": "Link",
+   "label": "Forwarding Cost Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "trucking_cost_account",
+   "fieldtype": "Link",
+   "label": "Trucking Cost Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_cost1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "clearing_cost_account",
+   "fieldtype": "Link",
+   "label": "Clearing Cost Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "road_freight_cost_account",
+   "fieldtype": "Link",
+   "label": "Road Freight Cost Account",
    "options": "Account"
   },
   {

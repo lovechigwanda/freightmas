@@ -272,7 +272,11 @@ doc_events = {
         ]
     },
     "Purchase Invoice": {
-        "on_cancel": "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel"
+        "validate": "freightmas.utils.revenue_recognition.set_deferred_cost_account",
+        "on_cancel": [
+            "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel",
+            "freightmas.utils.revenue_recognition.on_purchase_invoice_cancel_for_recognition"
+        ]
     }
 }
 

@@ -46,14 +46,16 @@ class ForwardingJob(Document):
         self.validate_cargo_milestones()
 
     def on_submit(self):
-        """Handle job submission - trigger revenue recognition"""
-        from freightmas.utils.revenue_recognition import recognize_revenue_for_job
+        """Handle job submission - trigger revenue and cost recognition"""
+        from freightmas.utils.revenue_recognition import recognize_revenue_for_job, recognize_cost_for_job
         recognize_revenue_for_job(self, "forwarding")
+        recognize_cost_for_job(self, "forwarding")
 
     def on_cancel(self):
-        """Handle job cancellation - reverse revenue recognition"""
-        from freightmas.utils.revenue_recognition import reverse_revenue_recognition
+        """Handle job cancellation - reverse revenue and cost recognition"""
+        from freightmas.utils.revenue_recognition import reverse_revenue_recognition, reverse_cost_recognition
         reverse_revenue_recognition(self)
+        reverse_cost_recognition(self)
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""
