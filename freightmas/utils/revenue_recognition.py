@@ -323,8 +323,11 @@ def create_reversal_journal_entry(original_je_name, reversal_date=None, reason=N
 
 def validate_invoice_income_account(invoice_doc):
     """
-    Validate that a forwarding-linked invoice uses the correct Unearned Revenue account.
-    Called before Sales Invoice submission.
+    Set the correct income account for forwarding-linked invoices.
+    - If job NOT recognized yet → Unearned Revenue (deferred)
+    - If job ALREADY recognized → Revenue account (direct income)
+    
+    Called on Sales Invoice validate.
     
     Args:
         invoice_doc: The Sales Invoice document
@@ -339,16 +342,20 @@ def validate_invoice_income_account(invoice_doc):
     if not is_forwarding or not job_reference:
         return
     
-    unearned_account = get_unearned_revenue_account()
+    # Check if the linked job already has revenue recognized
+    job_doc = frappe.get_doc("Forwarding Job", job_reference)
     
+    if job_doc.revenue_recognised:
+        # Job already recognized - post directly to revenue account
+        target_account = get_service_revenue_account("forwarding")
+    else:
+        # Job not yet recognized - post to unearned revenue
+        target_account = get_unearned_revenue_account()
+    
+    # Auto-correct income account silently
     for item in invoice_doc.items:
-        if item.income_account != unearned_account:
-            frappe.throw(
-                _("Row {0}: Income account must be {1} for Forwarding Job invoices. "
-                  "Found: {2}").format(
-                    item.idx, unearned_account, item.income_account
-                )
-            )
+        if item.income_account != target_account:
+            item.income_account = target_account
 
 
 def recognize_revenue_for_job(job_doc, service_type):
@@ -520,12 +527,14 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
     
     je = frappe.get_doc("Journal Entry", je_name)
     
-    # Calculate amount to reverse for this invoice by checking user_remark
+    # Calculate amount and cost center to reverse for this invoice by checking user_remark
     invoice_amount = 0
+    cost_center = None
     for account in je.accounts:
         if (account.user_remark and invoice_doc.name in account.user_remark and
             flt(account.credit_in_account_currency) > 0):
             invoice_amount = flt(account.credit_in_account_currency)
+            cost_center = account.cost_center
             break
     
     if invoice_amount > 0:
@@ -543,11 +552,13 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
                 {
                     "account": revenue_account,
                     "debit_in_account_currency": invoice_amount,
+                    "cost_center": cost_center,
                     "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
                 },
                 {
                     "account": unearned_account,
                     "credit_in_account_currency": invoice_amount,
+                    "cost_center": cost_center,
                     "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
                 }
             ],
@@ -584,19 +595,17 @@ def on_forwarding_job_cancel(doc, method=None):
 # Sales Invoice handlers
 def on_sales_invoice_submit(doc, method=None):
     """Hook called when Sales Invoice is submitted."""
-    # Check for Forwarding Job link
-    if getattr(doc, "is_forwarding_invoice", 0) and \
-       getattr(doc, "forwarding_job_reference", None):
-        handle_late_invoice_submission(
-            doc,
-            "Forwarding Job",
-            "forwarding_job_reference",
-            "forwarding"
-        )
+    # No action needed on submit - income account is set during validate
+    # If job is already recognized, invoice posts directly to revenue
+    # If job is not recognized, invoice posts to unearned revenue
+    pass
 
 
-def before_sales_invoice_submit(doc, method=None):
-    """Hook called before Sales Invoice submission for validation."""
+def set_unearned_revenue_account(doc, method=None):
+    """
+    Hook called on Sales Invoice validate.
+    Auto-sets the Unearned Revenue account for Forwarding Job invoices.
+    """
     validate_invoice_income_account(doc)
 
 
