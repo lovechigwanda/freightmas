@@ -226,7 +226,7 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Draft\nIn Progress\nDelivered\nCompleted\nCancelled",
+   "options": "Draft\nIn Progress\nDelivered\nCompleted\nClosed\nCancelled",
    "read_only": 1
   },
   {
@@ -1041,8 +1041,8 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-01-29 23:54:35.860282",
- "modified_by": "Administrator",
+ "modified": "2026-01-31 21:27:14.238373",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
  "naming_rule": "By \"Naming Series\" field",

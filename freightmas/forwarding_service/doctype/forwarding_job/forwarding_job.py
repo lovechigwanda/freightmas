@@ -44,9 +44,15 @@ class ForwardingJob(Document):
         
         # Validate cargo milestone progression
         self.validate_cargo_milestones()
+        
+        # Validate completion requirements before status changes to Completed
+        self.validate_completion_requirements()
 
     def on_submit(self):
         """Handle job submission - trigger revenue and cost recognition"""
+        # Validate Revenue Recognition Date before proceeding
+        self.validate_revenue_recognition_before_submit()
+        
         from freightmas.utils.revenue_recognition import recognize_revenue_for_job, recognize_cost_for_job
         recognize_revenue_for_job(self, "forwarding")
         recognize_cost_for_job(self, "forwarding")
@@ -586,6 +592,138 @@ class ForwardingJob(Document):
                 frappe.throw(_("Row {0}: Transporter is required for completed cargo").format(row_idx))
             if not getattr(cargo, 'service_charge', ''):
                 frappe.throw(_("Row {0}: Service charge is required for completed cargo").format(row_idx))
+
+    # ========================================================
+    # COMPLETION VALIDATION METHODS
+    # These methods validate requirements before job status changes to Completed or before submission.
+    # ========================================================
+
+    def validate_completion_requirements(self):
+        """
+        Validate all requirements before job status changes to Completed.
+        Checks:
+        1. All cargo milestones completed
+        2. Tracking entries exist
+        3. All working charges are invoiced
+        """
+        # Only validate when status is changing TO Completed
+        if self.status != "Completed":
+            return
+        
+        # Check if this is actually a status change to Completed
+        prev_status = None
+        if self.name:
+            prev_status = frappe.db.get_value("Forwarding Job", self.name, "status")
+        
+        # Skip if already Completed (not a status change)
+        if prev_status == "Completed":
+            return
+        
+        errors = []
+        
+        # 1. Validate all cargo milestones are completed
+        cargo_errors = self.check_cargo_milestones_completed()
+        if cargo_errors:
+            errors.extend(cargo_errors)
+        
+        # 2. Validate tracking entries exist
+        tracking_errors = self.check_tracking_completed()
+        if tracking_errors:
+            errors.extend(tracking_errors)
+        
+        # 3. Validate all working charges are invoiced
+        invoice_errors = self.check_charges_invoiced()
+        if invoice_errors:
+            errors.extend(invoice_errors)
+        
+        # Throw all errors together
+        if errors:
+            error_list = "<br>".join([f"• {e}" for e in errors])
+            frappe.throw(
+                _("Cannot mark job as Completed. Please fix the following issues:<br><br>{0}").format(error_list),
+                title=_("Completion Requirements Not Met")
+            )
+
+    def check_cargo_milestones_completed(self):
+        """Check if all cargo rows requiring trucking are marked as completed."""
+        errors = []
+        
+        cargo_rows = self.get("cargo_parcel_details", [])
+        if not cargo_rows:
+            return errors
+        
+        incomplete_rows = []
+        for idx, cargo in enumerate(cargo_rows, 1):
+            # Only check rows that require trucking
+            if getattr(cargo, "is_truck_required", 0):
+                if not getattr(cargo, "is_completed", 0):
+                    container = getattr(cargo, "container_number", "") or f"Row {idx}"
+                    incomplete_rows.append(container)
+        
+        if incomplete_rows:
+            if len(incomplete_rows) <= 3:
+                errors.append(_("Cargo milestones not completed for: {0}").format(", ".join(incomplete_rows)))
+            else:
+                errors.append(_("{0} cargo rows have incomplete milestones").format(len(incomplete_rows)))
+        
+        return errors
+
+    def check_tracking_completed(self):
+        """Check if tracking entries exist for the job."""
+        errors = []
+        
+        tracking_entries = self.get("forwarding_tracking", [])
+        
+        if not tracking_entries:
+            errors.append(_("No tracking entries recorded. Please add at least one tracking update."))
+        
+        return errors
+
+    def check_charges_invoiced(self):
+        """Check if all working charges have been invoiced."""
+        errors = []
+        
+        # Check revenue charges
+        revenue_charges = self.get("forwarding_revenue_charges", [])
+        uninvoiced_revenue = []
+        for idx, charge in enumerate(revenue_charges, 1):
+            if not getattr(charge, "is_invoiced", 0) and not getattr(charge, "sales_invoice_reference", None):
+                charge_name = getattr(charge, "charge", "") or f"Row {idx}"
+                uninvoiced_revenue.append(charge_name)
+        
+        if uninvoiced_revenue:
+            if len(uninvoiced_revenue) <= 3:
+                errors.append(_("Revenue charges not invoiced: {0}").format(", ".join(uninvoiced_revenue)))
+            else:
+                errors.append(_("{0} revenue charges have not been invoiced").format(len(uninvoiced_revenue)))
+        
+        # Check cost charges
+        cost_charges = self.get("forwarding_cost_charges", [])
+        uninvoiced_cost = []
+        for idx, charge in enumerate(cost_charges, 1):
+            if not getattr(charge, "purchase_invoice_reference", None):
+                charge_name = getattr(charge, "charge", "") or f"Row {idx}"
+                uninvoiced_cost.append(charge_name)
+        
+        if uninvoiced_cost:
+            if len(uninvoiced_cost) <= 3:
+                errors.append(_("Cost charges not invoiced: {0}").format(", ".join(uninvoiced_cost)))
+            else:
+                errors.append(_("{0} cost charges have not been invoiced").format(len(uninvoiced_cost)))
+        
+        return errors
+
+    def validate_revenue_recognition_before_submit(self):
+        """Validate Revenue Recognition Date is set before submission (if RR enabled)."""
+        from freightmas.utils.revenue_recognition import is_revenue_recognition_enabled
+        
+        if is_revenue_recognition_enabled():
+            if not self.revenue_recognised_on:
+                frappe.throw(
+                    _("Revenue Recognition Date must be set before submitting the job. "
+                      "Please set the date using the 'Set Revenue Recognition Date' button."),
+                    title=_("Revenue Recognition Date Required")
+                )
 
     def get_pdf_filename(self):
         """Return custom PDF filename for Forwarding Job Cost Sheet"""
