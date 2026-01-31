@@ -644,7 +644,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.status==\"Draft\"",
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "fetch_from_quotation",
    "fieldtype": "Button",
    "label": "Fetch Charges from Quotation"
@@ -947,16 +947,19 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "fetch_revenue_from_job_costing",
    "fieldtype": "Button",
    "label": "Fetch Revenue from Job Costing"
   },
   {
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "fetch_cost_from_job_costing",
    "fieldtype": "Button",
    "label": "Fetch Cost from Job Costing"
   },
   {
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "fetch_cost_from_truck_loading",
    "fieldtype": "Button",
    "label": "Fetch Cost from Truck Loading"
