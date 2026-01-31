@@ -8,7 +8,7 @@
   "revenue_recognition_tab",
   "enable_revenue_recognition",
   "column_break_rrev1",
-  "unearned_revenue_account",
+  "wip_revenue_account",
   "revenue_accounts_section",
   "forwarding_revenue_account",
   "trucking_revenue_account",
@@ -16,7 +16,7 @@
   "clearing_revenue_account",
   "road_freight_revenue_account",
   "cost_recognition_section",
-  "deferred_cost_account",
+  "wip_cost_account",
   "cost_accounts_section",
   "forwarding_cost_account",
   "trucking_cost_account",
@@ -48,9 +48,9 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
-   "fieldname": "unearned_revenue_account",
+   "fieldname": "wip_revenue_account",
    "fieldtype": "Link",
-   "label": "Unearned Revenue Account",
+   "label": "WIP Revenue Account",
    "mandatory_depends_on": "eval:doc.enable_revenue_recognition",
    "options": "Account"
   },
@@ -100,9 +100,9 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
-   "fieldname": "deferred_cost_account",
+   "fieldname": "wip_cost_account",
    "fieldtype": "Link",
-   "label": "Deferred Cost Account",
+   "label": "WIP Cost Account",
    "mandatory_depends_on": "eval:doc.enable_revenue_recognition",
    "options": "Account"
   },

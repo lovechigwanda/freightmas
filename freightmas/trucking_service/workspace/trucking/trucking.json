@@ -2,6 +2,7 @@
  "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"KhD2eQAkGg\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Truck Revenue\",\"col\":12}},{\"id\":\"oMN1KoqWIk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"eXscXtml_i\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Shortcuts</b></span>\",\"col\":12}},{\"id\":\"8bwgTI9m7o\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"0z92Nx2C9w\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fuel Order\",\"col\":3}},{\"id\":\"CHYEP3bDEO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Driver\",\"col\":3}},{\"id\":\"QLh99mYZWs\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Truck\",\"col\":3}},{\"id\":\"pqhliMKs6R\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Route\",\"col\":3}},{\"id\":\"5MN-rKxIst\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"s06KCocZRZ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"_Pf45hpNov\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"i71J4jC_Fp\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"FOgcZQRiEL\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking Masters\",\"col\":4}},{\"id\":\"koBTwEGIIG\",\"type\":\"card\",\"data\":{\"card_name\":\"Trip Reports\",\"col\":4}},{\"id\":\"nDiAUwkwF9\",\"type\":\"card\",\"data\":{\"card_name\":\"Fuel Reports\",\"col\":4}},{\"id\":\"N2XvVWCzVd\",\"type\":\"card\",\"data\":{\"card_name\":\"Other Reports\",\"col\":4}}]",
+ "creation": "2026-01-31 08:46:53.074800",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -260,6 +261,8 @@
    "type": "Link"
   }
  ],
+ "modified": "2026-01-31 08:52:32.160335",
+ "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trucking",
  "number_cards": [],

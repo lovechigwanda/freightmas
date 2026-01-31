@@ -264,7 +264,7 @@ doc_events = {
 		"on_update_after_submit": "freightmas.utils.quotation.on_quotation_workflow_change"
 	},
     "Sales Invoice": {
-        "validate": "freightmas.utils.revenue_recognition.set_unearned_revenue_account",
+        "validate": "freightmas.utils.revenue_recognition.set_wip_revenue_account",
         "on_submit": "freightmas.utils.revenue_recognition.on_sales_invoice_submit",
         "on_cancel": [
             "freightmas.utils.invoice_unlink.on_sales_invoice_cancel",
@@ -272,7 +272,7 @@ doc_events = {
         ]
     },
     "Purchase Invoice": {
-        "validate": "freightmas.utils.revenue_recognition.set_deferred_cost_account",
+        "validate": "freightmas.utils.revenue_recognition.set_wip_cost_account",
         "on_cancel": [
             "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel",
             "freightmas.utils.revenue_recognition.on_purchase_invoice_cancel_for_recognition"

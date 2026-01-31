@@ -10,10 +10,10 @@ Revenue is recognized when jobs are completed (submitted), not when invoices are
 Accounting Flow:
 1. On Sales Invoice submission (linked to a job):
    - Dr Accounts Receivable
-   - Cr Unearned Revenue
+   - Cr WIP Revenue
 
 2. On Job submission (completion):
-   - Dr Unearned Revenue
+   - Dr WIP Revenue
    - Cr Service Revenue (Forwarding/Trucking/Clearing/Road Freight)
 
 Supports:
@@ -33,20 +33,20 @@ def get_recognition_settings():
     Fetch revenue/cost recognition settings from FreightMas Settings.
     
     Returns:
-        dict: Settings including enable flag, unearned revenue account,
-              deferred cost account, and service-specific accounts
+        dict: Settings including enable flag, WIP revenue account,
+              WIP cost account, and service-specific accounts
     """
     settings = frappe.get_single("FreightMas Settings")
     return {
         "enabled": settings.enable_revenue_recognition,
         # Revenue accounts
-        "unearned_revenue_account": settings.unearned_revenue_account,
+        "wip_revenue_account": settings.wip_revenue_account,
         "forwarding_revenue_account": settings.forwarding_revenue_account,
         "trucking_revenue_account": settings.trucking_revenue_account,
         "clearing_revenue_account": settings.clearing_revenue_account,
         "road_freight_revenue_account": settings.road_freight_revenue_account,
         # Cost accounts
-        "deferred_cost_account": settings.deferred_cost_account,
+        "wip_cost_account": settings.wip_cost_account,
         "forwarding_cost_account": settings.forwarding_cost_account,
         "trucking_cost_account": settings.trucking_cost_account,
         "clearing_cost_account": settings.clearing_cost_account,
@@ -87,13 +87,13 @@ def get_earliest_invoice_date(job_doctype, job_name):
     }
 
 
-def get_unearned_revenue_account():
-    """Get the configured Unearned Revenue account."""
+def get_wip_revenue_account():
+    """Get the configured WIP Revenue account."""
     settings = get_recognition_settings()
-    account = settings.get("unearned_revenue_account")
+    account = settings.get("wip_revenue_account")
     if not account:
         frappe.throw(
-            _("Unearned Revenue Account not configured in FreightMas Settings")
+            _("WIP Revenue Account not configured in FreightMas Settings")
         )
     return account
 
@@ -120,13 +120,13 @@ def get_service_revenue_account(service_type):
     return account
 
 
-def get_deferred_cost_account():
-    """Get the configured Deferred Cost account."""
+def get_wip_cost_account():
+    """Get the configured WIP Cost account."""
     settings = get_recognition_settings()
-    account = settings.get("deferred_cost_account")
+    account = settings.get("wip_cost_account")
     if not account:
         frappe.throw(
-            _("Deferred Cost Account not configured in FreightMas Settings")
+            _("WIP Cost Account not configured in FreightMas Settings")
         )
     return account
 
@@ -246,7 +246,7 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
     if not invoices:
         frappe.throw(_("No invoices found for revenue recognition"))
     
-    unearned_account = get_unearned_revenue_account()
+    wip_revenue_account = get_wip_revenue_account()
     revenue_account = get_service_revenue_account(service_type)
     
     company = job_doc.company
@@ -272,9 +272,9 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
             job_doc.name, invoice.name
         )
         
-        # Debit Unearned Revenue (reduce liability)
+        # Debit WIP Revenue (reduce liability)
         accounts.append({
-            "account": unearned_account,
+            "account": wip_revenue_account,
             "debit_in_account_currency": base_amount,
             "cost_center": cost_center,
             "user_remark": remark,
@@ -327,7 +327,7 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
     
     Accounting:
         Dr  Cost of Services (Expense)
-        Cr  Deferred Cost (Asset)
+        Cr  WIP Cost (Asset)
     
     Args:
         job_doc: The job document (Forwarding Job, Trip, etc.)
@@ -341,7 +341,7 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
     if not invoices:
         frappe.throw(_("No purchase invoices found for cost recognition"))
     
-    deferred_account = get_deferred_cost_account()
+    wip_cost_account = get_wip_cost_account()
     cost_account = get_service_cost_account(service_type)
     
     company = job_doc.company
@@ -374,9 +374,9 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
             "user_remark": remark,
         })
         
-        # Credit Deferred Cost (reduce asset)
+        # Credit WIP Cost (reduce asset)
         accounts.append({
-            "account": deferred_account,
+            "account": wip_cost_account,
             "credit_in_account_currency": base_amount,
             "cost_center": cost_center,
             "user_remark": remark,
@@ -495,7 +495,7 @@ def create_reversal_journal_entry(original_je_name, reversal_date=None, reason=N
 def validate_invoice_income_account(invoice_doc):
     """
     Set the correct income account for forwarding-linked invoices.
-    - If job NOT recognized yet → Unearned Revenue (deferred)
+    - If job NOT recognized yet → WIP Revenue
     - If job ALREADY recognized → Revenue account (direct income)
     
     Called on Sales Invoice validate.
@@ -520,8 +520,8 @@ def validate_invoice_income_account(invoice_doc):
         # Job already recognized - post directly to revenue account
         target_account = get_service_revenue_account("forwarding")
     else:
-        # Job not yet recognized - post to unearned revenue
-        target_account = get_unearned_revenue_account()
+        # Job not yet recognized - post to WIP revenue
+        target_account = get_wip_revenue_account()
     
     # Auto-correct income account silently
     for item in invoice_doc.items:
@@ -532,7 +532,7 @@ def validate_invoice_income_account(invoice_doc):
 def validate_purchase_invoice_expense_account(invoice_doc):
     """
     Set the correct expense account for forwarding-linked purchase invoices.
-    - If job NOT recognized yet → Deferred Cost (asset)
+    - If job NOT recognized yet → WIP Cost (asset)
     - If job ALREADY recognized → Cost account (direct expense)
     
     Called on Purchase Invoice validate.
@@ -557,8 +557,8 @@ def validate_purchase_invoice_expense_account(invoice_doc):
         # Job already recognized - post directly to cost account
         target_account = get_service_cost_account("forwarding")
     else:
-        # Job not yet recognized - post to deferred cost
-        target_account = get_deferred_cost_account()
+        # Job not yet recognized - post to WIP cost
+        target_account = get_wip_cost_account()
     
     # Auto-correct expense account silently
     for item in invoice_doc.items:
@@ -610,7 +610,7 @@ def recognize_revenue_for_job(job_doc, service_type):
     if rr_date < earliest_invoice_date:
         frappe.throw(
             _("Revenue Recognition Date ({0}) cannot be earlier than the earliest "
-              "invoice date ({1}). The Unearned Revenue account would not have a "
+              "invoice date ({1}). The WIP Revenue account would not have a "
               "balance to recognize from.").format(
                 frappe.format_value(rr_date, {"fieldtype": "Date"}),
                 frappe.format_value(earliest_invoice_date, {"fieldtype": "Date"})
@@ -704,7 +704,7 @@ def recognize_cost_for_job(job_doc, service_type):
     if rr_date < earliest_invoice_date:
         frappe.throw(
             _("Recognition Date ({0}) cannot be earlier than the earliest "
-              "purchase invoice date ({1}). The Deferred Cost account would not have a "
+              "purchase invoice date ({1}). The WIP Cost account would not have a "
               "balance to recognize from.").format(
                 frappe.format_value(rr_date, {"fieldtype": "Date"}),
                 frappe.format_value(earliest_invoice_date, {"fieldtype": "Date"})
@@ -841,7 +841,7 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
     
     if invoice_amount > 0:
         # Create partial reversal for this invoice
-        unearned_account = get_unearned_revenue_account()
+        wip_revenue_account = get_wip_revenue_account()
         revenue_account = get_service_revenue_account(service_type)
         
         reversal_je = frappe.get_doc({
@@ -858,7 +858,7 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
                     "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
                 },
                 {
-                    "account": unearned_account,
+                    "account": wip_revenue_account,
                     "credit_in_account_currency": invoice_amount,
                     "cost_center": cost_center,
                     "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
@@ -925,7 +925,7 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
     
     if invoice_amount > 0:
         # Create partial reversal for this invoice
-        deferred_account = get_deferred_cost_account()
+        wip_cost_account = get_wip_cost_account()
         cost_account = get_service_cost_account(service_type)
         
         reversal_je = frappe.get_doc({
@@ -936,7 +936,7 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
             "user_remark": _("Cost Reversal for cancelled Invoice {0}").format(invoice_doc.name),
             "accounts": [
                 {
-                    "account": deferred_account,
+                    "account": wip_cost_account,
                     "debit_in_account_currency": invoice_amount,
                     "cost_center": cost_center,
                     "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
@@ -985,14 +985,14 @@ def on_sales_invoice_submit(doc, method=None):
     """Hook called when Sales Invoice is submitted."""
     # No action needed on submit - income account is set during validate
     # If job is already recognized, invoice posts directly to revenue
-    # If job is not recognized, invoice posts to unearned revenue
+    # If job is not recognized, invoice posts to WIP revenue
     pass
 
 
-def set_unearned_revenue_account(doc, method=None):
+def set_wip_revenue_account(doc, method=None):
     """
     Hook called on Sales Invoice validate.
-    Auto-sets the Unearned Revenue account for Forwarding Job invoices.
+    Auto-sets the WIP Revenue account for Forwarding Job invoices.
     """
     validate_invoice_income_account(doc)
 
@@ -1011,10 +1011,10 @@ def on_sales_invoice_cancel_for_recognition(doc, method=None):
 
 
 # Purchase Invoice handlers
-def set_deferred_cost_account(doc, method=None):
+def set_wip_cost_account(doc, method=None):
     """
     Hook called on Purchase Invoice validate.
-    Auto-sets the Deferred Cost account for Forwarding Job invoices.
+    Auto-sets the WIP Cost account for Forwarding Job invoices.
     """
     validate_purchase_invoice_expense_account(doc)
 
