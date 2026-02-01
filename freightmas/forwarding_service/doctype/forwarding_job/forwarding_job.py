@@ -602,9 +602,15 @@ class ForwardingJob(Document):
         """
         Validate all requirements before job status changes to Completed.
         Checks:
-        1. All cargo milestones completed
-        2. Tracking entries exist
-        3. All working charges are invoiced
+        1. Actual Arrival (ata) date should be set
+        2. If Direction = Import, Discharge date should be set
+        3. Cargo description should be completed
+        4. cargo_parcel_details table should contain at least 1 row
+        5. Cargo Parcel Details validations:
+           - If to_be_returned is checked, return_by_date should be set
+           - If is_truck_required, road_freight_route and is_completed should be checked
+        6. Tracking entries exist
+        7. All working charges are invoiced
         """
         # Only validate when status is changing TO Completed
         if self.status != "Completed":
@@ -621,17 +627,34 @@ class ForwardingJob(Document):
         
         errors = []
         
-        # 1. Validate all cargo milestones are completed
-        cargo_errors = self.check_cargo_milestones_completed()
+        # 1. Validate Actual Arrival (ata) date is set
+        if not self.ata:
+            errors.append(_("Actual Arrival (ATA) date must be set before completing the job"))
+        
+        # 2. Validate Discharge date for Import jobs
+        if self.direction == "Import" and not self.discharge_date:
+            errors.append(_("Discharge date must be set for Import jobs before completing"))
+        
+        # 3. Validate Cargo description is set
+        if not self.cargo_description:
+            errors.append(_("Cargo description must be completed before marking the job as Completed"))
+        
+        # 4. Validate at least 1 cargo parcel exists
+        cargo_rows = self.get("cargo_parcel_details", [])
+        if not cargo_rows:
+            errors.append(_("Job must contain at least 1 cargo parcel in Cargo Parcel Details"))
+        
+        # 5. Validate cargo parcel details
+        cargo_errors = self.check_cargo_parcel_requirements()
         if cargo_errors:
             errors.extend(cargo_errors)
         
-        # 2. Validate tracking entries exist
+        # 6. Validate tracking entries exist
         tracking_errors = self.check_tracking_completed()
         if tracking_errors:
             errors.extend(tracking_errors)
         
-        # 3. Validate all working charges are invoiced
+        # 7. Validate all working charges are invoiced
         invoice_errors = self.check_charges_invoiced()
         if invoice_errors:
             errors.extend(invoice_errors)
@@ -644,27 +667,54 @@ class ForwardingJob(Document):
                 title=_("Completion Requirements Not Met")
             )
 
-    def check_cargo_milestones_completed(self):
-        """Check if all cargo rows requiring trucking are marked as completed."""
+    def check_cargo_parcel_requirements(self):
+        """
+        Check cargo parcel details requirements:
+        - If to_be_returned is checked, return_by_date should be set
+        - If is_truck_required, road_freight_route and is_completed should be checked
+        """
         errors = []
         
         cargo_rows = self.get("cargo_parcel_details", [])
         if not cargo_rows:
             return errors
         
-        incomplete_rows = []
-        for idx, cargo in enumerate(cargo_rows, 1):
-            # Only check rows that require trucking
-            if getattr(cargo, "is_truck_required", 0):
-                if not getattr(cargo, "is_completed", 0):
-                    container = getattr(cargo, "container_number", "") or f"Row {idx}"
-                    incomplete_rows.append(container)
+        missing_return_date = []
+        missing_route = []
+        incomplete_trucking = []
         
-        if incomplete_rows:
-            if len(incomplete_rows) <= 3:
-                errors.append(_("Cargo milestones not completed for: {0}").format(", ".join(incomplete_rows)))
+        for idx, cargo in enumerate(cargo_rows, 1):
+            row_identifier = getattr(cargo, "container_number", "") or f"Row {idx}"
+            
+            # Check: If to_be_returned is checked, return_by_date should be set
+            if getattr(cargo, "to_be_returned", 0) and not getattr(cargo, "return_by_date", None):
+                missing_return_date.append(row_identifier)
+            
+            # Check: If is_truck_required, road_freight_route and is_completed should be checked
+            if getattr(cargo, "is_truck_required", 0):
+                if not getattr(cargo, "road_freight_route", None):
+                    missing_route.append(row_identifier)
+                if not getattr(cargo, "is_completed", 0):
+                    incomplete_trucking.append(row_identifier)
+        
+        # Format error messages
+        if missing_return_date:
+            if len(missing_return_date) <= 3:
+                errors.append(_("Return By Date not set for returnable containers: {0}").format(", ".join(missing_return_date)))
             else:
-                errors.append(_("{0} cargo rows have incomplete milestones").format(len(incomplete_rows)))
+                errors.append(_("{0} returnable containers are missing Return By Date").format(len(missing_return_date)))
+        
+        if missing_route:
+            if len(missing_route) <= 3:
+                errors.append(_("Road Freight Route not set for: {0}").format(", ".join(missing_route)))
+            else:
+                errors.append(_("{0} cargo rows requiring trucking are missing Road Freight Route").format(len(missing_route)))
+        
+        if incomplete_trucking:
+            if len(incomplete_trucking) <= 3:
+                errors.append(_("Trucking not completed for: {0}").format(", ".join(incomplete_trucking)))
+            else:
+                errors.append(_("{0} cargo rows requiring trucking are not marked as completed").format(len(incomplete_trucking)))
         
         return errors
 
