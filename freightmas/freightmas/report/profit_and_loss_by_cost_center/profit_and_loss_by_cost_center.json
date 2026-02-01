@@ -25,6 +25,12 @@
   },
   {
    "role": "System Manager"
+  },
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "All"
   }
  ]
 }

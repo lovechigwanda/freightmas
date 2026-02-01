@@ -117,6 +117,12 @@ frappe.query_reports["Profit and Loss by Cost Center"] = {
 			fieldtype: "Check",
 			default: 1,
 		},
+		{
+			fieldname: "show_zero_values",
+			label: __("Show Zero Values"),
+			fieldtype: "Check",
+			default: 0,
+		},
 	],
 
 	onload: function (report) {
@@ -151,11 +157,6 @@ frappe.query_reports["Profit and Loss by Cost Center"] = {
 		// Bold the total row and root level accounts
 		if (data && !data.parent_account) {
 			value = "<b>" + value + "</b>";
-		}
-
-		// Style the Net Profit/Loss row
-		if (data && data.account && data.account.includes("Profit for the year")) {
-			value = "<b style='color: #5e64ff;'>" + value + "</b>";
 		}
 
 		// Color negative values red

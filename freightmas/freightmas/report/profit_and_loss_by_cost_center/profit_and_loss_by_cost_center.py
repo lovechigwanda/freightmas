@@ -51,10 +51,7 @@ def execute(filters=None):
 	if net_profit_loss:
 		data.append(net_profit_loss)
 
-	# Generate chart data
-	chart = get_chart_data(income, expense, cost_center_list)
-
-	return columns, data, None, chart
+	return columns, data
 
 
 def validate_filters(filters):
@@ -212,17 +209,15 @@ def get_data_for_root_type(filters, cost_center_list, root_type, balance_must_be
 	# Accumulate values into parent accounts
 	accumulate_values_into_parents(accounts, accounts_by_name, cost_center_list)
 
-	# Calculate totals for each account row
+	# Set currency on accounts
 	for account in accounts:
-		total = 0
-		for cc in cost_center_list:
-			total += flt(account.get(cc.key, 0))
-		account["total"] = total
 		account["currency"] = currency
 
-	# Filter out zero value rows
+	# Prepare and filter data
 	data = prepare_data(accounts, parent_children_map, cost_center_list, root_type)
-	data = filter_out_zero_value_rows(data, parent_children_map, show_zero_values=False)
+	data = filter_out_zero_value_rows(
+		data, parent_children_map, show_zero_values=filters.get("show_zero_values")
+	)
 
 	return data
 
@@ -321,9 +316,15 @@ def accumulate_values_into_parents(accounts, accounts_by_name, cost_center_list)
 
 def prepare_data(accounts, parent_children_map, cost_center_list, root_type):
 	"""Prepare data with proper formatting for the report"""
+	from erpnext.accounts.utils import get_zero_cutoff
+
 	data = []
+	company_currency = None
 
 	for account in accounts:
+		has_value = False
+		total = 0
+
 		row = frappe._dict(
 			{
 				"account": account.name,
@@ -334,14 +335,19 @@ def prepare_data(accounts, parent_children_map, cost_center_list, root_type):
 				"is_group": account.is_group,
 				"opening_balance": 0,
 				"currency": account.get("currency"),
-				"total": flt(account.get("total", 0)),
 			}
 		)
 
-		# Add cost center values
+		# Add cost center values and check if row has any value
 		for cc in cost_center_list:
-			row[cc.key] = flt(account.get(cc.key, 0))
+			cc_value = flt(account.get(cc.key, 0), 3)
+			row[cc.key] = cc_value
+			total += cc_value
+			if abs(cc_value) >= 0.01:  # Has significant value
+				has_value = True
 
+		row["total"] = flt(total, 3)
+		row["has_value"] = has_value
 		data.append(row)
 
 	return data
@@ -396,47 +402,3 @@ def calculate_net_profit_loss(income, expense, cost_center_list, filters):
 	net_profit_loss["total"] = total_net
 
 	return net_profit_loss
-
-
-def get_chart_data(income, expense, cost_center_list):
-	"""Generate chart data for the report"""
-	labels = [cc.label for cc in cost_center_list]
-
-	income_data = []
-	expense_data = []
-	net_profit_data = []
-
-	for cc in cost_center_list:
-		# Sum root level income accounts
-		cc_income = 0
-		if income:
-			for row in income:
-				if row.get("indent") == 0:
-					cc_income += flt(row.get(cc.key, 0))
-
-		# Sum root level expense accounts
-		cc_expense = 0
-		if expense:
-			for row in expense:
-				if row.get("indent") == 0:
-					cc_expense += flt(row.get(cc.key, 0))
-
-		income_data.append(cc_income)
-		expense_data.append(cc_expense)
-		net_profit_data.append(cc_income - cc_expense)
-
-	chart = {
-		"data": {
-			"labels": labels,
-			"datasets": [
-				{"name": _("Income"), "values": income_data},
-				{"name": _("Expense"), "values": expense_data},
-				{"name": _("Net Profit/Loss"), "values": net_profit_data},
-			],
-		},
-		"type": "bar",
-		"colors": ["#5e64ff", "#ff5858", "#28a745"],
-		"barOptions": {"stacked": 0},
-	}
-
-	return chart
