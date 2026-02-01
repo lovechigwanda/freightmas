@@ -2,7 +2,7 @@
  "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cc3aTaxes1\",\"type\":\"card\",\"data\":{\"card_name\":\"Taxes & Charges\",\"col\":4}},{\"id\":\"cc4aCurren\",\"type\":\"card\",\"data\":{\"card_name\":\"Multi Currency\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cc6aOpenCl\",\"type\":\"card\",\"data\":{\"card_name\":\"Opening and Closing\",\"col\":4}},{\"id\":\"cc7aBankin\",\"type\":\"card\",\"data\":{\"card_name\":\"Banking\",\"col\":4}}]",
- "creation": "2026-02-01 14:37:22.080348",
+ "creation": "2026-02-01 15:42:21.042651",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -225,7 +225,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Financial Reports",
-   "link_count": 10,
+   "link_count": 12,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -256,6 +256,16 @@
    "label": "Profit and Loss by Cost Center",
    "link_count": 0,
    "link_to": "Profit and Loss by Cost Center",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Profit and Loss by Cost Center With Template",
+   "link_count": 0,
+   "link_to": "Profit and Loss by Cost Center With Template",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -713,9 +723,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "P&L by Cost Center (Advanced)",
+   "link_count": 0,
+   "link_to": "Profit and Loss by Cost Center (Advanced)",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-01 14:48:16.263774",
+ "modified": "2026-02-01 15:43:02.370522",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Accounts",
