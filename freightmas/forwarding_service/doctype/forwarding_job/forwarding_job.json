@@ -1011,7 +1011,7 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:!doc.revenue_recognised_on",
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "set_rr_date",
    "fieldtype": "Button",
    "label": "Set Revenue Recognition Date",
