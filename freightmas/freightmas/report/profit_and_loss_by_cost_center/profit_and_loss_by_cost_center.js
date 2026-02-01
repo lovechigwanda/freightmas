@@ -179,7 +179,7 @@ function set_dates_from_fiscal_year() {
 
 	if (from_fiscal_year && to_fiscal_year) {
 		frappe.call({
-			method: "erpnext.accounts.report.financial_statements.get_fiscal_year_data",
+			method: "freightmas.freightmas.report.profit_and_loss_by_cost_center.profit_and_loss_by_cost_center.get_fiscal_year_data",
 			args: {
 				from_fiscal_year: from_fiscal_year,
 				to_fiscal_year: to_fiscal_year,

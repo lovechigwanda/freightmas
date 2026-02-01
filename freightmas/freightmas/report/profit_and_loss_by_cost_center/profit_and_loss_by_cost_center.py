@@ -16,6 +16,18 @@ from erpnext.accounts.report.profit_and_loss_statement.profit_and_loss_statement
 )
 
 
+@frappe.whitelist()
+def get_fiscal_year_data(from_fiscal_year, to_fiscal_year):
+	"""Get start and end dates from fiscal years - whitelisted wrapper"""
+	from_fy = frappe.get_doc("Fiscal Year", from_fiscal_year)
+	to_fy = frappe.get_doc("Fiscal Year", to_fiscal_year)
+	
+	return {
+		"from_date": from_fy.year_start_date,
+		"to_date": to_fy.year_end_date
+	}
+
+
 def execute(filters=None):
 	if not filters:
 		filters = frappe._dict()
