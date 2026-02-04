@@ -261,7 +261,8 @@
    "fieldname": "customer_reference",
    "fieldtype": "Data",
    "label": "Customer Reference",
-   "no_copy": 1
+   "no_copy": 1,
+   "reqd": 1
   },
   {
    "fieldname": "section_break_job",
