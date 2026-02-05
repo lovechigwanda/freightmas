@@ -32,10 +32,10 @@ def execute(filters=None):
     if filters.get("status"):
         conditions.append("status = %(status)s")
         params["status"] = filters["status"]
-    
-    if filters.get("direction"):
-        conditions.append("direction = %(direction)s")
-        params["direction"] = filters["direction"]
+
+    if filters.get("customer_reference"):
+        conditions.append("customer_reference LIKE %(customer_reference)s")
+        params["customer_reference"] = f"%{filters['customer_reference']}%"
 
     where_clause = " AND ".join(conditions)
 

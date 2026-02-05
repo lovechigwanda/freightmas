@@ -99,10 +99,9 @@ frappe.query_reports["Forwarding Job List"] = {
 			options: ["", "Draft", "In Progress", "Completed", "Cancelled"]
 		},
 		{
-			fieldname: "direction",
-			label: __("Direction"),
-			fieldtype: "Select",
-			options: ["", "Import", "Export"]
+			fieldname: "customer_reference",
+			label: __("Reference"),
+			fieldtype: "Data"
 		}
 	],
 
