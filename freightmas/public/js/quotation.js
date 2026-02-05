@@ -63,9 +63,15 @@ function calculate_totals(frm) {
         est_cost += flt(item.cost_amount);
     });
 
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Cannot Update After Submit" errors
+    est_revenue = flt(est_revenue, 2);
+    est_cost = flt(est_cost, 2);
+    let est_profit = flt(est_revenue - est_cost, 2);
+
     frm.set_value('est_revenue', est_revenue);
     frm.set_value('est_cost', est_cost);
-    frm.set_value('est_profit', est_revenue - est_cost);
+    frm.set_value('est_profit', est_profit);
 }
 
 frappe.ui.form.on('Quotation Item', {
@@ -79,7 +85,9 @@ frappe.ui.form.on('Quotation Item', {
 
 function update_cost_amount(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
-    frappe.model.set_value(cdt, cdn, "cost_amount", (row.qty || 0) * (row.buy_rate || 0));
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Cannot Update After Submit" errors
+    frappe.model.set_value(cdt, cdn, "cost_amount", flt((row.qty || 0) * (row.buy_rate || 0), 2));
     calculate_totals(frm);
 }
 

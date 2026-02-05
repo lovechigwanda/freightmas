@@ -884,11 +884,13 @@ function calculate_costing_charge_amounts(frm, cdt, cdn) {
     let sell_rate = flt(row.sell_rate) || 0;
     let buy_rate = flt(row.buy_rate) || 0;
     
-    let revenue_amount = qty * sell_rate;
-    let cost_amount = qty * buy_rate;
-    let margin_amount = revenue_amount - cost_amount;
-    let margin_percentage = revenue_amount > 0 ? (margin_amount / revenue_amount * 100) : 0;
-    
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Cannot Update After Submit" errors
+    let revenue_amount = flt(qty * sell_rate, 2);
+    let cost_amount = flt(qty * buy_rate, 2);
+    let margin_amount = flt(revenue_amount - cost_amount, 2);
+    let margin_percentage = revenue_amount > 0 ? flt((margin_amount / revenue_amount * 100), 2) : 0;
+
     frappe.model.set_value(cdt, cdn, 'revenue_amount', revenue_amount);
     frappe.model.set_value(cdt, cdn, 'cost_amount', cost_amount);
     frappe.model.set_value(cdt, cdn, 'margin_amount', margin_amount);
@@ -906,18 +908,20 @@ function calculate_costing_totals(frm) {
         total_cost += flt(row.cost_amount);
     });
     
-    let total_profit = total_revenue - total_cost;
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Cannot Update After Submit" errors
+    let total_profit = flt(total_revenue - total_cost, 2);
     let rate = flt(frm.doc.conversion_rate) || 1.0;
-    let profit_margin_percent = total_revenue > 0 ? (total_profit / total_revenue * 100) : 0;
-    
-    set_main_value_safe(frm, 'total_quoted_revenue', total_revenue);
-    set_main_value_safe(frm, 'total_quoted_cost', total_cost);
+    let profit_margin_percent = total_revenue > 0 ? flt((total_profit / total_revenue * 100), 2) : 0;
+
+    set_main_value_safe(frm, 'total_quoted_revenue', flt(total_revenue, 2));
+    set_main_value_safe(frm, 'total_quoted_cost', flt(total_cost, 2));
     set_main_value_safe(frm, 'total_quoted_margin', total_profit);
     set_main_value_safe(frm, 'quoted_margin_percent', profit_margin_percent);
-    
-    set_main_value_safe(frm, 'total_quoted_revenue_base', total_revenue * rate);
-    set_main_value_safe(frm, 'total_quoted_cost_base', total_cost * rate);
-    set_main_value_safe(frm, 'total_quoted_profit_base', total_profit * rate);
+
+    set_main_value_safe(frm, 'total_quoted_revenue_base', flt(total_revenue * rate, 2));
+    set_main_value_safe(frm, 'total_quoted_cost_base', flt(total_cost * rate, 2));
+    set_main_value_safe(frm, 'total_quoted_profit_base', flt(total_profit * rate, 2));
     
     frm.refresh_fields();
 }
@@ -927,8 +931,9 @@ function calculate_revenue_charge_amounts(frm, cdt, cdn) {
     
     let qty = flt(row.qty) || 1;
     let sell_rate = flt(row.sell_rate) || 0;
-    let revenue_amount = qty * sell_rate;
-    
+    // Apply precision rounding (2 decimal places for currency fields)
+    let revenue_amount = flt(qty * sell_rate, 2);
+
     frappe.model.set_value(cdt, cdn, 'revenue_amount', revenue_amount);
     calculate_actual_totals(frm);
 }
@@ -938,8 +943,9 @@ function calculate_cost_charge_amounts(frm, cdt, cdn) {
     
     let qty = flt(row.qty) || 1;
     let buy_rate = flt(row.buy_rate) || 0;
-    let cost_amount = qty * buy_rate;
-    
+    // Apply precision rounding (2 decimal places for currency fields)
+    let cost_amount = flt(qty * buy_rate, 2);
+
     frappe.model.set_value(cdt, cdn, 'cost_amount', cost_amount);
     calculate_actual_totals(frm);
 }

@@ -160,18 +160,22 @@ function calculate_total(frm) {
 			total += flt(charge.revenue_amount || 0);
 		});
 	}
-	
-	frm.set_value('total_quoted_amount', total);
+
+	// Apply precision rounding (2 decimal places for currency fields)
+	// This prevents floating-point drift causing "Cannot Update After Submit" errors
+	frm.set_value('total_quoted_amount', flt(total, 2));
 }
 
 function calculate_row_amounts(frm, cdt, cdn) {
 	let row = locals[cdt][cdn];
 	
+	// Apply precision rounding (2 decimal places for currency fields)
+	// This prevents floating-point drift causing "Cannot Update After Submit" errors
 	// Calculate revenue amount
-	row.revenue_amount = flt(row.qty || 0) * flt(row.sell_rate || 0);
-	
+	row.revenue_amount = flt(flt(row.qty || 0) * flt(row.sell_rate || 0), 2);
+
 	// Calculate cost amount
-	row.cost_amount = flt(row.qty || 0) * flt(row.buy_rate || 0);
+	row.cost_amount = flt(flt(row.qty || 0) * flt(row.buy_rate || 0), 2);
 	
 	frm.refresh_field('job_order_charges');
 	calculate_total(frm);

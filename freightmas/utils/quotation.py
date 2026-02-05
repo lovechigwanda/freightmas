@@ -11,7 +11,7 @@ Handles:
 
 import frappe
 from frappe import _
-from frappe.utils import today, getdate, get_fullname
+from frappe.utils import today, getdate, get_fullname, flt
 
 
 # ==============================
@@ -21,14 +21,24 @@ from frappe.utils import today, getdate, get_fullname
 def validate_quotation(doc, method=None):
 	"""
 	Validate quotation before save.
-	
+
 	Prevents accepting expired quotations.
+	Ensures consistent precision for calculated financial fields.
 	"""
 	# Prevent accepting expired quotations
-	if (doc.workflow_state == "Accepted" and 
-		doc.valid_till and 
+	if (doc.workflow_state == "Accepted" and
+		doc.valid_till and
 		getdate(doc.valid_till) < getdate(today())):
 		frappe.throw(_("Cannot accept an expired quotation. Validity period has lapsed."))
+
+	# Ensure precision consistency for calculated fields (2 decimal places)
+	# This prevents floating-point drift causing "Cannot Update After Submit" errors
+	if hasattr(doc, 'est_revenue'):
+		doc.est_revenue = flt(doc.est_revenue, 2)
+	if hasattr(doc, 'est_cost'):
+		doc.est_cost = flt(doc.est_cost, 2)
+	if hasattr(doc, 'est_profit'):
+		doc.est_profit = flt(doc.est_profit, 2)
 
 
 def on_quotation_workflow_change(doc, method=None):

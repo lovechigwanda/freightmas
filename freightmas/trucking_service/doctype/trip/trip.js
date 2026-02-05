@@ -155,10 +155,12 @@ function calculate_totals(frm) {
         total_commissions += d.total_amount || 0;
     });
 
-    const total_cost = total_fuel_cost + total_other_costs + total_commissions;
-    const profit = total_revenue - total_cost;
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Cannot Update After Submit" errors
+    const total_cost = flt(total_fuel_cost + total_other_costs + total_commissions, 2);
+    const profit = flt(total_revenue - total_cost, 2);
 
-    frm.set_value('total_estimated_revenue', total_revenue);
+    frm.set_value('total_estimated_revenue', flt(total_revenue, 2));
     frm.set_value('total_estimated_cost', total_cost);
     frm.set_value('estimated_profit', profit);
 }
