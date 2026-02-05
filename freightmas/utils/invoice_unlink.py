@@ -233,43 +233,31 @@ def unlink_purchase_invoice_from_clearing_job(invoice_name):
 def unlink_sales_invoice_from_trip(invoice_name):
     """
     Unlink a Sales Invoice from Trip revenue charges.
-    Note: Trip uses 'sales_invoice' field (not 'sales_invoice_reference')
+    Clears is_invoiced and sales_invoice fields.
     """
-    if not frappe.db.exists("DocType", "Trip Revenue Charges"):
-        return
-    
-    meta = frappe.get_meta("Trip Revenue Charges")
-    
-    # Trip Revenue Charges uses 'sales_invoice' field
-    invoice_field = None
-    if meta.has_field("sales_invoice"):
-        invoice_field = "sales_invoice"
-    elif meta.has_field("sales_invoice_reference"):
-        invoice_field = "sales_invoice_reference"
-    else:
-        return
-    
+    # Find all revenue charge rows linked to this invoice
     linked_rows = frappe.get_all(
         "Trip Revenue Charges",
-        filters={invoice_field: invoice_name},
+        filters={"sales_invoice": invoice_name},
         fields=["name", "parent"]
     )
-    
+
     if not linked_rows:
         return
-    
-    update_fields = {invoice_field: None}
-    if meta.has_field("is_invoiced"):
-        update_fields["is_invoiced"] = 0
-    
+
+    # Update each linked row
     for row in linked_rows:
         frappe.db.set_value(
             "Trip Revenue Charges",
             row.name,
-            update_fields,
+            {
+                "is_invoiced": 0,
+                "sales_invoice": None
+            },
             update_modified=False
         )
-    
+
+    # Get unique parent trips and notify
     parent_trips = list(set(row.parent for row in linked_rows))
     for trip_name in parent_trips:
         frappe.msgprint(
