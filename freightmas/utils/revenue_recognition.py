@@ -260,18 +260,22 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
         invoice_total = flt(invoice.grand_total)
         conversion_rate = flt(invoice.conversion_rate) or 1
         base_amount = flt(invoice_total * conversion_rate)
-        
+
+        # Skip zero-amount invoices (defensive check)
+        if base_amount <= 0:
+            continue
+
         total_recognized += base_amount
-        
+
         # Get cost center from first invoice item if available
         cost_center = None
         if invoice.items:
             cost_center = invoice.items[0].cost_center
-        
+
         remark = _("Revenue recognition for {0} - Invoice {1}").format(
             job_doc.name, invoice.name
         )
-        
+
         # Debit WIP Revenue (reduce liability)
         accounts.append({
             "account": wip_revenue_account,
@@ -279,7 +283,7 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
             "cost_center": cost_center,
             "user_remark": remark,
         })
-        
+
         # Credit Revenue Account (recognize income)
         accounts.append({
             "account": revenue_account,
@@ -354,18 +358,22 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
         invoice_total = flt(invoice.grand_total)
         conversion_rate = flt(invoice.conversion_rate) or 1
         base_amount = flt(invoice_total * conversion_rate)
-        
+
+        # Skip zero-amount invoices (defensive check)
+        if base_amount <= 0:
+            continue
+
         total_recognized += base_amount
-        
+
         # Get cost center from first invoice item if available
         cost_center = None
         if invoice.items:
             cost_center = invoice.items[0].cost_center
-        
+
         remark = _("Cost recognition for {0} - Invoice {1}").format(
             job_doc.name, invoice.name
         )
-        
+
         # Debit Cost of Services (recognize expense)
         accounts.append({
             "account": cost_account,
@@ -373,7 +381,7 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
             "cost_center": cost_center,
             "user_remark": remark,
         })
-        
+
         # Credit WIP Cost (reduce asset)
         accounts.append({
             "account": wip_cost_account,
@@ -590,12 +598,14 @@ def recognize_revenue_for_job(job_doc, service_type):
     
     # Get all submitted sales invoices linked to this job
     invoices = get_linked_sales_invoices(job_doc.doctype, job_doc.name)
-    
+    # Filter out zero-amount invoices to prevent JE validation errors
+    invoices = [inv for inv in invoices if flt(inv.grand_total) > 0]
+
     if not invoices:
         # No invoices yet - job can be submitted, revenue will be recognized
         # when invoices are raised later
         frappe.msgprint(
-            _("No invoices found. Revenue will be recognized when invoices are submitted."),
+            _("No Sales Invoices with non-zero amounts linked to this job for revenue recognition."),
             alert=True
         )
         job_doc.revenue_recognised = 1
@@ -685,11 +695,13 @@ def recognize_cost_for_job(job_doc, service_type):
     
     # Get all submitted purchase invoices linked to this job
     invoices = get_linked_purchase_invoices(job_doc.doctype, job_doc.name)
-    
+    # Filter out zero-amount invoices to prevent JE validation errors
+    invoices = [inv for inv in invoices if flt(inv.grand_total) > 0]
+
     if not invoices:
         # No purchase invoices yet - mark as recognized with zero
         frappe.msgprint(
-            _("No purchase invoices found. Cost will be recognized when invoices are submitted."),
+            _("No Purchase Invoices with non-zero amounts linked to this job for cost recognition."),
             alert=True
         )
         job_doc.cost_recognised = 1
@@ -773,11 +785,20 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         return
     
     job_doc = frappe.get_doc(job_doctype, job_reference)
-    
+
     # Check if job already has revenue recognized
     if not job_doc.revenue_recognised or not job_doc.revenue_recognised_on:
         return
-    
+
+    # Check if invoice has zero amount - skip recognition
+    invoice_amount = flt(invoice_doc.grand_total)
+    if invoice_amount <= 0:
+        frappe.msgprint(
+            _("Sales Invoice {0} has zero amount. Skipping revenue recognition.").format(invoice_doc.name),
+            alert=True
+        )
+        return
+
     # Create immediate recognition for this invoice
     je_name, amount = create_single_invoice_recognition_je(
         job_doc,
