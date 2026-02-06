@@ -254,12 +254,18 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
     
     accounts = []
     total_recognized = 0
+    zero_amount_invoices = []
     
     for invoice in invoices:
         # Calculate base amount using invoice's conversion rate
         invoice_total = flt(invoice.grand_total)
         conversion_rate = flt(invoice.conversion_rate) or 1
         base_amount = flt(invoice_total * conversion_rate)
+        
+        # Skip invoices with zero amounts to avoid JE validation errors
+        if base_amount == 0:
+            zero_amount_invoices.append(invoice.name)
+            continue
         
         total_recognized += base_amount
         
@@ -289,6 +295,14 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
         })
     
     if not accounts:
+        if zero_amount_invoices:
+            frappe.throw(
+                _("Cannot recognize revenue: All linked sales invoices have zero amounts. "
+                  "Invoices with zero amounts: {0}. Please ensure the invoices have valid amounts before submitting the job.").format(
+                    ", ".join(zero_amount_invoices)
+                ),
+                title=_("Zero Amount Invoices")
+            )
         frappe.throw(_("No accounting entries to create for revenue recognition"))
     
     # Create Journal Entry
@@ -348,12 +362,18 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
     
     accounts = []
     total_recognized = 0
+    zero_amount_invoices = []
     
     for invoice in invoices:
         # Calculate base amount using invoice's conversion rate
         invoice_total = flt(invoice.grand_total)
         conversion_rate = flt(invoice.conversion_rate) or 1
         base_amount = flt(invoice_total * conversion_rate)
+        
+        # Skip invoices with zero amounts to avoid JE validation errors
+        if base_amount == 0:
+            zero_amount_invoices.append(invoice.name)
+            continue
         
         total_recognized += base_amount
         
@@ -383,6 +403,14 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
         })
     
     if not accounts:
+        if zero_amount_invoices:
+            frappe.throw(
+                _("Cannot recognize cost: All linked purchase invoices have zero amounts. "
+                  "Invoices with zero amounts: {0}. Please ensure the invoices have valid amounts before submitting the job.").format(
+                    ", ".join(zero_amount_invoices)
+                ),
+                title=_("Zero Amount Invoices")
+            )
         frappe.throw(_("No accounting entries to create for cost recognition"))
     
     # Create Journal Entry
