@@ -143,41 +143,33 @@ def unlink_purchase_invoice_from_forwarding_job(invoice_name):
 
 def unlink_sales_invoice_from_clearing_job(invoice_name):
     """
-    Unlink a Sales Invoice from Clearing Job charges.
+    Unlink a Sales Invoice from Clearing Job revenue charges.
+    Clears is_invoiced and sales_invoice_reference fields.
     """
-    # Check if Clearing Charges doctype exists and has the required fields
-    if not frappe.db.exists("DocType", "Clearing Charges"):
-        return
-    
-    meta = frappe.get_meta("Clearing Charges")
-    if not meta.has_field("sales_invoice_reference"):
-        return
-    
     linked_rows = frappe.get_all(
-        "Clearing Charges",
+        "Clearing Revenue Charges",
         filters={"sales_invoice_reference": invoice_name},
         fields=["name", "parent"]
     )
-    
+
     if not linked_rows:
         return
-    
-    update_fields = {"sales_invoice_reference": None}
-    if meta.has_field("is_invoiced"):
-        update_fields["is_invoiced"] = 0
-    
+
     for row in linked_rows:
         frappe.db.set_value(
-            "Clearing Charges",
+            "Clearing Revenue Charges",
             row.name,
-            update_fields,
+            {
+                "is_invoiced": 0,
+                "sales_invoice_reference": None
+            },
             update_modified=False
         )
-    
+
     parent_jobs = list(set(row.parent for row in linked_rows))
     for job_name in parent_jobs:
         frappe.msgprint(
-            _("Sales Invoice {0} was cancelled. Charges in Clearing Job {1} have been unlinked.").format(
+            _("Sales Invoice {0} was cancelled. Revenue charges in Clearing Job {1} have been unlinked.").format(
                 invoice_name, job_name
             ),
             alert=True
@@ -186,40 +178,33 @@ def unlink_sales_invoice_from_clearing_job(invoice_name):
 
 def unlink_purchase_invoice_from_clearing_job(invoice_name):
     """
-    Unlink a Purchase Invoice from Clearing Job charges.
+    Unlink a Purchase Invoice from Clearing Job cost charges.
+    Clears is_purchased and purchase_invoice_reference fields.
     """
-    if not frappe.db.exists("DocType", "Clearing Charges"):
-        return
-    
-    meta = frappe.get_meta("Clearing Charges")
-    if not meta.has_field("purchase_invoice_reference"):
-        return
-    
     linked_rows = frappe.get_all(
-        "Clearing Charges",
+        "Clearing Cost Charges",
         filters={"purchase_invoice_reference": invoice_name},
         fields=["name", "parent"]
     )
-    
+
     if not linked_rows:
         return
-    
-    update_fields = {"purchase_invoice_reference": None}
-    if meta.has_field("is_purchased"):
-        update_fields["is_purchased"] = 0
-    
+
     for row in linked_rows:
         frappe.db.set_value(
-            "Clearing Charges",
+            "Clearing Cost Charges",
             row.name,
-            update_fields,
+            {
+                "is_purchased": 0,
+                "purchase_invoice_reference": None
+            },
             update_modified=False
         )
-    
+
     parent_jobs = list(set(row.parent for row in linked_rows))
     for job_name in parent_jobs:
         frappe.msgprint(
-            _("Purchase Invoice {0} was cancelled. Charges in Clearing Job {1} have been unlinked.").format(
+            _("Purchase Invoice {0} was cancelled. Cost charges in Clearing Job {1} have been unlinked.").format(
                 invoice_name, job_name
             ),
             alert=True
