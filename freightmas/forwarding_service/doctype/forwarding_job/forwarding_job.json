@@ -949,11 +949,12 @@
   {
    "bold": 1,
    "default": "0",
-   "depends_on": "eval:doc.docstatus==0",
+   "depends_on": "eval:doc.docstatus==0 && frappe.user_roles.includes('System Manager')",
    "description": "Tick this to skip all validations during submission (for cancelling problematic jobs)",
    "fieldname": "skip_validations",
    "fieldtype": "Check",
-   "label": "Skip Validations"
+   "label": "Skip Validations",
+   "permlevel": 1
   },
   {
    "depends_on": "eval:doc.docstatus==0",
@@ -1081,6 +1082,12 @@
    "select": 1,
    "share": 1,
    "submit": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
    "write": 1
   }
  ],

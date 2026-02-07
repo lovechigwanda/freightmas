@@ -31,7 +31,10 @@ class ForwardingJob(Document):
         self.calculate_trucks_required()
 
         # Skip validations if checkbox is ticked (for cancelling problematic jobs)
-        if not self.skip_validations:
+        if self.skip_validations:
+            if "System Manager" not in frappe.get_roles():
+                frappe.throw(_("Only System Managers can use Skip Validations"))
+        else:
             self.validate_customer_and_supplier()
             self.prevent_editing_invoiced_rows()
             self.ensure_planned_charges_before_status_change()
