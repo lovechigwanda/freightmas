@@ -866,17 +866,23 @@ def _cancel_with_workflow(job, workflow_name):
         # Workflow has a proper Cancelled state - use it
         target_state = cancelled_states[0].state
 
-        # Set workflow state and docstatus
+        # Set workflow state for the target cancelled state
         job.workflow_state = target_state
-        job.docstatus = 2
         job.status = "Cancelled"
 
-        # Bypass workflow transition validation
+        # Bypass validations and workflow transitions
+        job.flags.ignore_validate = True
+        job.flags.ignore_mandatory = True
         job.flags.ignore_workflow_validation = True
         job.flags.ignore_permissions = True
 
-        job.save()
-        job.add_comment("Workflow", f"Draft job cancelled via direct cancellation to state: {target_state}")
+        # Submit first (required by Frappe before cancellation)
+        job.submit()
+
+        # Then cancel
+        job.cancel()
+
+        job.add_comment("Workflow", f"Draft job force-submitted and cancelled to state: {target_state}")
     else:
         # Workflow exists but no Cancelled state defined
         # Bypass workflow entirely
@@ -885,20 +891,35 @@ def _cancel_with_workflow(job, workflow_name):
             alert=True
         )
 
-        job.docstatus = 2
         job.status = "Cancelled"
+        job.flags.ignore_validate = True
+        job.flags.ignore_mandatory = True
         job.flags.ignore_workflow_validation = True
         job.flags.ignore_permissions = True
-        job.save()
-        job.add_comment("Info", "Draft job cancelled (workflow bypassed - no Cancelled state in workflow)")
+
+        # Submit first then cancel
+        job.submit()
+        job.cancel()
+
+        job.add_comment("Info", "Draft job force-submitted and cancelled (workflow bypassed - no Cancelled state in workflow)")
 
 
 def _cancel_without_workflow(job):
     """Handle cancellation when no workflow is active."""
-    job.docstatus = 2
     job.status = "Cancelled"
-    job.save()
-    job.add_comment("Info", "Draft job cancelled without submission")
+
+    # Set flags to bypass all validations during submit
+    job.flags.ignore_validate = True
+    job.flags.ignore_mandatory = True
+    job.flags.ignore_permissions = True
+
+    # Submit first (required by Frappe)
+    job.submit()
+
+    # Then cancel
+    job.cancel()
+
+    job.add_comment("Info", "Draft job force-submitted and cancelled without validation")
 
 
 def _validate_no_linked_documents(job):
