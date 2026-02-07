@@ -27,32 +27,26 @@ class ForwardingJob(Document):
         self.calculate_actual_cost_charges()
         self.calculate_actual_totals()
         
-        # Validate customer and supplier information
-        self.validate_customer_and_supplier()
-        
-        # Prevent editing of invoiced rows
-        self.prevent_editing_invoiced_rows()
-        
         # Calculate the number of trucks required
         self.calculate_trucks_required()
 
-        # Ensure planned charges exist before leaving Draft
-        self.ensure_planned_charges_before_status_change()
-        
-        # Prevent editing of costing charges once job is not Draft
-        self.prevent_editing_costing_charges()
-        
-        # Validate cargo milestone progression
-        self.validate_cargo_milestones()
-        
-        # Validate completion requirements before status changes to Completed
-        self.validate_completion_requirements()
+        # Skip validations if checkbox is ticked (for cancelling problematic jobs)
+        if not self.skip_validations:
+            self.validate_customer_and_supplier()
+            self.prevent_editing_invoiced_rows()
+            self.ensure_planned_charges_before_status_change()
+            self.prevent_editing_costing_charges()
+            self.validate_cargo_milestones()
+            self.validate_completion_requirements()
 
     def on_submit(self):
         """Handle job submission - trigger revenue and cost recognition"""
+        if self.skip_validations:
+            return
+
         # Validate Revenue Recognition Date before proceeding
         self.validate_revenue_recognition_before_submit()
-        
+
         from freightmas.utils.revenue_recognition import recognize_revenue_for_job, recognize_cost_for_job
         recognize_revenue_for_job(self, "forwarding")
         recognize_cost_for_job(self, "forwarding")
