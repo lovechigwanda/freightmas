@@ -390,9 +390,13 @@ class ClearingJob(Document):
         Checks:
         1. For Import: ATA date should be set; For Export: ATD date should be set
         2. If Direction = Import, Discharge date should be set
-        3. Cargo description should be completed
-        4. Tracking entries exist
-        5. All working charges are invoiced
+        3. BL number must be set, BL received and confirmed
+        4. Import milestones (vessel arrived, SL invoice, DO, clearing, port discharge)
+        5. Export milestones (booking, loading, sailing, port release)
+        6. Cargo description should be completed
+        7. Cargo package details must have at least 1 row
+        8. Tracking entries exist
+        9. All working charges are invoiced
         """
         # Only validate when status is changing TO Completed
         if self.status != "Completed":
@@ -419,16 +423,57 @@ class ClearingJob(Document):
         if self.direction == "Import" and not self.discharge_date:
             errors.append(_("Discharge date must be set for Import jobs before completing"))
 
-        # 3. Validate Cargo description is set
+        # 3. Validate BL & Documents
+        if not self.bl_number:
+            errors.append(_("Bill of Lading (BL) number must be set before completing the job"))
+        if not self.is_bl_received:
+            errors.append(_("Bill of Lading must be marked as received"))
+        if not self.is_bl_confirmed:
+            errors.append(_("Bill of Lading must be marked as confirmed"))
+
+        # 4. Validate Import milestones
+        if self.direction == "Import":
+            if not self.is_vessel_arrived_at_port:
+                errors.append(_("Vessel Arrived at Port must be confirmed"))
+            if not self.is_sl_invoice_received:
+                errors.append(_("Shipping Line invoice must be marked as received"))
+            if not self.is_sl_invoice_paid:
+                errors.append(_("Shipping Line invoice must be marked as paid"))
+            if not self.is_do_requested:
+                errors.append(_("Delivery Order must be marked as requested"))
+            if not self.is_do_received:
+                errors.append(_("Delivery Order must be marked as received"))
+            if not self.is_clearing_for_shipment_done:
+                errors.append(_("Clearing for shipment must be marked as done"))
+            if not self.is_discharged_from_port:
+                errors.append(_("Cargo must be marked as discharged from port"))
+
+        # 5. Validate Export milestones
+        if self.direction == "Export":
+            if not self.is_booking_confirmed:
+                errors.append(_("Booking with Shipping Line must be confirmed"))
+            if not self.is_loaded_on_vessel:
+                errors.append(_("Cargo must be marked as loaded on vessel"))
+            if not self.is_vessel_sailed:
+                errors.append(_("Vessel must be marked as sailed"))
+            if not self.is_port_release_confirmed:
+                errors.append(_("Port release must be confirmed"))
+
+        # 6. Validate Cargo description is set
         if not self.cargo_description:
             errors.append(_("Cargo description must be completed before marking the job as Completed"))
 
-        # 4. Validate tracking entries exist
+        # 7. Validate at least 1 cargo package exists
+        cargo_rows = self.get("cargo_package_details", [])
+        if not cargo_rows:
+            errors.append(_("Job must contain at least 1 row in Cargo Package Details"))
+
+        # 8. Validate tracking entries exist
         tracking_errors = self.check_tracking_completed()
         if tracking_errors:
             errors.extend(tracking_errors)
 
-        # 5. Validate all working charges are invoiced
+        # 9. Validate all working charges are invoiced
         invoice_errors = self.check_charges_invoiced()
         if invoice_errors:
             errors.extend(invoice_errors)
