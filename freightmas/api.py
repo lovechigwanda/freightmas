@@ -866,10 +866,6 @@ def _cancel_with_workflow(job, workflow_name):
         # Workflow has a proper Cancelled state - use it
         target_state = cancelled_states[0].state
 
-        # Set workflow state for the target cancelled state
-        job.workflow_state = target_state
-        job.status = "Cancelled"
-
         # Bypass validations and workflow transitions
         job.flags.ignore_validate = True
         job.flags.ignore_mandatory = True
@@ -882,6 +878,13 @@ def _cancel_with_workflow(job, workflow_name):
         # Then cancel
         job.cancel()
 
+        # NOW set workflow state after the document is cancelled
+        # This avoids "transition not allowed" errors
+        job.workflow_state = target_state
+        job.status = "Cancelled"
+        job.db_set("workflow_state", target_state, update_modified=False)
+        job.db_set("status", "Cancelled", update_modified=False)
+
         job.add_comment("Workflow", f"Draft job force-submitted and cancelled to state: {target_state}")
     else:
         # Workflow exists but no Cancelled state defined
@@ -891,7 +894,6 @@ def _cancel_with_workflow(job, workflow_name):
             alert=True
         )
 
-        job.status = "Cancelled"
         job.flags.ignore_validate = True
         job.flags.ignore_mandatory = True
         job.flags.ignore_workflow_validation = True
@@ -901,12 +903,15 @@ def _cancel_with_workflow(job, workflow_name):
         job.submit()
         job.cancel()
 
+        # Set status after cancellation
+        job.status = "Cancelled"
+        job.db_set("status", "Cancelled", update_modified=False)
+
         job.add_comment("Info", "Draft job force-submitted and cancelled (workflow bypassed - no Cancelled state in workflow)")
 
 
 def _cancel_without_workflow(job):
     """Handle cancellation when no workflow is active."""
-    job.status = "Cancelled"
 
     # Set flags to bypass all validations during submit
     job.flags.ignore_validate = True
@@ -918,6 +923,10 @@ def _cancel_without_workflow(job):
 
     # Then cancel
     job.cancel()
+
+    # Set status after cancellation
+    job.status = "Cancelled"
+    job.db_set("status", "Cancelled", update_modified=False)
 
     job.add_comment("Info", "Draft job force-submitted and cancelled without validation")
 
