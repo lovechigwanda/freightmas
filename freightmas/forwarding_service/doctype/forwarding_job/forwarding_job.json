@@ -644,7 +644,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.docstatus==0",
+   "depends_on": "eval:doc.docstatus==0 && (!doc.status || doc.status=='Draft')",
    "fieldname": "fetch_from_quotation",
    "fieldtype": "Button",
    "label": "Fetch Charges from Quotation"
