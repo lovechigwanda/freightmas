@@ -54,6 +54,30 @@ frappe.ui.form.on('Forwarding Job', {
                     '_blank'
                 );
             }, __('View'));
+
+            // --- Add Cancel Draft Job button (only for draft jobs) ---
+            if (frm.doc.docstatus === 0) {
+                frm.add_custom_button(__('Cancel Draft Job'), function() {
+                    frappe.confirm(
+                        __('Are you sure you want to cancel this draft job?<br><br>This will set the job status to Cancelled without submitting it.'),
+                        function() {
+                            frappe.call({
+                                method: "freightmas.api.cancel_draft_job",
+                                args: {
+                                    job_name: frm.doc.name
+                                },
+                                freeze: true,
+                                freeze_message: __('Cancelling draft job...'),
+                                callback: function(r) {
+                                    if (!r.exc) {
+                                        frm.reload_doc();
+                                    }
+                                }
+                            });
+                        }
+                    );
+                }, __('Actions'));
+            }
         }
     },
     

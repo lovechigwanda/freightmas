@@ -804,3 +804,138 @@ def export_statement_of_accounts_to_excel(filters):
     frappe.local.response.type = "binary"
 ##########################################################
 
+
+##########################################################
+# Cancel Draft Job Without Submission
+##########################################################
+
+@frappe.whitelist()
+def cancel_draft_job(job_name):
+    """
+    Cancel a draft job without submitting it.
+    Handles both workflow and non-workflow scenarios.
+
+    Args:
+        job_name: Name of the Forwarding Job to cancel
+
+    Returns:
+        str: Name of the cancelled job
+
+    Raises:
+        frappe.ValidationError: If job cannot be cancelled
+    """
+    job = frappe.get_doc("Forwarding Job", job_name)
+
+    # Must be in draft state
+    if job.docstatus != 0:
+        frappe.throw(_("Only draft jobs can be cancelled. This job is already {0}").format(
+            "submitted" if job.docstatus == 1 else "cancelled"
+        ))
+
+    # Safety check: no linked documents
+    _validate_no_linked_documents(job)
+
+    # Check if workflow is enabled for this doctype
+    workflow_name = frappe.db.get_value("Workflow", {"document_type": "Forwarding Job", "is_active": 1}, "name")
+
+    if workflow_name:
+        # Workflow is enabled - handle workflow transition
+        _cancel_with_workflow(job, workflow_name)
+    else:
+        # No workflow - direct cancellation
+        _cancel_without_workflow(job)
+
+    frappe.msgprint(_("Draft job {0} cancelled successfully").format(job.name), alert=True)
+    return job.name
+
+
+def _cancel_with_workflow(job, workflow_name):
+    """Handle cancellation when workflow is active."""
+
+    # Get workflow states
+    workflow_states = frappe.get_all(
+        "Workflow Document State",
+        filters={"parent": workflow_name},
+        fields=["state", "doc_status"]
+    )
+
+    # Find a "Cancelled" state in the workflow (usually doc_status=2)
+    cancelled_states = [s for s in workflow_states if s.doc_status == 2]
+
+    if cancelled_states:
+        # Workflow has a proper Cancelled state - use it
+        target_state = cancelled_states[0].state
+
+        # Set workflow state and docstatus
+        job.workflow_state = target_state
+        job.docstatus = 2
+        job.status = "Cancelled"
+
+        # Bypass workflow transition validation
+        job.flags.ignore_workflow_validation = True
+        job.flags.ignore_permissions = True
+
+        job.save()
+        job.add_comment("Workflow", f"Draft job cancelled via direct cancellation to state: {target_state}")
+    else:
+        # Workflow exists but no Cancelled state defined
+        # Bypass workflow entirely
+        frappe.msgprint(
+            _("Warning: No 'Cancelled' state found in workflow. Cancelling without workflow transition."),
+            alert=True
+        )
+
+        job.docstatus = 2
+        job.status = "Cancelled"
+        job.flags.ignore_workflow_validation = True
+        job.flags.ignore_permissions = True
+        job.save()
+        job.add_comment("Info", "Draft job cancelled (workflow bypassed - no Cancelled state in workflow)")
+
+
+def _cancel_without_workflow(job):
+    """Handle cancellation when no workflow is active."""
+    job.docstatus = 2
+    job.status = "Cancelled"
+    job.save()
+    job.add_comment("Info", "Draft job cancelled without submission")
+
+
+def _validate_no_linked_documents(job):
+    """Ensure job has no linked documents that would prevent cancellation."""
+
+    # Check Sales Invoices
+    sales_invoices = frappe.db.count(
+        "Sales Invoice",
+        {"forwarding_job_reference": job.name, "docstatus": ["<", 2]}
+    )
+
+    # Check Purchase Invoices
+    purchase_invoices = frappe.db.count(
+        "Purchase Invoice",
+        {"forwarding_job_reference": job.name, "docstatus": ["<", 2]}
+    )
+
+    # Check Journal Entries
+    has_journal_entries = bool(
+        job.revenue_recognition_journal_entry or
+        job.cost_recognition_journal_entry
+    )
+
+    # Build error message if any links exist
+    if sales_invoices or purchase_invoices or has_journal_entries:
+        errors = []
+        if sales_invoices:
+            errors.append(f"• {sales_invoices} Sales Invoice(s)")
+        if purchase_invoices:
+            errors.append(f"• {purchase_invoices} Purchase Invoice(s)")
+        if has_journal_entries:
+            errors.append("• Revenue/Cost recognition journal entries")
+
+        frappe.throw(
+            _("Cannot cancel job with linked documents:<br>{0}<br><br>Please cancel these documents first.").format(
+                "<br>".join(errors)
+            ),
+            title=_("Linked Documents Exist")
+        )
+
