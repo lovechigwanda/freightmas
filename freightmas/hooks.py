@@ -266,6 +266,7 @@ doc_events = {
     "Sales Invoice": {
         "validate": "freightmas.utils.revenue_recognition.set_wip_revenue_account",
         "on_submit": "freightmas.utils.revenue_recognition.on_sales_invoice_submit",
+        "before_cancel": "freightmas.utils.invoice_unlink.before_sales_invoice_cancel",
         "on_cancel": [
             "freightmas.utils.invoice_unlink.on_sales_invoice_cancel",
             "freightmas.utils.revenue_recognition.on_sales_invoice_cancel_for_recognition"
@@ -273,12 +274,14 @@ doc_events = {
     },
     "Purchase Invoice": {
         "validate": "freightmas.utils.revenue_recognition.set_wip_cost_account",
+        "before_cancel": "freightmas.utils.invoice_unlink.before_purchase_invoice_cancel",
         "on_cancel": [
             "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel",
             "freightmas.utils.revenue_recognition.on_purchase_invoice_cancel_for_recognition"
         ]
     },
     "Journal Entry": {
+        "before_cancel": "freightmas.utils.invoice_unlink.before_journal_entry_cancel",
         "on_cancel": "freightmas.utils.invoice_unlink.on_journal_entry_cancel"
     }
 }

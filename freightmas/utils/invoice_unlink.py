@@ -13,6 +13,38 @@ import frappe
 from frappe import _
 
 
+# ========================================================
+# BEFORE CANCEL HANDLERS - Allow cancelling invoices
+# without forcing cancellation of linked jobs/trips
+# ========================================================
+
+def before_sales_invoice_cancel(doc, method=None):
+    """Skip linked document checks for job/trip child tables."""
+    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
+        "Forwarding Revenue Charges", "Clearing Revenue Charges", "Trip Revenue Charges"
+    ]
+
+
+def before_purchase_invoice_cancel(doc, method=None):
+    """Skip linked document checks for job/trip child tables."""
+    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
+        "Forwarding Cost Charges", "Clearing Cost Charges",
+        "Trip Cost Charges", "Trip Other Costs"
+    ]
+
+
+def before_journal_entry_cancel(doc, method=None):
+    """Skip linked document checks for trip child tables."""
+    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
+        "Trip Other Costs"
+    ]
+
+
+# ========================================================
+# ON CANCEL HANDLERS - Unlink references after cancellation
+# ========================================================
+
+
 def on_sales_invoice_cancel(doc, method=None):
     """
     Called when a Sales Invoice is cancelled.
