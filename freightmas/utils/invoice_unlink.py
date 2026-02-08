@@ -43,17 +43,31 @@ def on_purchase_invoice_cancel(doc, method=None):
     try:
         # Unlink from Forwarding Job cost charges
         unlink_purchase_invoice_from_forwarding_job(doc.name)
-        
+
         # Unlink from Clearing Job charges
         unlink_purchase_invoice_from_clearing_job(doc.name)
-        
+
         # Unlink from Trip cost charges
         unlink_purchase_invoice_from_trip(doc.name)
-        
+
     except Exception as e:
         frappe.log_error(
             message=f"Error unlinking cancelled Purchase Invoice {doc.name}: {str(e)}",
             title="Invoice Unlink Error"
+        )
+
+
+def on_journal_entry_cancel(doc, method=None):
+    """
+    Called when a Journal Entry is cancelled.
+    Unlinks the journal entry from any Trip Other Costs rows that reference it.
+    """
+    try:
+        unlink_journal_entry_from_trip(doc.name)
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error unlinking cancelled Journal Entry {doc.name}: {str(e)}",
+            title="Journal Entry Unlink Error"
         )
 
 
@@ -303,3 +317,42 @@ def unlink_purchase_invoice_from_trip(invoice_name):
                 ),
                 alert=True
             )
+
+
+# ========================================================
+# TRIP JOURNAL ENTRY UNLINKING
+# ========================================================
+
+def unlink_journal_entry_from_trip(je_name):
+    """
+    Unlink a Journal Entry from Trip Other Costs rows.
+    Clears is_invoiced and journal_entry fields.
+    """
+    linked_rows = frappe.get_all(
+        "Trip Other Costs",
+        filters={"journal_entry": je_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Trip Other Costs",
+            row.name,
+            {
+                "is_invoiced": 0,
+                "journal_entry": None
+            },
+            update_modified=False
+        )
+
+    parent_trips = list(set(row.parent for row in linked_rows))
+    for trip_name in parent_trips:
+        frappe.msgprint(
+            _("Journal Entry {0} was cancelled. Other costs in Trip {1} have been unlinked.").format(
+                je_name, trip_name
+            ),
+            alert=True
+        )

@@ -277,6 +277,9 @@ doc_events = {
             "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel",
             "freightmas.utils.revenue_recognition.on_purchase_invoice_cancel_for_recognition"
         ]
+    },
+    "Journal Entry": {
+        "on_cancel": "freightmas.utils.invoice_unlink.on_journal_entry_cancel"
     }
 }
 
