@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 freightmas.patches.delete_old_workspaces
 freightmas.patches.clearing_job_charges_migration
+freightmas.patches.unlink_cancelled_documents
