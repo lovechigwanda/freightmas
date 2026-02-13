@@ -1,0 +1,42 @@
+{
+ "chart_name": "Forwarding Monthly Revenue Trend",
+ "chart_type": "Report",
+ "creation": "2025-02-13 00:00:00.000000",
+ "currency": "USD",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "dynamic_filters_json": "{}",
+ "filters_json": "{}",
+ "group_by_type": "Count",
+ "idx": 1,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2025-02-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Forwarding Monthly Revenue Trend",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "report_name": "Forwarding Monthly Revenue Trend",
+ "roles": [],
+ "time_interval": "Monthly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 0,
+ "x_field": "Month",
+ "y_axis": [
+  {
+   "color": "#4C9BE8",
+   "y_field": "Revenue"
+  },
+  {
+   "color": "#EC864B",
+   "y_field": "Cost"
+  },
+  {
+   "color": "#29CD42",
+   "y_field": "Profit"
+  }
+ ]
+}

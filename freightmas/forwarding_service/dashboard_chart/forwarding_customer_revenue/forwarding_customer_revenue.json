@@ -1,0 +1,38 @@
+{
+ "chart_name": "Forwarding Customer Revenue",
+ "chart_type": "Report",
+ "creation": "2025-02-13 00:00:00.000000",
+ "currency": "USD",
+ "docstatus": 0,
+ "doctype": "Dashboard Chart",
+ "dynamic_filters_json": "{}",
+ "filters_json": "{}",
+ "group_by_type": "Count",
+ "idx": 2,
+ "is_public": 1,
+ "is_standard": 1,
+ "modified": "2025-02-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Forwarding Customer Revenue",
+ "number_of_groups": 0,
+ "owner": "Administrator",
+ "report_name": "Forwarding Customer Revenue Graph",
+ "roles": [],
+ "time_interval": "Yearly",
+ "timeseries": 0,
+ "timespan": "Last Year",
+ "type": "Bar",
+ "use_report_chart": 0,
+ "x_field": "Customer",
+ "y_axis": [
+  {
+   "color": "#EC864B",
+   "y_field": "Working Revenue"
+  },
+  {
+   "color": "#29CD42",
+   "y_field": "Invoiced Revenue"
+  }
+ ]
+}
