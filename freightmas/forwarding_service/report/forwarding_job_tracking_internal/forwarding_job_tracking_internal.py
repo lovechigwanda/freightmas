@@ -111,7 +111,7 @@ def get_data(filters):
         FROM `tabForwarding Job` fj
         LEFT JOIN `tabCustomer` c ON c.name = fj.consignee
         WHERE {where_clause}
-        ORDER BY fj.customer ASC, fj.date_created DESC
+        ORDER BY fj.customer ASC, fj.eta ASC
     """.format(
             where_clause=where_clause
         ),
@@ -227,7 +227,7 @@ def generate_management_report_pdf(filters=None):
         FROM `tabForwarding Job` fj
         LEFT JOIN `tabCustomer` c ON c.name = fj.consignee
         WHERE {where_clause}
-        ORDER BY fj.customer ASC, fj.date_created DESC
+        ORDER BY fj.customer ASC, fj.eta ASC
     """.format(
             where_clause=where_clause
         ),
