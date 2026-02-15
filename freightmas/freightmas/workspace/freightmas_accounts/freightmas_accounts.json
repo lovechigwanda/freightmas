@@ -18,7 +18,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Receivables",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -105,9 +105,19 @@
   },
   {
    "hidden": 0,
+   "is_query_report": 1,
+   "label": "AR/AP Statement",
+   "link_count": 0,
+   "link_to": "Accounts Receivable Payable Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
    "is_query_report": 0,
    "label": "Payables",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -188,6 +198,16 @@
    "label": "FM Accounts Payable Outstanding",
    "link_count": 0,
    "link_to": "FM Accounts Payable Outstanding",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "AR/AP Statement",
+   "link_count": 0,
+   "link_to": "Accounts Receivable Payable Statement",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"

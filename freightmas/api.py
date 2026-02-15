@@ -805,6 +805,189 @@ def export_statement_of_accounts_to_excel(filters):
 ##########################################################
 
 
+########################################################
+## Accounts Receivable/Payable Statement PDF Export
+@frappe.whitelist()
+def export_ar_ap_statement_to_pdf(filters):
+    """Export Accounts Receivable/Payable Statement to PDF"""
+    import json
+
+    filters = json.loads(filters)
+
+    # Get report data
+    module = frappe.get_module(
+        "freightmas.freightmas.report.accounts_receivable_payable_statement"
+        ".accounts_receivable_payable_statement"
+    )
+    columns, data = module.execute(filters)
+
+    # Extract totals from the last row
+    totals_row = data[-1] if data and data[-1].get("is_total_row") else {}
+    totals = {
+        "invoiced_amount": totals_row.get("invoiced_amount", 0),
+        "paid_amount": totals_row.get("paid_amount", 0),
+        "credit_note": totals_row.get("credit_note", 0),
+        "outstanding": totals_row.get("outstanding", 0),
+    }
+
+    # Get party details
+    party_type = filters.get("party_type")
+    party = filters.get("party")
+    party_name = frappe.db.get_value(
+        party_type, party,
+        "customer_name" if party_type == "Customer" else "supplier_name"
+    ) if party else None
+
+    cn_label = "Credit Note" if party_type == "Customer" else "Debit Note"
+    company_currency = frappe.db.get_value(
+        "Company", filters.get("company"), "default_currency"
+    ) or "USD"
+
+    context = {
+        "company": filters.get("company"),
+        "party_type": party_type,
+        "party_name": party_name or party,
+        "report_name": "Accounts Receivable/Payable Statement",
+        "currency": company_currency,
+        "cn_label": cn_label,
+        "data": data,
+        "totals": totals,
+        "frappe": frappe,
+        "today": frappe.utils.today(),
+    }
+
+    html = frappe.render_template(
+        "freightmas/templates/accounts_receivable_payable_statement.html",
+        context
+    )
+
+    pdf = frappe.utils.pdf.get_pdf(
+        html,
+        {
+            "orientation": "Landscape",
+            "page-size": "A4",
+            "margin-top": "15mm",
+            "margin-right": "15mm",
+            "margin-bottom": "15mm",
+            "margin-left": "15mm",
+            "footer-right": "Page [page] of [topage]",
+            "footer-font-size": "8",
+            "print-media-type": True
+        }
+    )
+
+    frappe.local.response.filename = get_report_filename("AR_AP_Statement", "pdf", party)
+    frappe.local.response.filecontent = pdf
+    frappe.local.response.type = "download"
+
+
+####################################################
+# Export Accounts Receivable/Payable Statement to Excel
+@frappe.whitelist()
+def export_ar_ap_statement_to_excel(filters):
+    """Export Accounts Receivable/Payable Statement to Excel"""
+    import json
+    from io import BytesIO
+
+    filters = json.loads(filters)
+
+    # Get report data
+    module = frappe.get_module(
+        "freightmas.freightmas.report.accounts_receivable_payable_statement"
+        ".accounts_receivable_payable_statement"
+    )
+    columns, data = module.execute(filters)
+
+    # Create workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Outstanding Invoices"
+
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF")
+    title_font = Font(bold=True, size=14)
+    subtitle_font = Font(bold=True, size=12)
+    total_font = Font(bold=True)
+    header_fill = PatternFill("solid", fgColor="305496")
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    current_row = 1
+
+    # Company name
+    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws[f'A{current_row}'] = filters.get('company')
+    ws[f'A{current_row}'].font = title_font
+    current_row += 1
+
+    # Report title
+    party_type = filters.get('party_type')
+    party = filters.get('party')
+    party_name = frappe.db.get_value(
+        party_type, party,
+        'customer_name' if party_type == 'Customer' else 'supplier_name'
+    ) or party
+
+    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws[f'A{current_row}'] = "Accounts Receivable/Payable Statement"
+    ws[f'A{current_row}'].font = subtitle_font
+    current_row += 1
+
+    # Party info
+    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws[f'A{current_row}'] = f"{party_type}: {party_name}"
+    ws[f'A{current_row}'].font = subtitle_font
+    current_row += 1
+
+    # Blank row
+    current_row += 1
+
+    # Headers
+    for col_idx, col in enumerate(columns, 1):
+        cell = ws.cell(row=current_row, column=col_idx, value=col.get('label'))
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = thin_border
+
+    current_row += 1
+
+    # Data
+    for row in data:
+        for col_idx, col in enumerate(columns, 1):
+            field = col.get('fieldname')
+            cell = ws.cell(row=current_row, column=col_idx, value=row.get(field))
+
+            if col.get('fieldtype') in ['Currency', 'Float']:
+                cell.number_format = '#,##0.00'
+                cell.alignment = Alignment(horizontal='right')
+
+            cell.border = thin_border
+
+            if row.get('is_total_row'):
+                cell.font = total_font
+
+        current_row += 1
+
+    # Auto-adjust columns
+    col_widths = [12, 16, 22, 16, 16, 16, 16, 40]
+    for col_idx, width in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    frappe.local.response.filename = get_report_filename("AR_AP_Statement", "xlsx", party)
+    frappe.local.response.filecontent = output.read()
+    frappe.local.response.type = "binary"
+##########################################################
+
+
 #########################################################
 # Forwarding Dashboard — Container Count Methods
 @frappe.whitelist()

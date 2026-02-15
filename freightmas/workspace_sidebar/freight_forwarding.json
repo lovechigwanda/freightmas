@@ -81,6 +81,18 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "bar-chart",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Dashboard",
+   "link_to": "Forwarding Service Dashboard",
+   "link_type": "Dashboard",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "sheet",
    "indent": 1,
    "keep_closed": 1,
@@ -173,6 +185,28 @@
    "keep_closed": 0,
    "label": "Job Billing Report",
    "link_to": "Forwarding Job Billing Report",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Management Report",
+   "link_to": "Forwarding Management Report",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "AR/AP Statement",
+   "link_to": "Accounts Receivable Payable Statement",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
