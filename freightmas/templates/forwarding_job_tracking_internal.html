@@ -124,7 +124,7 @@
     {% if customers %}
         {% for customer_name, jobs in customers.items() %}
             <div class="customer-separator"></div>
-            <div class="section-title">{{ customer_name }} ({{ jobs|length }} {{ 'Job' if jobs|length == 1 else 'Jobs' }})</div>
+            <div class="section-title">{{ customer_name }}</div>
 
             <table class="summary-table">
                 <thead>
@@ -144,14 +144,14 @@
                     {% for job in jobs %}
                     <tr>
                         <td class="nowrap">{{ loop.index }}</td>
-                        <td class="nowrap" style="font-weight: bold;">{{ job.name }}</td>
+                        <td class="nowrap">{{ job.name }}</td>
                         <td>{{ job.consignee_name or '—' }}</td>
                         <td class="nowrap">{{ job.customer_reference or '—' }}</td>
                         <td class="nowrap">{{ job.eta or '—' }}</td>
                         <td class="nowrap">{{ job.cargo_count or '—' }}</td>
                         <td class="nowrap">{{ job.direction or '—' }}</td>
                         <td>{{ job.current_comment or '—' }}</td>
-                        <td class="nowrap" style="font-weight: bold;">{{ job.status }}</td>
+                        <td class="nowrap">{{ job.status }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

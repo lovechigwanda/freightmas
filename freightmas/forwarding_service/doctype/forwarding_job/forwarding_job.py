@@ -1331,7 +1331,7 @@ def create_sales_invoice_with_rows(docname, row_names):
 
     cargo_desc = job.get("cargo_description") or "N/A"
     customer_ref = job.get("customer_reference") or "N/A"
-    si.remarks = f"Forwarding Job {job.name}, Reference {customer_ref}, Cargo: {cargo_desc}"
+    si.remarks = f"{job.name}, Ref: {customer_ref}, {cargo_desc}"
 
     # Get WIP Revenue account if revenue recognition is enabled
     wip_revenue_account = None
@@ -1430,7 +1430,7 @@ def create_purchase_invoice_with_rows(docname, row_names):
 
     customer_ref = job.get("customer_reference") or "N/A"
     supplier_inv_display = supplier_inv_no or "N/A"
-    pi.remarks = f"Forwarding Job {job.name}, Ref: {customer_ref}, Invoice: {supplier_inv_display}"
+    pi.remarks = f"{job.name}, Ref: {customer_ref}, Inv: {supplier_inv_display}"
 
     for row in selected_rows:
         pi.append(
