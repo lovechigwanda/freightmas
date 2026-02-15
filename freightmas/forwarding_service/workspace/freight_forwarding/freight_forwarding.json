@@ -226,9 +226,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Management Report",
+   "label": "Job Tracking Internal",
    "link_count": 0,
-   "link_to": "Forwarding Management Report",
+   "link_to": "Forwarding Job Tracking Internal",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -236,9 +236,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "AR/AP Statement",
+   "label": "Outstanding Statement",
    "link_count": 0,
-   "link_to": "Accounts Receivable Payable Statement",
+   "link_to": "Accounts Outstanding Statement",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"

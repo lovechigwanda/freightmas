@@ -806,18 +806,18 @@ def export_statement_of_accounts_to_excel(filters):
 
 
 ########################################################
-## Accounts Receivable/Payable Statement PDF Export
+## Accounts Outstanding Statement PDF Export
 @frappe.whitelist()
 def export_ar_ap_statement_to_pdf(filters):
-    """Export Accounts Receivable/Payable Statement to PDF"""
+    """Export Accounts Outstanding Statement to PDF"""
     import json
 
     filters = json.loads(filters)
 
     # Get report data
     module = frappe.get_module(
-        "freightmas.freightmas.report.accounts_receivable_payable_statement"
-        ".accounts_receivable_payable_statement"
+        "freightmas.freightmas.report.accounts_outstanding_statement"
+        ".accounts_outstanding_statement"
     )
     columns, data = module.execute(filters)
 
@@ -847,7 +847,7 @@ def export_ar_ap_statement_to_pdf(filters):
         "company": filters.get("company"),
         "party_type": party_type,
         "party_name": party_name or party,
-        "report_name": "Accounts Receivable/Payable Statement",
+        "report_name": "Accounts Outstanding Statement",
         "currency": company_currency,
         "cn_label": cn_label,
         "data": data,
@@ -857,7 +857,7 @@ def export_ar_ap_statement_to_pdf(filters):
     }
 
     html = frappe.render_template(
-        "freightmas/templates/accounts_receivable_payable_statement.html",
+        "freightmas/templates/accounts_outstanding_statement.html",
         context
     )
 
@@ -876,16 +876,16 @@ def export_ar_ap_statement_to_pdf(filters):
         }
     )
 
-    frappe.local.response.filename = get_report_filename("AR_AP_Statement", "pdf", party)
+    frappe.local.response.filename = get_report_filename("Outstanding_Statement", "pdf", party)
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 
 
 ####################################################
-# Export Accounts Receivable/Payable Statement to Excel
+# Export Accounts Outstanding Statement to Excel
 @frappe.whitelist()
 def export_ar_ap_statement_to_excel(filters):
-    """Export Accounts Receivable/Payable Statement to Excel"""
+    """Export Accounts Outstanding Statement to Excel"""
     import json
     from io import BytesIO
 
@@ -893,8 +893,8 @@ def export_ar_ap_statement_to_excel(filters):
 
     # Get report data
     module = frappe.get_module(
-        "freightmas.freightmas.report.accounts_receivable_payable_statement"
-        ".accounts_receivable_payable_statement"
+        "freightmas.freightmas.report.accounts_outstanding_statement"
+        ".accounts_outstanding_statement"
     )
     columns, data = module.execute(filters)
 
@@ -919,7 +919,7 @@ def export_ar_ap_statement_to_excel(filters):
     current_row = 1
 
     # Company name
-    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws.merge_cells(f'A{current_row}:G{current_row}')
     ws[f'A{current_row}'] = filters.get('company')
     ws[f'A{current_row}'].font = title_font
     current_row += 1
@@ -932,13 +932,13 @@ def export_ar_ap_statement_to_excel(filters):
         'customer_name' if party_type == 'Customer' else 'supplier_name'
     ) or party
 
-    ws.merge_cells(f'A{current_row}:H{current_row}')
-    ws[f'A{current_row}'] = "Accounts Receivable/Payable Statement"
+    ws.merge_cells(f'A{current_row}:G{current_row}')
+    ws[f'A{current_row}'] = "Accounts Outstanding Statement"
     ws[f'A{current_row}'].font = subtitle_font
     current_row += 1
 
     # Party info
-    ws.merge_cells(f'A{current_row}:H{current_row}')
+    ws.merge_cells(f'A{current_row}:G{current_row}')
     ws[f'A{current_row}'] = f"{party_type}: {party_name}"
     ws[f'A{current_row}'].font = subtitle_font
     current_row += 1
@@ -973,7 +973,7 @@ def export_ar_ap_statement_to_excel(filters):
         current_row += 1
 
     # Auto-adjust columns
-    col_widths = [12, 16, 22, 16, 16, 16, 16, 40]
+    col_widths = [12, 22, 16, 16, 16, 16, 40]
     for col_idx, width in enumerate(col_widths, 1):
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
@@ -982,7 +982,7 @@ def export_ar_ap_statement_to_excel(filters):
     wb.save(output)
     output.seek(0)
 
-    frappe.local.response.filename = get_report_filename("AR_AP_Statement", "xlsx", party)
+    frappe.local.response.filename = get_report_filename("Outstanding_Statement", "xlsx", party)
     frappe.local.response.filecontent = output.read()
     frappe.local.response.type = "binary"
 ##########################################################

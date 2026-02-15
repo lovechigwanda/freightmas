@@ -135,8 +135,7 @@
         <thead>
             <tr>
                 <th style="width: 65px;">Date</th>
-                <th style="width: 100px;">Voucher Type</th>
-                <th style="width: 135px;">Voucher No</th>
+                <th style="width: 160px;">Invoice No</th>
                 <th style="width: 85px;" class="text-right">Invoiced</th>
                 <th style="width: 80px;" class="text-right">Paid</th>
                 <th style="width: 80px;" class="text-right">{{ cn_label }}</th>
@@ -148,8 +147,7 @@
             {% for row in data %}
             <tr {% if row.get('is_total_row') %}class="bold-row"{% endif %}>
                 <td>{{ frappe.utils.formatdate(row.posting_date, "dd-MMM-yy") if row.posting_date else "" }}</td>
-                <td>{{ row.voucher_type }}</td>
-                <td>{{ row.voucher_no }}</td>
+                <td>{{ row.invoice_no }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.invoiced_amount, currency=currency) if row.invoiced_amount else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.paid_amount, currency=currency) if row.paid_amount else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.credit_note, currency=currency) if row.credit_note else "" }}</td>

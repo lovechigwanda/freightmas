@@ -194,8 +194,8 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Management Report",
-   "link_to": "Forwarding Management Report",
+   "label": "Job Tracking Internal",
+   "link_to": "Forwarding Job Tracking Internal",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -205,8 +205,8 @@
    "collapsible": 1,
    "indent": 0,
    "keep_closed": 0,
-   "label": "AR/AP Statement",
-   "link_to": "Accounts Receivable Payable Statement",
+   "label": "Outstanding Statement",
+   "link_to": "Accounts Outstanding Statement",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"

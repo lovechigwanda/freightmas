@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Accounts Receivable Payable Statement"] = {
+frappe.query_reports["Accounts Outstanding Statement"] = {
     onload: function(report) {
         report.page.add_inner_button('Export to Excel', function() {
             const filters = report.get_filter_values(true);

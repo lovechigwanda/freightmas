@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Forwarding Management Report"] = {
+frappe.query_reports["Forwarding Job Tracking Internal"] = {
 	"filters": [
 		{
 			fieldname: "customer",
@@ -23,7 +23,7 @@ frappe.query_reports["Forwarding Management Report"] = {
 		report.page.add_inner_button('Export to Excel', function() {
 			const filters = report.get_filter_values(true);
 			const query = encodeURIComponent(JSON.stringify(filters));
-			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Forwarding Management Report&filters=${query}`;
+			const url = `/api/method/freightmas.api.export_report_to_excel?report_name=Forwarding Job Tracking Internal&filters=${query}`;
 			window.open(url);
 		}, 'Export');
 
@@ -69,7 +69,7 @@ function generate_report_pdf(report) {
 	});
 
 	frappe.call({
-		method: 'freightmas.forwarding_service.report.forwarding_management_report.forwarding_management_report.generate_management_report_pdf',
+		method: 'freightmas.forwarding_service.report.forwarding_job_tracking_internal.forwarding_job_tracking_internal.generate_management_report_pdf',
 		args: {
 			filters: JSON.stringify(filters)
 		},

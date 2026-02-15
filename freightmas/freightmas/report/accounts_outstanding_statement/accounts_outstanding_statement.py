@@ -36,17 +36,11 @@ def get_columns(party_type):
             "width": 100
         },
         {
-            "fieldname": "voucher_type",
-            "label": _("Voucher Type"),
-            "fieldtype": "Data",
-            "width": 120
-        },
-        {
-            "fieldname": "voucher_no",
-            "label": _("Voucher No"),
+            "fieldname": "invoice_no",
+            "label": _("Invoice No"),
             "fieldtype": "Dynamic Link",
             "options": "voucher_type",
-            "width": 180
+            "width": 200
         },
         {
             "fieldname": "invoiced_amount",
@@ -106,7 +100,7 @@ def get_sales_invoices(filters):
         SELECT
             si.posting_date,
             'Sales Invoice' as voucher_type,
-            si.name as voucher_no,
+            si.name as invoice_no,
             si.grand_total as invoiced_amount,
             si.docstatus,
             COALESCE(cn.credit_note_total, 0) as credit_note,
@@ -137,7 +131,7 @@ def get_purchase_invoices(filters):
         SELECT
             pi.posting_date,
             'Purchase Invoice' as voucher_type,
-            pi.name as voucher_no,
+            pi.name as invoice_no,
             pi.grand_total as invoiced_amount,
             pi.docstatus,
             COALESCE(dn.debit_note_total, 0) as credit_note,
@@ -210,7 +204,7 @@ def append_totals_row(data):
     data.append({
         "posting_date": "",
         "voucher_type": "",
-        "voucher_no": "Total",
+        "invoice_no": "Total",
         "invoiced_amount": totals["invoiced_amount"],
         "paid_amount": totals["paid_amount"],
         "credit_note": totals["credit_note"],

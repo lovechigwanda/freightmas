@@ -2,7 +2,7 @@
  "add_total_row": 0,
  "add_translate_data": 0,
  "columns": [],
- "creation": "2026-02-15 10:00:00.000000",
+ "creation": "2026-02-15 12:00:00.000000",
  "disabled": 0,
  "docstatus": 0,
  "doctype": "Report",
@@ -11,24 +11,24 @@
  "is_standard": "Yes",
  "letter_head": "Main Letterhead",
  "letterhead": null,
- "modified": "2026-02-15 10:00:00.000000",
+ "modified": "2026-02-15 12:00:00.000000",
  "modified_by": "Administrator",
- "module": "Forwarding Service",
- "name": "Forwarding Management Report",
+ "module": "FreightMas",
+ "name": "Accounts Outstanding Statement",
  "owner": "Administrator",
  "prepared_report": 0,
- "ref_doctype": "Forwarding Job",
- "report_name": "Forwarding Management Report",
+ "ref_doctype": "GL Entry",
+ "report_name": "Accounts Outstanding Statement",
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "FreightMas Manager"
+   "role": "Accounts User"
   },
   {
-   "role": "FreightMas User"
+   "role": "Accounts Manager"
   },
   {
-   "role": "System Manager"
+   "role": "Auditor"
   }
  ],
  "timeout": 0

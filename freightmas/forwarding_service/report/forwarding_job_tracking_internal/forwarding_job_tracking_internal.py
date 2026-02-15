@@ -192,7 +192,7 @@ def format_date(date_value):
 
 @frappe.whitelist()
 def generate_management_report_pdf(filters=None):
-    """Generate Forwarding Management Report PDF grouped by customer."""
+    """Generate Forwarding Job Tracking Internal PDF grouped by customer."""
     if isinstance(filters, str):
         filters = json.loads(filters)
     if not filters:
@@ -270,7 +270,7 @@ def generate_management_report_pdf(filters=None):
     }
 
     html = frappe.render_template(
-        "freightmas/templates/forwarding_management_report.html", context
+        "freightmas/templates/forwarding_job_tracking_internal.html", context
     )
 
     pdf = frappe.utils.pdf.get_pdf(
@@ -288,7 +288,7 @@ def generate_management_report_pdf(filters=None):
     )
 
     timestamp = frappe.utils.now_datetime().strftime("%Y%m%d_%H%M")
-    filename = "Forwarding_Management_Report_{}.pdf".format(timestamp)
+    filename = "Forwarding_Job_Tracking_Internal_{}.pdf".format(timestamp)
 
     pdf_base64 = base64.b64encode(pdf).decode("utf-8")
 
