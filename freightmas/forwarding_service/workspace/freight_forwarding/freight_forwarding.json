@@ -1,8 +1,8 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"qI87VmQ1mW\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"uUMhwrcIl2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2WOqFmEUnM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"nKcW-cqozr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job List\",\"col\":3}},{\"id\":\"_TG_SXMd2u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Master FWJob\",\"col\":3}},{\"id\":\"sc_fw_dash\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Service Dashboard\",\"col\":3}},{\"id\":\"a68ss4rhAT\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardQuickLinks\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"cardReports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2026-01-19 12:48:20.119271",
+ "content": "[{\"id\":\"qI87VmQ1mW\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"uUMhwrcIl2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2WOqFmEUnM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"nKcW-cqozr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job List\",\"col\":3}},{\"id\":\"_TG_SXMd2u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Master FWJob\",\"col\":3}},{\"id\":\"a68ss4rhAT\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardQuickLinks\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"cardReports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2026-02-15 21:11:30.682773",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -118,7 +118,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 12,
+   "link_count": 11,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -226,26 +226,16 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Tracking Internal",
+   "label": "Forwarding Job Tracking Internal",
    "link_count": 0,
    "link_to": "Forwarding Job Tracking Internal",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Outstanding Statement",
-   "link_count": 0,
-   "link_to": "Accounts Outstanding Statement",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   }
  ],
- "modified": "2026-01-20 01:15:50.961002",
- "modified_by": "Administrator",
+ "modified": "2026-02-15 21:12:23.245839",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
  "number_cards": [],
@@ -279,12 +269,6 @@
    "link_to": "Forwarding Job List",
    "report_ref_doctype": "Forwarding Job",
    "type": "Report"
-  },
-  {
-   "color": "Grey",
-   "label": "Forwarding Service Dashboard",
-   "link_to": "Forwarding Service Dashboard",
-   "type": "Dashboard"
   }
  ],
  "title": "Freight Forwarding",
