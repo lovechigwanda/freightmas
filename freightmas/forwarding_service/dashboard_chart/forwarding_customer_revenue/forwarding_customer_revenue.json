@@ -11,7 +11,7 @@
  "idx": 2,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2025-02-13 00:00:00.000000",
+ "modified": "2026-02-15 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Customer Revenue",
@@ -27,12 +27,12 @@
  "x_field": "Customer",
  "y_axis": [
   {
-   "color": "#EC864B",
-   "y_field": "Working Revenue"
+   "color": "#29CD42",
+   "y_field": "Closed Margin"
   },
   {
-   "color": "#29CD42",
-   "y_field": "Invoiced Revenue"
+   "color": "#4C9BE8",
+   "y_field": "In Progress Margin"
   }
  ]
 }

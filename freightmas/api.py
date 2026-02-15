@@ -804,3 +804,33 @@ def export_statement_of_accounts_to_excel(filters):
     frappe.local.response.type = "binary"
 ##########################################################
 
+
+#########################################################
+# Forwarding Dashboard — Container Count Methods
+@frappe.whitelist()
+def get_containers_moved_count():
+    """Count containerised cargo parcels for submitted (closed) forwarding jobs created this year."""
+    result = frappe.db.sql("""
+        SELECT COUNT(cpd.name) AS total
+        FROM `tabCargo Parcel Details` cpd
+        INNER JOIN `tabForwarding Job` fj ON fj.name = cpd.parent
+        WHERE cpd.cargo_type = 'Containerised'
+          AND fj.docstatus = 1
+          AND YEAR(fj.date_created) = YEAR(CURDATE())
+    """, as_dict=True)
+    return result[0].total if result else 0
+
+
+@frappe.whitelist()
+def get_containers_in_progress_count():
+    """Count containerised cargo parcels for active (non-submitted) forwarding jobs created this year."""
+    result = frappe.db.sql("""
+        SELECT COUNT(cpd.name) AS total
+        FROM `tabCargo Parcel Details` cpd
+        INNER JOIN `tabForwarding Job` fj ON fj.name = cpd.parent
+        WHERE cpd.cargo_type = 'Containerised'
+          AND fj.docstatus = 0
+          AND fj.status != 'Cancelled'
+          AND YEAR(fj.date_created) = YEAR(CURDATE())
+    """, as_dict=True)
+    return result[0].total if result else 0

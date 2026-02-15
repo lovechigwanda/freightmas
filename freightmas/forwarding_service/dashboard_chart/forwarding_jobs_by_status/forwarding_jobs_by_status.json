@@ -11,7 +11,7 @@
  "idx": 3,
  "is_public": 1,
  "is_standard": 1,
- "modified": "2025-02-13 00:00:00.000000",
+ "modified": "2026-02-15 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Jobs by Status",
@@ -19,12 +19,12 @@
  "owner": "Administrator",
  "report_name": "Forwarding Jobs by Status",
  "roles": [],
- "time_interval": "Monthly",
+ "time_interval": "Yearly",
  "timeseries": 0,
  "timespan": "Last Year",
  "type": "Bar",
  "use_report_chart": 0,
- "x_field": "Status",
+ "x_field": "Category",
  "y_axis": [
   {
    "color": "#4C9BE8",
