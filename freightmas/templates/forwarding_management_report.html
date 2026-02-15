@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #000;
+            line-height: 1.2;
+            background: #fff;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 15mm;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            color: #000;
+            letter-spacing: 0.3px;
+        }
+
+        .company-name {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .header-subtitle {
+            text-align: center;
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 20px;
+            line-height: 1.3;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin: 20px 0 8px 0;
+            text-transform: uppercase;
+            color: #000;
+            background: #fff;
+            border-bottom: 2px solid #000;
+            padding: 5px 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            border: 1px solid #000;
+            background: #fff;
+            font-size: 10px;
+        }
+
+        .summary-table th {
+            background-color: #fff;
+            color: #000;
+            padding: 4px 6px;
+            border: 1px solid #000;
+            text-align: left;
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1px;
+            white-space: nowrap;
+            line-height: 1.1;
+        }
+
+        .summary-table td {
+            padding: 3px 6px;
+            border: 1px solid #000;
+            text-align: left;
+            font-size: 10px;
+            line-height: 1.1;
+            vertical-align: top;
+        }
+
+        .summary-table td.nowrap {
+            white-space: nowrap;
+        }
+
+        .customer-separator {
+            margin: 15px 0 10px 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #000;
+            border-top: 1px solid #000;
+            padding-top: 8px;
+        }
+
+        @media print {
+            body { padding: 0; margin: 0; }
+            .summary-table { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="company-name">{{ company }}</div>
+    <div class="header-title">Forwarding Management Report</div>
+    <div class="header-subtitle">
+        Report Generated: {{ generated_at }}<br>
+        Total Active Jobs: {{ total_jobs }} | Customers: {{ total_customers }}
+    </div>
+
+    {% if customers %}
+        {% for customer_name, jobs in customers.items() %}
+            <div class="customer-separator"></div>
+            <div class="section-title">{{ customer_name }} ({{ jobs|length }} {{ 'Job' if jobs|length == 1 else 'Jobs' }})</div>
+
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">#</th>
+                        <th style="width: 12%;">Job ID</th>
+                        <th style="width: 14%;">Consignee</th>
+                        <th style="width: 12%;">Job Reference</th>
+                        <th style="width: 8%;">ETA Date</th>
+                        <th style="width: 8%;">Cargo Count</th>
+                        <th style="width: 8%;">Direction</th>
+                        <th style="width: 26%;">Latest Tracking Comment</th>
+                        <th style="width: 8%;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td class="nowrap">{{ loop.index }}</td>
+                        <td class="nowrap" style="font-weight: bold;">{{ job.name }}</td>
+                        <td>{{ job.consignee_name or '—' }}</td>
+                        <td class="nowrap">{{ job.customer_reference or '—' }}</td>
+                        <td class="nowrap">{{ job.eta or '—' }}</td>
+                        <td class="nowrap">{{ job.cargo_count or '—' }}</td>
+                        <td class="nowrap">{{ job.direction or '—' }}</td>
+                        <td>{{ job.current_comment or '—' }}</td>
+                        <td class="nowrap" style="font-weight: bold;">{{ job.status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 50px 20px; color: #666;">
+            <p style="font-size: 14px; font-weight: 600;">No Active Jobs Found</p>
+            <p>There are currently no active forwarding jobs to display.</p>
+        </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Generated on {{ generated_at }}</p>
+    </div>
+
+</body>
+</html>
