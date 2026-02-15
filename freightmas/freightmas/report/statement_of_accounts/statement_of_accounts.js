@@ -153,6 +153,12 @@ frappe.query_reports["Statement of Accounts"] = {
             "label": __("Include Draft Invoices"),
             "fieldtype": "Check",
             "default": 0
+        },
+        {
+            "fieldname": "include_cancelled",
+            "label": __("Include Cancelled Documents"),
+            "fieldtype": "Check",
+            "default": 0
         }
     ]
 };
