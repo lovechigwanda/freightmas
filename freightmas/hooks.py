@@ -404,7 +404,8 @@ fixtures = [
                 "FM Subs",
                 "Trip Bulk Sales Invoice",
                 "Cash Pmt Voucher",
-                "Trip Sales Invoice"
+                "Trip Sales Invoice",
+                "FreightMas Sales Fatura"
 
             ]]
         ]
