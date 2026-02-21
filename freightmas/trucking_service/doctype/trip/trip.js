@@ -335,9 +335,8 @@ function create_sales_invoice_from_charges(frm) {
                             indicator: 'green'
                         });
                         
-                        frappe.set_route("Form", "Sales Invoice", r.message.invoice_name);
-                        frm.reload_doc();
                         dialog.hide();
+                        frappe.set_route("Form", "Sales Invoice", r.message.invoice_name);
                     }
                 }
             });
@@ -483,9 +482,8 @@ function create_purchase_invoice_from_charges(frm) {
                             indicator: 'green'
                         });
                         
-                        frappe.set_route("Form", "Purchase Invoice", r.message.invoice_name);
-                        frm.reload_doc();
                         dialog.hide();
+                        frappe.set_route("Form", "Purchase Invoice", r.message.invoice_name);
                     }
                 }
             });
@@ -577,9 +575,8 @@ function create_fuel_issue_from_allocation(frm) {
                             indicator: 'green'
                         });
                         
-                        frappe.set_route("Form", "Stock Entry", r.message);
-                        frm.reload_doc();
                         dialog.hide();
+                        frappe.set_route("Form", "Stock Entry", r.message);
                     }
                 }
             });
@@ -697,9 +694,8 @@ function create_journal_entry_from_other_costs(frm) {
                             indicator: 'green'
                         });
                         
-                        frappe.set_route("Form", "Journal Entry", r.message);
-                        frm.reload_doc();
                         dialog.hide();
+                        frappe.set_route("Form", "Journal Entry", r.message);
                     }
                 },
                 error(r) {
@@ -958,13 +954,13 @@ function show_bulk_invoice_dialog(frm) {
                 callback: function(r) {
                     if (r.message) {
                         let msg = `Created and submitted ${r.message.invoices.length} invoice(s).`;
-                        if (r.message.bulk_invoice) {
-                            msg += `<br>Created Bulk Invoice: ${r.message.bulk_invoice}`;
-                            frappe.set_route("Form", "Trip Bulk Sales Invoice", r.message.bulk_invoice);
-                        }
                         frappe.show_alert({ message: msg, indicator: 'green' });
-                        frm.reload_doc();
                         dialog.hide();
+                        if (r.message.bulk_invoice) {
+                            frappe.set_route("Form", "Trip Bulk Sales Invoice", r.message.bulk_invoice);
+                        } else {
+                            frm.reload_doc();
+                        }
                     }
                 }
             });

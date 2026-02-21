@@ -399,9 +399,8 @@ function create_sales_invoice_from_charges(frm) {
               indicator: 'green'
             });
             
-            frappe.set_route("Form", "Sales Invoice", r.message);
-            frm.reload_doc();
             dialog.hide();
+            frappe.set_route("Form", "Sales Invoice", r.message);
           }
         }
       });
@@ -548,9 +547,8 @@ function create_purchase_invoice_from_charges(frm) {
               indicator: 'green'
             });
             
-            frappe.set_route("Form", "Purchase Invoice", r.message);
-            frm.reload_doc();
             dialog.hide();
+            frappe.set_route("Form", "Purchase Invoice", r.message);
           }
         }
       });
