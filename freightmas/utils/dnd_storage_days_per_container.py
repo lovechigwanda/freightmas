@@ -43,8 +43,8 @@ def calculate_dnd_and_storage_days_detailed(job, cargo_packages=None, today=None
 
             end_date = loaded_on_vessel_date if is_loaded_on_vessel and loaded_on_vessel_date else today_dt
 
-            cargo_dnd_days = max((end_date - pick_up_empty_date).days - dnd_free_days, 0) if pick_up_empty_date else 0
-            cargo_storage_days = max((end_date - gate_in_full_date).days - port_free_days, 0) if gate_in_full_date else 0
+            cargo_dnd_days = max((end_date - pick_up_empty_date).days + 1 - dnd_free_days, 0) if pick_up_empty_date else 0
+            cargo_storage_days = max((end_date - gate_in_full_date).days + 1 - port_free_days, 0) if gate_in_full_date else 0
 
             total_dnd_days += cargo_dnd_days
             total_storage_days += cargo_storage_days
@@ -72,8 +72,8 @@ def calculate_dnd_and_storage_days_detailed(job, cargo_packages=None, today=None
 
             storage_end_date = gate_out_full_date if is_loaded and gate_out_full_date else today_dt
 
-            cargo_dnd_days = max((dnd_end_date - discharge_date).days - dnd_free_days, 0) if discharge_date else 0
-            cargo_storage_days = max((storage_end_date - discharge_date).days - port_free_days, 0) if discharge_date else 0
+            cargo_dnd_days = max((dnd_end_date - discharge_date).days + 1 - dnd_free_days, 0) if discharge_date else 0
+            cargo_storage_days = max((storage_end_date - discharge_date).days + 1 - port_free_days, 0) if discharge_date else 0
 
             total_dnd_days += cargo_dnd_days
             total_storage_days += cargo_storage_days

@@ -50,14 +50,14 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
 
             # DND days
             if pick_up_empty_date:
-                cargo_dnd_days = (end_date - pick_up_empty_date).days - dnd_free_days
+                cargo_dnd_days = (end_date - pick_up_empty_date).days + 1 - dnd_free_days
                 cargo_dnd_days = max(cargo_dnd_days, 0)
             else:
                 cargo_dnd_days = 0
 
             # Storage days
             if gate_in_full_date:
-                cargo_storage_days = (end_date - gate_in_full_date).days - port_free_days
+                cargo_storage_days = (end_date - gate_in_full_date).days + 1 - port_free_days
                 cargo_storage_days = max(cargo_storage_days, 0)
             else:
                 cargo_storage_days = 0
@@ -97,14 +97,14 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
 
             # DND days
             if dnd_end_date and discharge_date:
-                cargo_dnd_days = (dnd_end_date - discharge_date).days - dnd_free_days
+                cargo_dnd_days = (dnd_end_date - discharge_date).days + 1 - dnd_free_days
                 cargo_dnd_days = max(cargo_dnd_days, 0)
             else:
                 cargo_dnd_days = 0
 
             # Storage days
             if storage_end_date and discharge_date:
-                cargo_storage_days = (storage_end_date - discharge_date).days - port_free_days
+                cargo_storage_days = (storage_end_date - discharge_date).days + 1 - port_free_days
                 cargo_storage_days = max(cargo_storage_days, 0)
             else:
                 cargo_storage_days = 0
@@ -116,8 +116,8 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
         if not cargo_packages:
             end_date = today_dt
             if discharge_date:
-                job_dnd_days = (end_date - discharge_date).days - dnd_free_days
-                job_storage_days = (end_date - discharge_date).days - port_free_days
+                job_dnd_days = (end_date - discharge_date).days + 1 - dnd_free_days
+                job_storage_days = (end_date - discharge_date).days + 1 - port_free_days
                 total_dnd_days = max(job_dnd_days, 0)
                 total_storage_days = max(job_storage_days, 0)
             else:
