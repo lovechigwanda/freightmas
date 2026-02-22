@@ -941,7 +941,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.status !== \"Draft\"",
+   "collapsible_depends_on": "eval:doc.status === \"Draft\"",
    "fieldname": "working_revenue_section",
    "fieldtype": "Section Break",
    "label": "Working Revenue"
@@ -959,7 +959,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.status !== \"Draft\"",
+   "collapsible_depends_on": "eval:doc.status === \"Draft\"",
    "fieldname": "working_cost_section",
    "fieldtype": "Section Break",
    "label": "Working Cost"
@@ -1154,7 +1154,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-02-07 20:40:38.897415",
+ "modified": "2026-02-22 17:00:00.000000",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Clearing Job",
