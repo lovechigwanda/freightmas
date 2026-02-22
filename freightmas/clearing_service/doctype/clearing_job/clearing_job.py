@@ -912,6 +912,8 @@ def create_sales_invoice_with_rows(docname, row_names):
     selected_rows = [row for row in job.get("clearing_revenue_charges", []) if row.name in row_names]
     if not selected_rows:
         frappe.throw(_("No valid revenue charge rows were selected."))
+    if any(row.sales_invoice_reference for row in selected_rows):
+        frappe.throw(_("One or more selected rows are already linked to a Sales Invoice. Please refresh and try again."))
 
     # All rows must belong to same customer
     customers = {r.customer for r in selected_rows if r.customer}

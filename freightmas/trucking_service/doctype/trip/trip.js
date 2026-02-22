@@ -336,7 +336,7 @@ function create_sales_invoice_from_charges(frm) {
                         });
                         
                         dialog.hide();
-                        frappe.set_route("Form", "Sales Invoice", r.message.invoice_name);
+                        open_sales_invoice_fresh(r.message.invoice_name);
                     }
                 }
             });
@@ -345,6 +345,12 @@ function create_sales_invoice_from_charges(frm) {
 
     dialog.show();
     render_dialog_ui(dialog, selected_customer);
+}
+
+function open_sales_invoice_fresh(invoice_name) {
+    // Force a hard navigation to avoid stale Desk form state after browser back/forward.
+    const target = `/app/sales-invoice/${encodeURIComponent(invoice_name)}`;
+    window.location.assign(target);
 }
 
 //////////////////////////////////////////////////////////////////////////
