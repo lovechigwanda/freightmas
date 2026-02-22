@@ -21,7 +21,11 @@ from frappe import _
 def before_sales_invoice_cancel(doc, method=None):
     """Skip linked document checks for job/trip child tables."""
     doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
-        "Forwarding Revenue Charges", "Clearing Revenue Charges", "Trip Revenue Charges"
+        "Forwarding Revenue Charges", "Clearing Revenue Charges", "Trip Revenue Charges",
+        "Road Freight Charges", "Forwarding Charges", "Clearing Charges",
+        "Trip Bulk Sales Invoice Item",
+        "Warehouse Job Storage Charges", "Warehouse Job Rental Charges",
+        "Warehouse Job Handling Charges"
     ]
 
 
@@ -29,7 +33,8 @@ def before_purchase_invoice_cancel(doc, method=None):
     """Skip linked document checks for job/trip child tables."""
     doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
         "Forwarding Cost Charges", "Clearing Cost Charges",
-        "Trip Cost Charges", "Trip Other Costs"
+        "Trip Cost Charges", "Trip Other Costs",
+        "Road Freight Charges", "Forwarding Charges", "Clearing Charges"
     ]
 
 
@@ -53,13 +58,28 @@ def on_sales_invoice_cancel(doc, method=None):
     try:
         # Unlink from Forwarding Job revenue charges
         unlink_sales_invoice_from_forwarding_job(doc.name)
-        
+
         # Unlink from Clearing Job charges
         unlink_sales_invoice_from_clearing_job(doc.name)
-        
+
         # Unlink from Trip revenue charges
         unlink_sales_invoice_from_trip(doc.name)
-        
+
+        # Unlink from Road Freight Job charges
+        unlink_sales_invoice_from_road_freight_job(doc.name)
+
+        # Unlink from Forwarding Charges (combined revenue/cost child table)
+        unlink_sales_invoice_from_forwarding_charges(doc.name)
+
+        # Unlink from Clearing Charges (combined revenue/cost child table)
+        unlink_sales_invoice_from_clearing_charges(doc.name)
+
+        # Unlink from Trip Bulk Sales Invoice items
+        unlink_sales_invoice_from_trip_bulk_invoice(doc.name)
+
+        # Unlink from Warehouse Job charges
+        unlink_sales_invoice_from_warehouse_job(doc.name)
+
     except Exception as e:
         frappe.log_error(
             message=f"Error unlinking cancelled Sales Invoice {doc.name}: {str(e)}",
@@ -81,6 +101,15 @@ def on_purchase_invoice_cancel(doc, method=None):
 
         # Unlink from Trip cost charges
         unlink_purchase_invoice_from_trip(doc.name)
+
+        # Unlink from Road Freight Job charges
+        unlink_purchase_invoice_from_road_freight_job(doc.name)
+
+        # Unlink from Forwarding Charges (combined revenue/cost child table)
+        unlink_purchase_invoice_from_forwarding_charges(doc.name)
+
+        # Unlink from Clearing Charges (combined revenue/cost child table)
+        unlink_purchase_invoice_from_clearing_charges(doc.name)
 
     except Exception as e:
         frappe.log_error(
@@ -388,3 +417,281 @@ def unlink_journal_entry_from_trip(je_name):
             ),
             alert=True
         )
+
+
+# ========================================================
+# ROAD FREIGHT JOB UNLINKING
+# ========================================================
+
+def unlink_sales_invoice_from_road_freight_job(invoice_name):
+    """Unlink a Sales Invoice from Road Freight Job charges."""
+    linked_rows = frappe.get_all(
+        "Road Freight Charges",
+        filters={"sales_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Road Freight Charges",
+            row.name,
+            {
+                "is_invoiced": 0,
+                "sales_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Sales Invoice {0} was cancelled. Revenue charges in Road Freight Job {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+def unlink_purchase_invoice_from_road_freight_job(invoice_name):
+    """Unlink a Purchase Invoice from Road Freight Job charges."""
+    linked_rows = frappe.get_all(
+        "Road Freight Charges",
+        filters={"purchase_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Road Freight Charges",
+            row.name,
+            {
+                "is_purchased": 0,
+                "purchase_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Purchase Invoice {0} was cancelled. Cost charges in Road Freight Job {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+# ========================================================
+# FORWARDING CHARGES UNLINKING (combined revenue/cost table)
+# ========================================================
+
+def unlink_sales_invoice_from_forwarding_charges(invoice_name):
+    """Unlink a Sales Invoice from Forwarding Charges rows."""
+    linked_rows = frappe.get_all(
+        "Forwarding Charges",
+        filters={"sales_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Forwarding Charges",
+            row.name,
+            {
+                "is_invoiced": 0,
+                "sales_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Sales Invoice {0} was cancelled. Forwarding charges in {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+def unlink_purchase_invoice_from_forwarding_charges(invoice_name):
+    """Unlink a Purchase Invoice from Forwarding Charges rows."""
+    linked_rows = frappe.get_all(
+        "Forwarding Charges",
+        filters={"purchase_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Forwarding Charges",
+            row.name,
+            {
+                "is_purchased": 0,
+                "purchase_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Purchase Invoice {0} was cancelled. Forwarding charges in {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+# ========================================================
+# CLEARING CHARGES UNLINKING (combined revenue/cost table)
+# ========================================================
+
+def unlink_sales_invoice_from_clearing_charges(invoice_name):
+    """Unlink a Sales Invoice from Clearing Charges rows."""
+    linked_rows = frappe.get_all(
+        "Clearing Charges",
+        filters={"sales_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Clearing Charges",
+            row.name,
+            {
+                "is_invoiced": 0,
+                "sales_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Sales Invoice {0} was cancelled. Clearing charges in {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+def unlink_purchase_invoice_from_clearing_charges(invoice_name):
+    """Unlink a Purchase Invoice from Clearing Charges rows."""
+    linked_rows = frappe.get_all(
+        "Clearing Charges",
+        filters={"purchase_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Clearing Charges",
+            row.name,
+            {
+                "is_purchased": 0,
+                "purchase_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Purchase Invoice {0} was cancelled. Clearing charges in {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+# ========================================================
+# TRIP BULK SALES INVOICE UNLINKING
+# ========================================================
+
+def unlink_sales_invoice_from_trip_bulk_invoice(invoice_name):
+    """Unlink a Sales Invoice from Trip Bulk Sales Invoice Item rows."""
+    linked_rows = frappe.get_all(
+        "Trip Bulk Sales Invoice Item",
+        filters={"sales_invoice": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Trip Bulk Sales Invoice Item",
+            row.name,
+            {"sales_invoice": None},
+            update_modified=False
+        )
+
+    parent_docs = list(set(row.parent for row in linked_rows))
+    for doc_name in parent_docs:
+        frappe.msgprint(
+            _("Sales Invoice {0} was cancelled. Items in Trip Bulk Sales Invoice {1} have been unlinked.").format(
+                invoice_name, doc_name
+            ),
+            alert=True
+        )
+
+
+# ========================================================
+# WAREHOUSE JOB UNLINKING
+# ========================================================
+
+def unlink_sales_invoice_from_warehouse_job(invoice_name):
+    """Unlink a Sales Invoice from Warehouse Job charge tables."""
+    for doctype_name in [
+        "Warehouse Job Storage Charges",
+        "Warehouse Job Rental Charges",
+        "Warehouse Job Handling Charges"
+    ]:
+        linked_rows = frappe.get_all(
+            doctype_name,
+            filters={"sales_invoice": invoice_name},
+            fields=["name", "parent"]
+        )
+
+        if not linked_rows:
+            continue
+
+        for row in linked_rows:
+            frappe.db.set_value(
+                doctype_name,
+                row.name,
+                {
+                    "is_invoiced": 0,
+                    "sales_invoice": None
+                },
+                update_modified=False
+            )
+
+        parent_jobs = list(set(row.parent for row in linked_rows))
+        for job_name in parent_jobs:
+            frappe.msgprint(
+                _("Sales Invoice {0} was cancelled. Charges in Warehouse Job {1} have been unlinked.").format(
+                    invoice_name, job_name
+                ),
+                alert=True
+            )
