@@ -406,7 +406,8 @@ fixtures = [
                 "Trip Bulk Sales Invoice",
                 "Cash Pmt Voucher",
                 "Trip Sales Invoice",
-                "FreightMas Sales Fatura"
+                "FreightMas Sales Fatura",
+                "FreightMas Orçamento"
 
             ]]
         ]
