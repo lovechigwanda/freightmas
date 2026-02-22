@@ -43,14 +43,14 @@ def calculate_dnd_storage_days_import(job, cont):
 
     # DND days
     if dnd_end_date and discharge_date:
-        dnd_days = (dnd_end_date - discharge_date).days - dnd_free_days
+        dnd_days = (dnd_end_date - discharge_date).days + 1 - dnd_free_days
         dnd_days = max(dnd_days, 0)
     else:
         dnd_days = 0
 
     # Storage days
     if storage_end_date and discharge_date:
-        storage_days = (storage_end_date - discharge_date).days - port_free_days
+        storage_days = (storage_end_date - discharge_date).days + 1 - port_free_days
         storage_days = max(storage_days, 0)
     else:
         storage_days = 0
@@ -71,14 +71,14 @@ def calculate_dnd_storage_days_export(job, cont):
 
     # DND days: from pick_up_empty_date to end_date
     if pick_up_empty_date:
-        dnd_days = (end_date - pick_up_empty_date).days - dnd_free_days
+        dnd_days = (end_date - pick_up_empty_date).days + 1 - dnd_free_days
         dnd_days = max(dnd_days, 0)
     else:
         dnd_days = 0
 
     # Storage days: from gate_in_full_date to end_date
     if gate_in_full_date:
-        storage_days = (end_date - gate_in_full_date).days - port_free_days
+        storage_days = (end_date - gate_in_full_date).days + 1 - port_free_days
         storage_days = max(storage_days, 0)
     else:
         storage_days = 0

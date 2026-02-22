@@ -143,7 +143,7 @@ def calculate_days(start_date, end_date, free_days):
     try:
         start = datetime.strptime(str(start_date)[:10], "%Y-%m-%d")
         end = datetime.strptime(str(end_date)[:10], "%Y-%m-%d")
-        days = (end - start).days - int(free_days or 0)
+        days = (end - start).days + 1 - int(free_days or 0)
         return days if days > 0 else 0
     except Exception:
         return 0
