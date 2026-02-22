@@ -416,5 +416,7 @@ fixtures = [
 
 
 doctype_js = {
-    "Quotation": "public/js/quotation.js"
+    "Quotation": "public/js/quotation.js",
+    "Sales Invoice": "public/js/sales_invoice.js",
+    "Purchase Invoice": "public/js/purchase_invoice.js",
 }
