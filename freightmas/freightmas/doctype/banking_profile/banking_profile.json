@@ -18,6 +18,8 @@
   "column_break_mazu",
   "account_name",
   "swift_code",
+  "nib",
+  "iban",
   "is_default"
  ],
  "fields": [
@@ -81,6 +83,16 @@
    "label": "Swift Code"
   },
   {
+   "fieldname": "nib",
+   "fieldtype": "Data",
+   "label": "NIB"
+  },
+  {
+   "fieldname": "iban",
+   "fieldtype": "Data",
+   "label": "IBAN"
+  },
+  {
    "default": "0",
    "fieldname": "is_default",
    "fieldtype": "Check",
@@ -104,7 +116,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-20 20:54:34.698762",
+ "modified": "2026-02-22 14:30:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Banking Profile",
