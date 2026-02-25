@@ -5,6 +5,7 @@ import frappe
 import json
 from frappe.model.document import Document
 from frappe.utils import flt, today, cstr
+from freightmas.utils.permissions import check_freightmas_role, check_doc_read_permission
 
 
 class Trip(Document):
@@ -122,6 +123,7 @@ class Trip(Document):
 @frappe.whitelist()
 def create_sales_invoice(trip_name, selected_charges, receivable_party):
     """Create a draft Sales Invoice for selected charges."""
+    check_doc_read_permission("Trip", trip_name)
     try:
         selected_charges = frappe.parse_json(selected_charges) if isinstance(selected_charges, str) else selected_charges
         if not selected_charges:
@@ -190,6 +192,7 @@ def create_sales_invoice(trip_name, selected_charges, receivable_party):
 @frappe.whitelist()
 def create_purchase_invoice(trip_name, selected_charges, supplier):
     """Create a draft Purchase Invoice for selected cost charges."""
+    check_doc_read_permission("Trip", trip_name)
     try:
         selected_charges = frappe.parse_json(selected_charges) if isinstance(selected_charges, str) else selected_charges
         if not selected_charges:
@@ -245,6 +248,7 @@ def create_purchase_invoice(trip_name, selected_charges, supplier):
 
 @frappe.whitelist()
 def create_fuel_stock_entry_with_rows(docname, row_names):
+    check_doc_read_permission("Trip", docname)
     try:
         row_names = json.loads(row_names) if isinstance(row_names, str) else row_names
         trip = frappe.get_doc("Trip", docname)
@@ -299,6 +303,7 @@ def create_fuel_stock_entry_with_rows(docname, row_names):
 @frappe.whitelist()
 def create_journal_entry_from_other_costs(trip_name, selected_charges):
     """Create a draft Journal Entry for selected other cost charges."""
+    check_doc_read_permission("Trip", trip_name)
     try:
         selected_charges = frappe.parse_json(selected_charges) if isinstance(selected_charges, str) else selected_charges
         trip = frappe.get_doc("Trip", trip_name)
@@ -405,6 +410,7 @@ class TripCostCharges(Document):
 # Bulk Invoice Creation
 @frappe.whitelist()
 def create_bulk_invoices(selected_charges, group_invoice=0):
+    check_freightmas_role()
     import json
     if isinstance(selected_charges, str):
         selected_charges = json.loads(selected_charges)
@@ -487,6 +493,7 @@ def create_bulk_invoices(selected_charges, group_invoice=0):
 
 @frappe.whitelist()
 def get_uninvoiced_trips(filters):
+    check_freightmas_role()
     filters = frappe.parse_json(filters) if isinstance(filters, str) else filters
     trip_conditions = []
     values = {}

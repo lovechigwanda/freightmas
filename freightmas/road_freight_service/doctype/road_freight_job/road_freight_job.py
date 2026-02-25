@@ -5,6 +5,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, nowdate
 from frappe import _
+from freightmas.utils.permissions import check_doc_read_permission
 
 class RoadFreightJob(Document):
     def validate(self):
@@ -87,6 +88,7 @@ class RoadFreightJob(Document):
 
 @frappe.whitelist()
 def create_sales_invoice_with_rows(docname, row_names):
+    check_doc_read_permission("Road Freight Job", docname)
     import json
     if isinstance(row_names, str):
         row_names = json.loads(row_names)
@@ -135,6 +137,7 @@ def create_sales_invoice_with_rows(docname, row_names):
 
 @frappe.whitelist()
 def create_purchase_invoice_with_rows(docname, row_names):
+    check_doc_read_permission("Road Freight Job", docname)
     import json
     if isinstance(row_names, str):
         row_names = json.loads(row_names)

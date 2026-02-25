@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.utils import formatdate, flt
+from freightmas.utils.permissions import check_freightmas_role
 
 def execute(filters=None):
     if not filters:
@@ -50,6 +51,7 @@ def get_columns():
 @frappe.whitelist()
 def generate_customer_tracking_pdf(customer):
     """Generate consolidated tracking PDF using print format"""
+    check_freightmas_role()
     try:
         # Get the PDF using the print format
         pdf = frappe.get_print(
@@ -79,6 +81,7 @@ def generate_customer_tracking_pdf(customer):
 @frappe.whitelist()
 def send_customer_tracking_email(customer, to_email, subject, message, cc_emails=None, attach_pdf=True):
     """Send consolidated tracking email to customer with optional PDF attachment"""
+    frappe.only_for(["FreightMas Manager", "System Manager"])
     try:
         # Validate customer exists and tracking is enabled
         customer_doc = frappe.get_doc("Customer", customer)

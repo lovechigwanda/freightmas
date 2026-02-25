@@ -17,6 +17,8 @@ import frappe
 @frappe.whitelist()
 def create_purchase_receipt(fuel_order):
     """Creates a draft Purchase Receipt from a Fuel Order with auto-generated remark and reference."""
+    from freightmas.utils.permissions import check_doc_read_permission
+    check_doc_read_permission("Fuel Order", fuel_order)
 
     doc = frappe.get_doc("Fuel Order", fuel_order)
     

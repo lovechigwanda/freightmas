@@ -19,6 +19,8 @@ from openpyxl.workbook import Workbook
 
 from erpnext.stock.utils import get_incoming_rate
 
+from freightmas.utils.permissions import check_freightmas_role
+
 #########################################################
 # Fuel Rate
 @frappe.whitelist()
@@ -65,6 +67,8 @@ def export_report_to_excel(report_name, filters=None):
     import json
     from io import BytesIO
     import importlib
+
+    frappe.has_permission("Report", "read", report_name, throw=True)
 
     if isinstance(filters, str):
         filters = json.loads(filters)
@@ -225,6 +229,8 @@ def export_report_to_pdf(report_name, filters):
     import json
     filters = json.loads(filters)
 
+    frappe.has_permission("Report", "read", report_name, throw=True)
+
     # Dynamically import the report module and call its execute function
     report = frappe.get_doc("Report", report_name)
     if report.report_type != "Script Report":
@@ -287,6 +293,8 @@ def export_report_to_pdf(report_name, filters):
 def export_truck_trip_summary_to_pdf(report_name, filters):
     import json
     filters = json.loads(filters)
+
+    frappe.has_permission("Report", "read", report_name, throw=True)
 
     # Get report document first
     report = frappe.get_doc("Report", report_name)
@@ -402,6 +410,8 @@ def export_truck_trip_summary_to_excel(report_name, filters):
     from io import BytesIO
     
     filters = json.loads(filters)
+
+    frappe.has_permission("Report", "read", report_name, throw=True)
 
     # Get report document first
     report = frappe.get_doc("Report", report_name)
@@ -627,6 +637,7 @@ def export_truck_trip_summary_to_excel(report_name, filters):
 @frappe.whitelist()
 def export_statement_of_accounts_to_pdf(filters):
     """Export Statement of Accounts to PDF"""
+    check_freightmas_role()
     import json
     
     filters = json.loads(filters)
@@ -710,6 +721,7 @@ def export_statement_of_accounts_to_pdf(filters):
 @frappe.whitelist()
 def export_statement_of_accounts_to_excel(filters):
     """Export Statement of Accounts to Excel"""
+    check_freightmas_role()
     import json
     from io import BytesIO
     
@@ -810,6 +822,7 @@ def export_statement_of_accounts_to_excel(filters):
 @frappe.whitelist()
 def export_ar_ap_statement_to_pdf(filters):
     """Export Accounts Outstanding Statement to PDF"""
+    check_freightmas_role()
     import json
 
     filters = json.loads(filters)
@@ -886,6 +899,7 @@ def export_ar_ap_statement_to_pdf(filters):
 @frappe.whitelist()
 def export_ar_ap_statement_to_excel(filters):
     """Export Accounts Outstanding Statement to Excel"""
+    check_freightmas_role()
     import json
     from io import BytesIO
 
@@ -993,6 +1007,7 @@ def export_ar_ap_statement_to_excel(filters):
 @frappe.whitelist()
 def get_containers_moved_count():
     """Count containerised cargo parcels for submitted (closed) forwarding jobs created this year."""
+    check_freightmas_role()
     result = frappe.db.sql("""
         SELECT COUNT(cpd.name) AS total
         FROM `tabCargo Parcel Details` cpd
@@ -1007,6 +1022,7 @@ def get_containers_moved_count():
 @frappe.whitelist()
 def get_containers_in_progress_count():
     """Count containerised cargo parcels for active (non-submitted) forwarding jobs created this year."""
+    check_freightmas_role()
     result = frappe.db.sql("""
         SELECT COUNT(cpd.name) AS total
         FROM `tabCargo Parcel Details` cpd

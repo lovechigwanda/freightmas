@@ -1,9 +1,15 @@
 import frappe
 from frappe.utils import now, today, get_datetime, format_datetime
 from frappe import _
+from freightmas.utils.permissions import check_freightmas_role
 
 
 def get_context(context):
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Please login to view this page."))
+
+    check_freightmas_role()
+
     job_name = frappe.form_dict.get("job")
     if not job_name:
         frappe.throw(_("Job ID is required."))
@@ -12,9 +18,6 @@ def get_context(context):
 
     if not doc.is_trucking_required:
         frappe.throw(_("This job does not require trucking services."))
-
-    if frappe.session.user == "Guest":
-        frappe.throw(_("Please login to view this page."))
 
     total_cargo = len(doc.cargo_parcel_details)
     completed_cargo = sum(1 for cargo in doc.cargo_parcel_details if cargo.is_completed)
@@ -31,6 +34,7 @@ def get_context(context):
 @frappe.whitelist()
 def get_cargo_details(job, cargo_idx):
     """Get detailed cargo information for read-only display"""
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -90,6 +94,7 @@ def bulk_update_milestone(job, cargo_indices, milestone, date=None, comment=None
     Update milestone for multiple cargo items in a single transaction.
     This avoids the "document modified" error that occurs with sequential updates.
     """
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_indices = frappe.parse_json(cargo_indices) if isinstance(cargo_indices, str) else cargo_indices
@@ -201,6 +206,7 @@ def bulk_update_milestone(job, cargo_indices, milestone, date=None, comment=None
 
 @frappe.whitelist()
 def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_post=None):
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -289,6 +295,7 @@ def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_
 
 @frappe.whitelist()
 def update_tracking(job, cargo_idx, truck_location=None, comment=None):
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -329,6 +336,7 @@ def update_truck_details(
     driver_passport_no=None,
     driver_licence_no=None,
 ):
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -362,6 +370,7 @@ def update_truck_details(
 
 @frappe.whitelist()
 def enable_trucking_for_cargo(job, cargo_idx):
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -391,6 +400,7 @@ def update_extended_tracking(
     border_2_left_on=None,
 ):
     """Update extended tracking fields (Border 2 crossing)"""
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         cargo_idx = int(cargo_idx)
@@ -421,6 +431,7 @@ def update_extended_tracking(
 @frappe.whitelist()
 def add_job_tracking(job, comment):
     """Add a job-level tracking comment"""
+    check_freightmas_role()
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         

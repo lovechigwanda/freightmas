@@ -6,6 +6,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, nowdate, cint
 from frappe import _
+from freightmas.utils.permissions import check_doc_read_permission
 
 class ForwardingJob(Document):
     
@@ -1290,6 +1291,7 @@ class ForwardingJob(Document):
 # ========================================================
 @frappe.whitelist()
 def create_sales_invoice_with_rows(docname, row_names):
+    check_doc_read_permission("Forwarding Job", docname)
     # row_names can be JSON string from client
     if isinstance(row_names, str):
         row_names = frappe.parse_json(row_names) or []
@@ -1376,6 +1378,7 @@ def create_sales_invoice_with_rows(docname, row_names):
 # ========================================================
 @frappe.whitelist()
 def create_purchase_invoice_with_rows(docname, row_names):
+    check_doc_read_permission("Forwarding Job", docname)
     if isinstance(row_names, str):
         row_names = frappe.parse_json(row_names) or []
 

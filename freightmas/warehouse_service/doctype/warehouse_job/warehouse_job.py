@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt, get_datetime_str, date_diff, today, getdate
+from freightmas.utils.permissions import check_doc_read_permission
 
 
 class WarehouseJob(Document):
@@ -503,6 +504,7 @@ class WarehouseJob(Document):
 @frappe.whitelist()
 def create_sales_invoice_with_rows(docname, row_names):
 	"""Create Sales Invoice from selected handling and storage charges"""
+	check_doc_read_permission("Warehouse Job", docname)
 	import json
 	from frappe.utils import nowdate
 	
