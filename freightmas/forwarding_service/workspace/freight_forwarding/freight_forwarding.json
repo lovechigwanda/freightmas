@@ -2,7 +2,7 @@
  "app": "freightmas",
  "charts": [],
  "content": "[{\"id\":\"qI87VmQ1mW\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"uUMhwrcIl2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2WOqFmEUnM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"nKcW-cqozr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job List\",\"col\":3}},{\"id\":\"_TG_SXMd2u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Master FWJob\",\"col\":3}},{\"id\":\"a68ss4rhAT\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardQuickLinks\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"cardReports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
- "creation": "2026-02-15 21:11:30.682773",
+ "creation": "2026-02-22 22:41:24.812720",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -118,7 +118,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 11,
+   "link_count": 12,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -236,7 +236,7 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Closing Report",
+   "label": "Forwarding Job Closing Report",
    "link_count": 0,
    "link_to": "Forwarding Job Closing Report",
    "link_type": "Report",
@@ -244,7 +244,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-02-15 21:12:23.245839",
+ "modified": "2026-02-25 14:04:46.887249",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",

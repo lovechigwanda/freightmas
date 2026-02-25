@@ -1,8 +1,8 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"K87b-DwhFB\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Sales</span>\",\"col\":12}},{\"id\":\"lf07vQBIG4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"RNpurDsjGr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"gYtr6CJKpj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Lead\",\"col\":3}},{\"id\":\"kOeBUjhtYR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"nPuiDOaWDi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"8BTtEzx3C3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation List\",\"col\":3}}]",
- "creation": "2026-01-17 19:16:51.831112",
+ "content": "[{\"id\":\"K87b-DwhFB\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Sales</span>\",\"col\":12}},{\"id\":\"lf07vQBIG4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"nPuiDOaWDi\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"8BTtEzx3C3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation List\",\"col\":3}},{\"id\":\"RNpurDsjGr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"gYtr6CJKpj\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Lead\",\"col\":3}},{\"id\":\"kOeBUjhtYR\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"btdrE0L7w3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"gn96JAeNsc\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Reports\",\"col\":4}}]",
+ "creation": "2026-02-25 14:10:08.764969",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -14,9 +14,62 @@
  "is_hidden": 0,
  "label": "FreightMas Sales",
  "link_type": "DocType",
- "links": [],
- "modified": "2026-01-17 19:25:11.535574",
- "modified_by": "Administrator",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Reports",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Quotation List",
+   "link_count": 0,
+   "link_to": "Quotation List",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quotation Conversion Tracker",
+   "link_count": 0,
+   "link_to": "Quotation Conversion Tracker",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Quotation",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unconverted Quotations",
+   "link_count": 0,
+   "link_to": "Unconverted Quotations",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Quotation",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Pipeline Analytics",
+   "link_count": 0,
+   "link_to": "Sales Pipeline Analytics",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Opportunity",
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-02-25 14:21:27.360734",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "FreightMas",
  "name": "FreightMas Sales",
  "number_cards": [],
