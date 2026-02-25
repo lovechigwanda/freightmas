@@ -372,46 +372,9 @@ fixtures = [
             ["name", "in", ["Submit for Approval", "Approve", "Reject", "Send to Customer", "Mark Accepted", "Mark Rejected", "Mark Expired", "Cancel"]]
         ]
     },
-    {
-        "dt": "Workspace",
-        "filters": [
-            ["name", "in", ["FreightMas", "FreightMas Accounts", "FreightMas Sales", "Road Freight", "Port Clearing Service", "Trucking", "Freight Forwarding", "Warehousing"]]
-        ]
-    },
-    {
-        "dt": "Workspace Sidebar",
-        "filters": [
-            ["name", "in", ["FreightMas", "Freight Forwarding"]]
-        ]
-    },
-    #{
-    #    "dt": "Letter Head",
-    #    "filters": [
-    #        ["name", "in", ["Main Letterhead"]]
-    #    ]
-    #},
-    {
-        "dt": "Print Format",
-        "filters": [
-            ["name", "in", [
-                "Quotation Cost Sheet",
-                "FreightMas TBSI",
-                "FreightMas Sales Invoice",
-                "FreightMas Quotation",
-                "Forwarding Job Cost Sheet",
-                "Road Freight Job Cost Sheet",
-                "Clearing Job Cost Sheet",
-                "FreightMas Purchase Invoice",
-                "FM Subs",
-                "Trip Bulk Sales Invoice",
-                "Cash Pmt Voucher",
-                "Trip Sales Invoice",
-                "FreightMas Sales Fatura",
-                "FreightMas Orçamento"
-
-            ]]
-        ]
-    }
+    # Workspaces, Workspace Sidebars, and Print Formats are managed
+    # exclusively via module-level JSON files (synced during bench migrate).
+    # Do NOT add them here — it creates a dual source of truth conflict.
 ]
 
 
