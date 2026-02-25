@@ -43,9 +43,9 @@ def execute(filters=None):
         SELECT name, date_created, customer, direction, bl_number,
                total_estimated_revenue, total_estimated_cost
         FROM `tabClearing Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     for job in jobs:
         est_revenue = flt(job.total_estimated_revenue)

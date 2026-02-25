@@ -51,10 +51,10 @@ def execute(filters=None):
         SELECT name, transaction_date, party_name as customer, customer_reference,
                valid_till, job_type, grand_total, workflow_state
         FROM `tabQuotation`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY transaction_date DESC
-        {limit_clause}
-    """.format(where_clause=where_clause, limit_clause=limit_clause), params, as_dict=True)
+        """ + limit_clause + """
+    """, params, as_dict=True)
 
     for quote in quotations:
         data.append({
@@ -76,8 +76,8 @@ def execute(filters=None):
         total_count = frappe.db.sql("""
             SELECT COUNT(*) as count
             FROM `tabQuotation`
-            WHERE {where_clause}
-        """.format(where_clause=where_clause), params, as_dict=True)[0].count
+            WHERE """ + where_clause + """
+        """, params, as_dict=True)[0].count
         result["total"] = total_count
     
     return columns, data

@@ -57,9 +57,9 @@ def execute(filters=None):
             cd.storage_days_accumulated
         FROM `tabClearing Job` cj
         JOIN `tabContainer Details` cd ON cd.parent = cj.name
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY cj.name, cd.container_number
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     # Build rows for the report
     for row in rows:

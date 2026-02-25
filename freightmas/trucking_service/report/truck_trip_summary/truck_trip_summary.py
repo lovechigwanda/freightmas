@@ -39,7 +39,7 @@ def get_columns():
 def get_simple_data(filters):
     conditions = get_conditions(filters)
     
-    data = frappe.db.sql(f"""
+    query = """
         SELECT 
             t.truck, t.driver, t.name AS trip_id, t.route,
             t.customer,
@@ -51,9 +51,11 @@ def get_simple_data(filters):
             END AS transit_days,
             t.workflow_state
         FROM `tabTrip` t
-        WHERE t.docstatus < 2 {conditions}
+        WHERE t.docstatus < 2
+    """ + conditions + """
         ORDER BY t.truck, t.date_loaded DESC
-    """, filters, as_dict=True)
+    """
+    data = frappe.db.sql(query, filters, as_dict=True)
 
     for row in data:
         # Format dates

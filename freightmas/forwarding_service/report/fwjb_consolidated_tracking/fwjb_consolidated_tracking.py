@@ -13,7 +13,7 @@ def execute(filters=None):
     data = []
 
     # Get customers with active jobs (no date filtering)
-    customers_with_jobs = frappe.db.sql(f"""
+    customers_with_jobs = frappe.db.sql("""
         SELECT customer, 
                COUNT(*) as total_jobs,
                MAX(modified) as last_update

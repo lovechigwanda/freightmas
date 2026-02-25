@@ -792,7 +792,7 @@ function create_sales_invoice_from_charges(frm) {
                 <select class="customer-filter form-control" style="width: 100%;">
                     <option value="">-- All Customers --</option>
                     ${customers.map(c =>
-                        `<option value="${c}" ${c === customer ? 'selected' : ''}>${c}</option>`
+                        `<option value="${frappe.utils.escape_html(c)}" ${c === customer ? 'selected' : ''}>${frappe.utils.escape_html(c)}</option>`
                     ).join('')}
                 </select>
             </div>
@@ -817,10 +817,10 @@ function create_sales_invoice_from_charges(frm) {
                         ${rows.map(row => `
                             <tr>
                                 <td style="text-align: center;">
-                                    <input type="checkbox" class="charge-row-check" data-row-name="${row.name || ''}" ${!row.name ? 'disabled title="Save the Job to invoice this newly added row"' : ''}>
+                                    <input type="checkbox" class="charge-row-check" data-row-name="${frappe.utils.escape_html(row.name || '')}" ${!row.name ? 'disabled title="Save the Job to invoice this newly added row"' : ''}>
                                 </td>
-                                <td>${row.customer || ''}</td>
-                                <td>${row.charge || ''}</td>
+                                <td>${frappe.utils.escape_html(row.customer || '')}</td>
+                                <td>${frappe.utils.escape_html(row.charge || '')}</td>
                                 <td style="text-align: right;">${row.qty || 0}</td>
                                 <td style="text-align: right;">${frappe.format(row.sell_rate || 0, {
                                     fieldtype: 'Currency',
@@ -934,7 +934,7 @@ function create_purchase_invoice_from_charges(frm) {
                 <select class="supplier-filter form-control" style="width: 100%;">
                     <option value="">-- All Suppliers --</option>
                     ${suppliers.map(s =>
-                        `<option value="${s}" ${s === supplier ? 'selected' : ''}>${s}</option>`
+                        `<option value="${frappe.utils.escape_html(s)}" ${s === supplier ? 'selected' : ''}>${frappe.utils.escape_html(s)}</option>`
                     ).join('')}
                 </select>
             </div>
@@ -959,10 +959,10 @@ function create_purchase_invoice_from_charges(frm) {
                         ${rows.map(row => `
                             <tr>
                                 <td style="text-align: center;">
-                                    <input type="checkbox" class="charge-row-check" data-row-name="${row.name || ''}" ${!row.name ? 'disabled title="Save the Job to invoice this newly added row"' : ''}>
+                                    <input type="checkbox" class="charge-row-check" data-row-name="${frappe.utils.escape_html(row.name || '')}" ${!row.name ? 'disabled title="Save the Job to invoice this newly added row"' : ''}>
                                 </td>
-                                <td>${row.supplier || ''}</td>
-                                <td>${row.charge || ''}</td>
+                                <td>${frappe.utils.escape_html(row.supplier || '')}</td>
+                                <td>${frappe.utils.escape_html(row.charge || '')}</td>
                                 <td style="text-align: right;">${row.qty || 0}</td>
                                 <td style="text-align: right;">${frappe.format(row.buy_rate || 0, {
                                     fieldtype: 'Currency',

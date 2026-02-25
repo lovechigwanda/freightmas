@@ -34,11 +34,11 @@ def get_data(filters):
         conditions += " AND customer = %(customer)s"
         filter_values["customer"] = filters["customer"]
     
-    query = f"""
+    query = """
         SELECT name, truck, customer, workflow_state, current_trip_milestone,
                current_milestone_comment, updated_on
         FROM `tabTrip`
-        {conditions}
+    """ + conditions + """
         ORDER BY updated_on DESC
     """
     

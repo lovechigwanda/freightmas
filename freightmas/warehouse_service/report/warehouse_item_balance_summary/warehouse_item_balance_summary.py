@@ -79,7 +79,8 @@ def get_data(filters):
 	"""Get summarized item balance data"""
 	conditions = get_conditions(filters)
 	
-	# Query to get all items in warehouse with their details
+	show_zero = "1=1" if cint(filters.get("show_zero_balance")) else "1=0"
+
 	query = """
 		SELECT
 			wj.customer,
@@ -100,17 +101,14 @@ def get_data(filters):
 		WHERE
 			cgr.docstatus = 1
 			AND wj.status != 'Closed'
-			{conditions}
+	""" + conditions + """
 		GROUP BY
 			wj.customer, cgri.storage_unit_item, cgri.description, cgri.stock_uom
 		HAVING
-			total_quantity > 0 OR {show_zero}
+			total_quantity > 0 OR """ + show_zero + """
 		ORDER BY
 			wj.customer, cgri.storage_unit_item
-	""".format(
-		conditions=conditions,
-		show_zero="1=1" if cint(filters.get("show_zero_balance")) else "1=0"
-	)
+	"""
 	
 	data = frappe.db.sql(query, filters, as_dict=1)
 	

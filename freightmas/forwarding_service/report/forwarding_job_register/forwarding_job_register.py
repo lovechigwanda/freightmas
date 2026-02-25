@@ -40,9 +40,9 @@ def execute(filters=None):
                bl_number, eta, total_quoted_revenue_base, 
                total_quoted_cost_base, total_quoted_profit_base, status
         FROM `tabForwarding Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     for job in jobs:
         # Combine direction and shipment mode

@@ -59,9 +59,9 @@ def execute(filters=None):
             cj.storage_start_date,
             cj.discharge_date
         FROM `tabClearing Job` cj
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY cj.date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     today = frappe.utils.nowdate()
 

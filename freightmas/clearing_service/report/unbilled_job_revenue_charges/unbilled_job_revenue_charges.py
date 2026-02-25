@@ -55,9 +55,9 @@ def execute(filters=None):
             (rc.qty * rc.sell_rate * cj.conversion_rate) AS base_amount
         FROM `tabClearing Job` cj
         JOIN `tabClearing Charges` rc ON rc.parent = cj.name
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY cj.name, cj.date_created
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     # Group charges by job and add totals
     grouped = {}

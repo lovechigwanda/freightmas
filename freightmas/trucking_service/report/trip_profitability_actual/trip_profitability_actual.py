@@ -37,9 +37,9 @@ def execute(filters=None):
     trips = frappe.db.sql("""
         SELECT name, date_created, customer, truck, route
         FROM `tabTrip`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     for trip in trips:
         # Submitted Sales Invoices

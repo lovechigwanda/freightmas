@@ -228,7 +228,7 @@ function create_sales_invoice_from_charges(frm) {
                 <select id="customer-filter" class="form-control" style="width: 100%;">
                     <option value="">-- All Customers --</option>
                     ${customers.map(c =>
-                        `<option value="${c}" ${c === customer ? 'selected' : ''}>${c}</option>`
+                        `<option value="${frappe.utils.escape_html(c)}" ${c === customer ? 'selected' : ''}>${frappe.utils.escape_html(c)}</option>`
                     ).join('')}
                 </select>
             </div>
@@ -254,10 +254,10 @@ function create_sales_invoice_from_charges(frm) {
                         ${rows.map(row => `
                             <tr>
                                 <td style="text-align: center;">
-                                    <input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+                                    <input type="checkbox" class="charge-row-check" data-row-name="${frappe.utils.escape_html(row.name)}">
                                 </td>
-                                <td>${row.receivable_party || ''}</td>
-                                <td>${row.charge || ''}</td>
+                                <td>${frappe.utils.escape_html(row.receivable_party || '')}</td>
+                                <td>${frappe.utils.escape_html(row.charge || '')}</td>
                                 <td style="text-align: right;">${frappe.format(row.quantity || 0, { fieldtype: 'Float', precision: 2 })}</td>
                                 <td style="text-align: right;">${frappe.format(row.rate || 0, { fieldtype: 'Currency', precision: 2 })}</td>
                                 <td style="text-align: right;">${frappe.format(row.total_amount || 0, { fieldtype: 'Currency', precision: 2 })}</td>
@@ -380,7 +380,7 @@ function create_purchase_invoice_from_charges(frm) {
                 <select id="supplier-filter" class="form-control" style="width: 100%;">
                     <option value="">-- All Suppliers --</option>
                     ${suppliers.map(s =>
-                        `<option value="${s}" ${s === supplier ? 'selected' : ''}>${s}</option>`
+                        `<option value="${frappe.utils.escape_html(s)}" ${s === supplier ? 'selected' : ''}>${frappe.utils.escape_html(s)}</option>`
                     ).join('')}
                 </select>
             </div>
@@ -406,11 +406,11 @@ function create_purchase_invoice_from_charges(frm) {
                         ${rows.map(row => `
                             <tr>
                                 <td style="text-align: center;">
-                                    <input type="checkbox" class="charge-row-check" data-row-name="${row.name}">
+                                    <input type="checkbox" class="charge-row-check" data-row-name="${frappe.utils.escape_html(row.name)}">
                                 </td>
-                                <td>${row.payable_party || ''}</td>
-                                <td>${row.charge || ''}</td>
-                                <td>${row.charge_description || ''}</td>
+                                <td>${frappe.utils.escape_html(row.payable_party || '')}</td>
+                                <td>${frappe.utils.escape_html(row.charge || '')}</td>
+                                <td>${frappe.utils.escape_html(row.charge_description || '')}</td>
                                 <td style="text-align: right;">${row.quantity || 0}</td>
                                 <td style="text-align: right;">${frappe.format(row.rate || 0, { fieldtype: 'Currency' })}</td>
                                 <td style="text-align: right;">${frappe.format(row.total_amount || 0, { fieldtype: 'Currency' })}</td>
@@ -1017,11 +1017,11 @@ function show_bulk_invoice_dialog(frm) {
                                     .map(charge => `
                                         <tr>
                                             <td style="text-align: center;">
-                                                <input type="checkbox" class="charge-row-check" data-trip-name="${trip.name}" data-charge-name="${charge.name}">
+                                                <input type="checkbox" class="charge-row-check" data-trip-name="${frappe.utils.escape_html(trip.name)}" data-charge-name="${frappe.utils.escape_html(charge.name)}">
                                             </td>
-                                            <td>${trip.name}</td>
-                                            <td>${charge.truck || ''}</td> <!-- Corrected line -->
-                                            <td>${charge.charge || ''}</td>
+                                            <td>${frappe.utils.escape_html(trip.name)}</td>
+                                            <td>${frappe.utils.escape_html(charge.truck || '')}</td>
+                                            <td>${frappe.utils.escape_html(charge.charge || '')}</td>
                                             <td>${frappe.format(charge.quantity || 0, { fieldtype: 'Float', precision: 2 })}</td>
                                             <td>${frappe.format(charge.rate || 0, { fieldtype: 'Currency', precision: 2 })}</td>
                                             <td>${frappe.format(charge.total_amount || 0, { fieldtype: 'Currency', precision: 2 })}</td>

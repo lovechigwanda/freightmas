@@ -509,12 +509,14 @@ def get_uninvoiced_trips(filters):
         trip_conditions.append("date_created <= %(to_date)s")
         values["to_date"] = filters["to_date"]
 
-    trip_query = f"""
+    trip_query = """
         SELECT name, customer, route, trip_direction, cargo_type, date_created
         FROM `tabTrip`
         WHERE 1=1
-        {'AND ' + ' AND '.join(trip_conditions) if trip_conditions else ''}
     """
+    if trip_conditions:
+        trip_query += " AND " + " AND ".join(trip_conditions)
+
     trips = frappe.db.sql(trip_query, values, as_dict=True)
 
     customer = filters.get("customer")

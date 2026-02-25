@@ -47,9 +47,9 @@ def execute(filters=None):
                fj.date_created, fj.customer, fj.customer_reference, fj.direction, fj.shipment_mode
         FROM `tabCargo Parcel Details` cpd
         JOIN `tabForwarding Job` fj ON cpd.parent = fj.name
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY fj.date_created DESC, cpd.name
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     # Process containers and add calculated fields
     for container in containers:

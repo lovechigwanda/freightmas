@@ -41,9 +41,9 @@ def execute(filters=None):
 			total_handling_charges, total_storage_charges,
 			invoiced_amount
 		FROM `tabWarehouse Job`
-		WHERE {where_clause}
+		WHERE """ + where_clause + """
 		ORDER BY job_date DESC
-	""".format(where_clause=where_clause), params, as_dict=True)
+	""", params, as_dict=True)
 
 	for job in jobs:
 		# Calculate total charges

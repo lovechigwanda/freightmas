@@ -38,9 +38,9 @@ def execute(filters=None):
         SELECT name, date_created, customer, customer_reference, 
                port_of_discharge, eta, ata, discharge_date, cargo_count
         FROM `tabForwarding Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     # Process data with incoming cargo logic
     today = getdate()

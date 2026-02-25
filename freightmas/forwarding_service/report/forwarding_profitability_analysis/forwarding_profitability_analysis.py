@@ -36,9 +36,9 @@ def execute(filters=None):
                total_quoted_revenue_base, total_quoted_cost_base,
                total_working_revenue_base, total_working_cost
         FROM `tabForwarding Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     for job in jobs:
         # Quoted figures

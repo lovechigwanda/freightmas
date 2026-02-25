@@ -34,9 +34,9 @@ def execute(filters=None):
         SELECT name, date_created, customer, truck, route,
                total_estimated_revenue, total_estimated_cost
         FROM `tabTrip`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     for trip in trips:
         est_revenue = flt(trip.total_estimated_revenue)

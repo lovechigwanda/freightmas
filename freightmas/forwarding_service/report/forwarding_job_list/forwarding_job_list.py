@@ -51,10 +51,10 @@ def execute(filters=None):
         SELECT name, date_created, customer, consignee, customer_reference, 
                eta, direction, status
         FROM `tabForwarding Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-        {limit_clause}
-    """.format(where_clause=where_clause, limit_clause=limit_clause), params, as_dict=True)
+        """ + limit_clause + """
+    """, params, as_dict=True)
 
     for job in jobs:
         data.append({
@@ -76,8 +76,8 @@ def execute(filters=None):
         total_count = frappe.db.sql("""
             SELECT COUNT(*) as count
             FROM `tabForwarding Job`
-            WHERE {where_clause}
-        """.format(where_clause=where_clause), params, as_dict=True)[0].count
+            WHERE """ + where_clause + """
+        """, params, as_dict=True)[0].count
         result["total"] = total_count
     
     return columns, data

@@ -35,9 +35,9 @@ def execute(filters=None):
                direction, shipment_mode, eta, ata,
                status, current_comment
         FROM `tabForwarding Job`
-        WHERE {where_clause}
+        WHERE """ + where_clause + """
         ORDER BY date_created DESC
-    """.format(where_clause=where_clause), params, as_dict=True)
+    """, params, as_dict=True)
 
     # Filter jobs based on completed status and date (show current jobs + recently completed within 5 days)
     today = getdate()

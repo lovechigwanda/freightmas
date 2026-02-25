@@ -92,7 +92,7 @@ def get_data(filters):
 	"""Get data for the report"""
 	conditions = get_conditions(filters)
 	
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT
 			cgr.customer,
 			cgr.name as goods_receipt,
@@ -112,10 +112,11 @@ def get_data(filters):
 		WHERE
 			cgr.docstatus = 1
 			AND cgri.quantity_remaining > 0
-			{conditions}
+	""" + conditions + """
 		ORDER BY
 			cgr.customer, cgr.receipt_date
-	""", filters, as_dict=1)
+	"""
+	data = frappe.db.sql(query, filters, as_dict=1)
 	
 	return data
 

@@ -56,9 +56,9 @@ def get_handling_charges(filters):
 			'Handling' as charge_type
 		FROM `tabWarehouse Job Handling Charges` hc
 		INNER JOIN `tabWarehouse Job` wj ON hc.parent = wj.name
-		WHERE {where_clause}
+		WHERE """ + where_clause + """
 		ORDER BY hc.activity_date DESC
-	""".format(where_clause=where_clause), params, as_dict=True)
+	""", params, as_dict=True)
 
 	data = []
 	for charge in charges:
@@ -104,9 +104,9 @@ def get_storage_charges(filters):
 			sc.amount
 		FROM `tabWarehouse Job Storage Charges` sc
 		INNER JOIN `tabWarehouse Job` wj ON sc.parent = wj.name
-		WHERE {where_clause}
+		WHERE """ + where_clause + """
 		ORDER BY sc.end_date DESC
-	""".format(where_clause=where_clause), params, as_dict=True)
+	""", params, as_dict=True)
 
 	data = []
 	for charge in charges:

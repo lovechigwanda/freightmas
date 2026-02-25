@@ -95,7 +95,7 @@ def get_data(filters):
 	"""Get data for the report"""
 	conditions = get_conditions(filters)
 	
-	data = frappe.db.sql(f"""
+	query = """
 		SELECT
 			gm.movement_date,
 			gm.name,
@@ -112,10 +112,11 @@ def get_data(filters):
 			`tabGoods Movement` gm
 		WHERE
 			gm.docstatus = 1
-			{conditions}
+	""" + conditions + """
 		ORDER BY
 			gm.movement_date DESC
-	""", filters, as_dict=1)
+	"""
+	data = frappe.db.sql(query, filters, as_dict=1)
 	
 	return data
 

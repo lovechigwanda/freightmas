@@ -47,9 +47,9 @@ def execute(filters=None):
 			cgri.status
 		FROM `tabCustomer Goods Receipt Item` cgri
 		INNER JOIN `tabCustomer Goods Receipt` cgr ON cgri.parent = cgr.name
-		WHERE {where_clause}
+		WHERE """ + where_clause + """
 		ORDER BY cgr.customer, cgr.warehouse_job, cgri.warehouse_bay, cgri.warehouse_bin
-	""".format(where_clause=where_clause), params, as_dict=True)
+	""", params, as_dict=True)
 
 	for item in items:
 		# Calculate days in warehouse

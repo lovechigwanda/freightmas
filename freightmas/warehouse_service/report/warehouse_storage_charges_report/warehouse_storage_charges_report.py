@@ -59,9 +59,9 @@ def execute(filters=None):
 			sc.is_invoiced
 		FROM `tabWarehouse Job Storage Charges` sc
 		INNER JOIN `tabWarehouse Job` wj ON sc.parent = wj.name
-		WHERE {where_clause}
+		WHERE """ + where_clause + """
 		ORDER BY sc.start_date DESC, wj.customer
-	""".format(where_clause=where_clause), params, as_dict=True)
+	""", params, as_dict=True)
 
 	for charge in charges:
 		# Calculate rate per day

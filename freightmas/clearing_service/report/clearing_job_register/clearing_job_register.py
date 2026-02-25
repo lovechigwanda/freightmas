@@ -79,12 +79,9 @@ def execute(filters=None):
         "currency", "conversion_rate", "base_currency", "status", "completed_on", "company", "created_by"
     ]
 
-    jobs = frappe.db.sql(f"""
-        SELECT {", ".join(base_fields)}
-        FROM `tabClearing Job`
-        {where_clause}
-        ORDER BY date_created DESC
-    """, values, as_dict=1)
+    field_list = ", ".join(base_fields)
+    query = "SELECT " + field_list + " FROM `tabClearing Job`" + where_clause + " ORDER BY date_created DESC"
+    jobs = frappe.db.sql(query, values, as_dict=1)
 
     data = []
     today = frappe.utils.nowdate()

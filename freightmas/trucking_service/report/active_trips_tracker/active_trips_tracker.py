@@ -35,7 +35,7 @@ def get_data(filters):
     if conditions:
         where_clause += " AND " + " AND ".join(conditions)
 
-    query = f"""
+    query = """
         SELECT
             name AS trip_id,
             truck,
@@ -46,7 +46,6 @@ def get_data(filters):
             current_milestone_comment AS comment,
             updated_on
         FROM tabTrip
-        {where_clause}
-    """
+    """ + where_clause
 
     return frappe.db.sql(query, params, as_dict=True)
