@@ -118,4 +118,30 @@ frappe.query_reports["Cost of Sales Detail Report"] = {
     }
     return value;
   },
+
+  onload: function (report) {
+    report.page.add_inner_button(
+      __("Export Excel"),
+      function () {
+        let filters = report.get_values();
+        open_url_post(
+          "/api/method/freightmas.freightmas.report.cost_of_sales_detail_report.cost_of_sales_detail_report.export_excel",
+          { filters: JSON.stringify(filters) }
+        );
+      },
+      __("Export")
+    );
+
+    report.page.add_inner_button(
+      __("Export PDF"),
+      function () {
+        let filters = report.get_values();
+        open_url_post(
+          "/api/method/freightmas.freightmas.report.cost_of_sales_detail_report.cost_of_sales_detail_report.export_pdf",
+          { filters: JSON.stringify(filters) }
+        );
+      },
+      __("Export")
+    );
+  },
 };

@@ -579,3 +579,65 @@ def get_currency(filters):
     if filters.get("company"):
         return frappe.get_cached_value("Company", filters["company"], "default_currency")
     return frappe.defaults.get_global_default("currency") or "USD"
+
+
+# ----------------------------------------
+# Excel & PDF Export
+# ----------------------------------------
+
+@frappe.whitelist()
+def export_excel(filters):
+    """Generate and download a formatted Excel report."""
+    import json
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+
+    validate_filters(filters)
+
+    cogs_accounts = get_cogs_account_filter(filters)
+    if not cogs_accounts:
+        frappe.throw(_("No Cost of Goods Sold accounts found for this company."))
+
+    filters["_cogs_accounts"] = cogs_accounts
+    columns = get_columns(filters)
+    data = get_data(filters)
+
+    from freightmas.freightmas.report.report_export_utils import build_excel_file, send_excel_response
+
+    file_bytes = build_excel_file(
+        filters=filters,
+        data=data,
+        columns=columns,
+        report_title="Cost of Sales Detail Report",
+        net_field_label="Net Cost of Sales",
+    )
+    send_excel_response(file_bytes, "Cost_of_Sales_Detail_Report.xlsx")
+
+
+@frappe.whitelist()
+def export_pdf(filters):
+    """Generate and download a formatted PDF report."""
+    import json
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+
+    validate_filters(filters)
+
+    cogs_accounts = get_cogs_account_filter(filters)
+    if not cogs_accounts:
+        frappe.throw(_("No Cost of Goods Sold accounts found for this company."))
+
+    filters["_cogs_accounts"] = cogs_accounts
+    columns = get_columns(filters)
+    data = get_data(filters)
+
+    from freightmas.freightmas.report.report_export_utils import build_pdf_file, send_pdf_response
+
+    file_bytes = build_pdf_file(
+        filters=filters,
+        data=data,
+        columns=columns,
+        report_title="Cost of Sales Detail Report",
+        net_fieldname="net_cost",
+    )
+    send_pdf_response(file_bytes, "Cost_of_Sales_Detail_Report.pdf")
