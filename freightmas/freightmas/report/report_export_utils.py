@@ -39,6 +39,9 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
     """
     Build a formatted Excel workbook and return it as bytes.
 
+    Uses the same visual style as the shared ``export_report_to_excel``
+    endpoint in ``freightmas.api`` so that all reports look uniform.
+
     Args:
         filters: report filters dict
         data: list of row dicts from the report
@@ -47,102 +50,119 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
         net_field_label: label for the net amount column header
     """
     from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
 
     wb = Workbook()
     ws = wb.active
-    ws.title = report_title[:31]  # Excel limit
 
-    # ---- Styles ----
-    title_font = Font(name="Calibri", size=14, bold=True, color="1F4E79")
-    subtitle_font = Font(name="Calibri", size=10, color="555555")
-    header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
-    subtotal_font = Font(name="Calibri", size=10, bold=True, color="1F4E79")
-    subtotal_fill = PatternFill(start_color="D6E4F0", end_color="D6E4F0", fill_type="solid")
-    grand_total_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
-    grand_total_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
-    data_font = Font(name="Calibri", size=10)
-    alt_row_fill = PatternFill(start_color="F2F7FB", end_color="F2F7FB", fill_type="solid")
-    thin_border = Border(
-        bottom=Side(style="thin", color="D9D9D9")
+    sheet_title = re.sub(r'[\\/*?:\[\]]', '', report_title)[:31]
+    ws.title = sheet_title
+
+    # ---- Styles (matching api.py export_report_to_excel) ----
+    title_font = Font(bold=True, size=16)
+    subtitle_font = Font(bold=True, size=13)
+    filter_label_font = Font(bold=True)
+    bold_white_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill("solid", fgColor="305496")
+    zebra_fill = PatternFill("solid", fgColor="F2F2F2")
+    subtotal_font = Font(bold=True, color="305496")
+    subtotal_fill = PatternFill("solid", fgColor="D6DCE4")
+    grand_total_font = Font(bold=True, color="FFFFFF")
+    grand_total_fill = PatternFill("solid", fgColor="305496")
+    border = Border(
+        left=Side(style='thin', color='DDDDDD'),
+        right=Side(style='thin', color='DDDDDD'),
+        top=Side(style='thin', color='DDDDDD'),
+        bottom=Side(style='thin', color='DDDDDD'),
     )
-    header_border = Border(
-        bottom=Side(style="medium", color="1F4E79")
-    )
+    center_align = Alignment(horizontal="center", vertical="center")
+    right_align = Alignment(horizontal="right", vertical="center")
+    left_align = Alignment(horizontal="left", vertical="center")
 
     # ---- Filter columns for Excel (drop Account, Party, Party Type, Voucher Type) ----
     excel_columns = [c for c in columns if c.get("fieldname") not in ALWAYS_DROP]
+    ncols = len(excel_columns)
 
-    # ---- Header section ----
-    company = filters.get("company", "")
-    from_date = formatdate(filters.get("from_date"), "dd MMM yyyy") if filters.get("from_date") else ""
-    to_date = formatdate(filters.get("to_date"), "dd MMM yyyy") if filters.get("to_date") else ""
-    cost_center = filters.get("cost_center", "")
+    row_idx = 1
 
-    row = 1
-    num_cols = len(excel_columns)
+    # ---- Company Name (merged) ----
+    ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+    ws.cell(row=row_idx, column=1, value=filters.get("company", "")).font = title_font
+    row_idx += 1
 
-    # Company name
-    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=num_cols)
-    cell = ws.cell(row=row, column=1, value=company)
-    cell.font = title_font
-    cell.alignment = Alignment(horizontal="center")
-    row += 1
+    # ---- Report Title (merged) ----
+    ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+    ws.cell(row=row_idx, column=1, value=report_title).font = subtitle_font
+    row_idx += 1
 
-    # Report title
-    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=num_cols)
-    cell = ws.cell(row=row, column=1, value=report_title)
-    cell.font = Font(name="Calibri", size=12, bold=True, color="333333")
-    cell.alignment = Alignment(horizontal="center")
-    row += 1
+    # ---- Filters as label : value rows ----
+    display_filters = {
+        "from_date": "From Date",
+        "to_date": "To Date",
+        "fiscal_year": "Fiscal Year",
+        "cost_center": "Cost Center",
+        "account": "Account",
+        "party_type": "Party Type",
+        "party": "Party",
+        "voucher_type": "Voucher Type",
+        "group_by": "Group By",
+    }
+    for key, label in display_filters.items():
+        val = filters.get(key)
+        if val:
+            # Format date values
+            if "date" in key:
+                try:
+                    val = formatdate(val, "dd-MMM-yy")
+                except Exception:
+                    pass
+            ws.cell(row=row_idx, column=1, value=f"{label}:").font = filter_label_font
+            ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+            ws.cell(row=row_idx, column=2, value=val)
+            row_idx += 1
 
-    # Date range
-    date_text = f"Period: {from_date} to {to_date}"
-    if cost_center:
-        date_text += f"  |  Cost Center: {cost_center}"
-    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=num_cols)
-    cell = ws.cell(row=row, column=1, value=date_text)
-    cell.font = subtitle_font
-    cell.alignment = Alignment(horizontal="center")
-    row += 1
-
-    # Generated timestamp
-    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=num_cols)
-    cell = ws.cell(row=row, column=1, value=f"Generated: {now_datetime().strftime('%d %b %Y %H:%M')}")
-    cell.font = Font(name="Calibri", size=8, italic=True, color="999999")
-    cell.alignment = Alignment(horizontal="center")
-    row += 2  # blank row
+    # ---- Exported timestamp ----
+    ws.cell(row=row_idx, column=1, value="Exported:").font = filter_label_font
+    ws.cell(row=row_idx, column=1).alignment = left_align
+    ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+    export_time = now_datetime().strftime("%d-%b-%Y %H:%M")
+    ws.cell(row=row_idx, column=2, value=export_time).alignment = left_align
+    row_idx += 1
 
     # ---- Column headers ----
-    header_row = row
+    header_row = row_idx
     for col_idx, col_def in enumerate(excel_columns, 1):
-        cell = ws.cell(row=row, column=col_idx, value=strip_html(col_def.get("label", "")))
-        cell.font = header_font
+        cell = ws.cell(row=header_row, column=col_idx, value=strip_html(col_def.get("label", "")))
+        cell.font = bold_white_font
+        cell.alignment = left_align
         cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        cell.border = header_border
-    row += 1
+        cell.border = border
+    row_idx += 1
 
-    # ---- Data rows ----
+    # ---- Freeze panes below header ----
+    ws.freeze_panes = ws[f"A{header_row + 1}"]
+
+    # ---- Identify currency fields ----
     currency_fields = set()
     for col_def in excel_columns:
         if col_def.get("fieldtype") == "Currency":
             currency_fields.add(col_def["fieldname"])
 
-    data_start_row = row
-    alt = False
+    # ---- Data rows (zebra striping, subtotals, grand total) ----
+    data_row_num = 0
 
     for row_data in data:
         if not row_data:
-            # Blank separator — skip but keep alternating
-            row += 1
-            alt = False
+            # Blank separator row
+            row_idx += 1
+            data_row_num = 0
             continue
 
         is_total = row_data.get("is_group_total", 0)
         is_grand = is_total and "Grand Total" in str(row_data.get("account_name", ""))
+
+        data_row_num += 1
 
         for col_idx, col_def in enumerate(excel_columns, 1):
             fieldname = col_def["fieldname"]
@@ -152,55 +172,63 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             if isinstance(value, str):
                 value = strip_html(value)
 
-            cell = ws.cell(row=row, column=col_idx, value=value)
+            cell = ws.cell(row=row_idx, column=col_idx)
 
-            # Formatting
-            if fieldname in currency_fields and value:
-                cell.number_format = '#,##0.00'
+            # Format numbers and currency
+            if col_def.get("fieldtype") in ("Int", "Float", "Currency"):
+                if isinstance(value, (int, float)):
+                    cell.value = value
+                    cell.number_format = '#,##0.00'
+                else:
+                    cell.value = 0
+                    cell.number_format = '#,##0.00'
+            elif "date" in fieldname and value:
+                try:
+                    cell.value = formatdate(value, "dd-MMM-yy")
+                except Exception:
+                    cell.value = value
+            else:
+                cell.value = value
 
-            if col_def.get("fieldtype") == "Date" and value:
-                cell.number_format = 'DD MMM YYYY'
+            cell.border = border
 
+            # Row-level styling
             if is_grand:
                 cell.font = grand_total_font
                 cell.fill = grand_total_fill
-                cell.alignment = Alignment(horizontal="right" if fieldname in currency_fields else "left")
+                cell.alignment = right_align if fieldname in currency_fields else left_align
             elif is_total:
                 cell.font = subtotal_font
                 cell.fill = subtotal_fill
-                cell.alignment = Alignment(horizontal="right" if fieldname in currency_fields else "left")
+                cell.alignment = right_align if fieldname in currency_fields else left_align
             else:
-                cell.font = data_font
-                if alt:
-                    cell.fill = alt_row_fill
-                cell.border = thin_border
-                if fieldname in currency_fields:
-                    cell.alignment = Alignment(horizontal="right")
+                # Zebra striping
+                if data_row_num % 2 == 0:
+                    cell.fill = zebra_fill
+                # Alignment
+                cell.alignment = right_align if col_def.get("fieldtype") in ("Int", "Float", "Currency") else left_align
 
-        if not is_total:
-            alt = not alt
-        row += 1
+        if is_total:
+            data_row_num = 0
 
-    # ---- Column widths ----
-    col_widths = {
-        "posting_date": 14,
-        "account_name": 30,
-        "cost_center": 22,
-        "voucher_no": 22,
-        "debit": 16,
-        "credit": 16,
-        "net_revenue": 18,
-        "net_cost": 18,
-        "net_expense": 18,
-        "remarks": 35,
-    }
+        row_idx += 1
 
-    for col_idx, col_def in enumerate(excel_columns, 1):
-        width = col_widths.get(col_def["fieldname"], 15)
-        ws.column_dimensions[get_column_letter(col_idx)].width = width
+    # ---- Auto-fit column widths (matching api.py approach) ----
+    for col_idx in range(1, ncols + 1):
+        max_length = 0
+        for row in ws.iter_rows(min_row=header_row, max_row=ws.max_row,
+                                min_col=col_idx, max_col=col_idx):
+            for cell in row:
+                try:
+                    cell_length = len(str(cell.value)) if cell.value else 0
+                    if cell_length > max_length:
+                        max_length = cell_length
+                except Exception:
+                    pass
+        ws.column_dimensions[get_column_letter(col_idx)].width = max(12, min(max_length + 2, 40))
 
-    # ---- Freeze panes (freeze header row) ----
-    ws.freeze_panes = ws.cell(row=header_row + 1, column=1)
+    # ---- Hide gridlines ----
+    ws.sheet_view.showGridLines = False
 
     # ---- Print setup ----
     ws.sheet_properties.pageSetUpPr.fitToPage = True
