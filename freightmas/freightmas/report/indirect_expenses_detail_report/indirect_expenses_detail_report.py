@@ -19,9 +19,8 @@ def execute(filters=None):
     columns = get_columns(filters)
     data = get_data(filters)
     report_summary = get_report_summary(data)
-    chart = get_chart(data, filters)
 
-    return columns, data, None, chart, report_summary
+    return columns, data, None, None, report_summary
 
 
 # ----------------------------------------
@@ -482,49 +481,6 @@ def get_report_summary(data):
             "datatype": "Int",
         },
     ]
-
-
-# ----------------------------------------
-# Chart
-# ----------------------------------------
-
-def get_chart(data, filters):
-    if not data:
-        return None
-
-    account_expenses = {}
-    for row in data:
-        if row.get("is_group_total") and row.get("account_name"):
-            label = row["account_name"]
-            if "Grand Total" in label:
-                continue
-            clean_label = label.replace("<b>", "").replace("</b>", "").replace("Total: ", "")
-            net = flt(row.get("net_expense", 0), 2)
-            if net != 0:
-                account_expenses[clean_label] = net
-
-    if not account_expenses:
-        return None
-
-    sorted_items = sorted(account_expenses.items(), key=lambda x: abs(x[1]), reverse=True)[:15]
-
-    labels = [item[0] for item in sorted_items]
-    values = [item[1] for item in sorted_items]
-
-    return {
-        "data": {
-            "labels": labels,
-            "datasets": [
-                {
-                    "name": _("Net Indirect Expenses"),
-                    "values": values,
-                }
-            ],
-        },
-        "type": "bar",
-        "colors": ["#ffa00a"],
-        "barOptions": {"spaceRatio": 0.4},
-    }
 
 
 # ----------------------------------------
