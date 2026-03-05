@@ -7,3 +7,4 @@
 freightmas.patches.delete_old_workspaces
 freightmas.patches.clearing_job_charges_migration
 freightmas.patches.unlink_cancelled_documents
+freightmas.patches.delete_renamed_reports
