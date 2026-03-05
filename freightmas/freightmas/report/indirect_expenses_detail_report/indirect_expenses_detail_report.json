@@ -13,11 +13,11 @@
  "modified": "2026-03-03 10:30:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
- "name": "Expenses Detail Report",
+ "name": "Indirect Expenses Detail Report",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "GL Entry",
- "report_name": "Expenses Detail Report",
+ "report_name": "Indirect Expenses Detail Report",
  "report_type": "Script Report",
  "roles": [
   {

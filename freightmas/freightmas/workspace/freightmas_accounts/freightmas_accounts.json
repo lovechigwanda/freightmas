@@ -746,9 +746,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Cost of Sales Detail Report",
+   "label": "Direct Expenses Detail Report",
    "link_count": 0,
-   "link_to": "Cost of Sales Detail Report",
+   "link_to": "Direct Expenses Detail Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -756,9 +756,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Expenses Detail Report",
+   "label": "Indirect Expenses Detail Report",
    "link_count": 0,
-   "link_to": "Expenses Detail Report",
+   "link_to": "Indirect Expenses Detail Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"

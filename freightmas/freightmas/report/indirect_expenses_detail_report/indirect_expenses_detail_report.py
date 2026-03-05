@@ -12,8 +12,8 @@ def execute(filters=None):
 
     validate_filters(filters)
 
-    # Identify the expense accounts that are NOT cost of sales
-    excluded_accounts = get_cogs_accounts(filters)
+    # Identify the direct expense accounts to EXCLUDE
+    excluded_accounts = get_direct_expense_accounts(filters)
     filters["_excluded_accounts"] = excluded_accounts
 
     columns = get_columns(filters)
@@ -43,19 +43,19 @@ def validate_filters(filters):
 
 
 # ----------------------------------------
-# Identify COGS accounts to EXCLUDE
+# Identify Direct Expense accounts to EXCLUDE
 # ----------------------------------------
 
-def get_cogs_accounts(filters):
+def get_direct_expense_accounts(filters):
     """
-    Find all Cost of Goods Sold / Direct Expense accounts so we can
-    exclude them from the Other Expenses report.
+    Find all Direct Expense / Cost of Goods Sold accounts so we can
+    exclude them from the Indirect Expenses report.
     Returns a list of account names.
     """
     company = filters.get("company")
 
-    # Find COGS group accounts by account_type
-    cogs_groups = frappe.db.sql("""
+    # Find direct expense group accounts by account_type
+    direct_groups = frappe.db.sql("""
         SELECT name, lft, rgt
         FROM `tabAccount`
         WHERE company = %s
@@ -63,8 +63,8 @@ def get_cogs_accounts(filters):
     """, (company,), as_dict=True)
 
     # Fallback: try by common group names
-    if not cogs_groups:
-        cogs_groups = frappe.db.sql("""
+    if not direct_groups:
+        direct_groups = frappe.db.sql("""
             SELECT name, lft, rgt
             FROM `tabAccount`
             WHERE company = %s
@@ -79,12 +79,12 @@ def get_cogs_accounts(filters):
                 )
         """, (company,), as_dict=True)
 
-    if not cogs_groups:
+    if not direct_groups:
         return []
 
     # Get all leaf accounts under these parents
     conditions = " OR ".join(
-        [f"(acc.lft >= {g.lft} AND acc.rgt <= {g.rgt})" for g in cogs_groups]
+        [f"(acc.lft >= {g.lft} AND acc.rgt <= {g.rgt})" for g in direct_groups]
     )
 
     accounts = frappe.db.sql(f"""
@@ -172,7 +172,7 @@ def get_columns(filters):
             "width": 130,
         },
         {
-            "label": _("Net Expense ({0})").format(currency),
+            "label": _("Net Indirect Expense ({0})").format(currency),
             "fieldname": "net_expense",
             "fieldtype": "Currency",
             "options": "Company:company:default_currency",
@@ -209,7 +209,7 @@ def get_data(filters):
 def get_gl_entries(conditions, filters):
     excluded_accounts = filters.get("_excluded_accounts", [])
 
-    # Build NOT IN clause to exclude COGS accounts
+    # Build NOT IN clause to exclude direct expense accounts
     exclusion_clause = ""
     if excluded_accounts:
         escaped = ", ".join([frappe.db.escape(a) for a in excluded_accounts])
@@ -457,7 +457,7 @@ def get_report_summary(data):
         {
             "value": total_debit,
             "indicator": "Red",
-            "label": _("Total Expenses (Debit)"),
+            "label": _("Total Indirect Expenses (Debit)"),
             "datatype": "Currency",
             "currency": None,
         },
@@ -471,7 +471,7 @@ def get_report_summary(data):
         {
             "value": net_expense,
             "indicator": "Orange",
-            "label": _("Net Expenses"),
+            "label": _("Net Indirect Expenses"),
             "datatype": "Currency",
             "currency": None,
         },
@@ -516,7 +516,7 @@ def get_chart(data, filters):
             "labels": labels,
             "datasets": [
                 {
-                    "name": _("Net Expenses"),
+                    "name": _("Net Indirect Expenses"),
                     "values": values,
                 }
             ],
@@ -550,7 +550,7 @@ def export_excel(filters):
 
     validate_filters(filters)
 
-    excluded_accounts = get_cogs_accounts(filters)
+    excluded_accounts = get_direct_expense_accounts(filters)
     filters["_excluded_accounts"] = excluded_accounts
     columns = get_columns(filters)
     data = get_data(filters)
@@ -561,10 +561,10 @@ def export_excel(filters):
         filters=filters,
         data=data,
         columns=columns,
-        report_title="Expenses Detail Report",
-        net_field_label="Net Expenses",
+        report_title="Indirect Expenses Detail Report",
+        net_field_label="Net Indirect Expenses",
     )
-    send_excel_response(file_bytes, "Expenses_Detail_Report.xlsx")
+    send_excel_response(file_bytes, "Indirect_Expenses_Detail_Report.xlsx")
 
 
 @frappe.whitelist()
@@ -576,7 +576,7 @@ def export_pdf(filters):
 
     validate_filters(filters)
 
-    excluded_accounts = get_cogs_accounts(filters)
+    excluded_accounts = get_direct_expense_accounts(filters)
     filters["_excluded_accounts"] = excluded_accounts
     columns = get_columns(filters)
     data = get_data(filters)
@@ -587,7 +587,7 @@ def export_pdf(filters):
         filters=filters,
         data=data,
         columns=columns,
-        report_title="Expenses Detail Report",
+        report_title="Indirect Expenses Detail Report",
         net_fieldname="net_expense",
     )
-    send_pdf_response(file_bytes, "Expenses_Detail_Report.pdf")
+    send_pdf_response(file_bytes, "Indirect_Expenses_Detail_Report.pdf")

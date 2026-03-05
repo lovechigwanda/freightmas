@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Cost of Sales Detail Report"] = {
+frappe.query_reports["Direct Expenses Detail Report"] = {
   filters: [
     {
       fieldname: "company",
@@ -125,7 +125,7 @@ frappe.query_reports["Cost of Sales Detail Report"] = {
       function () {
         let filters = report.get_values();
         open_url_post(
-          "/api/method/freightmas.freightmas.report.cost_of_sales_detail_report.cost_of_sales_detail_report.export_excel",
+          "/api/method/freightmas.freightmas.report.direct_expenses_detail_report.direct_expenses_detail_report.export_excel",
           { filters: JSON.stringify(filters) }
         );
       },
@@ -137,7 +137,7 @@ frappe.query_reports["Cost of Sales Detail Report"] = {
       function () {
         let filters = report.get_values();
         open_url_post(
-          "/api/method/freightmas.freightmas.report.cost_of_sales_detail_report.cost_of_sales_detail_report.export_pdf",
+          "/api/method/freightmas.freightmas.report.direct_expenses_detail_report.direct_expenses_detail_report.export_pdf",
           { filters: JSON.stringify(filters) }
         );
       },

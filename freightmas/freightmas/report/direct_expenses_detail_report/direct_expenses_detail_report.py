@@ -12,11 +12,11 @@ def execute(filters=None):
 
     validate_filters(filters)
 
-    # Identify the COGS / Direct Expense parent accounts for this company
-    cogs_accounts = get_cogs_account_filter(filters)
-    if not cogs_accounts:
+    # Identify the Direct Expense accounts for this company
+    direct_accounts = get_direct_expense_accounts(filters)
+    if not direct_accounts:
         frappe.msgprint(
-            _("No Cost of Goods Sold or Direct Expense accounts found for {0}. "
+            _("No Direct Expense accounts found for {0}. "
               "Please ensure your Chart of Accounts has accounts with account_type "
               "'Cost of Goods Sold' or a group account named 'Direct Expenses'.").format(
                 filters.get("company")
@@ -24,7 +24,7 @@ def execute(filters=None):
         )
         return get_columns(filters), [], None, None, []
 
-    filters["_cogs_accounts"] = cogs_accounts
+    filters["_direct_accounts"] = direct_accounts
 
     columns = get_columns(filters)
     data = get_data(filters)
@@ -53,12 +53,12 @@ def validate_filters(filters):
 
 
 # ----------------------------------------
-# Identify COGS / Direct Expense Accounts
+# Identify Direct Expense Accounts
 # ----------------------------------------
 
-def get_cogs_account_filter(filters):
+def get_direct_expense_accounts(filters):
     """
-    Find all leaf expense accounts that belong to Cost of Goods Sold.
+    Find all leaf expense accounts that are classified as Direct Expenses.
 
     Strategy (in order of priority):
     1. Accounts with account_type = 'Cost of Goods Sold' (and their children via lft/rgt)
@@ -68,8 +68,8 @@ def get_cogs_account_filter(filters):
     """
     company = filters.get("company")
 
-    # Step 1: Find COGS group accounts by account_type
-    cogs_groups = frappe.db.sql("""
+    # Step 1: Find direct expense group accounts by account_type
+    direct_groups = frappe.db.sql("""
         SELECT name, lft, rgt
         FROM `tabAccount`
         WHERE company = %s
@@ -77,8 +77,8 @@ def get_cogs_account_filter(filters):
     """, (company,), as_dict=True)
 
     # Step 2: If no account_type match, try by common group names
-    if not cogs_groups:
-        cogs_groups = frappe.db.sql("""
+    if not direct_groups:
+        direct_groups = frappe.db.sql("""
             SELECT name, lft, rgt
             FROM `tabAccount`
             WHERE company = %s
@@ -93,12 +93,12 @@ def get_cogs_account_filter(filters):
                 )
         """, (company,), as_dict=True)
 
-    if not cogs_groups:
+    if not direct_groups:
         return []
 
-    # Step 3: Get all accounts (leaf + group) under these parents using nested set
+    # Step 3: Get all leaf accounts under these parents using nested set
     conditions = " OR ".join(
-        [f"(acc.lft >= {g.lft} AND acc.rgt <= {g.rgt})" for g in cogs_groups]
+        [f"(acc.lft >= {g.lft} AND acc.rgt <= {g.rgt})" for g in direct_groups]
     )
 
     accounts = frappe.db.sql(f"""
@@ -186,8 +186,8 @@ def get_columns(filters):
             "width": 130,
         },
         {
-            "label": _("Net Cost ({0})").format(currency),
-            "fieldname": "net_cost",
+            "label": _("Net Direct Expense ({0})").format(currency),
+            "fieldname": "net_expense",
             "fieldtype": "Currency",
             "options": "Company:company:default_currency",
             "width": 140,
@@ -221,51 +221,18 @@ def get_data(filters):
 
 
 def get_gl_entries(conditions, filters):
-    # Build the IN clause for COGS accounts
-    cogs_accounts = filters.get("_cogs_accounts", [])
-    if not cogs_accounts:
+    direct_accounts = filters.get("_direct_accounts", [])
+    if not direct_accounts:
         return []
 
-    placeholders = ", ".join(["%s"] * len(cogs_accounts))
+    escaped_accounts = ", ".join([frappe.db.escape(a) for a in direct_accounts])
 
-    query = """
-        SELECT
-            gle.posting_date,
-            gle.account,
-            acc.account_name,
-            gle.cost_center,
-            gle.party_type,
-            gle.party,
-            gle.voucher_type,
-            gle.voucher_no,
-            gle.debit,
-            gle.credit,
-            (gle.debit - gle.credit) AS net_cost,
-            gle.remarks
-        FROM `tabGL Entry` gle
-        INNER JOIN `tabAccount` acc ON acc.name = gle.account
-        WHERE gle.account IN ({placeholders})
-            AND gle.company = %(company)s
-            AND gle.posting_date >= %(from_date)s
-            AND gle.posting_date <= %(to_date)s
-            AND gle.is_cancelled = 0
-            {conditions}
-        ORDER BY gle.account, gle.posting_date, gle.voucher_no
-    """.format(placeholders=placeholders, conditions=conditions)
-
-    # Build params: positional for IN clause + named for other filters
+    # Clean params for SQL
     params = dict(filters)
-    # Remove internal keys that aren't SQL params
-    params.pop("_cogs_accounts", None)
+    params.pop("_direct_accounts", None)
     params.pop("group_by", None)
     params.pop("fiscal_year", None)
 
-    # frappe.db.sql with both positional and named params:
-    # we need to use positional for the IN clause
-    # Rebuild as fully positional-safe by using %(param)s style
-    # Actually, let's use a simpler approach: inline the account list safely
-    escaped_accounts = ", ".join([frappe.db.escape(a) for a in cogs_accounts])
-
     query = """
         SELECT
             gle.posting_date,
@@ -278,7 +245,7 @@ def get_gl_entries(conditions, filters):
             gle.voucher_no,
             gle.debit,
             gle.credit,
-            (gle.debit - gle.credit) AS net_cost,
+            (gle.debit - gle.credit) AS net_expense,
             gle.remarks
         FROM `tabGL Entry` gle
         INNER JOIN `tabAccount` acc ON acc.name = gle.account
@@ -337,12 +304,12 @@ def build_ungrouped_data(gl_entries):
             "voucher_no": entry.voucher_no,
             "debit": flt(entry.debit, 2),
             "credit": flt(entry.credit, 2),
-            "net_cost": flt(entry.net_cost, 2),
+            "net_expense": flt(entry.net_expense, 2),
             "remarks": entry.remarks,
         })
         total_debit += flt(entry.debit, 2)
         total_credit += flt(entry.credit, 2)
-        total_net += flt(entry.net_cost, 2)
+        total_net += flt(entry.net_expense, 2)
 
     # Grand total row
     data.append({
@@ -356,7 +323,7 @@ def build_ungrouped_data(gl_entries):
         "voucher_no": "",
         "debit": flt(total_debit, 2),
         "credit": flt(total_credit, 2),
-        "net_cost": flt(total_net, 2),
+        "net_expense": flt(total_net, 2),
         "remarks": "",
         "is_group_total": 1,
     })
@@ -405,7 +372,7 @@ def build_grouped_data(gl_entries, group_by):
         grouped[key]["entries"].append(entry)
         grouped[key]["total_debit"] += flt(entry.debit, 2)
         grouped[key]["total_credit"] += flt(entry.credit, 2)
-        grouped[key]["total_net"] += flt(entry.net_cost, 2)
+        grouped[key]["total_net"] += flt(entry.net_expense, 2)
 
     # Build data with subtotals
     data = []
@@ -431,7 +398,7 @@ def build_grouped_data(gl_entries, group_by):
                 "voucher_no": entry.voucher_no,
                 "debit": flt(entry.debit, 2),
                 "credit": flt(entry.credit, 2),
-                "net_cost": flt(entry.net_cost, 2),
+                "net_expense": flt(entry.net_expense, 2),
                 "remarks": entry.remarks,
             })
 
@@ -447,7 +414,7 @@ def build_grouped_data(gl_entries, group_by):
             "voucher_no": "",
             "debit": flt(group["total_debit"], 2),
             "credit": flt(group["total_credit"], 2),
-            "net_cost": flt(group["total_net"], 2),
+            "net_expense": flt(group["total_net"], 2),
             "remarks": "",
             "is_group_total": 1,
         })
@@ -467,7 +434,7 @@ def build_grouped_data(gl_entries, group_by):
         "voucher_no": "",
         "debit": flt(grand_debit, 2),
         "credit": flt(grand_credit, 2),
-        "net_cost": flt(grand_net, 2),
+        "net_expense": flt(grand_net, 2),
         "remarks": "",
         "is_group_total": 1,
     })
@@ -494,14 +461,14 @@ def get_report_summary(data):
 
     total_debit = flt(grand_total_row.get("debit", 0), 2)
     total_credit = flt(grand_total_row.get("credit", 0), 2)
-    net_cost = flt(grand_total_row.get("net_cost", 0), 2)
+    net_expense = flt(grand_total_row.get("net_expense", 0), 2)
     transaction_count = sum(1 for row in data if row.get("voucher_no") and not row.get("is_group_total"))
 
     return [
         {
             "value": total_debit,
             "indicator": "Red",
-            "label": _("Total Cost of Sales (Debit)"),
+            "label": _("Total Direct Expenses (Debit)"),
             "datatype": "Currency",
             "currency": None,
         },
@@ -513,9 +480,9 @@ def get_report_summary(data):
             "currency": None,
         },
         {
-            "value": net_cost,
+            "value": net_expense,
             "indicator": "Orange",
-            "label": _("Net Cost of Sales"),
+            "label": _("Net Direct Expenses"),
             "datatype": "Currency",
             "currency": None,
         },
@@ -536,21 +503,21 @@ def get_chart(data, filters):
     if not data:
         return None
 
-    account_costs = {}
+    account_expenses = {}
     for row in data:
         if row.get("is_group_total") and row.get("account_name"):
             label = row["account_name"]
             if "Grand Total" in label:
                 continue
             clean_label = label.replace("<b>", "").replace("</b>", "").replace("Total: ", "")
-            net = flt(row.get("net_cost", 0), 2)
+            net = flt(row.get("net_expense", 0), 2)
             if net != 0:
-                account_costs[clean_label] = net
+                account_expenses[clean_label] = net
 
-    if not account_costs:
+    if not account_expenses:
         return None
 
-    sorted_items = sorted(account_costs.items(), key=lambda x: abs(x[1]), reverse=True)[:15]
+    sorted_items = sorted(account_expenses.items(), key=lambda x: abs(x[1]), reverse=True)[:15]
 
     labels = [item[0] for item in sorted_items]
     values = [item[1] for item in sorted_items]
@@ -560,7 +527,7 @@ def get_chart(data, filters):
             "labels": labels,
             "datasets": [
                 {
-                    "name": _("Net Cost of Sales"),
+                    "name": _("Net Direct Expenses"),
                     "values": values,
                 }
             ],
@@ -594,11 +561,11 @@ def export_excel(filters):
 
     validate_filters(filters)
 
-    cogs_accounts = get_cogs_account_filter(filters)
-    if not cogs_accounts:
-        frappe.throw(_("No Cost of Goods Sold accounts found for this company."))
+    direct_accounts = get_direct_expense_accounts(filters)
+    if not direct_accounts:
+        frappe.throw(_("No Direct Expense accounts found for this company."))
 
-    filters["_cogs_accounts"] = cogs_accounts
+    filters["_direct_accounts"] = direct_accounts
     columns = get_columns(filters)
     data = get_data(filters)
 
@@ -608,10 +575,10 @@ def export_excel(filters):
         filters=filters,
         data=data,
         columns=columns,
-        report_title="Cost of Sales Detail Report",
-        net_field_label="Net Cost of Sales",
+        report_title="Direct Expenses Detail Report",
+        net_field_label="Net Direct Expenses",
     )
-    send_excel_response(file_bytes, "Cost_of_Sales_Detail_Report.xlsx")
+    send_excel_response(file_bytes, "Direct_Expenses_Detail_Report.xlsx")
 
 
 @frappe.whitelist()
@@ -623,11 +590,11 @@ def export_pdf(filters):
 
     validate_filters(filters)
 
-    cogs_accounts = get_cogs_account_filter(filters)
-    if not cogs_accounts:
-        frappe.throw(_("No Cost of Goods Sold accounts found for this company."))
+    direct_accounts = get_direct_expense_accounts(filters)
+    if not direct_accounts:
+        frappe.throw(_("No Direct Expense accounts found for this company."))
 
-    filters["_cogs_accounts"] = cogs_accounts
+    filters["_direct_accounts"] = direct_accounts
     columns = get_columns(filters)
     data = get_data(filters)
 
@@ -637,7 +604,7 @@ def export_pdf(filters):
         filters=filters,
         data=data,
         columns=columns,
-        report_title="Cost of Sales Detail Report",
-        net_fieldname="net_cost",
+        report_title="Direct Expenses Detail Report",
+        net_fieldname="net_expense",
     )
-    send_pdf_response(file_bytes, "Cost_of_Sales_Detail_Report.pdf")
+    send_pdf_response(file_bytes, "Direct_Expenses_Detail_Report.pdf")
