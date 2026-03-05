@@ -58,17 +58,10 @@ def get_columns(filters):
             "width": 200,
         },
         {
-            "label": _("Account Name"),
-            "fieldname": "account_name",
+            "label": _("Remarks"),
+            "fieldname": "remarks",
             "fieldtype": "Data",
-            "width": 160,
-        },
-        {
-            "label": _("Cost Center"),
-            "fieldname": "cost_center",
-            "fieldtype": "Link",
-            "options": "Cost Center",
-            "width": 150,
+            "width": 200,
         },
         {
             "label": _("Party Type"),
@@ -116,12 +109,6 @@ def get_columns(filters):
             "fieldtype": "Currency",
             "options": "Company:company:default_currency",
             "width": 140,
-        },
-        {
-            "label": _("Remarks"),
-            "fieldname": "remarks",
-            "fieldtype": "Small Text",
-            "width": 220,
         },
     ]
 
@@ -205,6 +192,8 @@ def get_conditions(filters):
 # ----------------------------------------
 
 def build_ungrouped_data(gl_entries):
+    from freightmas.freightmas.report.report_export_utils import truncate_remarks
+
     data = []
     total_debit = 0
     total_credit = 0
@@ -223,7 +212,7 @@ def build_ungrouped_data(gl_entries):
             "debit": flt(entry.debit, 2),
             "credit": flt(entry.credit, 2),
             "net_revenue": flt(entry.net_revenue, 2),
-            "remarks": entry.remarks,
+            "remarks": truncate_remarks(entry.remarks),
         })
         total_debit += flt(entry.debit, 2)
         total_credit += flt(entry.credit, 2)
@@ -233,16 +222,12 @@ def build_ungrouped_data(gl_entries):
     data.append({
         "posting_date": None,
         "account": "",
-        "account_name": "<b>Grand Total</b>",
-        "cost_center": "",
-        "party_type": "",
-        "party": "",
-        "voucher_type": "",
+        "account_name": "Grand Total",
+        "remarks": "<b>Grand Total</b>",
         "voucher_no": "",
         "debit": flt(total_debit, 2),
         "credit": flt(total_credit, 2),
         "net_revenue": flt(total_net, 2),
-        "remarks": "",
         "is_group_total": 1,
     })
 
@@ -269,6 +254,8 @@ GROUP_LABEL_MAP = {
 
 
 def build_grouped_data(gl_entries, group_by):
+    from freightmas.freightmas.report.report_export_utils import truncate_remarks
+
     group_field = GROUP_FIELD_MAP.get(group_by, "account")
     label_fn = GROUP_LABEL_MAP.get(group_by, lambda e: e.get(group_field) or "Unknown")
 
@@ -292,7 +279,7 @@ def build_grouped_data(gl_entries, group_by):
         grouped[key]["total_credit"] += flt(entry.credit, 2)
         grouped[key]["total_net"] += flt(entry.net_revenue, 2)
 
-    # Build data with subtotals
+    # Build data with headings and subtotals
     data = []
     grand_debit = 0
     grand_credit = 0
@@ -303,6 +290,13 @@ def build_grouped_data(gl_entries, group_by):
         grand_debit += group["total_debit"]
         grand_credit += group["total_credit"]
         grand_net += group["total_net"]
+
+        # Group heading row
+        data.append({
+            "account_name": group["label"],
+            "remarks": f"<b>{group['label']}</b>",
+            "is_group_heading": 1,
+        })
 
         for entry in group["entries"]:
             data.append({
@@ -317,23 +311,19 @@ def build_grouped_data(gl_entries, group_by):
                 "debit": flt(entry.debit, 2),
                 "credit": flt(entry.credit, 2),
                 "net_revenue": flt(entry.net_revenue, 2),
-                "remarks": entry.remarks,
+                "remarks": truncate_remarks(entry.remarks),
             })
 
         # Subtotal row for the group
         data.append({
             "posting_date": None,
             "account": "",
-            "account_name": f"<b>Total: {group['label']}</b>",
-            "cost_center": "",
-            "party_type": "",
-            "party": "",
-            "voucher_type": "",
+            "account_name": f"Total: {group['label']}",
+            "remarks": f"<b>Total: {group['label']}</b>",
             "voucher_no": "",
             "debit": flt(group["total_debit"], 2),
             "credit": flt(group["total_credit"], 2),
             "net_revenue": flt(group["total_net"], 2),
-            "remarks": "",
             "is_group_total": 1,
         })
 
@@ -344,16 +334,12 @@ def build_grouped_data(gl_entries, group_by):
     data.append({
         "posting_date": None,
         "account": "",
-        "account_name": "<b>Grand Total</b>",
-        "cost_center": "",
-        "party_type": "",
-        "party": "",
-        "voucher_type": "",
+        "account_name": "Grand Total",
+        "remarks": "<b>Grand Total</b>",
         "voucher_no": "",
         "debit": flt(grand_debit, 2),
         "credit": flt(grand_credit, 2),
         "net_revenue": flt(grand_net, 2),
-        "remarks": "",
         "is_group_total": 1,
     })
 
@@ -371,9 +357,11 @@ def get_report_summary(data):
     # Find the grand total row (last non-empty row with is_group_total)
     grand_total_row = None
     for row in reversed(data):
-        if row.get("is_group_total") and row.get("account_name") and "Grand Total" in row.get("account_name", ""):
-            grand_total_row = row
-            break
+        if row.get("is_group_total"):
+            label = row.get("remarks", "") or row.get("account_name", "")
+            if "Grand Total" in str(label):
+                grand_total_row = row
+                break
 
     if not grand_total_row:
         return []
@@ -427,13 +415,13 @@ def get_chart(data, filters):
     # Collect per-account net revenue from subtotal rows
     account_revenue = {}
     for row in data:
-        if row.get("is_group_total") and row.get("account_name"):
-            label = row["account_name"]
-            # Skip Grand Total row
-            if "Grand Total" in label:
+        if row.get("is_group_total"):
+            label = row.get("account_name", "") or row.get("remarks", "")
+            if not label or "Grand Total" in str(label):
                 continue
             # Clean the HTML bold tags for chart labels
-            clean_label = label.replace("<b>", "").replace("</b>", "").replace("Total: ", "")
+            import re as _re
+            clean_label = _re.sub(r"<[^>]+>", "", str(label)).replace("Total: ", "")
             net = flt(row.get("net_revenue", 0), 2)
             if net != 0:
                 account_revenue[clean_label] = net

@@ -21,7 +21,10 @@ import re
 ALWAYS_DROP = ["account", "party", "party_type", "voucher_type"]
 
 # Additional columns dropped only from PDF (for page width)
-PDF_EXTRA_DROP = ["remarks"]
+PDF_EXTRA_DROP = []
+
+# Maximum characters for remarks column before truncation
+REMARKS_MAX_LEN = 80
 
 
 def strip_html(text):
@@ -29,6 +32,18 @@ def strip_html(text):
     if not text:
         return text or ""
     return re.sub(r"<[^>]+>", "", str(text))
+
+
+def truncate_remarks(text, max_len=None):
+    """Truncate remarks text to a maximum length."""
+    if max_len is None:
+        max_len = REMARKS_MAX_LEN
+    if not text:
+        return ""
+    text = str(text).strip()
+    if len(text) > max_len:
+        return text[:max_len] + "..."
+    return text
 
 
 # ============================================================
@@ -66,6 +81,8 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
     bold_white_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill("solid", fgColor="305496")
     zebra_fill = PatternFill("solid", fgColor="F2F2F2")
+    heading_font = Font(bold=True, size=11, color="305496")
+    heading_fill = PatternFill("solid", fgColor="E8ECF1")
     subtotal_font = Font(bold=True, color="305496")
     subtotal_fill = PatternFill("solid", fgColor="D6DCE4")
     grand_total_font = Font(bold=True, color="FFFFFF")
@@ -149,8 +166,15 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
         if col_def.get("fieldtype") == "Currency":
             currency_fields.add(col_def["fieldname"])
 
-    # ---- Data rows (zebra striping, subtotals, grand total) ----
+    # ---- Data rows (zebra striping, headings, subtotals, grand total) ----
     data_row_num = 0
+
+    # Pre-compute text-column boundary for total-row merging
+    text_end_col = 0
+    for ci, cd in enumerate(excel_columns, 1):
+        if cd.get("fieldtype") in ("Currency", "Int", "Float"):
+            break
+        text_end_col = ci
 
     for row_data in data:
         if not row_data:
@@ -159,9 +183,71 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             data_row_num = 0
             continue
 
+        is_heading = row_data.get("is_group_heading", 0)
         is_total = row_data.get("is_group_total", 0)
-        is_grand = is_total and "Grand Total" in str(row_data.get("account_name", ""))
+        is_grand = is_total and "Grand Total" in str(
+            row_data.get("remarks", "") or row_data.get("account_name", "")
+        )
 
+        # ---- Group heading row (merged across all columns) ----
+        if is_heading:
+            heading_label = strip_html(
+                row_data.get("account_name", "") or row_data.get("remarks", "")
+            )
+            ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+            cell = ws.cell(row=row_idx, column=1, value=heading_label)
+            cell.font = heading_font
+            cell.fill = heading_fill
+            cell.alignment = left_align
+            cell.border = border
+            row_idx += 1
+            data_row_num = 0
+            continue
+
+        # ---- Subtotal / Grand-total rows (label spans text cols) ----
+        if is_total:
+            label = strip_html(
+                row_data.get("account_name", "") or row_data.get("remarks", "")
+            )
+            t_font = grand_total_font if is_grand else subtotal_font
+            t_fill = grand_total_fill if is_grand else subtotal_fill
+
+            if text_end_col > 1:
+                ws.merge_cells(
+                    start_row=row_idx, start_column=1,
+                    end_row=row_idx, end_column=text_end_col,
+                )
+
+            # Label in first cell
+            cell = ws.cell(row=row_idx, column=1, value=label)
+            cell.font = t_font
+            cell.fill = t_fill
+            cell.alignment = left_align
+            cell.border = border
+
+            # Currency values
+            for col_idx, col_def in enumerate(excel_columns, 1):
+                if col_idx <= text_end_col:
+                    continue
+                fieldname = col_def["fieldname"]
+                value = row_data.get(fieldname, "")
+                cell = ws.cell(row=row_idx, column=col_idx)
+                if isinstance(value, (int, float)):
+                    cell.value = value
+                    cell.number_format = '#,##0.00'
+                else:
+                    cell.value = 0
+                    cell.number_format = '#,##0.00'
+                cell.font = t_font
+                cell.fill = t_fill
+                cell.alignment = right_align
+                cell.border = border
+
+            data_row_num = 0
+            row_idx += 1
+            continue
+
+        # ---- Normal data row ----
         data_row_num += 1
 
         for col_idx, col_def in enumerate(excel_columns, 1):
@@ -192,24 +278,10 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
 
             cell.border = border
 
-            # Row-level styling
-            if is_grand:
-                cell.font = grand_total_font
-                cell.fill = grand_total_fill
-                cell.alignment = right_align if fieldname in currency_fields else left_align
-            elif is_total:
-                cell.font = subtotal_font
-                cell.fill = subtotal_fill
-                cell.alignment = right_align if fieldname in currency_fields else left_align
-            else:
-                # Zebra striping
-                if data_row_num % 2 == 0:
-                    cell.fill = zebra_fill
-                # Alignment
-                cell.alignment = right_align if col_def.get("fieldtype") in ("Int", "Float", "Currency") else left_align
-
-        if is_total:
-            data_row_num = 0
+            # Zebra striping and alignment for normal data rows
+            if data_row_num % 2 == 0:
+                cell.fill = zebra_fill
+            cell.alignment = right_align if col_def.get("fieldtype") in ("Int", "Float", "Currency") else left_align
 
         row_idx += 1
 
@@ -252,205 +324,208 @@ def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_reve
     """
     Build a formatted PDF and return it as bytes.
 
-    Args:
-        filters: report filters dict
-        data: list of row dicts
-        columns: list of column dicts
-        report_title: e.g. "Revenue Detail Report"
-        net_fieldname: the fieldname for the net amount column
+    Matches the standard system PDF style (report_pdf_template.html)
+    with additional support for group-heading, subtotal and grand-total rows.
     """
     from frappe.utils.pdf import get_pdf
 
-    # Filter columns for PDF (drop more columns for page width)
+    # Filter columns for PDF (drop technical columns for page width)
     pdf_drop = set(ALWAYS_DROP + PDF_EXTRA_DROP)
     pdf_columns = [c for c in columns if c.get("fieldname") not in pdf_drop]
 
     company = filters.get("company", "")
-    from_date = formatdate(filters.get("from_date"), "dd MMM yyyy") if filters.get("from_date") else ""
-    to_date = formatdate(filters.get("to_date"), "dd MMM yyyy") if filters.get("to_date") else ""
-    cost_center = filters.get("cost_center", "")
     generated = now_datetime().strftime("%d %b %Y %H:%M")
 
     currency_fields = set()
     for col_def in pdf_columns:
-        if col_def.get("fieldtype") == "Currency":
+        if col_def.get("fieldtype") in ("Currency", "Int", "Float"):
             currency_fields.add(col_def["fieldname"])
 
-    # Build HTML
-    html = f"""
-    <style>
-        @page {{
-            size: A4 landscape;
-            margin: 12mm 10mm 12mm 10mm;
-        }}
-        body {{
-            font-family: Calibri, Arial, sans-serif;
-            font-size: 9pt;
-            color: #333;
-        }}
-        .report-header {{
-            text-align: center;
-            margin-bottom: 10px;
-        }}
-        .company-name {{
-            font-size: 16pt;
-            font-weight: bold;
-            color: #1F4E79;
-            margin: 0;
-        }}
-        .report-title {{
-            font-size: 12pt;
-            font-weight: bold;
-            color: #333;
-            margin: 2px 0;
-        }}
-        .report-meta {{
-            font-size: 9pt;
-            color: #777;
-            margin: 2px 0;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }}
-        th {{
-            background-color: #1F4E79;
-            color: white;
-            font-weight: bold;
-            font-size: 8.5pt;
-            padding: 6px 5px;
-            text-align: left;
-            border-bottom: 2px solid #1F4E79;
-        }}
-        th.num {{
-            text-align: right;
-        }}
-        td {{
-            padding: 4px 5px;
-            font-size: 8.5pt;
-            border-bottom: 1px solid #e0e0e0;
-        }}
-        td.num {{
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }}
-        tr.alt {{
-            background-color: #f7f9fc;
-        }}
-        tr.subtotal td {{
-            font-weight: bold;
-            color: #1F4E79;
-            background-color: #D6E4F0;
-            border-bottom: 1px solid #b0c4de;
-        }}
-        tr.grand-total td {{
-            font-weight: bold;
-            color: white;
-            background-color: #1F4E79;
-            font-size: 9pt;
-        }}
-        tr.separator td {{
-            border: none;
-            height: 6px;
-        }}
-        .footer {{
-            text-align: center;
-            font-size: 7pt;
-            color: #aaa;
-            margin-top: 10px;
-        }}
-    </style>
+    ncols = len(pdf_columns) + 1  # +1 for row-number column
+    text_col_count = sum(1 for c in pdf_columns if c["fieldname"] not in currency_fields)
+    curr_cols = [c for c in pdf_columns if c["fieldname"] in currency_fields]
 
-    <div class="report-header">
-        <p class="company-name">{company}</p>
-        <p class="report-title">{report_title}</p>
-        <p class="report-meta">Period: {from_date} to {to_date}"""
+    # ---- Filters ----
+    display_filters = {
+        "from_date": "From Date",
+        "to_date": "To Date",
+        "fiscal_year": "Fiscal Year",
+        "cost_center": "Cost Center",
+        "account": "Account",
+        "party_type": "Party Type",
+        "party": "Party",
+        "voucher_type": "Voucher Type",
+        "group_by": "Group By",
+    }
 
-    if cost_center:
-        html += f"  |  Cost Center: {cost_center}"
+    filter_rows = ""
+    for key, label in display_filters.items():
+        val = filters.get(key)
+        if val:
+            if "date" in key:
+                try:
+                    val = formatdate(val, "dd MMM yyyy")
+                except Exception:
+                    pass
+            filter_rows += f"        <tr><td><b>{label}:</b></td><td>{val}</td></tr>\n"
 
-    html += f"""</p>
-    </div>
+    # ---- Build HTML (matching report_pdf_template.html style) ----
+    html = (
+        '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>\n'
+        "@page { size: A4 landscape; margin: 20mm 15mm 25mm 15mm; }\n"
+        'body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; '
+        "font-size: 12px; color: #222; }\n"
+        ".print-heading { margin-bottom: 10px; }\n"
+        ".print-heading-title { font-size: 22px; font-weight: bold; }\n"
+        ".report-title { font-size: 15px; font-weight: bold; color: #000; }\n"
+        ".filters-table { margin: 10px 0 20px 0; font-size: 11px; }\n"
+        ".filters-table td { padding: 2px 8px 2px 0; }\n"
+        ".table { width: 100%; border-collapse: collapse; margin-top: 10px; }\n"
+        ".table th, .table td { border: 1px solid #bbb; padding: 7px 8px; }\n"
+        ".table th { background: #f5f7fa; font-weight: bold; font-size: 13px; text-align: left; }\n"
+        ".table td { white-space: nowrap; }\n"
+        ".text-right { text-align: right; }\n"
+        ".text-left  { text-align: left; }\n"
+        ".text-center { text-align: center; }\n"
+        "tr.zebra td { background: #f9f9f9; }\n"
+        "tr.group-heading td { background: #eef2f7; font-weight: bold; "
+        "font-size: 12px; border-bottom: 2px solid #bbb; }\n"
+        "tr.subtotal td { font-weight: bold; background: #e8ecf1; border-top: 1px solid #999; }\n"
+        "tr.grand-total td { font-weight: bold; background: #d6dce4; "
+        "font-size: 12px; border-top: 2px solid #555; }\n"
+        "tr.separator td { border-left: none; border-right: none; height: 4px; padding: 0; }\n"
+        "thead { display: table-header-group; }\n"
+        "tfoot { display: table-row-group; }\n"
+        "</style>\n</head>\n<body>\n"
+    )
 
-    <table>
-        <thead>
-            <tr>"""
+    # Header
+    html += (
+        f'<div class="print-heading">\n'
+        f'  <div class="print-heading-title">{company}</div>\n'
+        f'  <div class="report-title">{report_title}</div>\n'
+        f"</div>\n"
+    )
 
+    # Filters table
+    if filter_rows:
+        html += f'<table class="filters-table"><tbody>\n{filter_rows}</tbody></table>\n'
+
+    # Exported timestamp
+    html += (
+        f'<div style="text-align:right; font-size:11px; color:#888; margin-bottom:8px;">'
+        f"Exported: {generated}</div>\n"
+    )
+
+    # Table header
+    html += '<table class="table table-bordered table-striped">\n<thead><tr>\n'
+    html += '  <th class="text-center">#</th>\n'
     for col_def in pdf_columns:
-        cls = ' class="num"' if col_def["fieldname"] in currency_fields else ""
-        html += f'\n                <th{cls}>{strip_html(col_def.get("label", ""))}</th>'
+        align = "text-right" if col_def["fieldname"] in currency_fields else "text-left"
+        html += f'  <th class="{align}">{strip_html(col_def.get("label", ""))}</th>\n'
+    html += "</tr></thead>\n<tbody>\n"
 
-    html += """
-            </tr>
-        </thead>
-        <tbody>"""
-
+    # Table body
+    row_num = 0
     alt = False
+
     for row_data in data:
         if not row_data:
-            html += '\n            <tr class="separator"><td colspan="{}">&nbsp;</td></tr>'.format(len(pdf_columns))
+            html += f'<tr class="separator"><td colspan="{ncols}">&nbsp;</td></tr>\n'
             alt = False
+            row_num = 0
             continue
 
+        is_heading = row_data.get("is_group_heading", 0)
         is_total = row_data.get("is_group_total", 0)
-        is_grand = is_total and "Grand Total" in str(row_data.get("account_name", ""))
+        is_grand = is_total and "Grand Total" in str(
+            row_data.get("remarks", "") or row_data.get("account_name", "")
+        )
 
-        if is_grand:
-            row_class = "grand-total"
-        elif is_total:
-            row_class = "subtotal"
-        elif alt:
-            row_class = "alt"
-        else:
-            row_class = ""
+        # ---- Group heading (spans all columns) ----
+        if is_heading:
+            label = strip_html(
+                row_data.get("account_name", "") or row_data.get("remarks", "")
+            )
+            html += (
+                f'<tr class="group-heading">'
+                f'<td colspan="{ncols}" class="text-left">{label}</td></tr>\n'
+            )
+            alt = False
+            row_num = 0
+            continue
 
-        html += f'\n            <tr class="{row_class}">'
+        # ---- Subtotal / Grand total (label spans text cols) ----
+        if is_total:
+            row_class = "grand-total" if is_grand else "subtotal"
+            label = strip_html(
+                row_data.get("account_name", "") or row_data.get("remarks", "")
+            )
+            span = text_col_count + 1  # +1 for # column
+            html += f'<tr class="{row_class}">'
+            html += f'<td colspan="{span}" class="text-left">{label}</td>'
+            for col_def in curr_cols:
+                val = row_data.get(col_def["fieldname"], "")
+                try:
+                    num = flt(val)
+                    if num < 0:
+                        formatted = "({:,.2f})".format(abs(num))
+                    else:
+                        formatted = "{:,.2f}".format(num)
+                except (ValueError, TypeError):
+                    formatted = val
+                html += f'<td class="text-right">{formatted}</td>'
+            html += "</tr>\n"
+            continue
+
+        # ---- Normal data row ----
+        row_num += 1
+        row_class = "zebra" if alt else ""
+        html += f'<tr class="{row_class}"><td class="text-center">{row_num}</td>'
 
         for col_def in pdf_columns:
             fieldname = col_def["fieldname"]
             value = row_data.get(fieldname, "")
-
             if isinstance(value, str):
                 value = strip_html(value)
 
-            if fieldname in currency_fields and value:
+            if fieldname in currency_fields and value is not None and value != "":
                 try:
-                    value = "{:,.2f}".format(flt(value))
+                    num = flt(value)
+                    if num == 0:
+                        value = ""
+                    elif num < 0:
+                        value = "({:,.2f})".format(abs(num))
+                    else:
+                        value = "{:,.2f}".format(num)
                 except (ValueError, TypeError):
                     pass
-                html += f'\n                <td class="num">{value}</td>'
+                html += f'<td class="text-right">{value}</td>'
             elif col_def.get("fieldtype") == "Date" and value:
                 try:
                     value = formatdate(value, "dd MMM yyyy")
                 except Exception:
                     pass
-                html += f"\n                <td>{value}</td>"
+                html += f'<td class="text-left">{value}</td>'
             else:
-                html += f"\n                <td>{value}</td>"
+                html += f'<td class="text-left">{value}</td>'
 
-        html += "\n            </tr>"
+        html += "</tr>\n"
+        alt = not alt
 
-        if not is_total:
-            alt = not alt
-
-    html += """
-        </tbody>
-    </table>
-    <div class="footer">
-        Generated: {generated} | {report_title} | {company}
-    </div>
-    """.format(generated=generated, report_title=report_title, company=company)
+    html += "</tbody>\n</table>\n</body>\n</html>"
 
     pdf_options = {
         "orientation": "Landscape",
         "page-size": "A4",
-        "margin-top": "12mm",
-        "margin-bottom": "12mm",
-        "margin-left": "10mm",
-        "margin-right": "10mm",
+        "margin-top": "20mm",
+        "margin-bottom": "25mm",
+        "margin-left": "15mm",
+        "margin-right": "15mm",
         "encoding": "UTF-8",
         "no-outline": None,
+        "footer-right": "Page [page] of [topage]",
+        "footer-font-size": "10",
     }
 
     return get_pdf(html, options=pdf_options)
