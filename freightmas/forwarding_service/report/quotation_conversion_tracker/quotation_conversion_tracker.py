@@ -56,18 +56,12 @@ def get_data(filters):
 			q.transaction_date,
 			q.party_name AS customer,
 			q.customer_reference,
-			q.origin_port,
-			q.destination_port,
 			q.grand_total,
 			jo.name AS job_order_no,
-			jo.order_date AS jo_date,
-			jo.forwarding_job_reference AS forwarding_job_no,
-			fj.status AS fj_status
+			jo.forwarding_job_reference AS forwarding_job_no
 		FROM `tabQuotation` q
 		LEFT JOIN `tabJob Order` jo
 			ON jo.name = q.custom_job_order_reference
-		LEFT JOIN `tabForwarding Job` fj
-			ON fj.name = jo.forwarding_job_reference
 		WHERE {where_clause}
 		ORDER BY q.transaction_date DESC
 	""".format(
@@ -88,13 +82,9 @@ def get_data(filters):
 				"quotation_date": format_date(row.transaction_date),
 				"customer": row.get("customer", ""),
 				"customer_reference": row.get("customer_reference", ""),
-				"origin_port": row.get("origin_port", ""),
-				"destination_port": row.get("destination_port", ""),
 				"grand_total": row.get("grand_total", 0),
 				"job_order_no": row.get("job_order_no", ""),
-				"jo_date": format_date(row.get("jo_date")),
 				"forwarding_job_no": row.get("forwarding_job_no", ""),
-				"fj_status": row.get("fj_status", ""),
 				"conversion_status": conversion_status,
 			}
 		)
@@ -108,13 +98,9 @@ def get_columns():
 		{"label": "Quotation Date", "fieldname": "quotation_date", "fieldtype": "Data", "width": 110},
 		{"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 180},
 		{"label": "Customer Ref", "fieldname": "customer_reference", "fieldtype": "Data", "width": 130},
-		{"label": "Origin", "fieldname": "origin_port", "fieldtype": "Link", "options": "Port", "width": 120},
-		{"label": "Destination", "fieldname": "destination_port", "fieldtype": "Link", "options": "Port", "width": 120},
 		{"label": "Quoted Amount", "fieldname": "grand_total", "fieldtype": "Currency", "width": 120},
 		{"label": "Job Order", "fieldname": "job_order_no", "fieldtype": "Link", "options": "Job Order", "width": 150},
-		{"label": "JO Date", "fieldname": "jo_date", "fieldtype": "Data", "width": 110},
 		{"label": "Forwarding Job", "fieldname": "forwarding_job_no", "fieldtype": "Link", "options": "Forwarding Job", "width": 150},
-		{"label": "FJ Status", "fieldname": "fj_status", "fieldtype": "Data", "width": 110},
 		{"label": "Conversion", "fieldname": "conversion_status", "fieldtype": "Data", "width": 120},
 	]
 
