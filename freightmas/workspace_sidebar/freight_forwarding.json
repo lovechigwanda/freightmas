@@ -85,6 +85,7 @@
    "indent": 1,
    "keep_closed": 1,
    "label": "Reports",
+   "link_to": null,
    "link_type": "DocType",
    "show_arrow": 1,
    "type": "Section Break"
@@ -92,6 +93,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Register",
@@ -103,6 +105,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Register Extended",
@@ -114,6 +117,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Consolidated Tracking",
@@ -125,6 +129,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Container Tracker Imports",
@@ -136,6 +141,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Container Tracker Exports",
@@ -147,6 +153,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Overdue Containers",
@@ -158,6 +165,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Incoming Cargo Tracker",
@@ -169,6 +177,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Billing Report",
@@ -180,6 +189,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Tracking Internal",
@@ -191,6 +201,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Closing Report",
@@ -202,6 +213,7 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Outstanding Statement",

@@ -1,0 +1,65 @@
+{
+ "app": "freightmas",
+ "creation": "2026-03-07 19:54:03.045492",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "project-2",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "ship",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "FreightMas",
+   "link_to": "FreightMas",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "truck-electric",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Road Freight",
+   "link_to": "Road Freight",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Road Freight Job",
+   "link_to": "Road Freight Job",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Port",
+   "link_to": "Port",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-03-07 22:27:17.831065",
+ "modified_by": "lchigwanda@outlook.com",
+ "module": "Road Freight Service",
+ "name": "Road Freight",
+ "owner": "Administrator",
+ "standard": 0,
+ "title": "Road Freight"
+}

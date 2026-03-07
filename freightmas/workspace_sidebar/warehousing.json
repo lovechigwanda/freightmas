@@ -1,0 +1,89 @@
+{
+ "app": "freightmas",
+ "creation": "2026-03-07 19:54:03.144960",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "warehouse",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "ship",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "FreightMas",
+   "link_to": "FreightMas",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "warehouse",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Warehousing",
+   "link_to": "Warehousing",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Goods Receipt",
+   "link_to": "Customer Goods Receipt",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Goods Dispatch",
+   "link_to": "Customer Goods Dispatch",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Warehouse Bin",
+   "link_to": "Warehouse Bin",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "list",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Warehouse Job",
+   "link_to": "Warehouse Job",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-03-07 22:28:51.283286",
+ "modified_by": "lchigwanda@outlook.com",
+ "module": "Warehouse Service",
+ "name": "Warehousing",
+ "owner": "Administrator",
+ "standard": 0,
+ "title": "Warehousing"
+}
