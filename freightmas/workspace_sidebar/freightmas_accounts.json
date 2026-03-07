@@ -57,9 +57,9 @@
  ],
  "modified": "2026-03-07 22:22:59.533676",
  "modified_by": "lchigwanda@outlook.com",
- "module": "Accounts",
+ "module": "FreightMas",
  "name": "FreightMas Accounts",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "FreightMas Accounts"
 }

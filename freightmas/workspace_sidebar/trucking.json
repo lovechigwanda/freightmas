@@ -132,6 +132,6 @@
  "module": "Trucking Service",
  "name": "Trucking",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "Trucking"
 }

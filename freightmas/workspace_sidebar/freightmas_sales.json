@@ -108,6 +108,6 @@
  "module": "FreightMas",
  "name": "FreightMas Sales",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "FreightMas Sales"
 }

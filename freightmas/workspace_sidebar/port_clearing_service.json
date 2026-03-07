@@ -120,6 +120,6 @@
  "module": "Clearing Service",
  "name": "Port Clearing Service",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "Port Clearing Service"
 }

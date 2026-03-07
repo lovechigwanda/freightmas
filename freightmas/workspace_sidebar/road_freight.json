@@ -60,6 +60,6 @@
  "module": "Road Freight Service",
  "name": "Road Freight",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "Road Freight"
 }

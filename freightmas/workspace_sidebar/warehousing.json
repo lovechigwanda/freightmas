@@ -84,6 +84,6 @@
  "module": "Warehouse Service",
  "name": "Warehousing",
  "owner": "Administrator",
- "standard": 0,
+ "standard": 1,
  "title": "Warehousing"
 }
