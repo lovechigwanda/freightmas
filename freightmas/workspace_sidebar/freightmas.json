@@ -91,7 +91,7 @@
    "type": "Link"
   },
   {
-   "child": 0,
+   "child": 1,
    "collapsible": 1,
    "icon": "shopping-cart",
    "indent": 0,
@@ -103,8 +103,8 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-31 08:54:29.860687",
- "modified_by": "Administrator",
+ "modified": "2026-03-07 22:08:56.338586",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "FreightMas",
  "owner": "Administrator",
