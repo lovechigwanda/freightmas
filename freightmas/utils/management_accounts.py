@@ -137,59 +137,14 @@ REPORT_CONFIGS = [
 		"is_tree": False,
 	},
 	# --- Operational Reports ---
+	# Add operational report configs here as needed. Each entry needs:
+	#   key, sheet_name, module (full Python path to report's execute),
+	#   group ("operational" for from_date/to_date, "operational_point_in_time" for as_of_date),
+	#   is_tree (False for flat reports)
 	{
-		"key": "fwd_margin",
-		"sheet_name": "Fwd Shipment Margin",
-		"module": "freightmas.forwarding_service.report.forwarding_shipment_margin_analysis.forwarding_shipment_margin_analysis",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fwd_volume",
-		"sheet_name": "Fwd Container Volume",
-		"module": "freightmas.forwarding_service.report.forwarding_container_volume_report.forwarding_container_volume_report",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fwd_cust_profit",
-		"sheet_name": "Fwd Customer Profit",
-		"module": "freightmas.forwarding_service.report.forwarding_customer_profitability.forwarding_customer_profitability",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fwd_route",
-		"sheet_name": "Fwd Route Profit",
-		"module": "freightmas.forwarding_service.report.forwarding_route_profitability.forwarding_route_profitability",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fwd_agent",
-		"sheet_name": "Fwd Agent Perf",
-		"module": "freightmas.forwarding_service.report.forwarding_agent_performance.forwarding_agent_performance",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fwd_monthly",
-		"sheet_name": "Fwd Monthly Summary",
-		"module": "freightmas.forwarding_service.report.forwarding_monthly_summary.forwarding_monthly_summary",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "truck_profit",
-		"sheet_name": "Truck Profitability",
-		"module": "freightmas.trucking_service.report.truck_profitability_report.truck_profitability_report",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "truck_expense",
-		"sheet_name": "Truck Expense Analysis",
-		"module": "freightmas.trucking_service.report.truck_expense_analysis.truck_expense_analysis",
+		"key": "fuel_eff",
+		"sheet_name": "Fuel Efficiency",
+		"module": "freightmas.trucking_service.report.fuel_efficiency_report.fuel_efficiency_report",
 		"group": "operational",
 		"is_tree": False,
 	},
@@ -201,59 +156,13 @@ REPORT_CONFIGS = [
 		"is_tree": False,
 	},
 	{
-		"key": "route_truck",
-		"sheet_name": "Route Profit Trucking",
-		"module": "freightmas.trucking_service.report.route_profitability_trucking.route_profitability_trucking",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "truck_util",
-		"sheet_name": "Truck Utilisation",
-		"module": "freightmas.trucking_service.report.truck_utilisation_report.truck_utilisation_report",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "fuel_eff",
-		"sheet_name": "Fuel Efficiency",
-		"module": "freightmas.trucking_service.report.fuel_efficiency_report.fuel_efficiency_report",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "trip_turn",
-		"sheet_name": "Trip Turnaround",
-		"module": "freightmas.trucking_service.report.trip_turnaround_analysis.trip_turnaround_analysis",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "ops_summary",
-		"sheet_name": "Ops Summary",
-		"module": "freightmas.freightmas.report.consolidated_operations_summary.consolidated_operations_summary",
-		"group": "operational",
-		"is_tree": False,
-	},
-	{
-		"key": "unbilled",
-		"sheet_name": "Unbilled Revenue Aging",
-		"module": "freightmas.freightmas.report.unbilled_revenue_aging.unbilled_revenue_aging",
-		"group": "operational_point_in_time",
-		"is_tree": False,
-	},
-	{
-		"key": "cust_rev",
-		"sheet_name": "Customer Revenue",
-		"module": "freightmas.freightmas.report.customer_revenue_across_services.customer_revenue_across_services",
+		"key": "fwd_margin",
+		"sheet_name": "Fwd Shipment Margin",
+		"module": "freightmas.forwarding_service.report.forwarding_shipment_margin_analysis.forwarding_shipment_margin_analysis",
 		"group": "operational",
 		"is_tree": False,
 	},
 ]
-
-
-# ---------------------------------------------------------------------------
-# Filter Mapping
 # ---------------------------------------------------------------------------
 def _resolve_dates(master):
 	"""Derive from_date / to_date from fiscal year selections when needed."""
