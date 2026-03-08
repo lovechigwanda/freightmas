@@ -600,16 +600,17 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 1,
+   "is_query_report": 0,
    "label": "Creditors Listing",
    "link_count": 0,
    "link_to": "Creditors Listing",
    "link_type": "Report",
    "onboard": 0,
+   "report_ref_doctype": "Purchase Invoice",
    "type": "Link"
   }
  ],
- "modified": "2026-03-08 08:26:24.142098",
+ "modified": "2026-03-08 08:55:35.175326",
  "modified_by": "lchigwanda@outlook.com",
  "module": "FreightMas",
  "name": "FreightMas Accounts",
