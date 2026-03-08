@@ -126,12 +126,7 @@ def get_data(filters):
     if not gl_entries:
         return []
 
-    group_by = filters.get("group_by", "Group by Account")
-
-    if group_by == "Ungrouped":
-        return build_ungrouped_data(gl_entries)
-    else:
-        return build_grouped_data(gl_entries, group_by)
+    return build_flat_data(gl_entries)
 
 
 def get_gl_entries(conditions, filters):
@@ -188,10 +183,10 @@ def get_conditions(filters):
 
 
 # ----------------------------------------
-# Build Ungrouped Data
+# Build Flat Data
 # ----------------------------------------
 
-def build_ungrouped_data(gl_entries):
+def build_flat_data(gl_entries):
     from freightmas.freightmas.report.report_export_utils import truncate_remarks
 
     data = []
@@ -228,118 +223,6 @@ def build_ungrouped_data(gl_entries):
         "debit": flt(total_debit, 2),
         "credit": flt(total_credit, 2),
         "net_revenue": flt(total_net, 2),
-        "is_group_total": 1,
-    })
-
-    return data
-
-
-# ----------------------------------------
-# Build Grouped Data
-# ----------------------------------------
-
-GROUP_FIELD_MAP = {
-    "Group by Account": "account",
-    "Group by Cost Center": "cost_center",
-    "Group by Party": "party",
-    "Group by Voucher Type": "voucher_type",
-}
-
-GROUP_LABEL_MAP = {
-    "Group by Account": lambda e: f"{e.get('account')} - {e.get('account_name', '')}",
-    "Group by Cost Center": lambda e: e.get("cost_center") or "No Cost Center",
-    "Group by Party": lambda e: f"{e.get('party_type', '')}: {e.get('party', '')}" if e.get("party") else "No Party",
-    "Group by Voucher Type": lambda e: e.get("voucher_type") or "Unknown",
-}
-
-
-def build_grouped_data(gl_entries, group_by):
-    from freightmas.freightmas.report.report_export_utils import truncate_remarks
-
-    group_field = GROUP_FIELD_MAP.get(group_by, "account")
-    label_fn = GROUP_LABEL_MAP.get(group_by, lambda e: e.get(group_field) or "Unknown")
-
-    # Group entries
-    grouped = {}
-    group_order = []
-    for entry in gl_entries:
-        key = entry.get(group_field) or "Unassigned"
-        if key not in grouped:
-            grouped[key] = {
-                "entries": [],
-                "label": label_fn(entry),
-                "total_debit": 0,
-                "total_credit": 0,
-                "total_net": 0,
-            }
-            group_order.append(key)
-
-        grouped[key]["entries"].append(entry)
-        grouped[key]["total_debit"] += flt(entry.debit, 2)
-        grouped[key]["total_credit"] += flt(entry.credit, 2)
-        grouped[key]["total_net"] += flt(entry.net_revenue, 2)
-
-    # Build data with headings and subtotals
-    data = []
-    grand_debit = 0
-    grand_credit = 0
-    grand_net = 0
-
-    for key in group_order:
-        group = grouped[key]
-        grand_debit += group["total_debit"]
-        grand_credit += group["total_credit"]
-        grand_net += group["total_net"]
-
-        # Group heading row
-        data.append({
-            "account_name": group["label"],
-            "remarks": f"<b>{group['label']}</b>",
-            "is_group_heading": 1,
-        })
-
-        for entry in group["entries"]:
-            data.append({
-                "posting_date": entry.posting_date,
-                "account": entry.account,
-                "account_name": entry.account_name,
-                "cost_center": entry.cost_center,
-                "party_type": entry.party_type,
-                "party": entry.party,
-                "voucher_type": entry.voucher_type,
-                "voucher_no": entry.voucher_no,
-                "debit": flt(entry.debit, 2),
-                "credit": flt(entry.credit, 2),
-                "net_revenue": flt(entry.net_revenue, 2),
-                "remarks": truncate_remarks(entry.remarks),
-            })
-
-        # Subtotal row for the group
-        data.append({
-            "posting_date": None,
-            "account": "",
-            "account_name": f"Total: {group['label']}",
-            "remarks": f"<b>Total: {group['label']}</b>",
-            "voucher_no": "",
-            "debit": flt(group["total_debit"], 2),
-            "credit": flt(group["total_credit"], 2),
-            "net_revenue": flt(group["total_net"], 2),
-            "is_group_total": 1,
-        })
-
-        # Blank separator row
-        data.append({})
-
-    # Grand total row
-    data.append({
-        "posting_date": None,
-        "account": "",
-        "account_name": "Grand Total",
-        "remarks": "<b>Grand Total</b>",
-        "voucher_no": "",
-        "debit": flt(grand_debit, 2),
-        "credit": flt(grand_credit, 2),
-        "net_revenue": flt(grand_net, 2),
         "is_group_total": 1,
     })
 
@@ -412,19 +295,14 @@ def get_chart(data, filters):
     if not data:
         return None
 
-    # Collect per-account net revenue from subtotal rows
+    # Collect per-account net revenue from data rows
     account_revenue = {}
     for row in data:
-        if row.get("is_group_total"):
-            label = row.get("account_name", "") or row.get("remarks", "")
-            if not label or "Grand Total" in str(label):
-                continue
-            # Clean the HTML bold tags for chart labels
-            import re as _re
-            clean_label = _re.sub(r"<[^>]+>", "", str(label)).replace("Total: ", "")
-            net = flt(row.get("net_revenue", 0), 2)
-            if net != 0:
-                account_revenue[clean_label] = net
+        if row.get("is_group_total") or not row.get("voucher_no"):
+            continue
+        label = f"{row.get('account', '')} - {row.get('account_name', '')}"
+        net = flt(row.get("net_revenue", 0), 2)
+        account_revenue[label] = flt(account_revenue.get(label, 0) + net, 2)
 
     if not account_revenue:
         return None

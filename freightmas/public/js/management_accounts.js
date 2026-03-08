@@ -206,19 +206,21 @@ function get_reports_info_html() {
 			</div>
 			<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 24px; font-size:12px; color:#555;">
 				<div>1. Profit &amp; Loss Statement</div>
-				<div>8. Revenue Detail</div>
-				<div>2. P&amp;L by Cost Center</div>
 				<div>9. Direct Expenses Detail</div>
-				<div>3. Balance Sheet</div>
+				<div>2. P&amp;L by Cost Center</div>
 				<div>10. Indirect Expenses Detail</div>
-				<div>4. Cash Flow Statement</div>
+				<div>3. Balance Sheet</div>
 				<div>11. Cash &amp; Bank Balance</div>
-				<div>5. Trial Balance</div>
+				<div>4. Cash Flow Statement</div>
 				<div>12. Debtors Listing</div>
-				<div>6. Budget Variance</div>
+				<div>5. Trial Balance</div>
 				<div>13. Creditors Listing</div>
-				<div>7. Asset Register</div>
-				<div></div>
+				<div>6. Budget Variance</div>
+				<div>14. Asset Register</div>
+				<div>7. Revenue Detail</div>
+				<div>15. Fuel Efficiency</div>
+				<div>8. Driver Performance</div>
+				<div>16. Fwd Shipment Margin</div>
 			</div>
 		</div>
 	`;

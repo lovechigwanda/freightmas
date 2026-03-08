@@ -12,20 +12,6 @@ def execute(filters=None):
 
     validate_filters(filters)
 
-    # Identify the Direct Expense accounts for this company
-    direct_accounts = get_direct_expense_accounts(filters)
-    if not direct_accounts:
-        frappe.msgprint(
-            _("No Direct Expense accounts found for {0}. "
-              "Please ensure your Chart of Accounts has accounts with account_type "
-              "'Cost of Goods Sold' or a group account named 'Direct Expenses'.").format(
-                filters.get("company")
-            )
-        )
-        return get_columns(filters), [], None, None, []
-
-    filters["_direct_accounts"] = direct_accounts
-
     columns = get_columns(filters)
     data = get_data(filters)
     report_summary = get_report_summary(data)
@@ -49,66 +35,6 @@ def validate_filters(filters):
 
     if filters.get("party") and not filters.get("party_type"):
         frappe.throw(_("Please select Party Type before selecting Party"))
-
-
-# ----------------------------------------
-# Identify Direct Expense Accounts
-# ----------------------------------------
-
-def get_direct_expense_accounts(filters):
-    """
-    Find all leaf expense accounts that are classified as Direct Expenses.
-
-    Strategy (in order of priority):
-    1. Accounts with account_type = 'Cost of Goods Sold' (and their children via lft/rgt)
-    2. Group accounts named 'Direct Expenses' or 'Cost of Goods Sold' (and children)
-
-    Returns a list of account names, or empty list if none found.
-    """
-    company = filters.get("company")
-
-    # Step 1: Find direct expense group accounts by account_type
-    direct_groups = frappe.db.sql("""
-        SELECT name, lft, rgt
-        FROM `tabAccount`
-        WHERE company = %s
-            AND account_type = 'Cost of Goods Sold'
-    """, (company,), as_dict=True)
-
-    # Step 2: If no account_type match, try by common group names
-    if not direct_groups:
-        direct_groups = frappe.db.sql("""
-            SELECT name, lft, rgt
-            FROM `tabAccount`
-            WHERE company = %s
-                AND root_type = 'Expense'
-                AND is_group = 1
-                AND (
-                    account_name IN ('Cost of Goods Sold', 'Direct Expenses',
-                                     'Cost of Sales', 'Direct Costs')
-                    OR account_name LIKE '%%Cost of Goods Sold%%'
-                    OR account_name LIKE '%%Cost of Sales%%'
-                    OR account_name LIKE '%%Direct Expense%%'
-                )
-        """, (company,), as_dict=True)
-
-    if not direct_groups:
-        return []
-
-    # Step 3: Get all leaf accounts under these parents using nested set
-    conditions = " OR ".join(
-        [f"(acc.lft >= {g.lft} AND acc.rgt <= {g.rgt})" for g in direct_groups]
-    )
-
-    accounts = frappe.db.sql(f"""
-        SELECT name FROM `tabAccount` acc
-        WHERE acc.company = %s
-            AND acc.root_type = 'Expense'
-            AND acc.is_group = 0
-            AND ({conditions})
-    """, (company,), as_list=True)
-
-    return [a[0] for a in accounts]
 
 
 # ----------------------------------------
@@ -198,24 +124,11 @@ def get_data(filters):
     if not gl_entries:
         return []
 
-    group_by = filters.get("group_by", "Group by Account")
-
-    if group_by == "Ungrouped":
-        return build_ungrouped_data(gl_entries)
-    else:
-        return build_grouped_data(gl_entries, group_by)
+    return build_flat_data(gl_entries)
 
 
 def get_gl_entries(conditions, filters):
-    direct_accounts = filters.get("_direct_accounts", [])
-    if not direct_accounts:
-        return []
-
-    escaped_accounts = ", ".join([frappe.db.escape(a) for a in direct_accounts])
-
-    # Clean params for SQL
     params = dict(filters)
-    params.pop("_direct_accounts", None)
     params.pop("group_by", None)
     params.pop("fiscal_year", None)
 
@@ -235,14 +148,14 @@ def get_gl_entries(conditions, filters):
             gle.remarks
         FROM `tabGL Entry` gle
         INNER JOIN `tabAccount` acc ON acc.name = gle.account
-        WHERE gle.account IN ({accounts})
+        WHERE acc.account_type = 'Direct Expense'
             AND gle.company = %(company)s
             AND gle.posting_date >= %(from_date)s
             AND gle.posting_date <= %(to_date)s
             AND gle.is_cancelled = 0
             {conditions}
         ORDER BY gle.account, gle.posting_date, gle.voucher_no
-    """.format(accounts=escaped_accounts, conditions=conditions)
+    """.format(conditions=conditions)
 
     return frappe.db.sql(query, params, as_dict=True)
 
@@ -269,10 +182,10 @@ def get_conditions(filters):
 
 
 # ----------------------------------------
-# Build Ungrouped Data
+# Build Flat Data
 # ----------------------------------------
 
-def build_ungrouped_data(gl_entries):
+def build_flat_data(gl_entries):
     from freightmas.freightmas.report.report_export_utils import truncate_remarks
 
     data = []
@@ -309,118 +222,6 @@ def build_ungrouped_data(gl_entries):
         "debit": flt(total_debit, 2),
         "credit": flt(total_credit, 2),
         "net_expense": flt(total_net, 2),
-        "is_group_total": 1,
-    })
-
-    return data
-
-
-# ----------------------------------------
-# Build Grouped Data
-# ----------------------------------------
-
-GROUP_FIELD_MAP = {
-    "Group by Account": "account",
-    "Group by Cost Center": "cost_center",
-    "Group by Party": "party",
-    "Group by Voucher Type": "voucher_type",
-}
-
-GROUP_LABEL_MAP = {
-    "Group by Account": lambda e: f"{e.get('account')} - {e.get('account_name', '')}",
-    "Group by Cost Center": lambda e: e.get("cost_center") or "No Cost Center",
-    "Group by Party": lambda e: f"{e.get('party_type', '')}: {e.get('party', '')}" if e.get("party") else "No Party",
-    "Group by Voucher Type": lambda e: e.get("voucher_type") or "Unknown",
-}
-
-
-def build_grouped_data(gl_entries, group_by):
-    from freightmas.freightmas.report.report_export_utils import truncate_remarks
-
-    group_field = GROUP_FIELD_MAP.get(group_by, "account")
-    label_fn = GROUP_LABEL_MAP.get(group_by, lambda e: e.get(group_field) or "Unknown")
-
-    # Group entries
-    grouped = {}
-    group_order = []
-    for entry in gl_entries:
-        key = entry.get(group_field) or "Unassigned"
-        if key not in grouped:
-            grouped[key] = {
-                "entries": [],
-                "label": label_fn(entry),
-                "total_debit": 0,
-                "total_credit": 0,
-                "total_net": 0,
-            }
-            group_order.append(key)
-
-        grouped[key]["entries"].append(entry)
-        grouped[key]["total_debit"] += flt(entry.debit, 2)
-        grouped[key]["total_credit"] += flt(entry.credit, 2)
-        grouped[key]["total_net"] += flt(entry.net_expense, 2)
-
-    # Build data with headings and subtotals
-    data = []
-    grand_debit = 0
-    grand_credit = 0
-    grand_net = 0
-
-    for key in group_order:
-        group = grouped[key]
-        grand_debit += group["total_debit"]
-        grand_credit += group["total_credit"]
-        grand_net += group["total_net"]
-
-        # Group heading row
-        data.append({
-            "account_name": group["label"],
-            "remarks": f"<b>{group['label']}</b>",
-            "is_group_heading": 1,
-        })
-
-        for entry in group["entries"]:
-            data.append({
-                "posting_date": entry.posting_date,
-                "account": entry.account,
-                "account_name": entry.account_name,
-                "cost_center": entry.cost_center,
-                "party_type": entry.party_type,
-                "party": entry.party,
-                "voucher_type": entry.voucher_type,
-                "voucher_no": entry.voucher_no,
-                "debit": flt(entry.debit, 2),
-                "credit": flt(entry.credit, 2),
-                "net_expense": flt(entry.net_expense, 2),
-                "remarks": truncate_remarks(entry.remarks),
-            })
-
-        # Subtotal row for the group
-        data.append({
-            "posting_date": None,
-            "account": "",
-            "account_name": f"Total: {group['label']}",
-            "remarks": f"<b>Total: {group['label']}</b>",
-            "voucher_no": "",
-            "debit": flt(group["total_debit"], 2),
-            "credit": flt(group["total_credit"], 2),
-            "net_expense": flt(group["total_net"], 2),
-            "is_group_total": 1,
-        })
-
-        # Blank separator row
-        data.append({})
-
-    # Grand total row
-    data.append({
-        "posting_date": None,
-        "account": "",
-        "account_name": "Grand Total",
-        "remarks": "<b>Grand Total</b>",
-        "voucher_no": "",
-        "debit": flt(grand_debit, 2),
-        "credit": flt(grand_credit, 2),
-        "net_expense": flt(grand_net, 2),
         "is_group_total": 1,
     })
 
@@ -504,12 +305,6 @@ def export_excel(filters):
         filters = json.loads(filters)
 
     validate_filters(filters)
-
-    direct_accounts = get_direct_expense_accounts(filters)
-    if not direct_accounts:
-        frappe.throw(_("No Direct Expense accounts found for this company."))
-
-    filters["_direct_accounts"] = direct_accounts
     columns = get_columns(filters)
     data = get_data(filters)
 
@@ -533,12 +328,6 @@ def export_pdf(filters):
         filters = json.loads(filters)
 
     validate_filters(filters)
-
-    direct_accounts = get_direct_expense_accounts(filters)
-    if not direct_accounts:
-        frappe.throw(_("No Direct Expense accounts found for this company."))
-
-    filters["_direct_accounts"] = direct_accounts
     columns = get_columns(filters)
     data = get_data(filters)
 

@@ -101,23 +101,7 @@ frappe.query_reports["Revenue Detail Report"] = {
       options:
         "\nSales Invoice\nPurchase Invoice\nJournal Entry\nPayment Entry",
     },
-    {
-      fieldname: "group_by",
-      label: __("Group By"),
-      fieldtype: "Select",
-      options:
-        "Group by Account\nGroup by Cost Center\nGroup by Party\nGroup by Voucher Type\nUngrouped",
-      default: "Group by Account",
-    },
   ],
-
-  formatter: function (value, row, column, data, default_formatter) {
-    value = default_formatter(value, row, column, data);
-    if (data && data.is_group_total) {
-      value = "<b>" + value + "</b>";
-    }
-    return value;
-  },
 
   onload: function (report) {
     report.page.add_inner_button(
