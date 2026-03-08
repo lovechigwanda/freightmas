@@ -1019,6 +1019,32 @@ def get_containers_moved_count():
     return result[0].total if result else 0
 
 
+################################################################################
+# Management Accounts Multi-Sheet Excel Export
+@frappe.whitelist()
+def export_management_accounts(filters=None):
+    """Export comprehensive Management Accounts as a multi-sheet Excel file.
+
+    Combines ERPNext standard financial reports and Freightmas custom reports
+    into a single .xlsx workbook with a cover page.
+    """
+    from freightmas.utils.management_accounts import generate_management_accounts
+
+    if isinstance(filters, str):
+        filters = json.loads(filters)
+
+    if not filters or not filters.get("company"):
+        frappe.throw(_("Company is required"))
+
+    output = generate_management_accounts(filters)
+
+    timestamp = now_datetime().strftime("%Y%m%d_%H%M")
+    company_slug = filters["company"].replace(" ", "_")
+    frappe.local.response.filename = f"Management_Accounts_{company_slug}_{timestamp}.xlsx"
+    frappe.local.response.filecontent = output.read()
+    frappe.local.response.type = "binary"
+
+
 @frappe.whitelist()
 def get_containers_in_progress_count():
     """Count containerised cargo parcels for active (non-submitted) forwarding jobs created this year."""
