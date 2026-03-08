@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 15mm 15mm 20mm 15mm;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #222;
+            line-height: 1.4;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #305496;
+            padding-bottom: 10px;
+        }
+
+        .report-header h1 {
+            font-size: 20px;
+            color: #305496;
+            margin: 0 0 4px 0;
+        }
+
+        .report-header .company-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .report-header .period {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        /* KPI cards row */
+        .kpi-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            flex: 1;
+            text-align: center;
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f8f9fb;
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #305496;
+        }
+
+        .kpi-card .kpi-value.positive { color: #27ae60; }
+        .kpi-card .kpi-value.negative { color: #e74c3c; }
+
+        .kpi-card .kpi-label {
+            font-size: 10px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        /* Section styling */
+        .section {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+
+        .section-header {
+            font-size: 13px;
+            font-weight: bold;
+            color: #305496;
+            border-bottom: 1px solid #305496;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
+        }
+
+        /* Tables */
+        .section-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        .section-table th {
+            background: #305496;
+            color: #fff;
+            padding: 5px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .section-table th.text-right,
+        .section-table td.text-right {
+            text-align: right;
+        }
+
+        .section-table td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-table tr:nth-child(even) td {
+            background: #f9f9f9;
+        }
+
+        .section-table tr.subtotal td {
+            font-weight: bold;
+            border-top: 1px solid #305496;
+            background: #e8ecf1;
+        }
+
+        .negative { color: #e74c3c; }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 9px;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="report-header">
+        <div class="company-name">{{ company }}</div>
+        <h1>Weekly Treasury Report</h1>
+        <div class="period">{{ week_label }}</div>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-value {% if closing_balance >= 0 %}positive{% else %}negative{% endif %}">
+                {{ currency }} {{ frappe.utils.fmt_money(closing_balance, 2) }}
+            </div>
+            <div class="kpi-label">Closing Cash Balance</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ currency }} {{ frappe.utils.fmt_money(total_receipts, 2) }}</div>
+            <div class="kpi-label">Week Receipts</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ currency }} {{ frappe.utils.fmt_money(total_payments, 2) }}</div>
+            <div class="kpi-label">Week Payments</div>
+        </div>
+        <div class="kpi-card">
+            {% set net = total_receipts - total_payments %}
+            <div class="kpi-value {% if net >= 0 %}positive{% else %}negative{% endif %}">
+                {{ currency }} {{ frappe.utils.fmt_money(net, 2) }}
+            </div>
+            <div class="kpi-label">Net Movement</div>
+        </div>
+    </div>
+
+    <!-- Sections -->
+    {% set current_section = {'name': ''} %}
+    {% set section_rows = [] %}
+
+    {% for row in data %}
+        {% if row.row_type == 'spacer' or loop.last %}
+            {# Flush the previous section #}
+            {% if section_rows %}
+                <div class="section">
+                    <div class="section-header">{{ current_section['name'] }}</div>
+                    <table class="section-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50%">Description</th>
+                                <th class="text-right" style="width:18%">Amount</th>
+                                <th class="text-right" style="width:18%">Previous / Overdue</th>
+                                <th class="text-right" style="width:14%">Movement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for srow in section_rows %}
+                                {% if srow.row_type == 'data' %}
+                                <tr>
+                                    <td>{% if srow.party %}{{ srow.label }} ({{ srow.party }}){% else %}{{ srow.label }}{% endif %}</td>
+                                    <td class="text-right {% if srow.amount and srow.amount < 0 %}negative{% endif %}">
+                                        {% if srow.amount is not none %}{{ frappe.utils.fmt_money(srow.amount, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        {% if srow.amount_2 is not none %}{{ frappe.utils.fmt_money(srow.amount_2, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right {% if srow.amount_3 and srow.amount_3 < 0 %}negative{% endif %}">
+                                        {% if srow.amount_3 is not none %}{{ frappe.utils.fmt_money(srow.amount_3, 2) }}{% endif %}
+                                    </td>
+                                </tr>
+                                {% elif srow.row_type == 'subtotal' %}
+                                <tr class="subtotal">
+                                    <td>{{ srow.label }}</td>
+                                    <td class="text-right {% if srow.amount and srow.amount < 0 %}negative{% endif %}">
+                                        {% if srow.amount is not none %}{{ frappe.utils.fmt_money(srow.amount, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        {% if srow.amount_2 is not none %}{{ frappe.utils.fmt_money(srow.amount_2, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right {% if srow.amount_3 and srow.amount_3 < 0 %}negative{% endif %}">
+                                        {% if srow.amount_3 is not none %}{{ frappe.utils.fmt_money(srow.amount_3, 2) }}{% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            {% if row.row_type != 'spacer' and loop.last %}
+                {# Handle last row if not a spacer #}
+            {% endif %}
+            {% set _ = section_rows.clear() %}
+        {% elif row.row_type == 'header' %}
+            {# Start a new section — flush previous first if any #}
+            {% if section_rows %}
+                <div class="section">
+                    <div class="section-header">{{ current_section['name'] }}</div>
+                    <table class="section-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50%">Description</th>
+                                <th class="text-right" style="width:18%">Amount</th>
+                                <th class="text-right" style="width:18%">Previous / Overdue</th>
+                                <th class="text-right" style="width:14%">Movement</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for srow in section_rows %}
+                                {% if srow.row_type == 'data' %}
+                                <tr>
+                                    <td>{% if srow.party %}{{ srow.label }} ({{ srow.party }}){% else %}{{ srow.label }}{% endif %}</td>
+                                    <td class="text-right {% if srow.amount and srow.amount < 0 %}negative{% endif %}">
+                                        {% if srow.amount is not none %}{{ frappe.utils.fmt_money(srow.amount, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        {% if srow.amount_2 is not none %}{{ frappe.utils.fmt_money(srow.amount_2, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right {% if srow.amount_3 and srow.amount_3 < 0 %}negative{% endif %}">
+                                        {% if srow.amount_3 is not none %}{{ frappe.utils.fmt_money(srow.amount_3, 2) }}{% endif %}
+                                    </td>
+                                </tr>
+                                {% elif srow.row_type == 'subtotal' %}
+                                <tr class="subtotal">
+                                    <td>{{ srow.label }}</td>
+                                    <td class="text-right {% if srow.amount and srow.amount < 0 %}negative{% endif %}">
+                                        {% if srow.amount is not none %}{{ frappe.utils.fmt_money(srow.amount, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right">
+                                        {% if srow.amount_2 is not none %}{{ frappe.utils.fmt_money(srow.amount_2, 2) }}{% endif %}
+                                    </td>
+                                    <td class="text-right {% if srow.amount_3 and srow.amount_3 < 0 %}negative{% endif %}">
+                                        {% if srow.amount_3 is not none %}{{ frappe.utils.fmt_money(srow.amount_3, 2) }}{% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            {% set _ = section_rows.clear() %}
+            {% if current_section.update({'name': row.section ~ ' — ' ~ row.label}) %}{% endif %}
+        {% else %}
+            {% if section_rows.append(row) %}{% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="footer">
+        Generated on {{ generated_on }} &bull; {{ company }} &bull; Weekly Treasury Report
+    </div>
+</body>
+</html>
