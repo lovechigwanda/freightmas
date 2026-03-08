@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"opRept0001\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":12}}]",
  "creation": "2026-02-15 21:11:30.626496",
  "custom_blocks": [],
  "docstatus": 0,
@@ -616,6 +616,175 @@
    "link_count": 0,
    "link_to": "management-accounts-export",
    "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operational Reports",
+   "link_count": 16,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Shipment Margin Analysis",
+   "link_count": 0,
+   "link_to": "Forwarding Shipment Margin Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Container Volume Report",
+   "link_count": 0,
+   "link_to": "Forwarding Container Volume Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Customer Profitability",
+   "link_count": 0,
+   "link_to": "Forwarding Customer Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Route Profitability",
+   "link_count": 0,
+   "link_to": "Forwarding Route Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Agent Performance",
+   "link_count": 0,
+   "link_to": "Forwarding Agent Performance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Monthly Summary",
+   "link_count": 0,
+   "link_to": "Forwarding Monthly Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Profitability Report",
+   "link_count": 0,
+   "link_to": "Truck Profitability Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Expense Analysis",
+   "link_count": 0,
+   "link_to": "Truck Expense Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Driver Performance Report",
+   "link_count": 0,
+   "link_to": "Driver Performance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Route Profitability Trucking",
+   "link_count": 0,
+   "link_to": "Route Profitability Trucking",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Utilisation Report",
+   "link_count": 0,
+   "link_to": "Truck Utilisation Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Fuel Efficiency Report",
+   "link_count": 0,
+   "link_to": "Fuel Efficiency Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Turnaround Analysis",
+   "link_count": 0,
+   "link_to": "Trip Turnaround Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Consolidated Operations Summary",
+   "link_count": 0,
+   "link_to": "Consolidated Operations Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unbilled Revenue Aging",
+   "link_count": 0,
+   "link_to": "Unbilled Revenue Aging",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Customer Revenue Across Services",
+   "link_count": 0,
+   "link_to": "Customer Revenue Across Services",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }

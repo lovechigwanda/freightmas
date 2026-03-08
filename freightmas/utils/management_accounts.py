@@ -136,6 +136,119 @@ REPORT_CONFIGS = [
 		"group": "asset_register",
 		"is_tree": False,
 	},
+	# --- Operational Reports ---
+	{
+		"key": "fwd_margin",
+		"sheet_name": "Fwd Shipment Margin",
+		"module": "freightmas.forwarding_service.report.forwarding_shipment_margin_analysis.forwarding_shipment_margin_analysis",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fwd_volume",
+		"sheet_name": "Fwd Container Volume",
+		"module": "freightmas.forwarding_service.report.forwarding_container_volume_report.forwarding_container_volume_report",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fwd_cust_profit",
+		"sheet_name": "Fwd Customer Profit",
+		"module": "freightmas.forwarding_service.report.forwarding_customer_profitability.forwarding_customer_profitability",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fwd_route",
+		"sheet_name": "Fwd Route Profit",
+		"module": "freightmas.forwarding_service.report.forwarding_route_profitability.forwarding_route_profitability",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fwd_agent",
+		"sheet_name": "Fwd Agent Perf",
+		"module": "freightmas.forwarding_service.report.forwarding_agent_performance.forwarding_agent_performance",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fwd_monthly",
+		"sheet_name": "Fwd Monthly Summary",
+		"module": "freightmas.forwarding_service.report.forwarding_monthly_summary.forwarding_monthly_summary",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "truck_profit",
+		"sheet_name": "Truck Profitability",
+		"module": "freightmas.trucking_service.report.truck_profitability_report.truck_profitability_report",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "truck_expense",
+		"sheet_name": "Truck Expense Analysis",
+		"module": "freightmas.trucking_service.report.truck_expense_analysis.truck_expense_analysis",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "driver_perf",
+		"sheet_name": "Driver Performance",
+		"module": "freightmas.trucking_service.report.driver_performance_report.driver_performance_report",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "route_truck",
+		"sheet_name": "Route Profit Trucking",
+		"module": "freightmas.trucking_service.report.route_profitability_trucking.route_profitability_trucking",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "truck_util",
+		"sheet_name": "Truck Utilisation",
+		"module": "freightmas.trucking_service.report.truck_utilisation_report.truck_utilisation_report",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "fuel_eff",
+		"sheet_name": "Fuel Efficiency",
+		"module": "freightmas.trucking_service.report.fuel_efficiency_report.fuel_efficiency_report",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "trip_turn",
+		"sheet_name": "Trip Turnaround",
+		"module": "freightmas.trucking_service.report.trip_turnaround_analysis.trip_turnaround_analysis",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "ops_summary",
+		"sheet_name": "Ops Summary",
+		"module": "freightmas.freightmas.report.consolidated_operations_summary.consolidated_operations_summary",
+		"group": "operational",
+		"is_tree": False,
+	},
+	{
+		"key": "unbilled",
+		"sheet_name": "Unbilled Revenue Aging",
+		"module": "freightmas.freightmas.report.unbilled_revenue_aging.unbilled_revenue_aging",
+		"group": "operational_point_in_time",
+		"is_tree": False,
+	},
+	{
+		"key": "cust_rev",
+		"sheet_name": "Customer Revenue",
+		"module": "freightmas.freightmas.report.customer_revenue_across_services.customer_revenue_across_services",
+		"group": "operational",
+		"is_tree": False,
+	},
 ]
 
 
@@ -280,6 +393,23 @@ def build_report_filters(config, master):
 		if master.get("finance_book"):
 			filters["finance_book"] = master["finance_book"]
 		return filters
+
+	if group == "operational":
+		# Operational reports use from_date / to_date / company
+		from_date, to_date = _resolve_dates(master)
+		return frappe._dict({
+			"company": master["company"],
+			"from_date": from_date,
+			"to_date": to_date,
+		})
+
+	if group == "operational_point_in_time":
+		# Unbilled Revenue Aging uses as_of_date
+		_, to_date = _resolve_dates(master)
+		return frappe._dict({
+			"company": master["company"],
+			"as_of_date": to_date,
+		})
 
 	return frappe._dict({"company": master["company"]})
 
