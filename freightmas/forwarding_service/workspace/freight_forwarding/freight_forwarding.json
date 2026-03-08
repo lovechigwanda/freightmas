@@ -118,7 +118,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 12,
+   "link_count": 17,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -242,9 +242,59 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Shipment Margin Analysis",
+   "link_count": 0,
+   "link_to": "Forwarding Shipment Margin Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Volume Report",
+   "link_count": 0,
+   "link_to": "Forwarding Container Volume Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Customer Profitability",
+   "link_count": 0,
+   "link_to": "Forwarding Customer Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Route Profitability",
+   "link_count": 0,
+   "link_to": "Forwarding Route Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Agent Performance",
+   "link_count": 0,
+   "link_to": "Forwarding Agent Performance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-25 23:14:35.895762",
+ "modified": "2026-03-08 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",

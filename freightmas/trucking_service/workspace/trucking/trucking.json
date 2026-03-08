@@ -215,7 +215,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Other Reports",
-   "link_count": 2,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -239,9 +239,79 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Profitability",
+   "link_count": 0,
+   "link_to": "Truck Profitability Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Expense Analysis",
+   "link_count": 0,
+   "link_to": "Truck Expense Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Driver Performance",
+   "link_count": 0,
+   "link_to": "Driver Performance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Route Profitability",
+   "link_count": 0,
+   "link_to": "Route Profitability Trucking",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Truck Utilisation",
+   "link_count": 0,
+   "link_to": "Truck Utilisation Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Fuel Efficiency",
+   "link_count": 0,
+   "link_to": "Fuel Efficiency Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Turnaround Analysis",
+   "link_count": 0,
+   "link_to": "Trip Turnaround Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-08 13:20:50.164205",
+ "modified": "2026-03-08 19:00:00.000000",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Trucking Service",
  "name": "Trucking",

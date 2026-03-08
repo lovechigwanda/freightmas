@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"x3IZGxegiX\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas</span>\",\"col\":12}},{\"id\":\"pKP8Wzypjf\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sc01FwdJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"sc02ClrJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"sc03Trip01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"sc04RdFJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Road Freight Job\",\"col\":3}},{\"id\":\"sc05WhsJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse Job\",\"col\":3}},{\"id\":\"sc06JbOrdr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"sc07Quottn\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"sc08FmSett\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"FreightMas Settings\",\"col\":3}},{\"id\":\"sp01Spacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cd01SvcWks\",\"type\":\"card\",\"data\":{\"card_name\":\"Service Workspaces\",\"col\":4}},{\"id\":\"cd02Opertn\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cd03SalCRM\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales & CRM\",\"col\":4}},{\"id\":\"sp02Spacer\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cd04Master\",\"type\":\"card\",\"data\":{\"card_name\":\"Master Data\",\"col\":4}},{\"id\":\"cd05Report\",\"type\":\"card\",\"data\":{\"card_name\":\"Key Reports\",\"col\":4}},{\"id\":\"sp03Spacer\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"hdr01Main\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas</span>\",\"col\":12}},{\"id\":\"sp00Top\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sc01FwdJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"sc02Trip01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Trip\",\"col\":3}},{\"id\":\"sc03RdFJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Road Freight Job\",\"col\":3}},{\"id\":\"sc04ClrJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Clearing Job\",\"col\":3}},{\"id\":\"sc05WhsJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse Job\",\"col\":3}},{\"id\":\"sp01After\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cd01Fwd\",\"type\":\"card\",\"data\":{\"card_name\":\"Freight Forwarding\",\"col\":4}},{\"id\":\"cd02Trk\",\"type\":\"card\",\"data\":{\"card_name\":\"Trucking\",\"col\":4}},{\"id\":\"cd03Rdf\",\"type\":\"card\",\"data\":{\"card_name\":\"Road Freight\",\"col\":4}},{\"id\":\"sp02Mid\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cd04Clr\",\"type\":\"card\",\"data\":{\"card_name\":\"Port Clearing\",\"col\":4}},{\"id\":\"cd05Whs\",\"type\":\"card\",\"data\":{\"card_name\":\"Warehousing\",\"col\":4}},{\"id\":\"cd06Stg\",\"type\":\"card\",\"data\":{\"card_name\":\"FreightMas Settings\",\"col\":4}},{\"id\":\"sp03End\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
  "creation": "2026-01-31 08:46:53.100571",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,87 +18,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Service Workspaces",
-   "link_count": 7,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Freight Forwarding",
-   "link_count": 0,
-   "link_to": "Freight Forwarding",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Port Clearing Service",
-   "link_count": 0,
-   "link_to": "Port Clearing Service",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trucking",
-   "link_count": 0,
-   "link_to": "Trucking",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Road Freight",
-   "link_count": 0,
-   "link_to": "Road Freight",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Warehousing",
-   "link_count": 0,
-   "link_to": "Warehousing",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "FreightMas Sales",
-   "link_count": 0,
-   "link_to": "FreightMas Sales",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "FreightMas Accounts",
-   "link_count": 0,
-   "link_to": "FreightMas Accounts",
-   "link_type": "Workspace",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Operations",
-   "link_count": 7,
+   "link_count": 6,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -116,71 +37,12 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Clearing Job",
-   "link_count": 0,
-   "link_to": "Clearing Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Trip",
-   "link_count": 0,
-   "link_to": "Trip",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Road Freight Job",
-   "link_count": 0,
-   "link_to": "Road Freight Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Warehouse Job",
-   "link_count": 0,
-   "link_to": "Warehouse Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Master Forwarding Job",
    "link_count": 0,
    "link_to": "Master Forwarding Job",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Fuel Order",
-   "link_count": 0,
-   "link_to": "Fuel Order",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Sales & CRM",
-   "link_count": 4,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -194,39 +56,39 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
-   "label": "Quotation",
+   "is_query_report": 1,
+   "label": "Forwarding Job Register",
    "link_count": 0,
-   "link_to": "Quotation",
-   "link_type": "DocType",
+   "link_to": "Forwarding Job Register Extended",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Shipment Margin Analysis",
+   "link_count": 0,
+   "link_to": "Forwarding Shipment Margin Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Monthly Summary",
+   "link_count": 0,
+   "link_to": "Forwarding Monthly Summary",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Lead",
-   "link_count": 0,
-   "link_to": "Lead",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Customer",
-   "link_count": 0,
-   "link_to": "Customer",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Master Data",
-   "link_count": 10,
+   "label": "Trucking",
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -234,59 +96,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Port",
+   "label": "Trip",
    "link_count": 0,
-   "link_to": "Port",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Route",
-   "link_count": 0,
-   "link_to": "Route",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Road Freight Route",
-   "link_count": 0,
-   "link_to": "Road Freight Route",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Container Type",
-   "link_count": 0,
-   "link_to": "Container Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Cargo Type",
-   "link_count": 0,
-   "link_to": "Cargo Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Shipping Line",
-   "link_count": 0,
-   "link_to": "Shipping Line",
+   "link_to": "Trip",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -304,9 +116,225 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Fuel Order",
+   "link_count": 0,
+   "link_to": "Fuel Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Route",
+   "link_count": 0,
+   "link_to": "Route",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Trip Tracking Report",
+   "link_count": 0,
+   "link_to": "Trip Tracking Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Road Freight",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Road Freight Job",
+   "link_count": 0,
+   "link_to": "Road Freight Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Road Freight Route",
+   "link_count": 0,
+   "link_to": "Road Freight Route",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cargo Type",
+   "link_count": 0,
+   "link_to": "Cargo Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Border Post",
    "link_count": 0,
    "link_to": "Border Post",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Road Freight Job Register",
+   "link_count": 0,
+   "link_to": "Road Freight Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Port Clearing",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Clearing Job",
+   "link_count": 0,
+   "link_to": "Clearing Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Clearing Charges Template",
+   "link_count": 0,
+   "link_to": "Clearing Charges Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Container Type",
+   "link_count": 0,
+   "link_to": "Container Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Shipping Line",
+   "link_count": 0,
+   "link_to": "Shipping Line",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Clearing Job Register",
+   "link_count": 0,
+   "link_to": "Clearing Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Warehousing",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Warehouse Job",
+   "link_count": 0,
+   "link_to": "Warehouse Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer Goods Receipt",
+   "link_count": 0,
+   "link_to": "Customer Goods Receipt",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer Goods Dispatch",
+   "link_count": 0,
+   "link_to": "Customer Goods Dispatch",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Storage Rate Card",
+   "link_count": 0,
+   "link_to": "Storage Rate Card",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Warehouse Job Register",
+   "link_count": 0,
+   "link_to": "Warehouse Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "FreightMas Settings",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "FreightMas Settings",
+   "link_count": 0,
+   "link_to": "FreightMas Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -324,9 +352,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "FreightMas Settings",
+   "label": "Port",
    "link_count": 0,
-   "link_to": "FreightMas Settings",
+   "link_to": "Port",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -334,11 +362,22 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Key Reports",
-   "link_count": 7,
+   "label": "Quotation",
+   "link_count": 0,
+   "link_to": "Quotation",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -353,9 +392,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Forwarding Job Register",
+   "label": "Unbilled Revenue Aging",
    "link_count": 0,
-   "link_to": "Forwarding Job Register Extended",
+   "link_to": "Unbilled Revenue Aging",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -363,55 +402,15 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Clearing Job Register",
+   "label": "Customer Revenue Across Services",
    "link_count": 0,
-   "link_to": "Clearing Job Register",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Trip Tracking Report",
-   "link_count": 0,
-   "link_to": "Trip Tracking Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Road Freight Job Register",
-   "link_count": 0,
-   "link_to": "Road Freight Job Register",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Warehouse Job Register",
-   "link_count": 0,
-   "link_to": "Warehouse Job Register",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Quotation List",
-   "link_count": 0,
-   "link_to": "Quotation List",
+   "link_to": "Customer Revenue Across Services",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-03-08 13:44:00.000000",
+ "modified": "2026-03-08 19:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas",
@@ -432,14 +431,6 @@
    "type": "DocType"
   },
   {
-   "color": "Orange",
-   "doc_view": "List",
-   "label": "Clearing Job",
-   "link_to": "Clearing Job",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
    "color": "Green",
    "doc_view": "List",
    "label": "Trip",
@@ -456,34 +447,19 @@
    "type": "DocType"
   },
   {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Clearing Job",
+   "link_to": "Clearing Job",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
    "color": "Cyan",
    "doc_view": "List",
    "label": "Warehouse Job",
    "link_to": "Warehouse Job",
    "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Pink",
-   "doc_view": "List",
-   "label": "Job Order",
-   "link_to": "Job Order",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Quotation",
-   "link_to": "Quotation",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "",
-   "label": "FreightMas Settings",
-   "link_to": "FreightMas Settings",
    "type": "DocType"
   }
  ],
