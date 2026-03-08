@@ -658,6 +658,16 @@
   {
    "hidden": 0,
    "is_query_report": 1,
+   "label": "Cash and Bank Transactions",
+   "link_count": 0,
+   "link_to": "Cash and Bank Transactions",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
    "label": "Cash and Bank Balance Report",
    "link_count": 0,
    "link_to": "Cash and Bank Balance Report",
