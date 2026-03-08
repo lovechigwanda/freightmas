@@ -294,6 +294,8 @@
   {
    "fieldname": "customer_reference",
    "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Customer Reference"
   },
   {
@@ -791,8 +793,8 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2025-08-18 22:09:54.776847",
- "modified_by": "Administrator",
+ "modified": "2026-03-07 23:59:06.316916",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Trucking Service",
  "name": "Trip",
  "naming_rule": "By \"Naming Series\" field",
