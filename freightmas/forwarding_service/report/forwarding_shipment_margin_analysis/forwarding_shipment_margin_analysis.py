@@ -60,23 +60,23 @@ def get_data(filters):
 		FROM `tabForwarding Job` fj
 		LEFT JOIN (
 			SELECT
-				si.custom_forwarding_job_reference AS job_ref,
+				si.forwarding_job_reference AS job_ref,
 				SUM(si.base_grand_total) AS actual_revenue
 			FROM `tabSales Invoice` si
 			WHERE si.docstatus = 1
-				AND si.custom_is_forwarding_invoice = 1
-				AND si.custom_forwarding_job_reference IS NOT NULL
-			GROUP BY si.custom_forwarding_job_reference
+				AND si.is_forwarding_invoice = 1
+				AND si.forwarding_job_reference IS NOT NULL
+			GROUP BY si.forwarding_job_reference
 		) si_totals ON si_totals.job_ref = fj.name
 		LEFT JOIN (
 			SELECT
-				pi.custom_forwarding_job_reference AS job_ref,
+				pi.forwarding_job_reference AS job_ref,
 				SUM(pi.base_grand_total) AS actual_cost
 			FROM `tabPurchase Invoice` pi
 			WHERE pi.docstatus = 1
-				AND pi.custom_is_forwarding_invoice = 1
-				AND pi.custom_forwarding_job_reference IS NOT NULL
-			GROUP BY pi.custom_forwarding_job_reference
+				AND pi.is_forwarding_invoice = 1
+				AND pi.forwarding_job_reference IS NOT NULL
+			GROUP BY pi.forwarding_job_reference
 		) pi_totals ON pi_totals.job_ref = fj.name
 		WHERE {where_clause}
 		GROUP BY fj.shipment_mode, fj.direction, fj.customer
