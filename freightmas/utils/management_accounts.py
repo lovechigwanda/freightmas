@@ -223,6 +223,23 @@ def build_report_filters(config, master):
 			filters["finance_book"] = master["finance_book"]
 		if master.get("presentation_currency"):
 			filters["presentation_currency"] = master["presentation_currency"]
+
+		# Pass report template if selected (P&L or Balance Sheet)
+		report_key = config.get("key")
+		template = None
+		if report_key == "pl":
+			template = master.get("pl_report_template")
+		elif report_key == "bs":
+			template = master.get("bs_report_template")
+
+		if template:
+			filters["report_template"] = template
+			# FinancialReportEngine requires period_start_date / period_end_date
+			if not filters.get("period_start_date"):
+				filters["period_start_date"] = from_date
+			if not filters.get("period_end_date"):
+				filters["period_end_date"] = to_date
+
 		return filters
 
 	if group == "pl_cost_center":

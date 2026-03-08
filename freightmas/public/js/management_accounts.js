@@ -121,6 +121,36 @@ freightmas.management_accounts.show_export_dialog = function () {
 				fieldtype: "Link",
 				options: "Currency",
 			},
+			{ fieldtype: "Section Break", label: __("Report Templates") },
+			{
+				fieldname: "pl_report_template",
+				label: __("P&L Report Template"),
+				fieldtype: "Link",
+				options: "Financial Report Template",
+				get_query: function () {
+					return {
+						filters: {
+							report_type: "Profit and Loss Statement",
+							disabled: 0,
+						},
+					};
+				},
+			},
+			{ fieldtype: "Column Break" },
+			{
+				fieldname: "bs_report_template",
+				label: __("Balance Sheet Report Template"),
+				fieldtype: "Link",
+				options: "Financial Report Template",
+				get_query: function () {
+					return {
+						filters: {
+							report_type: "Balance Sheet",
+							disabled: 0,
+						},
+					};
+				},
+			},
 			{ fieldtype: "Section Break", label: __("Filters") },
 			{
 				fieldname: "cost_center",
