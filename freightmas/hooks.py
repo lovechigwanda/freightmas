@@ -28,7 +28,7 @@ import frappe
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/freightmas/css/freightmas.css"
-app_include_js = ["/assets/freightmas/js/report_commons.js", "/assets/freightmas/js/management_accounts.js"]
+app_include_js = ["/assets/freightmas/js/session_handler.js", "/assets/freightmas/js/report_commons.js", "/assets/freightmas/js/management_accounts.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/freightmas/css/freightmas.css"
