@@ -120,6 +120,16 @@
         .closing-row {
             font-weight: bold;
         }
+
+        .remarks-cell {
+            max-width: 300px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            white-space: normal;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +177,7 @@
                 <td class="amount">{{ frappe.utils.fmt_money(row.debit) if row.debit else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.credit) if row.credit else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.balance) }}</td>
-                <td>{{ row.remarks or "" }}</td>
+                <td><div class="remarks-cell">{{ row.remarks or "" }}</div></td>
             </tr>
             {% endfor %}
         </tbody>

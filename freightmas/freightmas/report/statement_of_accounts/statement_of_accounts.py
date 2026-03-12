@@ -6,6 +6,14 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate
 
+MAX_REMARKS_LENGTH = 120  # Approximately 2 lines in PDF output
+
+def _truncate_remarks(text, max_len=MAX_REMARKS_LENGTH):
+    if not text:
+        return text
+    text = str(text)
+    return text if len(text) <= max_len else text[:max_len].rstrip() + "..."
+
 def execute(filters=None):
     columns = get_columns()
     data = get_data(filters)
@@ -113,7 +121,7 @@ def get_data(filters):
             "debit": entry.debit,
             "credit": entry.credit,
             "balance": balance,
-            "remarks": entry.remarks
+            "remarks": _truncate_remarks(entry.remarks)
         }
         data.append(row)
     
