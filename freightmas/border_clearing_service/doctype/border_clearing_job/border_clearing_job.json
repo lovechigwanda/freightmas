@@ -1,0 +1,1114 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-03-15 10:00:00.000000",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "job_details_tab",
+  "basic_information_section",
+  "company",
+  "naming_series",
+  "column_break_basic1",
+  "created_by",
+  "amended_from",
+  "column_break_basic2",
+  "date_created",
+  "customer_references_section",
+  "customer",
+  "customer_reference",
+  "column_break_cust1",
+  "direction",
+  "border_customs_section",
+  "border_post",
+  "entry_type",
+  "column_break_border1",
+  "bill_of_entry_number",
+  "column_break_border2",
+  "customs_value",
+  "customs_value_currency",
+  "clearing_agent_section",
+  "clearing_agent",
+  "column_break_agent1",
+  "clearing_agent_reference",
+  "related_job_section",
+  "linked_forwarding_job",
+  "column_break_related1",
+  "linked_clearing_job",
+  "document_checklist_section",
+  "border_clearing_documents_checklist",
+  "cargo_tab",
+  "cargo_information_section",
+  "cargo_description",
+  "column_break_cargo_info1",
+  "cargo_origin_country",
+  "column_break_cargo_info2",
+  "cargo_destination_country",
+  "cargo_details_section",
+  "border_clearing_cargo_details",
+  "milestones_tab",
+  "document_collection_section",
+  "is_documents_received",
+  "documents_received_date",
+  "entry_lodgement_section",
+  "is_entry_lodged",
+  "entry_lodged_date",
+  "column_break_entry1",
+  "entry_number",
+  "assessment_section",
+  "is_duty_assessed",
+  "duty_assessed_date",
+  "column_break_assess1",
+  "assessed_duty_amount",
+  "assessed_duty_currency",
+  "duty_payment_section",
+  "is_duty_paid",
+  "duty_paid_date",
+  "column_break_duty1",
+  "zimra_receipt_number",
+  "examination_section",
+  "is_examination_required",
+  "is_examination_done",
+  "column_break_exam1",
+  "examination_date",
+  "examination_remarks",
+  "release_section",
+  "is_release_obtained",
+  "release_date",
+  "completion_section",
+  "is_cleared",
+  "cleared_date",
+  "milestone_tracker_section",
+  "milestone_tracker",
+  "tracking_tab",
+  "job_tracking_section",
+  "border_clearing_tracking",
+  "current_update_section",
+  "current_comment",
+  "column_break_track1",
+  "last_updated_by",
+  "column_break_track2",
+  "last_updated_on",
+  "status_section",
+  "status",
+  "column_break_status1",
+  "completed_on",
+  "column_break_status2",
+  "skip_validations",
+  "charges_tab",
+  "currency_section",
+  "currency",
+  "column_break_curr1",
+  "conversion_rate",
+  "column_break_curr2",
+  "base_currency",
+  "quoted_costing_section",
+  "border_clearing_costing_charges",
+  "section_break_costing_btn",
+  "load_charges_from_template",
+  "quoted_totals_section",
+  "total_quoted_revenue",
+  "total_quoted_revenue_base",
+  "column_break_qtc",
+  "total_quoted_cost",
+  "total_quoted_cost_base",
+  "column_break_qtm",
+  "total_quoted_margin",
+  "total_quoted_profit_base",
+  "column_break_qmp",
+  "quoted_margin_percent",
+  "column_break_qpt",
+  "total_quoted_duty_pass_through",
+  "working_revenue_section",
+  "border_clearing_revenue_charges",
+  "fetch_revenue_from_job_costing",
+  "working_cost_section",
+  "border_clearing_cost_charges",
+  "section_break_cost_btn",
+  "fetch_cost_from_job_costing",
+  "working_totals_section",
+  "total_working_revenue",
+  "total_working_revenue_base",
+  "column_break_wtc",
+  "total_working_cost",
+  "total_working_base",
+  "column_break_wtp",
+  "total_working_profit",
+  "total_working_profit_base",
+  "column_break_wmp",
+  "profit_margin_percent",
+  "column_break_wpt",
+  "total_working_duty_pass_through",
+  "revenue_recognition_section",
+  "set_rr_date",
+  "revenue_recognised",
+  "revenue_recognised_on",
+  "column_break_rr1",
+  "revenue_recognition_journal_entry",
+  "total_recognised_revenue",
+  "cost_recognition_section",
+  "cost_recognised",
+  "column_break_cr1",
+  "cost_recognition_journal_entry",
+  "total_recognised_cost",
+  "connections_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "job_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Job Details"
+  },
+  {
+   "fieldname": "basic_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "remember_last_selected_value": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "BCJB-.#####.-.YY.",
+   "print_hide": 1,
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_basic1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "User",
+   "fieldname": "created_by",
+   "fieldtype": "Link",
+   "label": "Created By",
+   "options": "User",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Border Clearing Job",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_basic2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date_created",
+   "fieldtype": "Date",
+   "label": "Date Created",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "customer_references_section",
+   "fieldtype": "Section Break",
+   "label": "Customer & References"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer_reference",
+   "fieldtype": "Data",
+   "label": "Customer Reference",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_cust1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Direction",
+   "options": "\nImport\nExport\nTransit",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "border_customs_section",
+   "fieldtype": "Section Break",
+   "label": "Border & Customs"
+  },
+  {
+   "fieldname": "border_post",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Border Post",
+   "options": "Border Post",
+   "reqd": 1
+  },
+  {
+   "fieldname": "entry_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Entry Type",
+   "options": "\nForm 21 - Import Entry\nForm 42 - Customs Clearance\nForm 47 - Transit Entry\nForm 67 - Export Entry\nForm 112 - Temporary Import Permit",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_border1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bill_of_entry_number",
+   "fieldtype": "Data",
+   "label": "Bill of Entry Number"
+  },
+  {
+   "fieldname": "column_break_border2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customs_value",
+   "fieldtype": "Currency",
+   "label": "Customs Value",
+   "options": "customs_value_currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "customs_value_currency",
+   "fieldtype": "Link",
+   "label": "Customs Value Currency",
+   "options": "Currency"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "clearing_agent_section",
+   "fieldtype": "Section Break",
+   "label": "Clearing Agent"
+  },
+  {
+   "fieldname": "clearing_agent",
+   "fieldtype": "Link",
+   "label": "Clearing Agent",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "column_break_agent1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "clearing_agent_reference",
+   "fieldtype": "Data",
+   "label": "Clearing Agent Reference"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "related_job_section",
+   "fieldtype": "Section Break",
+   "label": "Related Jobs"
+  },
+  {
+   "fieldname": "linked_forwarding_job",
+   "fieldtype": "Link",
+   "label": "Linked Forwarding Job",
+   "options": "Forwarding Job"
+  },
+  {
+   "fieldname": "column_break_related1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "linked_clearing_job",
+   "fieldtype": "Link",
+   "label": "Linked Clearing Job",
+   "options": "Clearing Job"
+  },
+  {
+   "fieldname": "document_checklist_section",
+   "fieldtype": "Section Break",
+   "label": "Document Checklist"
+  },
+  {
+   "fieldname": "border_clearing_documents_checklist",
+   "fieldtype": "Table",
+   "label": "Document Checklist",
+   "options": "Border Clearing Documents Checklist"
+  },
+  {
+   "fieldname": "cargo_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cargo"
+  },
+  {
+   "fieldname": "cargo_information_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Information"
+  },
+  {
+   "fieldname": "cargo_description",
+   "fieldtype": "Data",
+   "label": "Cargo Description"
+  },
+  {
+   "fieldname": "column_break_cargo_info1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cargo_origin_country",
+   "fieldtype": "Link",
+   "label": "Origin Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "column_break_cargo_info2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cargo_destination_country",
+   "fieldtype": "Link",
+   "label": "Destination Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "cargo_details_section",
+   "fieldtype": "Section Break",
+   "label": "Cargo Details"
+  },
+  {
+   "fieldname": "border_clearing_cargo_details",
+   "fieldtype": "Table",
+   "label": "Cargo Details",
+   "options": "Border Clearing Cargo Details"
+  },
+  {
+   "fieldname": "milestones_tab",
+   "fieldtype": "Tab Break",
+   "label": "Milestones"
+  },
+  {
+   "fieldname": "document_collection_section",
+   "fieldtype": "Section Break",
+   "label": "Document Collection"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_documents_received",
+   "fieldtype": "Check",
+   "label": "Documents Received"
+  },
+  {
+   "depends_on": "eval:doc.is_documents_received == 1",
+   "fieldname": "documents_received_date",
+   "fieldtype": "Date",
+   "label": "Documents Received Date",
+   "mandatory_depends_on": "eval:doc.is_documents_received == 1"
+  },
+  {
+   "fieldname": "entry_lodgement_section",
+   "fieldtype": "Section Break",
+   "label": "Entry Lodgement"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_entry_lodged",
+   "fieldtype": "Check",
+   "label": "Entry Lodged"
+  },
+  {
+   "depends_on": "eval:doc.is_entry_lodged == 1",
+   "fieldname": "entry_lodged_date",
+   "fieldtype": "Date",
+   "label": "Entry Lodged Date",
+   "mandatory_depends_on": "eval:doc.is_entry_lodged == 1"
+  },
+  {
+   "fieldname": "column_break_entry1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_entry_lodged == 1",
+   "fieldname": "entry_number",
+   "fieldtype": "Data",
+   "label": "Entry Number"
+  },
+  {
+   "fieldname": "assessment_section",
+   "fieldtype": "Section Break",
+   "label": "Assessment"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_duty_assessed",
+   "fieldtype": "Check",
+   "label": "Duty Assessed"
+  },
+  {
+   "depends_on": "eval:doc.is_duty_assessed == 1",
+   "fieldname": "duty_assessed_date",
+   "fieldtype": "Date",
+   "label": "Duty Assessed Date",
+   "mandatory_depends_on": "eval:doc.is_duty_assessed == 1"
+  },
+  {
+   "fieldname": "column_break_assess1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_duty_assessed == 1",
+   "fieldname": "assessed_duty_amount",
+   "fieldtype": "Currency",
+   "label": "Assessed Duty Amount",
+   "options": "assessed_duty_currency",
+   "precision": "2"
+  },
+  {
+   "depends_on": "eval:doc.is_duty_assessed == 1",
+   "fieldname": "assessed_duty_currency",
+   "fieldtype": "Link",
+   "label": "Assessed Duty Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "duty_payment_section",
+   "fieldtype": "Section Break",
+   "label": "Duty Payment"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_duty_paid",
+   "fieldtype": "Check",
+   "label": "Duty Paid"
+  },
+  {
+   "depends_on": "eval:doc.is_duty_paid == 1",
+   "fieldname": "duty_paid_date",
+   "fieldtype": "Date",
+   "label": "Duty Paid Date",
+   "mandatory_depends_on": "eval:doc.is_duty_paid == 1"
+  },
+  {
+   "fieldname": "column_break_duty1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_duty_paid == 1",
+   "fieldname": "zimra_receipt_number",
+   "fieldtype": "Data",
+   "label": "ZIMRA Receipt Number"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "examination_section",
+   "fieldtype": "Section Break",
+   "label": "Examination"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_examination_required",
+   "fieldtype": "Check",
+   "label": "Examination Required"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.is_examination_required == 1",
+   "fieldname": "is_examination_done",
+   "fieldtype": "Check",
+   "label": "Examination Done"
+  },
+  {
+   "fieldname": "column_break_exam1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.is_examination_done == 1",
+   "fieldname": "examination_date",
+   "fieldtype": "Date",
+   "label": "Examination Date",
+   "mandatory_depends_on": "eval:doc.is_examination_done == 1"
+  },
+  {
+   "depends_on": "eval:doc.is_examination_done == 1",
+   "fieldname": "examination_remarks",
+   "fieldtype": "Small Text",
+   "label": "Examination Remarks"
+  },
+  {
+   "fieldname": "release_section",
+   "fieldtype": "Section Break",
+   "label": "Release"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_release_obtained",
+   "fieldtype": "Check",
+   "label": "Release Obtained"
+  },
+  {
+   "depends_on": "eval:doc.is_release_obtained == 1",
+   "fieldname": "release_date",
+   "fieldtype": "Date",
+   "label": "Release Date",
+   "mandatory_depends_on": "eval:doc.is_release_obtained == 1"
+  },
+  {
+   "fieldname": "completion_section",
+   "fieldtype": "Section Break",
+   "label": "Completion"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_cleared",
+   "fieldtype": "Check",
+   "label": "Cleared"
+  },
+  {
+   "depends_on": "eval:doc.is_cleared == 1",
+   "fieldname": "cleared_date",
+   "fieldtype": "Date",
+   "label": "Cleared Date",
+   "mandatory_depends_on": "eval:doc.is_cleared == 1"
+  },
+  {
+   "fieldname": "milestone_tracker_section",
+   "fieldtype": "Section Break",
+   "label": "Milestone Tracker"
+  },
+  {
+   "fieldname": "milestone_tracker",
+   "fieldtype": "HTML",
+   "label": "Milestone Tracker"
+  },
+  {
+   "fieldname": "tracking_tab",
+   "fieldtype": "Tab Break",
+   "label": "Tracking"
+  },
+  {
+   "fieldname": "job_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Job Tracking"
+  },
+  {
+   "fieldname": "border_clearing_tracking",
+   "fieldtype": "Table",
+   "label": "Tracking",
+   "options": "Border Clearing Tracking"
+  },
+  {
+   "fieldname": "current_update_section",
+   "fieldtype": "Section Break",
+   "label": "Current Update"
+  },
+  {
+   "fieldname": "current_comment",
+   "fieldtype": "Data",
+   "label": "Current Comment",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_track1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_updated_by",
+   "fieldtype": "Link",
+   "label": "Last Updated By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_track2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_updated_on",
+   "fieldtype": "Date",
+   "label": "Last Updated On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nIn Progress\nCleared\nCompleted\nCancelled\nClosed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Date",
+   "label": "Completed On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_status2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "skip_validations",
+   "fieldtype": "Check",
+   "label": "Skip Validations",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "charges_tab",
+   "fieldtype": "Tab Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "currency_section",
+   "fieldtype": "Section Break",
+   "label": "Currency"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_curr1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Conversion Rate",
+   "precision": "4"
+  },
+  {
+   "fieldname": "column_break_curr2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "company.default_currency",
+   "fieldname": "base_currency",
+   "fieldtype": "Data",
+   "label": "Base Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quoted_costing_section",
+   "fieldtype": "Section Break",
+   "label": "Quoted / Costing"
+  },
+  {
+   "fieldname": "border_clearing_costing_charges",
+   "fieldtype": "Table",
+   "label": "Costing Charges",
+   "options": "Border Clearing Costing Charges"
+  },
+  {
+   "fieldname": "section_break_costing_btn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.docstatus == 0 && doc.status == 'Draft'",
+   "fieldname": "load_charges_from_template",
+   "fieldtype": "Button",
+   "label": "Load Charges from Template"
+  },
+  {
+   "fieldname": "quoted_totals_section",
+   "fieldtype": "Section Break",
+   "label": "Quoted Totals"
+  },
+  {
+   "fieldname": "total_quoted_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Revenue",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_quoted_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Revenue (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qtc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_quoted_cost",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Cost",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_quoted_cost_base",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Cost (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qtm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_quoted_margin",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Margin",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_quoted_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Quoted Margin (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qmp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quoted_margin_percent",
+   "fieldtype": "Percent",
+   "label": "Quoted Margin %",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_qpt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_quoted_duty_pass_through",
+   "fieldtype": "Currency",
+   "label": "Quoted Duty Pass-Through",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "working_revenue_section",
+   "fieldtype": "Section Break",
+   "label": "Working Revenue"
+  },
+  {
+   "fieldname": "border_clearing_revenue_charges",
+   "fieldtype": "Table",
+   "label": "Revenue Charges",
+   "options": "Border Clearing Revenue Charges"
+  },
+  {
+   "depends_on": "eval:doc.docstatus == 0",
+   "fieldname": "fetch_revenue_from_job_costing",
+   "fieldtype": "Button",
+   "label": "Fetch Revenue from Job Costing"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "working_cost_section",
+   "fieldtype": "Section Break",
+   "label": "Working Cost"
+  },
+  {
+   "fieldname": "border_clearing_cost_charges",
+   "fieldtype": "Table",
+   "label": "Cost Charges",
+   "options": "Border Clearing Cost Charges"
+  },
+  {
+   "fieldname": "section_break_cost_btn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.docstatus == 0",
+   "fieldname": "fetch_cost_from_job_costing",
+   "fieldtype": "Button",
+   "label": "Fetch Cost from Job Costing"
+  },
+  {
+   "fieldname": "working_totals_section",
+   "fieldtype": "Section Break",
+   "label": "Working Totals"
+  },
+  {
+   "fieldname": "total_working_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Working Revenue",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_working_revenue_base",
+   "fieldtype": "Currency",
+   "label": "Total Working Revenue (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wtc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_working_cost",
+   "fieldtype": "Currency",
+   "label": "Total Working Cost",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_working_base",
+   "fieldtype": "Currency",
+   "label": "Total Working Cost (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wtp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_working_profit",
+   "fieldtype": "Currency",
+   "label": "Total Working Profit",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_working_profit_base",
+   "fieldtype": "Currency",
+   "label": "Total Working Profit (Base)",
+   "options": "base_currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wmp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "profit_margin_percent",
+   "fieldtype": "Percent",
+   "label": "Profit Margin %",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_wpt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_working_duty_pass_through",
+   "fieldtype": "Currency",
+   "label": "Working Duty Pass-Through",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "revenue_recognition_section",
+   "fieldtype": "Section Break",
+   "label": "Revenue Recognition"
+  },
+  {
+   "depends_on": "eval:doc.docstatus == 1",
+   "fieldname": "set_rr_date",
+   "fieldtype": "Button",
+   "label": "Set Revenue Recognition Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "revenue_recognised",
+   "fieldtype": "Check",
+   "label": "Revenue Recognised",
+   "read_only": 1
+  },
+  {
+   "fieldname": "revenue_recognised_on",
+   "fieldtype": "Date",
+   "label": "Revenue Recognised On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_rr1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "revenue_recognition_journal_entry",
+   "fieldtype": "Link",
+   "label": "Revenue Recognition JE",
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recognised_revenue",
+   "fieldtype": "Currency",
+   "label": "Total Recognised Revenue",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "cost_recognition_section",
+   "fieldtype": "Section Break",
+   "label": "Cost Recognition"
+  },
+  {
+   "default": "0",
+   "fieldname": "cost_recognised",
+   "fieldtype": "Check",
+   "label": "Cost Recognised",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cr1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cost_recognition_journal_entry",
+   "fieldtype": "Link",
+   "label": "Cost Recognition JE",
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_recognised_cost",
+   "fieldtype": "Currency",
+   "label": "Total Recognised Cost",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [
+  {
+   "group": "Invoicing",
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "custom_border_clearing_job"
+  },
+  {
+   "group": "Invoicing",
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "custom_border_clearing_job"
+  },
+  {
+   "group": "Accounting",
+   "link_doctype": "Journal Entry",
+   "link_fieldname": "custom_border_clearing_job"
+  }
+ ],
+ "modified": "2026-03-15 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Border Clearing Service",
+ "name": "Border Clearing Job",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer",
+ "track_changes": 1
+}

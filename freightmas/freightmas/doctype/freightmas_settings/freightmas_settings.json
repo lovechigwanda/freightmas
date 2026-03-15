@@ -15,6 +15,7 @@
   "column_break_rrev2",
   "clearing_revenue_account",
   "road_freight_revenue_account",
+  "border_clearing_revenue_account",
   "cost_recognition_section",
   "wip_cost_account",
   "cost_accounts_section",
@@ -23,6 +24,9 @@
   "column_break_cost1",
   "clearing_cost_account",
   "road_freight_cost_account",
+  "border_clearing_cost_account",
+  "border_clearing_tab",
+  "duty_pass_through_account",
   "trucking_service_tab",
   "driver_commission_mode",
   "driver_bonus_parent_account",
@@ -94,6 +98,13 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "border_clearing_revenue_account",
+   "fieldtype": "Link",
+   "label": "Border Clearing Revenue Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "cost_recognition_section",
    "fieldtype": "Section Break",
    "label": "Cost Recognition"
@@ -142,6 +153,25 @@
    "fieldname": "road_freight_cost_account",
    "fieldtype": "Link",
    "label": "Road Freight Cost Account",
+   "options": "Account"
+  },
+  {
+   "depends_on": "eval:doc.enable_revenue_recognition",
+   "fieldname": "border_clearing_cost_account",
+   "fieldtype": "Link",
+   "label": "Border Clearing Cost Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "border_clearing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Border Clearing"
+  },
+  {
+   "fieldname": "duty_pass_through_account",
+   "fieldtype": "Link",
+   "label": "Duty Pass-Through Account",
+   "description": "Clearing/Liability account used for pass-through duty charges instead of income/expense accounts.",
    "options": "Account"
   },
   {

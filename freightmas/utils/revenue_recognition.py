@@ -45,12 +45,14 @@ def get_recognition_settings():
         "trucking_revenue_account": settings.trucking_revenue_account,
         "clearing_revenue_account": settings.clearing_revenue_account,
         "road_freight_revenue_account": settings.road_freight_revenue_account,
+        "border_clearing_revenue_account": settings.border_clearing_revenue_account,
         # Cost accounts
         "wip_cost_account": settings.wip_cost_account,
         "forwarding_cost_account": settings.forwarding_cost_account,
         "trucking_cost_account": settings.trucking_cost_account,
         "clearing_cost_account": settings.clearing_cost_account,
         "road_freight_cost_account": settings.road_freight_cost_account,
+        "border_clearing_cost_account": settings.border_clearing_cost_account,
     }
 
 
@@ -171,6 +173,7 @@ def get_linked_sales_invoices(job_doctype, job_name, only_submitted=True):
         "Clearing Job": "clearing_job_reference",
         "Trip": "trip_reference",
         "Road Freight Job": "road_freight_job_reference",
+        "Border Clearing Job": "border_clearing_job_reference",
     }
     
     link_field = link_field_map.get(job_doctype)
@@ -208,6 +211,7 @@ def get_linked_purchase_invoices(job_doctype, job_name, only_submitted=True):
         "Clearing Job": "clearing_job_reference",
         "Trip": "trip_reference",
         "Road Freight Job": "road_freight_job_reference",
+        "Border Clearing Job": "border_clearing_job_reference",
     }
     
     link_field = link_field_map.get(job_doctype)

@@ -25,7 +25,8 @@ def before_sales_invoice_cancel(doc, method=None):
         "Road Freight Charges", "Forwarding Charges", "Clearing Charges",
         "Trip Bulk Sales Invoice Item",
         "Warehouse Job Storage Charges", "Warehouse Job Rental Charges",
-        "Warehouse Job Handling Charges"
+        "Warehouse Job Handling Charges",
+        "Border Clearing Revenue Charges"
     ]
 
 
@@ -34,7 +35,8 @@ def before_purchase_invoice_cancel(doc, method=None):
     doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
         "Forwarding Cost Charges", "Clearing Cost Charges",
         "Trip Cost Charges", "Trip Other Costs",
-        "Road Freight Charges", "Forwarding Charges", "Clearing Charges"
+        "Road Freight Charges", "Forwarding Charges", "Clearing Charges",
+        "Border Clearing Cost Charges"
     ]
 
 
@@ -80,6 +82,9 @@ def on_sales_invoice_cancel(doc, method=None):
         # Unlink from Warehouse Job charges
         unlink_sales_invoice_from_warehouse_job(doc.name)
 
+        # Unlink from Border Clearing Job revenue charges
+        unlink_sales_invoice_from_border_clearing_job(doc.name)
+
     except Exception as e:
         frappe.log_error(
             message=f"Error unlinking cancelled Sales Invoice {doc.name}: {str(e)}",
@@ -110,6 +115,9 @@ def on_purchase_invoice_cancel(doc, method=None):
 
         # Unlink from Clearing Charges (combined revenue/cost child table)
         unlink_purchase_invoice_from_clearing_charges(doc.name)
+
+        # Unlink from Border Clearing Job cost charges
+        unlink_purchase_invoice_from_border_clearing_job(doc.name)
 
     except Exception as e:
         frappe.log_error(
@@ -695,3 +703,77 @@ def unlink_sales_invoice_from_warehouse_job(invoice_name):
                 ),
                 alert=True
             )
+
+
+# ========================================================
+# BORDER CLEARING JOB UNLINKING
+# ========================================================
+
+def unlink_sales_invoice_from_border_clearing_job(invoice_name):
+    """
+    Unlink a Sales Invoice from Border Clearing Job revenue charges.
+    Clears is_invoiced and sales_invoice_reference fields.
+    """
+    linked_rows = frappe.get_all(
+        "Border Clearing Revenue Charges",
+        filters={"sales_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Border Clearing Revenue Charges",
+            row.name,
+            {
+                "is_invoiced": 0,
+                "sales_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Sales Invoice {0} was cancelled. Revenue charges in Border Clearing Job {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
+
+
+def unlink_purchase_invoice_from_border_clearing_job(invoice_name):
+    """
+    Unlink a Purchase Invoice from Border Clearing Job cost charges.
+    Clears is_purchased and purchase_invoice_reference fields.
+    """
+    linked_rows = frappe.get_all(
+        "Border Clearing Cost Charges",
+        filters={"purchase_invoice_reference": invoice_name},
+        fields=["name", "parent"]
+    )
+
+    if not linked_rows:
+        return
+
+    for row in linked_rows:
+        frappe.db.set_value(
+            "Border Clearing Cost Charges",
+            row.name,
+            {
+                "is_purchased": 0,
+                "purchase_invoice_reference": None
+            },
+            update_modified=False
+        )
+
+    parent_jobs = list(set(row.parent for row in linked_rows))
+    for job_name in parent_jobs:
+        frappe.msgprint(
+            _("Purchase Invoice {0} was cancelled. Cost charges in Border Clearing Job {1} have been unlinked.").format(
+                invoice_name, job_name
+            ),
+            alert=True
+        )
