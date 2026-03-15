@@ -1,8 +1,8 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"bc_hdr_01\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Border Clearing Service</span>\",\"col\":12}},{\"id\":\"bc_spc_01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bc_sc_01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Border Clearing Job\",\"col\":3}},{\"id\":\"bc_sc_02\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"bc_sc_03\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"bc_sc_04\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Border Post\",\"col\":3}},{\"id\":\"bc_sc_05\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charge\",\"col\":3}},{\"id\":\"bc_sc_06\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Charges Template\",\"col\":3}},{\"id\":\"bc_sc_07\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Border Clearing Document\",\"col\":3}},{\"id\":\"bc_spc_02\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bc_cd_01\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}},{\"id\":\"bc_cd_02\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}}]",
- "creation": "2026-01-20 10:00:00.000000",
+ "content": "[{\"id\":\"bc_hdr_01\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Border Clearing Service</span>\",\"col\":12}},{\"id\":\"bc_spc_01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bc_sc_01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Border Clearing Job\",\"col\":4}},{\"id\":\"4nqKUfsGCF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Border Post\",\"col\":3}},{\"id\":\"OT4EGWSjjF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"bc_spc_02\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bc_cd_02\",\"type\":\"card\",\"data\":{\"card_name\":\"Masters\",\"col\":4}},{\"id\":\"kqHvKKc6id\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2026-01-20 10:00:00",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -14,15 +14,6 @@
  "is_hidden": 0,
  "label": "Border Clearing Service",
  "links": [
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 0,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
   {
    "hidden": 0,
    "is_query_report": 0,
@@ -61,20 +52,70 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Border Clearing Job Register",
+   "link_count": 0,
+   "link_to": "Border Clearing Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Border Clearing Profitability",
+   "link_count": 0,
+   "link_to": "Border Clearing Profitability",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Border Clearing Job",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unbilled Charges",
+   "link_count": 0,
+   "link_to": "Border Clearing Unbilled Charges",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Border Clearing Job",
+   "type": "Link"
   }
  ],
- "modified": "2026-01-20 10:00:00.000000",
- "modified_by": "Administrator",
+ "modified": "2026-03-15 14:43:34.249249",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Border Clearing Service",
  "name": "Border Clearing Service",
  "number_cards": [],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
+ "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
  "sequence_id": 7.0,
  "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Border Post",
+   "link_to": "Border Post",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
   {
    "color": "Blue",
    "doc_view": "List",
@@ -88,43 +129,10 @@
    "doc_view": "List",
    "label": "Customer",
    "link_to": "Customer",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Supplier",
-   "link_to": "Supplier",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Border Post",
-   "link_to": "Border Post",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Charge",
-   "link_to": "Charge",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Charges Template",
-   "link_to": "Clearing Charges Template",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Border Clearing Document",
-   "link_to": "Border Clearing Document",
+   "stats_filter": "[]",
    "type": "DocType"
   }
  ],
- "title": "Border Clearing Service"
+ "title": "Border Clearing Service",
+ "type": "Workspace"
 }

@@ -69,6 +69,18 @@
   {
    "child": 1,
    "collapsible": 1,
+   "icon": "concierge-bell",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Border Clearing Service",
+   "link_to": "Border Clearing Service",
+   "link_type": "Workspace",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
    "icon": "warehouse",
    "indent": 0,
    "keep_closed": 0,
@@ -103,7 +115,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-07 22:08:56.338586",
+ "modified": "2026-03-15 14:33:19.221876",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "FreightMas",

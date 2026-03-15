@@ -27,7 +27,7 @@ def get_columns():
         {"label": "Conv. Rate", "fieldname": "conversion_rate", "fieldtype": "Float", "width": 80},
         {"label": "Est. Revenue", "fieldname": "total_quoted_revenue", "fieldtype": "Currency", "width": 120},
         {"label": "Est. Cost", "fieldname": "total_quoted_cost", "fieldtype": "Currency", "width": 120},
-        {"label": "Est. Profit", "fieldname": "total_quoted_profit", "fieldtype": "Currency", "width": 120},
+        {"label": "Est. Profit", "fieldname": "total_quoted_margin", "fieldtype": "Currency", "width": 120},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 90},
         {"label": "Completed On", "fieldname": "completed_on", "fieldtype": "Date", "width": 100},
         {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
@@ -66,7 +66,7 @@ def get_data(filters):
         "name", "date_created", "customer", "customer_reference", "direction",
         "border_post", "entry_type", "bill_of_entry_number", "clearing_agent",
         "currency", "conversion_rate",
-        "total_quoted_revenue", "total_quoted_cost", "total_quoted_profit",
+        "total_quoted_revenue", "total_quoted_cost", "total_quoted_margin",
         "status", "completed_on", "company"
     ]
 
