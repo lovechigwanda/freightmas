@@ -483,7 +483,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General Ledger",
-   "link_count": 3,
+   "link_count": 5,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -514,6 +514,26 @@
    "label": "Accounts Outstanding Statement",
    "link_count": 0,
    "link_to": "Accounts Outstanding Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Invoice Job Linkage",
+   "link_count": 0,
+   "link_to": "Sales Invoice Job Linkage",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Purchase Invoice Job Linkage",
+   "link_count": 0,
+   "link_to": "Purchase Invoice Job Linkage",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
