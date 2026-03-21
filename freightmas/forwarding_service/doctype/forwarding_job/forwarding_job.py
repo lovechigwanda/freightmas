@@ -291,7 +291,7 @@ class ForwardingJob(Document):
         
         Rules:
         - Row must have both sell_rate (> 0) and customer
-        - Skip if (charge, customer) combination already exists in revenue table
+        - Skip if costing row was already copied (tracked via source_reference)
         - Only copy revenue fields: charge, description, qty, sell_rate, customer, revenue_amount
         
         Returns:
@@ -299,11 +299,11 @@ class ForwardingJob(Document):
         """
         added = 0
         
-        # Build set of existing (charge, customer) combinations to avoid duplicates
-        existing_revenue_pairs = set()
+        # Build set of already-copied costing row names to avoid duplicates
+        copied_references = set()
         for row in self.get("forwarding_revenue_charges", []):
-            if row.charge and row.customer:
-                existing_revenue_pairs.add((row.charge, row.customer))
+            if row.source_reference:
+                copied_references.add(row.source_reference)
         
         # Loop through costing charges and copy eligible revenue data
         for costing_row in self.get("forwarding_costing_charges", []):
@@ -313,9 +313,8 @@ class ForwardingJob(Document):
             if not (costing_row.customer and flt(costing_row.sell_rate)):
                 continue
             
-            # Skip if duplicate combination
-            key = (costing_row.charge, costing_row.customer)
-            if key in existing_revenue_pairs:
+            # Skip if this costing row was already copied
+            if costing_row.name in copied_references:
                 continue
             
             # Calculate amounts
@@ -323,17 +322,18 @@ class ForwardingJob(Document):
             sell_rate = flt(costing_row.sell_rate)
             revenue_amount = qty * sell_rate
             
-            # Add new revenue row
+            # Add new revenue row with source reference
             self.append("forwarding_revenue_charges", {
                 "charge": costing_row.charge,
                 "description": costing_row.description,
                 "qty": qty,
                 "sell_rate": sell_rate,
                 "customer": costing_row.customer,
-                "revenue_amount": revenue_amount
+                "revenue_amount": revenue_amount,
+                "source_reference": costing_row.name
             })
             
-            existing_revenue_pairs.add(key)
+            copied_references.add(costing_row.name)
             added += 1
         
         if added:
@@ -349,7 +349,7 @@ class ForwardingJob(Document):
         
         Rules:
         - Row must have both buy_rate (> 0) and supplier
-        - Skip if (charge, supplier) combination already exists in cost table
+        - Skip if costing row was already copied (tracked via source_reference)
         - Only copy cost fields: charge, description, qty, buy_rate, supplier, cost_amount
         
         Returns:
@@ -357,11 +357,11 @@ class ForwardingJob(Document):
         """
         added = 0
         
-        # Build set of existing (charge, supplier) combinations to avoid duplicates
-        existing_cost_pairs = set()
+        # Build set of already-copied costing row names to avoid duplicates
+        copied_references = set()
         for row in self.get("forwarding_cost_charges", []):
-            if row.charge and row.supplier:
-                existing_cost_pairs.add((row.charge, row.supplier))
+            if row.source_reference:
+                copied_references.add(row.source_reference)
         
         # Loop through costing charges and copy eligible cost data
         for costing_row in self.get("forwarding_costing_charges", []):
@@ -371,9 +371,8 @@ class ForwardingJob(Document):
             if not (costing_row.supplier and flt(costing_row.buy_rate)):
                 continue
             
-            # Skip if duplicate combination
-            key = (costing_row.charge, costing_row.supplier)
-            if key in existing_cost_pairs:
+            # Skip if this costing row was already copied
+            if costing_row.name in copied_references:
                 continue
             
             # Calculate amounts
@@ -381,17 +380,18 @@ class ForwardingJob(Document):
             buy_rate = flt(costing_row.buy_rate)
             cost_amount = qty * buy_rate
             
-            # Add new cost row
+            # Add new cost row with source reference
             self.append("forwarding_cost_charges", {
                 "charge": costing_row.charge,
                 "description": costing_row.description,
                 "qty": qty,
                 "buy_rate": buy_rate,
                 "supplier": costing_row.supplier,
-                "cost_amount": cost_amount
+                "cost_amount": cost_amount,
+                "source_reference": costing_row.name
             })
             
-            existing_cost_pairs.add(key)
+            copied_references.add(costing_row.name)
             added += 1
         
         if added:
@@ -408,7 +408,7 @@ class ForwardingJob(Document):
         Rules:
         - Only process rows where is_truck_required = 1
         - Row must have both truck_buying_rate (> 0) and transporter
-        - Skip if (service_charge, transporter) combination already exists in cost table
+        - Skip if cargo row was already copied (tracked via source_reference)
         - Copy fields: service_charge as charge, truck_buying_rate as buy_rate, transporter as supplier
         
         Returns:
@@ -416,11 +416,11 @@ class ForwardingJob(Document):
         """
         added = 0
         
-        # Build set of existing (charge, supplier) combinations to avoid duplicates
-        existing_cost_pairs = set()
+        # Build set of already-copied cargo row names to avoid duplicates
+        copied_references = set()
         for row in self.get("forwarding_cost_charges", []):
-            if row.charge and row.supplier:
-                existing_cost_pairs.add((row.charge, row.supplier))
+            if row.source_reference:
+                copied_references.add(row.source_reference)
         
         # Loop through cargo parcel details and copy eligible truck cost data
         for cargo_row in self.get("cargo_parcel_details", []):
@@ -434,9 +434,8 @@ class ForwardingJob(Document):
             if not (cargo_row.transporter and flt(cargo_row.truck_buying_rate)):
                 continue
             
-            # Skip if duplicate combination
-            key = (cargo_row.service_charge, cargo_row.transporter)
-            if key in existing_cost_pairs:
+            # Skip if this cargo row was already copied
+            if cargo_row.name in copied_references:
                 continue
             
             # Calculate amounts (qty = 1 for truck services)
@@ -444,17 +443,18 @@ class ForwardingJob(Document):
             buy_rate = flt(cargo_row.truck_buying_rate)
             cost_amount = qty * buy_rate
             
-            # Add new cost row
+            # Add new cost row with source reference
             self.append("forwarding_cost_charges", {
                 "charge": cargo_row.service_charge,
                 "description": f"Truck Loading Service - {cargo_row.service_charge}",
                 "qty": qty,
                 "buy_rate": buy_rate,
                 "supplier": cargo_row.transporter,
-                "cost_amount": cost_amount
+                "cost_amount": cost_amount,
+                "source_reference": cargo_row.name
             })
             
-            existing_cost_pairs.add(key)
+            copied_references.add(cargo_row.name)
             added += 1
         
         if added:

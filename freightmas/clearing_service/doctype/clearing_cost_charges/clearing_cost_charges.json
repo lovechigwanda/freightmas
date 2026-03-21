@@ -22,7 +22,8 @@
   "column_break_bywa",
   "cost_amount",
   "supplier_invoice_no",
-  "supplier_invoice_date"
+  "supplier_invoice_date",
+  "source_reference"
  ],
  "fields": [
   {
@@ -136,6 +137,14 @@
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
    "label": "Supplier Invoice Date"
+  },
+  {
+   "fieldname": "source_reference",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Source Reference",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,

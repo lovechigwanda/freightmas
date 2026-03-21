@@ -19,7 +19,8 @@
   "column_break_zxnj",
   "revenue_amount",
   "is_invoiced",
-  "sales_invoice_reference"
+  "sales_invoice_reference",
+  "source_reference"
  ],
  "fields": [
   {
@@ -118,6 +119,14 @@
    "label": "Sales Invoice",
    "no_copy": 1,
    "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "source_reference",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Source Reference",
+   "no_copy": 1,
    "read_only": 1
   }
  ],
