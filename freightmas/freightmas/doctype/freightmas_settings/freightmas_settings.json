@@ -32,7 +32,9 @@
   "driver_bonus_parent_account",
   "column_break_chsz",
   "driver_advance_parent_account",
-  "port_clearing_tab"
+  "port_clearing_tab",
+  "quotation_tab",
+  "default_quotation_tc"
  ],
  "fields": [
   {
@@ -205,6 +207,18 @@
    "fieldtype": "Link",
    "label": "Driver Bonus Parent Account",
    "options": "Account"
+  },
+  {
+   "fieldname": "quotation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Quotation"
+  },
+  {
+   "fieldname": "default_quotation_tc",
+   "fieldtype": "Link",
+   "label": "Default Quotation Terms & Conditions",
+   "options": "Terms and Conditions",
+   "description": "If set, this Terms and Conditions record will be automatically applied to new Quotations."
   }
  ],
  "index_web_pages_for_search": 1,

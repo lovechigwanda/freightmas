@@ -1,4 +1,14 @@
 frappe.ui.form.on('Quotation', {
+    onload(frm) {
+        if (frm.is_new() && !frm.doc.tc_name) {
+            frappe.db.get_single_value('FreightMas Settings', 'default_quotation_tc')
+                .then(tc => {
+                    if (tc) {
+                        frm.set_value('tc_name', tc);
+                    }
+                });
+        }
+    },
     items_on_form_rendered(frm) {
         calculate_totals(frm);
     },
