@@ -1303,8 +1303,8 @@ function update_dnd_and_storage_dates(frm) {
     const port_days = parseInt(frm.doc.port_free_days) || 0;
 
     if (discharge_date && is_discharged_from_vessel) {
-        const dnd_start = frappe.datetime.add_days(discharge_date, dnd_days + 1);
-        const storage_start = frappe.datetime.add_days(discharge_date, port_days + 1);
+        const dnd_start = frappe.datetime.add_days(discharge_date, dnd_days);
+        const storage_start = frappe.datetime.add_days(discharge_date, port_days);
 
         set_main_value_safe(frm, "dnd_start_date", dnd_start);
         set_main_value_safe(frm, "storage_start_date", storage_start);
