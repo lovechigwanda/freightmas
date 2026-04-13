@@ -570,6 +570,7 @@ def create_sales_invoice_with_rows(docname, row_names):
     customer = list(customers)[0]
     si = frappe.new_doc("Sales Invoice")
     si.customer = customer
+    si.company = job.company
 
     try:
         if si.meta.get_field("custom_border_clearing_job"):
@@ -651,6 +652,7 @@ def create_purchase_invoice_with_rows(docname, row_names):
     supplier = list(suppliers)[0]
     pi = frappe.new_doc("Purchase Invoice")
     pi.supplier = supplier
+    pi.company = job.company
 
     try:
         if pi.meta.get_field("custom_border_clearing_job"):

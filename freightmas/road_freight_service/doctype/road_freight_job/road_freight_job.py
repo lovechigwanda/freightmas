@@ -101,6 +101,7 @@ def create_sales_invoice_with_rows(docname, row_names):
 
     si = frappe.new_doc("Sales Invoice")
     si.customer = selected_rows[0].customer
+    si.company = job.company
     si.road_freight_job_reference = job.name
     si.is_road_freight_invoice = 1
     si.set_posting_time = 1
@@ -150,6 +151,7 @@ def create_purchase_invoice_with_rows(docname, row_names):
 
     pi = frappe.new_doc("Purchase Invoice")
     pi.supplier = selected_rows[0].supplier
+    pi.company = job.company
     pi.road_freight_job_reference = job.name
     pi.is_road_freight_invoice = 1
     pi.set_posting_time = 1
