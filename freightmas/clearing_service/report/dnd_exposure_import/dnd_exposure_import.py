@@ -86,7 +86,8 @@ def execute(filters=None):
                 SELECT
                     gate_in_empty_date,
                     gate_out_full_date,
-                    to_be_returned
+                    to_be_returned,
+                    discharge_date
                 FROM `tabCargo Package Details`
                 WHERE parent = %s
             """, (job.name,), as_dict=True)
@@ -97,6 +98,8 @@ def execute(filters=None):
             if children:
                 for child in children:
                     to_be_returned = frappe.utils.cint(child.to_be_returned)
+                    # Use per-container discharge_date with fallback to job-level
+                    child_discharge_date = child.discharge_date or discharge_date
 
                     # DND end_date logic
                     if to_be_returned == 1 and child.gate_in_empty_date:
@@ -110,9 +113,9 @@ def execute(filters=None):
                     storage_end_date = child.gate_out_full_date or today
 
                     # Calculate DND Days
-                    dnd_days = calculate_days(discharge_date, dnd_end_date, dnd_free_days)
+                    dnd_days = calculate_days(child_discharge_date, dnd_end_date, dnd_free_days)
                     # Calculate Storage Days
-                    storage_days = calculate_days(discharge_date, storage_end_date, port_free_days)
+                    storage_days = calculate_days(child_discharge_date, storage_end_date, port_free_days)
 
                     dnd_days_total += dnd_days
                     storage_days_total += storage_days

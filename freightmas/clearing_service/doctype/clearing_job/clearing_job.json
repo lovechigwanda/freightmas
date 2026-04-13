@@ -394,6 +394,7 @@
    "default": "0",
    "fieldname": "is_discharged_from_vessel",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Is Discharged from Vessel"
   },
   {
@@ -574,9 +575,10 @@
    "label": "Cargo Description"
   },
   {
-   "description": "The actual date the cargo was offloaded from vessel at port.",
+   "description": "Auto-computed from the earliest container discharge date.",
    "fieldname": "discharge_date",
    "fieldtype": "Date",
+   "hidden": 1,
    "label": "Discharge Date"
   },
   {
@@ -825,16 +827,18 @@
    "options": "Cargo Package Details"
   },
   {
-   "depends_on": "eval:doc.is_discharged_from_vessel",
+   "depends_on": "eval:doc.discharge_date",
    "fieldname": "dnd_start_date",
    "fieldtype": "Date",
-   "label": "DND Start Date"
+   "label": "DND Start Date",
+   "read_only": 1
   },
   {
-   "depends_on": "eval:doc.is_discharged_from_vessel",
+   "depends_on": "eval:doc.discharge_date",
    "fieldname": "storage_start_date",
    "fieldtype": "Date",
-   "label": "Storage Start Date"
+   "label": "Storage Start Date",
+   "read_only": 1
   },
   {
    "depends_on": "eval:doc.direction==\"Import\"",

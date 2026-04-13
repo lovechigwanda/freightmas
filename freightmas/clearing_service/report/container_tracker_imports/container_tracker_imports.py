@@ -83,7 +83,7 @@ def execute(filters=None):
             filters=container_filters,
             fields=[
                 "name", "container_number", "container_type", "is_loaded", "to_be_returned", "is_returned",
-                "gate_in_empty_date", "gate_out_full_date"
+                "gate_in_empty_date", "gate_out_full_date", "discharge_date"
             ]
         )
 
@@ -94,7 +94,7 @@ def execute(filters=None):
             is_returned = int(cont.get("is_returned") or 0)
             gate_in_empty_date = frappe.utils.getdate(cont.get("gate_in_empty_date"))
             gate_out_full_date = frappe.utils.getdate(cont.get("gate_out_full_date"))
-            discharge_date = frappe.utils.getdate(job.get("discharge_date"))
+            discharge_date = frappe.utils.getdate(cont.get("discharge_date")) or frappe.utils.getdate(job.get("discharge_date"))
             dnd_free_days = int(job.get("dnd_free_days") or 0)
             port_free_days = int(job.get("port_free_days") or 0)
             today_dt = frappe.utils.getdate(frappe.utils.nowdate())

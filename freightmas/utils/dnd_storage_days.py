@@ -23,7 +23,8 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
                 "to_be_returned", "is_loaded", "is_returned",
                 "gate_in_empty_date", "gate_out_full_date",
                 "pick_up_empty_date", "gate_in_full_date",
-                "is_loaded_on_vessel", "loaded_on_vessel_date"
+                "is_loaded_on_vessel", "loaded_on_vessel_date",
+                "discharge_date"
             ]
         )
 
@@ -67,8 +68,10 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
 
     else:
         # IMPORT LOGIC
-        discharge_date = getdate(job.get("discharge_date"))
+        job_discharge_date = getdate(job.get("discharge_date"))
         for row in cargo_packages:
+            # Use per-container discharge_date, fall back to job-level
+            discharge_date = getdate(row.get("discharge_date")) or job_discharge_date
             to_be_returned = int(row.get("to_be_returned") or 0)
             is_loaded = int(row.get("is_loaded") or 0)
             is_returned = int(row.get("is_returned") or 0)
@@ -115,9 +118,9 @@ def calculate_dnd_and_storage_days(job, cargo_packages=None, today=None):
         # Fallback if no cargo packages
         if not cargo_packages:
             end_date = today_dt
-            if discharge_date:
-                job_dnd_days = (end_date - discharge_date).days + 1 - dnd_free_days
-                job_storage_days = (end_date - discharge_date).days + 1 - port_free_days
+            if job_discharge_date:
+                job_dnd_days = (end_date - job_discharge_date).days + 1 - dnd_free_days
+                job_storage_days = (end_date - job_discharge_date).days + 1 - port_free_days
                 total_dnd_days = max(job_dnd_days, 0)
                 total_storage_days = max(job_storage_days, 0)
             else:

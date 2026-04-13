@@ -17,6 +17,8 @@
   "cargo_quantity",
   "cargo_uom",
   "section_break_qomc",
+  "is_discharged_from_vessel",
+  "discharge_date",
   "is_loaded",
   "gate_out_full_date",
   "is_empty_picked",
@@ -100,6 +102,22 @@
    "fieldname": "trailer_reg_no",
    "fieldtype": "Data",
    "label": "Trailer Reg No"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:parent.direction==\"Import\"",
+   "fieldname": "is_discharged_from_vessel",
+   "fieldtype": "Check",
+   "label": "Is Discharged from Vessel"
+  },
+  {
+   "depends_on": "eval:doc.is_discharged_from_vessel",
+   "description": "The actual date this container was offloaded from vessel at port.",
+   "fieldname": "discharge_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Discharge Date",
+   "mandatory_depends_on": "eval:doc.is_discharged_from_vessel"
   },
   {
    "default": "0",

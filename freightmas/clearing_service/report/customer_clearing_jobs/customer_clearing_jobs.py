@@ -16,7 +16,8 @@ def calculate_dnd_storage_days_import(job, cont):
     is_returned = int(getattr(cont, "is_returned", 0) or 0)
     gate_in_empty_date = getdate(getattr(cont, "gate_in_empty_date", None))
     gate_out_full_date = getdate(getattr(cont, "gate_out_full_date", None))
-    discharge_date = getdate(getattr(job, "discharge_date", None))
+    # Use per-container discharge_date, fall back to job-level
+    discharge_date = getdate(getattr(cont, "discharge_date", None)) or getdate(getattr(job, "discharge_date", None))
     dnd_free_days = int(getattr(job, "dnd_free_days", 0) or 0)
     port_free_days = int(getattr(job, "port_free_days", 0) or 0)
     today_dt = getdate(nowdate())

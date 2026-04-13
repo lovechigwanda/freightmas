@@ -101,7 +101,6 @@ frappe.ui.form.on('Clearing Job', {
         };
 
         if (frm.doc.direction === "Import") {
-            check_date("is_discharged_from_vessel", "discharge_date", "Date Discharged from Vessel");
             check_date("is_vessel_arrived_at_port", "vessel_arrived_date", "Vessel Arrived Date");
             check_date("is_discharged_from_port", "date_discharged_from_port", "Date Discharged from Port");
             check_date("is_do_requested", "do_requested_date", "DO Requested Date");
@@ -640,11 +639,11 @@ function toggle_directional_fields(frm) {
 
     // Import-specific fields
     const import_checkboxes = [
-        "is_discharged_from_vessel", "is_vessel_arrived_at_port", "is_discharged_from_port", "is_do_requested",
+        "is_vessel_arrived_at_port", "is_discharged_from_port", "is_do_requested",
         "is_do_received", "is_port_release_confirmed", "is_sl_invoice_received", "is_sl_invoice_paid"
     ];
     const import_dates = [
-        "discharge_date", "vessel_arrived_date", "date_discharged_from_port", "do_requested_date",
+        "vessel_arrived_date", "date_discharged_from_port", "do_requested_date",
         "do_received_date", "port_release_confirmed_date", "sl_invoice_received_date", "sl_invoice_payment_date"
     ];
 
@@ -677,7 +676,6 @@ function toggle_bl_fields(frm) {
 
 function toggle_milestone_dates(frm) {
     const pairs = {
-        "is_discharged_from_vessel": "discharge_date",
         "is_vessel_arrived_at_port": "vessel_arrived_date",
         "is_discharged_from_port": "date_discharged_from_port",
         "is_do_requested": "do_requested_date",
@@ -1297,31 +1295,39 @@ frappe.ui.form.on('Cargo Package Details', {
 // ==========================================================
 
 function update_dnd_and_storage_dates(frm) {
-    const discharge_date = frm.doc.discharge_date;
-    const is_discharged_from_vessel = frm.doc.is_discharged_from_vessel;
     const dnd_days = parseInt(frm.doc.dnd_free_days) || 0;
     const port_days = parseInt(frm.doc.port_free_days) || 0;
 
-    if (discharge_date && is_discharged_from_vessel) {
-        const dnd_start = frappe.datetime.add_days(discharge_date, dnd_days);
-        const storage_start = frappe.datetime.add_days(discharge_date, port_days);
+    // Find the earliest discharge_date among all containers
+    let earliest_discharge = null;
+    let any_discharged = false;
+    (frm.doc.cargo_package_details || []).forEach(row => {
+        if (row.is_discharged_from_vessel && row.discharge_date) {
+            any_discharged = true;
+            if (!earliest_discharge || row.discharge_date < earliest_discharge) {
+                earliest_discharge = row.discharge_date;
+            }
+        }
+    });
 
+    // Auto-set parent summary fields
+    set_main_value_safe(frm, "is_discharged_from_vessel", any_discharged ? 1 : 0);
+    set_main_value_safe(frm, "discharge_date", earliest_discharge);
+
+    if (earliest_discharge) {
+        const dnd_start = frappe.datetime.add_days(earliest_discharge, dnd_days);
+        const storage_start = frappe.datetime.add_days(earliest_discharge, port_days);
         set_main_value_safe(frm, "dnd_start_date", dnd_start);
         set_main_value_safe(frm, "storage_start_date", storage_start);
     } else {
         set_main_value_safe(frm, "dnd_start_date", null);
         set_main_value_safe(frm, "storage_start_date", null);
-        if (!is_discharged_from_vessel && discharge_date) {
-            set_main_value_safe(frm, "discharge_date", null);
-        }
     }
 }
 
 frappe.ui.form.on('Clearing Job', {
-    discharge_date: update_dnd_and_storage_dates,
     dnd_free_days: update_dnd_and_storage_dates,
-    port_free_days: update_dnd_and_storage_dates,
-    is_discharged_from_vessel: update_dnd_and_storage_dates
+    port_free_days: update_dnd_and_storage_dates
 });
 
 // ==========================================================
@@ -1329,6 +1335,16 @@ frappe.ui.form.on('Clearing Job', {
 // ==========================================================
 
 frappe.ui.form.on('Cargo Package Details', {
+    is_discharged_from_vessel: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (!row.is_discharged_from_vessel) {
+            set_child_value_safe(frm, cdt, cdn, 'discharge_date', null);
+        }
+        update_dnd_and_storage_dates(frm);
+    },
+    discharge_date: function(frm, cdt, cdn) {
+        update_dnd_and_storage_dates(frm);
+    },
     is_empty_picked: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if (!row.is_empty_picked) {

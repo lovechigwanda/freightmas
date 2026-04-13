@@ -4,7 +4,7 @@
 import json
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate, cint
+from frappe.utils import flt, nowdate, cint, getdate, add_days
 from frappe import _
 from freightmas.utils.permissions import check_doc_read_permission
 
@@ -38,6 +38,32 @@ class ClearingJob(Document):
             self.ensure_planned_charges_before_status_change()
             self.prevent_editing_costing_charges()
             self.validate_completion_requirements()
+
+        # Auto-compute parent discharge_date from container rows
+        self.sync_discharge_date_from_containers()
+
+    def sync_discharge_date_from_containers(self):
+        """Set parent discharge_date and DND/storage start dates from container rows."""
+        earliest = None
+        any_discharged = False
+        for row in (self.cargo_package_details or []):
+            if cint(row.is_discharged_from_vessel) and row.discharge_date:
+                any_discharged = True
+                dt = getdate(row.discharge_date)
+                if earliest is None or dt < earliest:
+                    earliest = dt
+
+        self.is_discharged_from_vessel = 1 if any_discharged else 0
+        self.discharge_date = earliest
+
+        if earliest:
+            dnd_free = cint(self.dnd_free_days)
+            port_free = cint(self.port_free_days)
+            self.dnd_start_date = add_days(earliest, dnd_free)
+            self.storage_start_date = add_days(earliest, port_free)
+        else:
+            self.dnd_start_date = None
+            self.storage_start_date = None
 
     def on_submit(self):
         """Handle job submission - trigger revenue and cost recognition"""
@@ -421,8 +447,13 @@ class ClearingJob(Document):
             errors.append(_("Actual Departure (ATD) date must be set before completing the job"))
 
         # 2. Validate Discharge date for Import jobs
-        if self.direction == "Import" and not self.discharge_date:
-            errors.append(_("Discharge date must be set for Import jobs before completing"))
+        if self.direction == "Import":
+            has_discharge = any(
+                row.is_discharged_from_vessel and row.discharge_date
+                for row in (self.cargo_package_details or [])
+            )
+            if not has_discharge:
+                errors.append(_("At least one container must have a discharge date set for Import jobs before completing"))
 
         # 3. Validate BL & Documents
         if not self.bl_number:

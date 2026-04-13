@@ -62,7 +62,8 @@ def execute(filters=None):
                 "to_be_returned", "is_loaded", "is_returned",
                 "gate_in_empty_date", "gate_out_full_date",
                 "pick_up_empty_date", "gate_in_full_date",
-                "is_loaded_on_vessel", "loaded_on_vessel_date"
+                "is_loaded_on_vessel", "loaded_on_vessel_date",
+                "discharge_date"
             ]
         )
 

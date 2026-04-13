@@ -17,11 +17,12 @@ def calculate_dnd_and_storage_days_detailed(job, cargo_packages=None, today=None
             "Cargo Package Details",
             filters={"parent": job["name"], "parenttype": "Clearing Job"},
             fields=[
-                "name",  # Add this to uniquely identify the row
+                "name",
                 "to_be_returned", "is_loaded", "is_returned",
                 "gate_in_empty_date", "gate_out_full_date",
                 "pick_up_empty_date", "gate_in_full_date",
-                "is_loaded_on_vessel", "loaded_on_vessel_date"
+                "is_loaded_on_vessel", "loaded_on_vessel_date",
+                "discharge_date"
             ]
         )
 
@@ -56,9 +57,11 @@ def calculate_dnd_and_storage_days_detailed(job, cargo_packages=None, today=None
             })
 
     else:  # Import
-        discharge_date = getdate(job.get("discharge_date"))
+        job_discharge_date = getdate(job.get("discharge_date"))
         for row in cargo_packages:
             row_id = row.get("name", "")
+            # Use per-container discharge_date, fall back to job-level
+            discharge_date = getdate(row.get("discharge_date")) or job_discharge_date
             to_be_returned = int(row.get("to_be_returned") or 0)
             is_loaded = int(row.get("is_loaded") or 0)
             is_returned = int(row.get("is_returned") or 0)

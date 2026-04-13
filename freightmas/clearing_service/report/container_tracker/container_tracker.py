@@ -43,7 +43,7 @@ def execute(filters=None):
             cj.customer,
             cj.bl_number,
             cj.shipping_line,
-            cj.discharge_date,
+            COALESCE(cd.discharge_date, cj.discharge_date) AS discharge_date,
             cj.dnd_start_date,
             cd.container_number,
             cd.container_type,
