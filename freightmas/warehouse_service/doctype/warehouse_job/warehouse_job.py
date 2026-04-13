@@ -525,6 +525,7 @@ def create_sales_invoice_with_rows(docname, row_names):
 	si = frappe.new_doc("Sales Invoice")
 	# Use customer from handling charges if available, otherwise use job customer
 	si.customer = selected_handling[0].customer if selected_handling else job.customer
+	si.company = job.company
 	si.set_posting_time = 1
 	si.posting_date = nowdate()
 	

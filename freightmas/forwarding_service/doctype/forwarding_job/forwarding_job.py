@@ -1312,6 +1312,7 @@ def create_sales_invoice_with_rows(docname, row_names):
     customer = list(customers)[0]
     si = frappe.new_doc("Sales Invoice")
     si.customer = customer
+    si.company = job.company
     
     # Optional custom fields (ignore if missing)
     try:
@@ -1395,6 +1396,7 @@ def create_purchase_invoice_with_rows(docname, row_names):
     supplier = list(suppliers)[0]
     pi = frappe.new_doc("Purchase Invoice")
     pi.supplier = supplier
+    pi.company = job.company
     
     # Optional custom fields (ignore if missing)
     try:
