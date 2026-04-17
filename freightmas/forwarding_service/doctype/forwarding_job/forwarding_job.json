@@ -500,13 +500,15 @@
   {
    "fieldname": "bl_tracking_summary_section",
    "fieldtype": "Section Break",
-   "label": "API Tracking"
+   "label": "API Tracking",
+   "depends_on": "eval:doc.shipment_mode=='Sea'"
   },
   {
    "default": "0",
    "fieldname": "enable_api_tracking",
    "fieldtype": "Check",
-   "label": "Enable API Tracking"
+   "label": "Enable API Tracking",
+   "depends_on": "eval:doc.shipment_mode=='Sea'"
   },
   {
    "depends_on": "eval:doc.enable_api_tracking",

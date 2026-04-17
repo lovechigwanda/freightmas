@@ -16,6 +16,7 @@ def update_active_tracking():
 		"Forwarding Job",
 		filters={
 			"enable_api_tracking": 1,
+			"shipment_mode": "Sea",
 			"api_last_fetched": ["is", "set"],
 			"api_tracking_status": ["not in", ["DELIVERED", "ARRIVED", ""]],
 			"docstatus": ["<", 2],

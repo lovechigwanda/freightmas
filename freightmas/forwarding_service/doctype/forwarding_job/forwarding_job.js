@@ -30,10 +30,15 @@ frappe.ui.form.on('Forwarding Job', {
         // ========================================
         // API TRACKING CHECKBOX VISIBILITY
         // ========================================
-        frappe.db.get_single_value('FreightMas Settings', 'enable_shipping_tracker').then(val => {
-            frm.toggle_display('bl_tracking_summary_section', !!val);
-            frm.toggle_display('enable_api_tracking', !!val);
-        });
+        if (frm.doc.shipment_mode === 'Sea') {
+            frappe.db.get_single_value('FreightMas Settings', 'enable_shipping_tracker').then(val => {
+                frm.toggle_display('bl_tracking_summary_section', !!val);
+                frm.toggle_display('enable_api_tracking', !!val);
+            });
+        } else {
+            frm.toggle_display('bl_tracking_summary_section', false);
+            frm.toggle_display('enable_api_tracking', false);
+        }
 
         // ========================================
         // CUSTOM BUTTONS
