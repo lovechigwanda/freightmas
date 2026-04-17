@@ -152,7 +152,8 @@ app_include_js = ["/assets/freightmas/js/session_handler.js", "/assets/freightma
 
 scheduler_events = {
 	"daily": [
-		"freightmas.scheduler.quotation.expire_quotations"
+		"freightmas.scheduler.quotation.expire_quotations",
+		"freightmas.scheduler.tracking.update_active_tracking"
 	],
 	"monthly": [
 		"freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.calculate_all_monthly_storage"

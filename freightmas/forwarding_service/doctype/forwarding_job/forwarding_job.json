@@ -625,7 +625,7 @@
    "label": "BL Number"
   },
   {
-   "depends_on": "eval:doc.bl_number && doc.shipment_mode=='Sea' && doc.enable_api_tracking",
+   "depends_on": "eval:doc.bl_number && doc.shipment_mode=='Sea' && doc.enable_api_tracking && !doc.api_last_fetched",
    "fieldname": "fetch_containers_from_bl",
    "fieldtype": "Button",
    "label": "Fetch Containers from BL"
