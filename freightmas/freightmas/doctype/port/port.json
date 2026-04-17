@@ -43,10 +43,11 @@
   },
   {
    "columns": 2,
+   "description": "UN/LOCODE e.g. \"MZBEW\", \"BEANR\"",
    "fieldname": "port_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Port Code",
+   "label": "Port Code (UN/LOCODE)",
    "length": 5,
    "reqd": 1,
    "unique": 1

@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "container_name",
+  "iso_code",
   "container_description",
   "column_break_yytx",
   "is_active"
@@ -19,6 +20,13 @@
    "in_list_view": 1,
    "label": "Container Name",
    "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "ISO 6346 type code e.g. \"22G1\", \"42G1\"",
+   "fieldname": "iso_code",
+   "fieldtype": "Data",
+   "label": "ISO Code",
    "unique": 1
   },
   {

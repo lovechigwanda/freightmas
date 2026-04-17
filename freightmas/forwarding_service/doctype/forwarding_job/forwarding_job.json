@@ -59,6 +59,7 @@
   "column_break_rcwr",
   "bill_of_lading_details_section",
   "bl_number",
+  "fetch_containers_from_bl",
   "is_bl_received",
   "bl_received_date",
   "column_break_csxl",
@@ -141,6 +142,15 @@
   "cost_recognition_journal_entry",
   "total_recognised_cost",
   "tracking_tab",
+  "bl_tracking_summary_section",
+  "enable_api_tracking",
+  "api_tracking_results_section",
+  "api_tracking_status",
+  "api_last_event",
+  "column_break_bts1",
+  "api_last_event_date",
+  "api_last_fetched",
+  "manual_tracking_section",
   "forwarding_tracking",
   "section_break_eooh",
   "current_comment",
@@ -488,6 +498,56 @@
    "label": "Tracking"
   },
   {
+   "fieldname": "bl_tracking_summary_section",
+   "fieldtype": "Section Break",
+   "label": "API Tracking"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_api_tracking",
+   "fieldtype": "Check",
+   "label": "Enable API Tracking"
+  },
+  {
+   "depends_on": "eval:doc.enable_api_tracking",
+   "fieldname": "api_tracking_results_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "api_tracking_status",
+   "fieldtype": "Data",
+   "in_list_view": 0,
+   "label": "Tracking Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "api_last_event",
+   "fieldtype": "Data",
+   "label": "Last Event",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_bts1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event_date",
+   "fieldtype": "Date",
+   "label": "Last Event Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "api_last_fetched",
+   "fieldtype": "Datetime",
+   "label": "Last Fetched",
+   "read_only": 1
+  },
+  {
+   "fieldname": "manual_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Manual Tracking"
+  },
+  {
    "fieldname": "forwarding_tracking",
    "fieldtype": "Table",
    "options": "Forwarding Tracking"
@@ -563,6 +623,12 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "BL Number"
+  },
+  {
+   "depends_on": "eval:doc.bl_number && doc.shipment_mode=='Sea' && doc.enable_api_tracking",
+   "fieldname": "fetch_containers_from_bl",
+   "fieldtype": "Button",
+   "label": "Fetch Containers from BL"
   },
   {
    "default": "0",
@@ -1051,7 +1117,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-02-07 10:00:00.000000",
+ "modified": "2026-04-16 10:00:00.000000",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

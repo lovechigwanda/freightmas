@@ -34,7 +34,15 @@
   "driver_advance_parent_account",
   "port_clearing_tab",
   "quotation_tab",
-  "default_quotation_tc"
+  "default_quotation_tc",
+  "shipping_tracker_tab",
+  "enable_shipping_tracker",
+  "column_break_st1",
+  "tracking_provider",
+  "api_settings_section",
+  "shipping_tracker_api_key",
+  "column_break_st2",
+  "default_tracking_type"
  ],
  "fields": [
   {
@@ -219,12 +227,60 @@
    "label": "Default Quotation Terms & Conditions",
    "options": "Terms and Conditions",
    "description": "If set, this Terms and Conditions record will be automatically applied to new Quotations."
+  },
+  {
+   "fieldname": "shipping_tracker_tab",
+   "fieldtype": "Tab Break",
+   "label": "Shipping Tracker"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_shipping_tracker",
+   "fieldtype": "Check",
+   "label": "Enable Shipping Tracker"
+  },
+  {
+   "fieldname": "column_break_st1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Searates",
+   "depends_on": "eval:doc.enable_shipping_tracker",
+   "fieldname": "tracking_provider",
+   "fieldtype": "Select",
+   "label": "Tracking Provider",
+   "options": "Searates"
+  },
+  {
+   "depends_on": "eval:doc.enable_shipping_tracker",
+   "fieldname": "api_settings_section",
+   "fieldtype": "Section Break",
+   "label": "API Settings"
+  },
+  {
+   "depends_on": "eval:doc.enable_shipping_tracker",
+   "fieldname": "shipping_tracker_api_key",
+   "fieldtype": "Password",
+   "label": "API Key",
+   "mandatory_depends_on": "eval:doc.enable_shipping_tracker"
+  },
+  {
+   "fieldname": "column_break_st2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "BL",
+   "depends_on": "eval:doc.enable_shipping_tracker",
+   "fieldname": "default_tracking_type",
+   "fieldtype": "Select",
+   "label": "Default Tracking Type",
+   "options": "BL\nCT\nBK"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-24 08:31:19.992292",
+ "modified": "2026-04-16 23:30:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Settings",

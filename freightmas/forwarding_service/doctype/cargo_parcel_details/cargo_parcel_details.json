@@ -91,7 +91,13 @@
   "attachments_section",
   "proof_of_delivery",
   "column_break_qsgx",
-  "other_attachment"
+  "other_attachment",
+  "api_container_status_section",
+  "api_container_status",
+  "column_break_acs1",
+  "api_last_event",
+  "column_break_acs2",
+  "api_last_event_date"
  ],
  "fields": [
   {
@@ -604,12 +610,45 @@
    "fieldtype": "Date",
    "label": "Offload Arrived On",
    "mandatory_depends_on": "eval:doc.custom_milestone"
+  },
+  {
+   "depends_on": "eval:doc.api_container_status",
+   "fieldname": "api_container_status_section",
+   "fieldtype": "Section Break",
+   "label": "API Container Status"
+  },
+  {
+   "fieldname": "api_container_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Container Status (API)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_acs1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event",
+   "fieldtype": "Data",
+   "label": "Last Event (API)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_acs2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event_date",
+   "fieldtype": "Date",
+   "label": "Last Event Date (API)",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-11-10 11:23:12.240605",
+ "modified": "2026-04-16 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

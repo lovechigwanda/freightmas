@@ -1466,3 +1466,143 @@ def create_purchase_invoice_with_rows(docname, row_names):
         return f"FWJB Cost Sheet {self.name}.pdf"
 
 
+@frappe.whitelist()
+def fetch_containers_from_bl(docname):
+    """Fetch container tracking data from Searates API and populate the Forwarding Job."""
+    from frappe.utils import now_datetime
+
+    from freightmas.integrations.tracking.searates import fetch_tracking
+    from freightmas.utils.master_data_sync import (
+        match_container_type,
+        match_or_create_port,
+        match_shipping_line,
+    )
+
+    doc = frappe.get_doc("Forwarding Job", docname)
+
+    if not doc.bl_number:
+        frappe.throw(_("BL Number is required to fetch tracking data."))
+    if doc.shipment_mode != "Sea":
+        frappe.throw(_("Fetch Containers from BL is only available for Sea shipments."))
+
+    # Call the Searates API service
+    tracking = fetch_tracking(doc.bl_number)
+
+    metadata = tracking["metadata"]
+    route = tracking["route"]
+    vessel = tracking["vessel"]
+    containers = tracking["containers"]
+    mappings = tracking["mappings"]
+
+    # --- Update parent Forwarding Job fields (only if currently blank, except ETA) ---
+    if not doc.vessel_flight_no and mappings.get("vessel_flight_no"):
+        doc.vessel_flight_no = mappings["vessel_flight_no"]
+
+    # Match and set ports
+    pol_data = route.get("pol") or {}
+    pod_data = route.get("pod") or {}
+
+    matched_pol = match_or_create_port(
+        pol_data.get("locode"), pol_data.get("name"), pol_data.get("country_code")
+    )
+    matched_pod = match_or_create_port(
+        pod_data.get("locode"), pod_data.get("name"), pod_data.get("country_code")
+    )
+
+    if not doc.port_of_loading and matched_pol:
+        doc.port_of_loading = matched_pol
+    if not doc.port_of_discharge and matched_pod:
+        doc.port_of_discharge = matched_pod
+
+    # Dates — only update blank fields, except ETA which always updates
+    if not doc.etd and mappings.get("etd"):
+        doc.etd = mappings["etd"]
+    if not doc.atd and mappings.get("atd"):
+        doc.atd = mappings["atd"]
+    if mappings.get("eta"):
+        doc.eta = mappings["eta"]
+    if not doc.ata and mappings.get("ata"):
+        doc.ata = mappings["ata"]
+
+    # Discharge date — latest across all containers
+    latest_discharge = None
+    for ct in containers:
+        if ct.get("discharge_date"):
+            if not latest_discharge or ct["discharge_date"] > latest_discharge:
+                latest_discharge = ct["discharge_date"]
+    if not doc.discharge_date and latest_discharge:
+        doc.discharge_date = latest_discharge
+
+    # --- Update/create cargo_parcel_details rows ---
+    existing_rows = {
+        row.container_number: row
+        for row in (doc.cargo_parcel_details or [])
+        if row.container_number
+    }
+
+    for ct in containers:
+        ct_number = ct.get("container_number", "").strip()
+        if not ct_number:
+            continue
+
+        matched_ct = match_container_type(ct.get("iso_code"))
+
+        if ct_number in existing_rows:
+            # Update existing row
+            row = existing_rows[ct_number]
+            if matched_ct and not row.container_type:
+                row.container_type = matched_ct
+            row.api_container_status = ct.get("status", "")
+            row.api_last_event = ct.get("latest_event_description", "")
+            row.api_last_event_date = _extract_date(ct.get("latest_event_date"))
+        else:
+            # Append new row
+            doc.append("cargo_parcel_details", {
+                "cargo_type": "Containerised",
+                "container_number": ct_number,
+                "container_type": matched_ct,
+                "api_container_status": ct.get("status", ""),
+                "api_last_event": ct.get("latest_event_description", ""),
+                "api_last_event_date": _extract_date(ct.get("latest_event_date")),
+            })
+
+    # --- Update BL Tracking Summary fields ---
+    sealine_display = metadata.get("sealine_name") or metadata.get("sealine_code") or ""
+    pol_display = pol_data.get("name", "")
+    if pol_data.get("country"):
+        pol_display = f"{pol_display}, {pol_data['country']}" if pol_display else pol_data["country"]
+    pod_display = pod_data.get("name", "")
+    if pod_data.get("country"):
+        pod_display = f"{pod_display}, {pod_data['country']}" if pod_display else pod_data["country"]
+
+    vessel_display = vessel.get("name", "")
+
+    # Find the latest event across all containers for the summary
+    latest_event = ""
+    latest_event_date = None
+    for ct in containers:
+        evt_desc = ct.get("latest_event_description", "")
+        evt_date = _extract_date(ct.get("latest_event_date"))
+        if evt_date and (not latest_event_date or evt_date > latest_event_date):
+            latest_event = evt_desc
+            latest_event_date = evt_date
+
+    doc.api_tracking_status = metadata.get("status", "")
+    doc.api_last_event = latest_event
+    doc.api_last_event_date = latest_event_date
+    doc.api_last_fetched = now_datetime()
+
+    doc.save()
+
+    return {
+        "status": metadata.get("status", ""),
+        "containers_count": len(containers),
+    }
+
+
+def _extract_date(datetime_str):
+    """Extract the date portion (YYYY-MM-DD) from a datetime string."""
+    if not datetime_str:
+        return None
+    return str(datetime_str)[:10] or None
+

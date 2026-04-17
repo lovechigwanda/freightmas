@@ -28,6 +28,14 @@ frappe.ui.form.on('Forwarding Job', {
         update_cargo_count_forwarding(frm);
 
         // ========================================
+        // API TRACKING CHECKBOX VISIBILITY
+        // ========================================
+        frappe.db.get_single_value('FreightMas Settings', 'enable_shipping_tracker').then(val => {
+            frm.toggle_display('bl_tracking_summary_section', !!val);
+            frm.toggle_display('enable_api_tracking', !!val);
+        });
+
+        // ========================================
         // CUSTOM BUTTONS
         // ========================================
         if (!frm.is_new()) {
@@ -62,6 +70,42 @@ frappe.ui.form.on('Forwarding Job', {
     // ========================================
     set_rr_date: function(frm) {
         show_recognition_date_dialog(frm);
+    },
+
+    // ========================================
+    // FETCH CONTAINERS FROM BL - Searates API
+    // ========================================
+    fetch_containers_from_bl: function(frm) {
+        if (!frm.doc.bl_number) {
+            frappe.msgprint(__('Please enter a BL Number first.'));
+            return;
+        }
+        if (frm.is_dirty()) {
+            frappe.msgprint(__('Please save the document before fetching tracking data.'));
+            return;
+        }
+        frappe.call({
+            method: 'freightmas.forwarding_service.doctype.forwarding_job.forwarding_job.fetch_containers_from_bl',
+            args: { docname: frm.doc.name },
+            freeze: true,
+            freeze_message: __('Fetching container data from Searates...'),
+            callback: function(r) {
+                if (r.message) {
+                    frm.reload_doc();
+                    frappe.show_alert({
+                        message: __('Tracking data fetched: {0} containers, status: {1}',
+                            [r.message.containers_count, r.message.status]),
+                        indicator: 'green'
+                    }, 5);
+                }
+            },
+            error: function() {
+                frappe.show_alert({
+                    message: __('Failed to fetch tracking data. Check error log for details.'),
+                    indicator: 'red'
+                }, 5);
+            }
+        });
     },
     
     validate(frm) {
