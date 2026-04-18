@@ -150,8 +150,8 @@
   "column_break_bts1",
   "api_last_event_date",
   "api_last_fetched",
-  "manual_tracking_section",
-  "forwarding_tracking",
+  "tracking_timeline_section",
+  "tracking_timeline",
   "section_break_eooh",
   "current_comment",
   "column_break_hrnc",
@@ -543,14 +543,14 @@
    "read_only": 1
   },
   {
-   "fieldname": "manual_tracking_section",
+   "fieldname": "tracking_timeline_section",
    "fieldtype": "Section Break",
-   "label": "Manual Tracking"
+   "label": "Tracking Timeline"
   },
   {
-   "fieldname": "forwarding_tracking",
+   "fieldname": "tracking_timeline",
    "fieldtype": "Table",
-   "options": "Forwarding Tracking"
+   "options": "Forwarding Tracking Event"
   },
   {
    "fieldname": "section_break_eooh",

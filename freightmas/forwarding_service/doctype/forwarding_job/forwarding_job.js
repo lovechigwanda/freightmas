@@ -151,12 +151,12 @@ frappe.ui.form.on('Forwarding Job', {
     },
 
     before_save(frm) {
-        const tracking = frm.doc.forwarding_tracking;
-        if (tracking && tracking.length > 0) {
-            const last = tracking[tracking.length - 1];
+        const timeline = frm.doc.tracking_timeline;
+        if (timeline && timeline.length > 0) {
+            const last = timeline[timeline.length - 1];
 
-            set_main_value_safe(frm, 'current_comment', last.comment);
-            set_main_value_safe(frm, 'last_updated_on', last.updated_on);
+            set_main_value_safe(frm, 'current_comment', last.event);
+            set_main_value_safe(frm, 'last_updated_on', last.date);
             set_main_value_safe(frm, 'last_updated_by', last.updated_by);
         }
     },
@@ -390,6 +390,14 @@ frappe.ui.form.on('Cargo Parcel Details', {
     container_type: update_cargo_count_forwarding,
     cargo_quantity: update_cargo_count_forwarding,
     cargo_parcel_details_remove: update_cargo_count_forwarding
+});
+
+frappe.ui.form.on('Forwarding Tracking Event', {
+    tracking_timeline_add(frm, cdt, cdn) {
+        const row = frappe.get_doc(cdt, cdn);
+        frappe.model.set_value(cdt, cdn, 'source', 'Manual');
+        frappe.model.set_value(cdt, cdn, 'updated_by', frappe.session.user);
+    }
 });
 
 // ==========================================================

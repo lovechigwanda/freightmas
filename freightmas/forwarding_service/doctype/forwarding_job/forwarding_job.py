@@ -720,7 +720,7 @@ class ForwardingJob(Document):
         """Check if tracking entries exist for the job."""
         errors = []
         
-        tracking_entries = self.get("forwarding_tracking", [])
+        tracking_entries = self.get("tracking_timeline", [])
         
         if not tracking_entries:
             errors.append(_("No tracking entries recorded. Please add at least one tracking update."))
@@ -1564,18 +1564,7 @@ def fetch_containers_from_bl(docname):
                 "api_last_event_date": _extract_date(ct.get("latest_event_date")),
             })
 
-    # --- Update BL Tracking Summary fields ---
-    sealine_display = metadata.get("sealine_name") or metadata.get("sealine_code") or ""
-    pol_display = pol_data.get("name", "")
-    if pol_data.get("country"):
-        pol_display = f"{pol_display}, {pol_data['country']}" if pol_display else pol_data["country"]
-    pod_display = pod_data.get("name", "")
-    if pod_data.get("country"):
-        pod_display = f"{pod_display}, {pod_data['country']}" if pod_display else pod_data["country"]
-
-    vessel_display = vessel.get("name", "")
-
-    # Find the latest event across all containers for the summary
+    # --- Find the latest event across all containers for the BL-level summary ---
     latest_event = ""
     latest_event_date = None
     for ct in containers:
@@ -1585,17 +1574,71 @@ def fetch_containers_from_bl(docname):
             latest_event = evt_desc
             latest_event_date = evt_date
 
-    doc.api_tracking_status = metadata.get("status", "")
+    new_status = metadata.get("status", "")
+    now = now_datetime()
+
+    # --- Update BL Tracking Summary fields on parent ---
+    doc.api_tracking_status = new_status
     doc.api_last_event = latest_event
     doc.api_last_event_date = latest_event_date
-    doc.api_last_fetched = now_datetime()
+    doc.api_last_fetched = now
+
+    # --- Update unified tracking timeline (dedup at BL level) ---
+    _update_tracking_timeline(doc, new_status, latest_event, now)
+
+    # --- Sync summary fields from the last timeline row ---
+    _sync_tracking_summary(doc)
 
     doc.save()
 
     return {
-        "status": metadata.get("status", ""),
+        "status": new_status,
         "containers_count": len(containers),
     }
+
+
+def _update_tracking_timeline(doc, new_status, latest_event, now):
+    """Append or update the tracking timeline based on BL-level API data.
+
+    Dedup logic:
+    - Find the last timeline row where source = 'API'
+    - If (tracking_status, event) are the same → update last_verified
+    - If different → append a new API row
+    """
+    # Find the last API row in the timeline
+    last_api_row = None
+    for row in reversed(doc.get("tracking_timeline") or []):
+        if row.source == "API":
+            last_api_row = row
+            break
+
+    if (
+        last_api_row
+        and last_api_row.tracking_status == new_status
+        and last_api_row.event == latest_event
+    ):
+        # Same status + event — just bump last_verified
+        last_api_row.last_verified = now
+    else:
+        # New event — append to timeline
+        doc.append("tracking_timeline", {
+            "source": "API",
+            "event": latest_event,
+            "tracking_status": new_status,
+            "date": now,
+            "last_verified": now,
+            "updated_by": "Administrator",
+        })
+
+
+def _sync_tracking_summary(doc):
+    """Update current_comment, last_updated_by, last_updated_on from the last timeline row."""
+    timeline = doc.get("tracking_timeline") or []
+    if timeline:
+        last = timeline[-1]
+        doc.current_comment = last.event
+        doc.last_updated_on = last.date
+        doc.last_updated_by = last.updated_by
 
 
 def _extract_date(datetime_str):

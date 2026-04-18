@@ -435,11 +435,12 @@ def add_job_tracking(job, comment):
     try:
         doc = frappe.get_doc("Forwarding Job", job)
         
-        # Add to the tracking table
-        doc.append("forwarding_tracking", {
-            "comment": comment,
+        # Add to the unified tracking timeline
+        doc.append("tracking_timeline", {
+            "source": "Manual",
+            "event": comment,
+            "date": now(),
             "updated_by": frappe.session.user,
-            "updated_on": now()
         })
         
         # Update the current comment fields

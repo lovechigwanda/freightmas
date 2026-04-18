@@ -8,5 +8,6 @@ freightmas.patches.rename_cash_bank_report
 freightmas.patches.delete_old_workspaces
 freightmas.patches.clearing_job_charges_migration
 freightmas.patches.unlink_cancelled_documents
+freightmas.patches.migrate_tracking_timeline
 freightmas.patches.delete_renamed_reports
 freightmas.patches.move_discharge_date_to_containers
