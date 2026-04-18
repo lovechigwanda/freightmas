@@ -1584,7 +1584,7 @@ def fetch_containers_from_bl(docname):
     doc.api_last_fetched = now
 
     # --- Update unified tracking timeline (dedup at BL level) ---
-    _update_tracking_timeline(doc, new_status, latest_event, now)
+    _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, now)
 
     # --- Sync summary fields from the last timeline row ---
     _sync_tracking_summary(doc)
@@ -1597,7 +1597,7 @@ def fetch_containers_from_bl(docname):
     }
 
 
-def _update_tracking_timeline(doc, new_status, latest_event, now):
+def _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, now):
     """Append or update the tracking timeline based on BL-level API data.
 
     Dedup logic:
@@ -1605,11 +1605,27 @@ def _update_tracking_timeline(doc, new_status, latest_event, now):
     - If event text is the same → update last_verified
     - If different → append a new API row
 
-    The API status is folded into the event text (e.g. "DELIVERED - I/B Empty Container Returned")
-    so the child table doesn't need a separate status column.
+    The API status, event description, and event date are folded into a single
+    event string (e.g. "DELIVERED - I/B Empty Container Returned: 18-Apr-26").
     """
-    # Build combined event text: "STATUS - event description"
-    combined_event = f"{new_status} - {latest_event}" if new_status else latest_event
+    # Format the event date as DD-Mon-YY
+    date_str = ""
+    if latest_event_date:
+        try:
+            from frappe.utils import getdate
+            date_str = getdate(latest_event_date).strftime("%d-%b-%y")
+        except Exception:
+            date_str = str(latest_event_date)
+
+    # Build combined event text: "STATUS - event description: DD-Mon-YY"
+    parts = []
+    if new_status:
+        parts.append(new_status)
+    if latest_event:
+        parts.append(latest_event)
+    combined_event = " - ".join(parts)
+    if date_str:
+        combined_event = f"{combined_event}: {date_str}"
 
     # Find the last API row in the timeline
     last_api_row = None
