@@ -157,7 +157,7 @@ frappe.ui.form.on('Forwarding Job', {
 
             set_main_value_safe(frm, 'current_comment', last.event);
             set_main_value_safe(frm, 'last_updated_on', last.date);
-            set_main_value_safe(frm, 'last_updated_by', last.updated_by);
+            set_main_value_safe(frm, 'last_updated_by', last.updated_by_name || last.updated_by);
         }
     },
 

@@ -12,7 +12,8 @@
   "date",
   "column_break_fte2",
   "last_verified",
-  "updated_by"
+  "updated_by",
+  "updated_by_name"
  ],
  "fields": [
   {
@@ -57,13 +58,21 @@
    "read_only": 1
   },
   {
-   "columns": 1,
    "fieldname": "updated_by",
    "fieldtype": "Link",
-   "in_list_view": 1,
+   "hidden": 1,
    "label": "Updated By",
    "options": "User",
    "set_only_once": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "updated_by.full_name",
+   "fieldname": "updated_by_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Updated By",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,

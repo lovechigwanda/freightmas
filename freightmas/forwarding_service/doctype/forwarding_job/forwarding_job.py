@@ -1639,7 +1639,7 @@ def _sync_tracking_summary(doc):
         last = timeline[-1]
         doc.current_comment = last.event
         doc.last_updated_on = last.date
-        doc.last_updated_by = last.updated_by
+        doc.last_updated_by = last.updated_by_name or last.updated_by
 
 
 def _extract_date(datetime_str):
