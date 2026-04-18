@@ -324,7 +324,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "FreightMas Settings",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -408,9 +408,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "API Tracking Monitor",
+   "link_count": 0,
+   "link_to": "API Tracking Monitor",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-08 19:00:00.000000",
+ "modified": "2026-04-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas",
