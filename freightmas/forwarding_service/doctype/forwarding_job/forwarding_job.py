@@ -1602,9 +1602,15 @@ def _update_tracking_timeline(doc, new_status, latest_event, now):
 
     Dedup logic:
     - Find the last timeline row where source = 'API'
-    - If (tracking_status, event) are the same → update last_verified
+    - If event text is the same → update last_verified
     - If different → append a new API row
+
+    The API status is folded into the event text (e.g. "DELIVERED - I/B Empty Container Returned")
+    so the child table doesn't need a separate status column.
     """
+    # Build combined event text: "STATUS - event description"
+    combined_event = f"{new_status} - {latest_event}" if new_status else latest_event
+
     # Find the last API row in the timeline
     last_api_row = None
     for row in reversed(doc.get("tracking_timeline") or []):
@@ -1612,19 +1618,14 @@ def _update_tracking_timeline(doc, new_status, latest_event, now):
             last_api_row = row
             break
 
-    if (
-        last_api_row
-        and last_api_row.tracking_status == new_status
-        and last_api_row.event == latest_event
-    ):
-        # Same status + event — just bump last_verified
+    if last_api_row and last_api_row.event == combined_event:
+        # Same event — just bump last_verified
         last_api_row.last_verified = now
     else:
         # New event — append to timeline
         doc.append("tracking_timeline", {
             "source": "API",
-            "event": latest_event,
-            "tracking_status": new_status,
+            "event": combined_event,
             "date": now,
             "last_verified": now,
             "updated_by": "Administrator",

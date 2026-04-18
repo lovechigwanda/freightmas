@@ -9,7 +9,6 @@
   "source",
   "event",
   "column_break_fte1",
-  "tracking_status",
   "date",
   "column_break_fte2",
   "last_verified",
@@ -26,7 +25,7 @@
    "read_only": 1
   },
   {
-   "columns": 4,
+   "columns": 5,
    "fieldname": "event",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -36,13 +35,6 @@
   {
    "fieldname": "column_break_fte1",
    "fieldtype": "Column Break"
-  },
-  {
-   "columns": 2,
-   "fieldname": "tracking_status",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Status"
   },
   {
    "columns": 2,
