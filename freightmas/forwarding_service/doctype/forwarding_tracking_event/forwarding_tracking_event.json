@@ -30,7 +30,8 @@
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Event",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_fte1",
@@ -42,7 +43,8 @@
    "fieldname": "date",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Date"
+   "label": "Date",
+   "set_only_once": 1
   },
   {
    "fieldname": "column_break_fte2",
@@ -60,7 +62,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Updated By",
-   "options": "User"
+   "options": "User",
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
