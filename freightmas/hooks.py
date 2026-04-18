@@ -85,7 +85,7 @@ app_include_js = ["/assets/freightmas/js/session_handler.js", "/assets/freightma
 # ------------
 
 # before_install = "freightmas.install.before_install"
-# after_install = "freightmas.install.after_install"
+after_install = "freightmas.install.after_install"
 
 # Uninstallation
 # ------------

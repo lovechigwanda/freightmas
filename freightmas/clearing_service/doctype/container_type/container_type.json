@@ -6,6 +6,7 @@
  "creation": "2025-04-16 19:11:48.701855",
  "doctype": "DocType",
  "engine": "InnoDB",
+ "quick_entry": 0,
  "field_order": [
   "container_full_name",
   "iso_code",
