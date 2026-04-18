@@ -1482,8 +1482,6 @@ def fetch_containers_from_bl(docname):
 
     if not doc.bl_number:
         frappe.throw(_("BL Number is required to fetch tracking data."))
-    if doc.shipment_mode != "Sea":
-        frappe.throw(_("Fetch Containers from BL is only available for Sea shipments."))
 
     # Call the Searates API service
     tracking = fetch_tracking(doc.bl_number)

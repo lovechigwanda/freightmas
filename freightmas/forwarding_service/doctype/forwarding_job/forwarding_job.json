@@ -500,15 +500,13 @@
   {
    "fieldname": "bl_tracking_summary_section",
    "fieldtype": "Section Break",
-   "label": "API Tracking",
-   "depends_on": "eval:doc.shipment_mode=='Sea'"
+   "label": "API Tracking"
   },
   {
    "default": "0",
    "fieldname": "enable_api_tracking",
    "fieldtype": "Check",
-   "label": "Enable API Tracking",
-   "depends_on": "eval:doc.shipment_mode=='Sea'"
+   "label": "Enable API Tracking"
   },
   {
    "depends_on": "eval:doc.enable_api_tracking",
@@ -627,7 +625,7 @@
    "label": "BL Number"
   },
   {
-   "depends_on": "eval:doc.bl_number && doc.shipment_mode=='Sea' && doc.enable_api_tracking",
+   "depends_on": "eval:doc.bl_number && doc.enable_api_tracking",
    "fieldname": "fetch_containers_from_bl",
    "fieldtype": "Button",
    "label": "Fetch Containers from BL"
