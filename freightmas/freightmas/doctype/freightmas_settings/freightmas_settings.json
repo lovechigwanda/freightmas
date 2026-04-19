@@ -287,12 +287,19 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "FreightMas Manager",
+   "share": 1
+  },
+  {
    "create": 1,
    "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "System Manager",
+   "role": "FreightMas Admin",
    "share": 1,
    "write": 1
   },
@@ -302,7 +309,7 @@
    "email": 1,
    "print": 1,
    "read": 1,
-   "role": "FreightMas Manager",
+   "role": "System Manager",
    "share": 1,
    "write": 1
   }
