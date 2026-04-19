@@ -43,9 +43,9 @@ frappe.query_reports["API Tracking Monitor"] = {
 			fieldtype: "Select",
 			options: [
 				"",
-				"IN_TRANSIT",
-				"DELIVERED",
-				"ARRIVED",
+				"In Transit",
+				"Delivered",
+				"Arrived",
 				"Never Fetched"
 			]
 		}

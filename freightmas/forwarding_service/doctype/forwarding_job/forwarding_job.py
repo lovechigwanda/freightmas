@@ -1575,6 +1575,8 @@ def fetch_containers_from_bl(docname):
             latest_event_date = evt_date
 
     new_status = metadata.get("status", "")
+    # Format status: IN_TRANSIT -> In Transit, DELIVERED -> Delivered
+    new_status = new_status.replace("_", " ").title() if new_status else ""
     now = now_datetime()
 
     # --- Update BL Tracking Summary fields on parent ---

@@ -17,7 +17,7 @@ def update_active_tracking():
 		filters={
 			"enable_api_tracking": 1,
 			"api_last_fetched": ["is", "set"],
-			"api_tracking_status": ["not in", ["DELIVERED", "ARRIVED", ""]],
+			"api_tracking_status": ["not in", ["Delivered", "Arrived", ""]],
 			"docstatus": ["<", 2],
 		},
 		pluck="name",

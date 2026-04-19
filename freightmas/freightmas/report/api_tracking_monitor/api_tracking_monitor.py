@@ -91,8 +91,8 @@ def get_data(filters):
 			row["days_since_fetch"] = None
 			never_fetched += 1
 
-		status = (row.get("api_tracking_status") or "").upper()
-		if status in ("DELIVERED", "ARRIVED"):
+		status = (row.get("api_tracking_status") or "")
+		if status in ("Delivered", "Arrived"):
 			delivered += 1
 		elif row.get("api_last_fetched"):
 			active += 1
