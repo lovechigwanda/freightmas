@@ -24,7 +24,7 @@ def get_columns():
 		{"label": "Last Event Date", "fieldname": "api_last_event_date", "fieldtype": "Date", "width": 120},
 		{"label": "Last Fetched", "fieldname": "api_last_fetched", "fieldtype": "Datetime", "width": 160},
 		{"label": "Days Since Fetch", "fieldname": "days_since_fetch", "fieldtype": "Int", "width": 120},
-		{"label": "Job Status", "fieldname": "workflow_state", "fieldtype": "Data", "width": 120},
+		{"label": "Job Status", "fieldname": "status", "fieldtype": "Data", "width": 120},
 		{"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 100},
 		{"label": "Shipment Mode", "fieldname": "shipment_mode", "fieldtype": "Data", "width": 110},
 		{"label": "Date Created", "fieldname": "date_created", "fieldtype": "Date", "width": 110},
@@ -63,7 +63,7 @@ def get_data(filters):
 			fj.name, fj.customer, fj.bl_number,
 			fj.api_tracking_status, fj.api_last_event,
 			fj.api_last_event_date, fj.api_last_fetched,
-			fj.workflow_state, fj.direction, fj.shipment_mode,
+			fj.status, fj.direction, fj.shipment_mode,
 			fj.date_created
 		FROM `tabForwarding Job` fj
 		WHERE {where_clause}
