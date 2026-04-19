@@ -150,6 +150,7 @@
   "column_break_bts1",
   "api_last_event_date",
   "api_last_fetched",
+  "api_call_count",
   "tracking_timeline_section",
   "tracking_timeline",
   "section_break_eooh",
@@ -540,6 +541,13 @@
    "fieldname": "api_last_fetched",
    "fieldtype": "Datetime",
    "label": "Last Fetched",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "api_call_count",
+   "fieldtype": "Int",
+   "label": "API Calls",
    "read_only": 1
   },
   {

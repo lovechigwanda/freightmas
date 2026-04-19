@@ -1582,6 +1582,7 @@ def fetch_containers_from_bl(docname):
     doc.api_last_event = latest_event
     doc.api_last_event_date = latest_event_date
     doc.api_last_fetched = now
+    doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # --- Update unified tracking timeline (dedup at BL level) ---
     _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, now)

@@ -27,6 +27,7 @@ def get_columns():
 		{"label": "Job Status", "fieldname": "status", "fieldtype": "Data", "width": 120},
 		{"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 100},
 		{"label": "Shipment Mode", "fieldname": "shipment_mode", "fieldtype": "Data", "width": 110},
+		{"label": "API Calls", "fieldname": "api_call_count", "fieldtype": "Int", "width": 90},
 		{"label": "Date Created", "fieldname": "date_created", "fieldtype": "Date", "width": 110},
 	]
 
@@ -64,7 +65,7 @@ def get_data(filters):
 			fj.api_tracking_status, fj.api_last_event,
 			fj.api_last_event_date, fj.api_last_fetched,
 			fj.status, fj.direction, fj.shipment_mode,
-			fj.date_created
+			fj.api_call_count, fj.date_created
 		FROM `tabForwarding Job` fj
 		WHERE {where_clause}
 		ORDER BY fj.api_last_fetched DESC, fj.date_created DESC
@@ -78,8 +79,11 @@ def get_data(filters):
 	active = 0
 	delivered = 0
 	never_fetched = 0
+	total_api_calls = 0
 
 	for row in rows:
+		total_api_calls += row.get("api_call_count") or 0
+
 		# Calculate days since last fetch
 		if row.get("api_last_fetched"):
 			row["days_since_fetch"] = date_diff(today, getdate(row["api_last_fetched"]))
@@ -98,6 +102,7 @@ def get_data(filters):
 		{"value": active, "indicator": "Orange", "label": "Active (In Transit)", "datatype": "Int"},
 		{"value": delivered, "indicator": "Green", "label": "Delivered / Arrived", "datatype": "Int"},
 		{"value": never_fetched, "indicator": "Red", "label": "Never Fetched", "datatype": "Int"},
+		{"value": total_api_calls, "indicator": "Purple", "label": "Total API Calls", "datatype": "Int"},
 	]
 
 	return rows, summary
