@@ -43,7 +43,7 @@ def execute(filters=None):
 
 def get_columns():
     return [
-        {"label": "Customer", "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 650},
+        {"label": "Customer", "fieldname": "customer", "fieldtype": "Data", "width": 650},
         {"label": "Total Jobs", "fieldname": "total_jobs", "fieldtype": "Int", "width": 120},
         {"label": "Last Update", "fieldname": "last_update", "fieldtype": "Data", "width": 150}
     ]
