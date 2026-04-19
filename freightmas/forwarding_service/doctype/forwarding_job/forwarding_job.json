@@ -164,7 +164,8 @@
   "column_break_qlnm",
   "completed_on",
   "column_break_limi",
-  "connections_tab"
+  "connections_tab",
+  "skip_validations"
  ],
  "fields": [
   {
@@ -517,7 +518,6 @@
   {
    "fieldname": "api_tracking_status",
    "fieldtype": "Data",
-   "in_list_view": 0,
    "label": "Tracking Status",
    "read_only": 1
   },
@@ -799,8 +799,6 @@
    "options": "Forwarding Costing Charges"
   },
   {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.status != \"Draft\"",
    "fieldname": "working_revenue_section",
    "fieldtype": "Section Break",
    "label": "Working Revenue",
@@ -813,7 +811,6 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.status != \"Draft\"",
    "fieldname": "working_cost_section",
    "fieldtype": "Section Break",
    "label": "Working Cost",
@@ -1125,8 +1122,8 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-04-16 10:00:00.000000",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2026-04-19 17:19:47.909891",
+ "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
  "naming_rule": "By \"Naming Series\" field",
@@ -1159,9 +1156,18 @@
    "write": 1
   },
   {
-   "permlevel": 1,
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
