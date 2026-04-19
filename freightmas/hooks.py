@@ -153,8 +153,12 @@ after_install = "freightmas.install.after_install"
 scheduler_events = {
 	"daily": [
 		"freightmas.scheduler.quotation.expire_quotations",
-		"freightmas.scheduler.tracking.update_active_tracking"
 	],
+	"cron": {
+		"0 6 * * *": [
+			"freightmas.scheduler.tracking.update_active_tracking"
+		],
+	},
 	"monthly": [
 		"freightmas.warehouse_service.doctype.warehouse_job.warehouse_job.calculate_all_monthly_storage"
 	],
