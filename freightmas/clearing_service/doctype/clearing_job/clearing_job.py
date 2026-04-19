@@ -121,19 +121,19 @@ class ClearingJob(Document):
             total_revenue += flt(charge.revenue_amount)
             total_cost += flt(charge.cost_amount)
 
-        total_profit = total_revenue - total_cost
+        total_profit = flt(total_revenue - total_cost, 2)
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_quoted_revenue = total_revenue
-        self.total_quoted_cost = total_cost
+        self.total_quoted_revenue = flt(total_revenue, 2)
+        self.total_quoted_cost = flt(total_cost, 2)
         self.total_quoted_margin = total_profit
 
-        self.total_quoted_revenue_base = total_revenue * rate
-        self.total_quoted_cost_base = total_cost * rate
-        self.total_quoted_profit_base = total_profit * rate
+        self.total_quoted_revenue_base = flt(total_revenue * rate, 2)
+        self.total_quoted_cost_base = flt(total_cost * rate, 2)
+        self.total_quoted_profit_base = flt(total_profit * rate, 2)
 
-        self.quoted_margin_percent = (
-            (total_profit / total_revenue) * 100 if total_revenue else 0
+        self.quoted_margin_percent = flt(
+            (total_profit / total_revenue) * 100 if total_revenue else 0, 2
         )
 
     def calculate_actual_revenue_charges(self):
@@ -160,18 +160,18 @@ class ClearingJob(Document):
         for charge in self.get("clearing_cost_charges", []):
             total_cost += flt(charge.cost_amount)
 
-        total_profit = total_revenue - total_cost
+        total_profit = flt(total_revenue - total_cost, 2)
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_working_revenue = total_revenue
-        self.total_working_cost = total_cost
+        self.total_working_revenue = flt(total_revenue, 2)
+        self.total_working_cost = flt(total_cost, 2)
         self.total_working_profit = total_profit
 
-        self.total_working_revenue_base = total_revenue * rate
-        self.total_working_base = total_cost * rate
-        self.total_working_profit_base = total_profit * rate
+        self.total_working_revenue_base = flt(total_revenue * rate, 2)
+        self.total_working_base = flt(total_cost * rate, 2)
+        self.total_working_profit_base = flt(total_profit * rate, 2)
 
-        self.profit_margin_percent = (total_profit / total_revenue * 100) if total_revenue else 0
+        self.profit_margin_percent = flt((total_profit / total_revenue * 100), 2) if total_revenue else 0
 
     def validate_customer_and_supplier(self):
         """Require party when rates are present."""

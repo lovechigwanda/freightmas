@@ -379,7 +379,13 @@ function update_cargo_count_forwarding(frm) {
     }
 
     const summary = summary_parts.length > 0 ? summary_parts.join(" + ") : "";
-    set_main_value_safe(frm, 'cargo_count', summary);
+
+    // Only update cargo_count when editing cargo rows (not on refresh)
+    // to avoid dirtying the form on load
+    if (frm.doc.cargo_count !== summary) {
+        frm.doc.cargo_count = summary;
+        frm.refresh_field('cargo_count');
+    }
 }
 
 frappe.ui.form.on('Cargo Parcel Details', {
@@ -1018,18 +1024,20 @@ function calculate_actual_totals(frm) {
         total_cost += flt(row.cost_amount);
     });
     
-    let total_profit = total_revenue - total_cost;
+    // Apply precision rounding (2 decimal places for currency fields)
+    // This prevents floating-point drift causing "Not Saved" indicators
+    let total_profit = flt(total_revenue - total_cost, 2);
     let rate = flt(frm.doc.conversion_rate) || 1.0;
-    let profit_margin_percent = total_revenue > 0 ? (total_profit / total_revenue * 100) : 0;
+    let profit_margin_percent = total_revenue > 0 ? flt((total_profit / total_revenue * 100), 2) : 0;
     
-    set_main_value_safe(frm, 'total_working_revenue', total_revenue);
-    set_main_value_safe(frm, 'total_working_cost', total_cost);
+    set_main_value_safe(frm, 'total_working_revenue', flt(total_revenue, 2));
+    set_main_value_safe(frm, 'total_working_cost', flt(total_cost, 2));
     set_main_value_safe(frm, 'total_working_profit', total_profit);
     set_main_value_safe(frm, 'profit_margin_percent', profit_margin_percent);
     
-    set_main_value_safe(frm, 'total_working_revenue_base', total_revenue * rate);
-    set_main_value_safe(frm, 'total_working_base', total_cost * rate);
-    set_main_value_safe(frm, 'total_working_profit_base', total_profit * rate);
+    set_main_value_safe(frm, 'total_working_revenue_base', flt(total_revenue * rate, 2));
+    set_main_value_safe(frm, 'total_working_base', flt(total_cost * rate, 2));
+    set_main_value_safe(frm, 'total_working_profit_base', flt(total_profit * rate, 2));
     
     frm.refresh_fields();
 }

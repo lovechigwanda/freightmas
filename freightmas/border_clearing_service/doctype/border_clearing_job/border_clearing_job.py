@@ -106,21 +106,21 @@ class BorderClearingJob(Document):
             if cint(charge.is_pass_through):
                 total_pass_through += flt(charge.revenue_amount)
 
-        total_profit = total_revenue - total_cost
+        total_profit = flt(total_revenue - total_cost, 2)
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_quoted_revenue = total_revenue
-        self.total_quoted_cost = total_cost
+        self.total_quoted_revenue = flt(total_revenue, 2)
+        self.total_quoted_cost = flt(total_cost, 2)
         self.total_quoted_margin = total_profit
 
-        self.total_quoted_revenue_base = total_revenue * rate
-        self.total_quoted_cost_base = total_cost * rate
-        self.total_quoted_profit_base = total_profit * rate
+        self.total_quoted_revenue_base = flt(total_revenue * rate, 2)
+        self.total_quoted_cost_base = flt(total_cost * rate, 2)
+        self.total_quoted_profit_base = flt(total_profit * rate, 2)
 
-        self.quoted_margin_percent = (
-            (total_profit / total_revenue) * 100 if total_revenue else 0
+        self.quoted_margin_percent = flt(
+            (total_profit / total_revenue) * 100 if total_revenue else 0, 2
         )
-        self.total_quoted_duty_pass_through = total_pass_through
+        self.total_quoted_duty_pass_through = flt(total_pass_through, 2)
 
     # ========================================================
     # ACTUAL REVENUE / COST CALCULATIONS
@@ -153,19 +153,19 @@ class BorderClearingJob(Document):
         for charge in self.get("border_clearing_cost_charges", []):
             total_cost += flt(charge.cost_amount)
 
-        total_profit = total_revenue - total_cost
+        total_profit = flt(total_revenue - total_cost, 2)
         rate = flt(self.conversion_rate) or 1.0
 
-        self.total_working_revenue = total_revenue
-        self.total_working_cost = total_cost
+        self.total_working_revenue = flt(total_revenue, 2)
+        self.total_working_cost = flt(total_cost, 2)
         self.total_working_profit = total_profit
 
-        self.total_working_revenue_base = total_revenue * rate
-        self.total_working_base = total_cost * rate
-        self.total_working_profit_base = total_profit * rate
+        self.total_working_revenue_base = flt(total_revenue * rate, 2)
+        self.total_working_base = flt(total_cost * rate, 2)
+        self.total_working_profit_base = flt(total_profit * rate, 2)
 
-        self.profit_margin_percent = (total_profit / total_revenue * 100) if total_revenue else 0
-        self.total_working_duty_pass_through = total_pass_through
+        self.profit_margin_percent = flt((total_profit / total_revenue * 100), 2) if total_revenue else 0
+        self.total_working_duty_pass_through = flt(total_pass_through, 2)
 
     # ========================================================
     # TRACKING

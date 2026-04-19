@@ -456,16 +456,17 @@ function calculate_actual_totals(frm) {
 
     let total_profit = total_revenue - total_cost;
     let rate = flt(frm.doc.conversion_rate) || 1.0;
-    let profit_margin_percent = total_revenue > 0 ? (total_profit / total_revenue * 100) : 0;
+    // Apply precision rounding (2 decimal places for currency fields)
+    let profit_margin_percent = total_revenue > 0 ? flt((total_profit / total_revenue * 100), 2) : 0;
 
-    set_main_value_safe(frm, 'total_working_revenue', total_revenue);
-    set_main_value_safe(frm, 'total_working_cost', total_cost);
-    set_main_value_safe(frm, 'total_working_profit', total_profit);
+    set_main_value_safe(frm, 'total_working_revenue', flt(total_revenue, 2));
+    set_main_value_safe(frm, 'total_working_cost', flt(total_cost, 2));
+    set_main_value_safe(frm, 'total_working_profit', flt(total_profit, 2));
     set_main_value_safe(frm, 'profit_margin_percent', profit_margin_percent);
 
-    set_main_value_safe(frm, 'total_working_revenue_base', total_revenue * rate);
-    set_main_value_safe(frm, 'total_working_base', total_cost * rate);
-    set_main_value_safe(frm, 'total_working_profit_base', total_profit * rate);
+    set_main_value_safe(frm, 'total_working_revenue_base', flt(total_revenue * rate, 2));
+    set_main_value_safe(frm, 'total_working_base', flt(total_cost * rate, 2));
+    set_main_value_safe(frm, 'total_working_profit_base', flt(total_profit * rate, 2));
 
     frm.refresh_fields();
 }
