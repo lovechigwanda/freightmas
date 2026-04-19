@@ -32,6 +32,12 @@
   },
   {
    "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ],
  "timeout": 0

@@ -20,6 +20,13 @@
  "ref_doctype": "Purchase Invoice",
  "report_name": "FM Accounts Payable Outstanding",
  "report_type": "Script Report",
- "roles": [],
+ "roles": [
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  }
+ ],
  "timeout": 0
 }

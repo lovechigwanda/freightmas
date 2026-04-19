@@ -31,6 +31,12 @@
   },
   {
    "role": "All"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
   }
  ]
 }

@@ -20,6 +20,13 @@
  "ref_doctype": "Trip",
  "report_name": "Trip Tracking",
  "report_type": "Script Report",
- "roles": [],
+ "roles": [
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  }
+ ],
  "timeout": 0
 }

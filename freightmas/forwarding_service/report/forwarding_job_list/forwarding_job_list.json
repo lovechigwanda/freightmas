@@ -22,10 +22,10 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Freightmas User"
+   "role": "FreightMas User"
   },
   {
-   "role": "Freightmas Manager"
+   "role": "FreightMas Manager"
   },
   {
    "role": "System Manager"

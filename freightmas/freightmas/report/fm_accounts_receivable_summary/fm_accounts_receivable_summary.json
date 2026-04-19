@@ -20,6 +20,13 @@
  "ref_doctype": "Sales Invoice",
  "report_name": "FM Accounts Receivable Summary",
  "report_type": "Script Report",
- "roles": [],
+ "roles": [
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  }
+ ],
  "timeout": 0
 }
