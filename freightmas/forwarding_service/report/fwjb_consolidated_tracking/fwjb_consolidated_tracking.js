@@ -49,10 +49,10 @@ frappe.query_reports["FWJB Consolidated Tracking"] = {
 						Export PDF
 					</a>
 					<span style="color: #ccc; margin-right: 8px;">|</span>
-					<a href="/app/forwarding-job?customer=${encodeURIComponent(data.customer)}" 
+					<a href="/app/query-report/FWJB%20Customer%20Tracking%20Jobs?customer=${encodeURIComponent(data.customer)}" 
 					   class="action-link customer-jobs-link" 
 					   style="color: #5e64ff; text-decoration: none;"
-					   title="View all jobs for this customer">
+					   title="View tracking jobs for this customer">
 						View Jobs
 					</a>
 				</span>
