@@ -38,11 +38,11 @@ def execute(filters=None):
 
 def get_columns():
     return [
-        {"label": "Job ID", "fieldname": "job_id", "fieldtype": "Link", "options": "Forwarding Job", "width": 180},
-        {"label": "BL Number", "fieldname": "bl_number", "fieldtype": "Data", "width": 200},
-        {"label": "Job Status", "fieldname": "status", "fieldtype": "Data", "width": 130},
-        {"label": "Current Tracking Comment", "fieldname": "tracking_comment", "fieldtype": "Data", "width": 450},
-        {"label": "Last Updated On", "fieldname": "last_updated_on", "fieldtype": "Data", "width": 140},
+        {"label": "Job ID", "fieldname": "job_id", "fieldtype": "Link", "options": "Forwarding Job", "width": 155},
+        {"label": "BL Number", "fieldname": "bl_number", "fieldtype": "Data", "width": 165},
+        {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 100},
+        {"label": "Current Tracking Comment", "fieldname": "tracking_comment", "fieldtype": "Data", "width": 380},
+        {"label": "Last Updated", "fieldname": "last_updated_on", "fieldtype": "Data", "width": 120},
     ]
 
 
