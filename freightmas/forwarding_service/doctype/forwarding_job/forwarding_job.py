@@ -1544,24 +1544,40 @@ def fetch_containers_from_bl(docname):
             continue
 
         matched_ct = match_container_type(ct.get("iso_code"))
+        ct_status = ct.get("status", "")
+        ct_status = ct_status.replace("_", " ").title() if ct_status else ""
+        ct_event = ct.get("latest_event_description", "")
+        ct_event_date = _extract_date(ct.get("latest_event_date"))
+        ct_location = ct.get("latest_event_port", "")
+        # Build tracking comment: "In Transit - Vessel arrival at final POD"
+        comment_parts = [p for p in [ct_status, ct_event] if p]
+        ct_comment = " - ".join(comment_parts) if comment_parts else ""
 
         if ct_number in existing_rows:
             # Update existing row
             row = existing_rows[ct_number]
             if matched_ct and not row.container_type:
                 row.container_type = matched_ct
-            row.api_container_status = ct.get("status", "")
-            row.api_last_event = ct.get("latest_event_description", "")
-            row.api_last_event_date = _extract_date(ct.get("latest_event_date"))
+            row.api_container_status = ct_status
+            row.api_last_event = ct_event
+            row.api_last_event_date = ct_event_date
+            row.tracking_comment = ct_comment
+            row.truck_location = ct_location
+            row.updated_on = now_datetime()
+            row.updated_by = "Administrator"
         else:
             # Append new row
             doc.append("cargo_parcel_details", {
                 "cargo_type": "Containerised",
                 "container_number": ct_number,
                 "container_type": matched_ct,
-                "api_container_status": ct.get("status", ""),
-                "api_last_event": ct.get("latest_event_description", ""),
-                "api_last_event_date": _extract_date(ct.get("latest_event_date")),
+                "api_container_status": ct_status,
+                "api_last_event": ct_event,
+                "api_last_event_date": ct_event_date,
+                "tracking_comment": ct_comment,
+                "truck_location": ct_location,
+                "updated_on": now_datetime(),
+                "updated_by": "Administrator",
             })
 
     # --- Find the latest event across all containers for the BL-level summary ---
