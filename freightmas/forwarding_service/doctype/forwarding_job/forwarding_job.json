@@ -810,7 +810,6 @@
    "options": "Forwarding Revenue Charges"
   },
   {
-   "collapsible": 1,
    "fieldname": "working_cost_section",
    "fieldtype": "Section Break",
    "label": "Working Cost",
