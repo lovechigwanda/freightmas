@@ -573,8 +573,14 @@ def create_sales_invoice_with_rows(docname, row_names):
     si.company = job.company
 
     try:
-        if si.meta.get_field("custom_border_clearing_job"):
-            si.custom_border_clearing_job = job.name
+        if si.meta.get_field("border_clearing_job_reference"):
+            si.border_clearing_job_reference = job.name
+    except Exception:
+        pass
+
+    try:
+        if si.meta.get_field("is_border_clearing_invoice"):
+            si.is_border_clearing_invoice = 1
     except Exception:
         pass
 
@@ -655,8 +661,14 @@ def create_purchase_invoice_with_rows(docname, row_names):
     pi.company = job.company
 
     try:
-        if pi.meta.get_field("custom_border_clearing_job"):
-            pi.custom_border_clearing_job = job.name
+        if pi.meta.get_field("border_clearing_job_reference"):
+            pi.border_clearing_job_reference = job.name
+    except Exception:
+        pass
+
+    try:
+        if pi.meta.get_field("is_border_clearing_invoice"):
+            pi.is_border_clearing_invoice = 1
     except Exception:
         pass
 

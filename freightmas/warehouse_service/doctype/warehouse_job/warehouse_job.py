@@ -535,6 +535,12 @@ def create_sales_invoice_with_rows(docname, row_names):
 			si.warehouse_job_reference = job.name
 	except Exception:
 		pass
+
+	try:
+		if si.meta.get_field("is_warehouse_invoice"):
+			si.is_warehouse_invoice = 1
+	except Exception:
+		pass
 	
 	# Generate remarks
 	handling_count = len(selected_handling)

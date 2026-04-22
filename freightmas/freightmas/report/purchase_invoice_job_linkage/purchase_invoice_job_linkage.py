@@ -35,6 +35,13 @@ JOB_TYPES = [
         "job_ref_field": "customer_reference",
     },
     {
+        "label": "Warehouse Job",
+        "is_flag": "is_warehouse_invoice",
+        "ref_field": "warehouse_job_reference",
+        "doctype": "Warehouse Job",
+        "job_ref_field": "reference_number",
+    },
+    {
         "label": "Border Clearing Job",
         "is_flag": "is_border_clearing_invoice",
         "ref_field": "border_clearing_job_reference",

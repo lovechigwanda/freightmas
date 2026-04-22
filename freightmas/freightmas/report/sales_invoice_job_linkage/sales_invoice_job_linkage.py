@@ -5,7 +5,6 @@ import frappe
 
 
 # Mapping of job types to their custom fields on Sales Invoice and reference field on the job doctype
-# Some job types use a Check flag (is_*_invoice), while Warehouse Job uses only a Link field.
 JOB_TYPES = [
     {
         "label": "Trip",
@@ -37,7 +36,7 @@ JOB_TYPES = [
     },
     {
         "label": "Warehouse Job",
-        "is_flag": None,  # No is_warehouse_invoice flag exists
+        "is_flag": "is_warehouse_invoice",
         "ref_field": "warehouse_job_reference",
         "doctype": "Warehouse Job",
         "job_ref_field": "reference_number",
