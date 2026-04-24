@@ -18,75 +18,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Freight Forwarding",
-   "link_count": 6,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Forwarding Job",
-   "link_count": 0,
-   "link_to": "Forwarding Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Master Forwarding Job",
-   "link_count": 0,
-   "link_to": "Master Forwarding Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Job Order",
-   "link_count": 0,
-   "link_to": "Job Order",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Forwarding Job Register",
-   "link_count": 0,
-   "link_to": "Forwarding Job Register Extended",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Shipment Margin Analysis",
-   "link_count": 0,
-   "link_to": "Forwarding Shipment Margin Analysis",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Forwarding Monthly Summary",
-   "link_count": 0,
-   "link_to": "Forwarding Monthly Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Trucking",
    "link_count": 5,
    "link_type": "DocType",
@@ -323,8 +254,87 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Freight Forwarding",
+   "link_count": 7,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Forwarding Job",
+   "link_count": 0,
+   "link_to": "Forwarding Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Master Forwarding Job",
+   "link_count": 0,
+   "link_to": "Master Forwarding Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Job Order",
+   "link_count": 0,
+   "link_to": "Job Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Job Register",
+   "link_count": 0,
+   "link_to": "Forwarding Job Register Extended",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Shipment Margin Analysis",
+   "link_count": 0,
+   "link_to": "Forwarding Shipment Margin Analysis",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Monthly Summary",
+   "link_count": 0,
+   "link_to": "Forwarding Monthly Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Finder",
+   "link_count": 0,
+   "link_to": "Container Finder",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "FreightMas Settings",
-   "link_count": 9,
+   "link_count": 10,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -409,16 +419,6 @@
    "onboard": 0,
    "type": "Link"
   },
-    {
-     "hidden": 0,
-     "is_query_report": 1,
-     "label": "Container Finder",
-     "link_count": 0,
-     "link_to": "Container Finder",
-     "link_type": "Report",
-     "onboard": 0,
-     "type": "Link"
-    },
   {
    "hidden": 0,
    "is_query_report": 1,
@@ -428,9 +428,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Finder",
+   "link_count": 0,
+   "link_to": "Container Finder",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-18 12:00:00.000000",
+ "modified": "2026-04-24 20:37:40.907829",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas",

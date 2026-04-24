@@ -118,7 +118,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 17,
+   "link_count": 18,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -183,16 +183,6 @@
    "onboard": 0,
    "type": "Link"
   },
-    {
-     "hidden": 0,
-     "is_query_report": 1,
-     "label": "Container Finder",
-     "link_count": 0,
-     "link_to": "Container Finder",
-     "link_type": "Report",
-     "onboard": 0,
-     "type": "Link"
-    },
   {
    "hidden": 0,
    "is_query_report": 1,
@@ -302,9 +292,19 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Monthly Summary",
+   "link_count": 0,
+   "link_to": "Forwarding Monthly Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-08 19:00:00.000000",
+ "modified": "2026-04-24 21:04:23.385156",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
