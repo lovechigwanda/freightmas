@@ -5,6 +5,7 @@ frappe.ui.form.on("Sales Invoice", {
 			"Forwarding Job",
 			"Clearing Job",
 			"Road Freight Job",
+			"Border Clearing Job",
 			"Warehouse Job",
 			"Trip Bulk Sales Invoice",
 		];
