@@ -26,6 +26,11 @@ frappe.ui.form.on('Invoice Register Entry', {
         }
 
         // ========================================
+        // COPY PURCHASE CHARGES TO FORWARDING JOB
+        // ========================================
+        add_forwarding_working_cost_button(frm);
+
+        // ========================================
         // COLOUR-CODED STATUS INDICATOR
         // ========================================
         set_status_indicator(frm);
@@ -283,6 +288,41 @@ function add_status_transition_buttons(frm) {
             }
         }, __('Actions'));
     });
+}
+
+function add_forwarding_working_cost_button(frm) {
+    const can_copy =
+        !frm.is_new() &&
+        frm.doc.entry_type === 'Purchase' &&
+        frm.doc.job_doctype === 'Forwarding Job' &&
+        frm.doc.job_name &&
+        ['Ready for Capture', 'Returned for Capture'].includes(frm.doc.status) &&
+        (frm.doc.charge_details || []).length;
+
+    if (!can_copy) return;
+
+    frm.add_custom_button(__('Copy to Forwarding Job Working Cost'), function () {
+        if (frm.is_dirty()) {
+            frappe.msgprint(__('Please save this Invoice Register Entry before copying charges.'));
+            return;
+        }
+
+        frappe.call({
+            method: 'copy_charges_to_forwarding_working_cost',
+            doc: frm.doc,
+            freeze: true,
+            freeze_message: __('Copying charges to Forwarding Job...'),
+            callback(r) {
+                if (r && !r.exc && r.message && r.message.job_name) {
+                    frm.reload_doc();
+                    frappe.confirm(
+                        __('Charges copied to Forwarding Job {0}. Open the Forwarding Job now?', [r.message.job_name]),
+                        () => frappe.set_route('Form', 'Forwarding Job', r.message.job_name)
+                    );
+                }
+            }
+        });
+    }, __('Actions'));
 }
 
 function show_status_change_dialog(frm, target_status, button_label) {

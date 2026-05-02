@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"opRept0001\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":12}}]",
+ "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"scInvReg01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":3}},{\"id\":\"scInvInst01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"cdInv01\",\"type\":\"card\",\"data\":{\"card_name\":\"Invoicing\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"opRept0001\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":12}}]",
  "creation": "2026-02-15 21:11:30.626496",
  "custom_blocks": [],
  "docstatus": 0,
@@ -817,6 +817,35 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Invoicing",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Invoice Register Entry",
+   "link_count": 0,
+   "link_to": "Invoice Register Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Invoicing Instruction",
+   "link_count": 0,
+   "link_to": "Invoicing Instruction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
  "modified": "2026-03-08 08:55:35.175326",
@@ -852,6 +881,22 @@
    "label": "Payment Entry",
    "link_to": "Payment Entry",
    "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Invoice Register Entry",
+   "link_to": "Invoice Register Entry",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Invoicing Instruction",
+   "link_to": "Invoicing Instruction",
+   "stats_filter": "[]",
    "type": "DocType"
   }
  ],

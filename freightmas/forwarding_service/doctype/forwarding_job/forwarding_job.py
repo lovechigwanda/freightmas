@@ -4,7 +4,7 @@
 import json
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate, cint
+from frappe.utils import flt, nowdate, cint, now_datetime
 from frappe import _
 from freightmas.utils.permissions import check_doc_read_permission
 
@@ -1453,17 +1453,59 @@ def create_purchase_invoice_with_rows(docname, row_names):
     pi.insert()
 
     # Mark rows as purchased
+    invoice_register_sources = []
     for row in job.get("forwarding_cost_charges", []):
         if row.name in row_names:
             row.is_purchased = 1
             row.purchase_invoice_reference = pi.name
+            if row.source_reference:
+                invoice_register_sources.append(row.source_reference)
+
+    _link_invoice_register_entries_to_purchase_invoice(invoice_register_sources, pi.name)
 
     job.save()
     return pi.name
 
-    def get_pdf_filename(self):
-        """Return custom PDF filename for Forwarding Job Cost Sheet"""
-        return f"FWJB Cost Sheet {self.name}.pdf"
+
+def _link_invoice_register_entries_to_purchase_invoice(source_references, purchase_invoice):
+    """Link originating Invoice Register Entries when copied working cost rows are invoiced."""
+    if not source_references:
+        return
+
+    charge_rows = frappe.get_all(
+        "Invoice Register Charge",
+        filters={"name": ["in", list(set(source_references))]},
+        fields=["parent"],
+    )
+    register_entries = {row.parent for row in charge_rows if row.parent}
+
+    for entry_name in register_entries:
+        entry = frappe.get_doc("Invoice Register Entry", entry_name)
+        if entry.entry_type != "Purchase":
+            continue
+        if entry.linked_purchase_invoice and entry.linked_purchase_invoice != purchase_invoice:
+            continue
+
+        old_status = entry.status
+        entry.linked_purchase_invoice = purchase_invoice
+
+        if old_status in ("Ready for Capture", "Returned for Capture"):
+            entry.append(
+                "status_log",
+                {
+                    "from_status": old_status,
+                    "to_status": "Captured",
+                    "changed_by": frappe.session.user,
+                    "changed_at": now_datetime(),
+                    "comment": _("Purchase Invoice {0} created from Forwarding Job working cost.").format(
+                        purchase_invoice
+                    ),
+                },
+            )
+            entry.status = "Captured"
+            entry.current_status_since = now_datetime()
+
+        entry.save(ignore_permissions=True)
 
 
 @frappe.whitelist()
@@ -1682,4 +1724,3 @@ def _extract_date(datetime_str):
     if not datetime_str:
         return None
     return str(datetime_str)[:10] or None
-

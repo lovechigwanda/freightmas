@@ -156,6 +156,104 @@ class InvoiceRegisterEntry(Document):
             self.total_charge_amount = flt(total, 2)
             self.amount = flt(total, 2)
 
+    @frappe.whitelist()
+    def copy_charges_to_forwarding_working_cost(self):
+        """Copy purchase register charges to the linked Forwarding Job working cost table."""
+        if self.is_new():
+            frappe.throw(_("Please save the Invoice Register Entry before copying charges."))
+
+        self = frappe.get_doc("Invoice Register Entry", self.name)
+
+        if self.entry_type != "Purchase":
+            frappe.throw(_("Only Purchase register entries can be copied to Working Cost."))
+
+        if self.job_doctype != "Forwarding Job" or not self.job_name:
+            frappe.throw(_("Please link this entry to a Forwarding Job first."))
+
+        if self.status not in ("Ready for Capture", "Returned for Capture"):
+            frappe.throw(
+                _("Charges can only be copied when status is Ready for Capture or Returned for Capture.")
+            )
+
+        if not self.get("charge_details"):
+            frappe.throw(_("No charge rows found to copy."))
+
+        job = frappe.get_doc("Forwarding Job", self.job_name)
+        job.check_permission("write")
+
+        copied_references = {
+            row.source_reference
+            for row in job.get("forwarding_cost_charges", [])
+            if row.source_reference
+        }
+
+        added = 0
+        skipped = 0
+        missing_supplier = 0
+
+        for charge_row in self.get("charge_details", []):
+            if not charge_row.charge:
+                continue
+
+            if charge_row.name in copied_references:
+                skipped += 1
+                continue
+
+            supplier = None
+            if charge_row.line_party_type == "Supplier" and charge_row.line_party:
+                supplier = charge_row.line_party
+            supplier = supplier or self.party
+
+            if not supplier:
+                missing_supplier += 1
+                continue
+
+            qty = flt(charge_row.qty) or 1.0
+            buy_rate = flt(charge_row.rate)
+            cost_amount = flt(qty * buy_rate, 2)
+
+            job.append(
+                "forwarding_cost_charges",
+                {
+                    "charge": charge_row.charge,
+                    "description": charge_row.description,
+                    "qty": qty,
+                    "buy_rate": buy_rate,
+                    "supplier": supplier,
+                    "attachment": charge_row.attachment,
+                    "cost_amount": cost_amount,
+                    "supplier_invoice_no": self.supplier_invoice_no,
+                    "supplier_invoice_date": self.supplier_invoice_date,
+                    "source_reference": charge_row.name,
+                },
+            )
+
+            copied_references.add(charge_row.name)
+            added += 1
+
+        if not added:
+            if skipped:
+                frappe.throw(_("All eligible charge rows have already been copied to the Forwarding Job."))
+            if missing_supplier:
+                frappe.throw(_("No charges were copied because a supplier is required."))
+            frappe.throw(_("No eligible charge rows found to copy."))
+
+        job.save()
+
+        message = _("{0} charge row(s) copied to Forwarding Job {1}.").format(added, job.name)
+        if skipped:
+            message += " " + _("{0} duplicate row(s) skipped.").format(skipped)
+        if missing_supplier:
+            message += " " + _("{0} row(s) skipped because supplier was missing.").format(missing_supplier)
+
+        frappe.msgprint(message, alert=True)
+        return {
+            "added": added,
+            "skipped": skipped,
+            "missing_supplier": missing_supplier,
+            "job_name": job.name,
+        }
+
 
 @frappe.whitelist()
 def job_query(doctype, txt, searchfield, start, page_len, filters):
