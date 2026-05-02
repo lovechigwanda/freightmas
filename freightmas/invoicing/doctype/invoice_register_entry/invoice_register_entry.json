@@ -1,0 +1,507 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-05-01 20:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_information_section",
+  "naming_series",
+  "company",
+  "entry_type",
+  "column_break_basic1",
+  "entry_date",
+  "status",
+  "column_break_basic2",
+  "amended_from",
+  "job_reference_section",
+  "job_doctype",
+  "bl_number_lookup",
+  "job_name",
+  "column_break_job1",
+  "job_customer",
+  "job_bl_number",
+  "column_break_job2",
+  "job_customer_reference",
+  "party_section",
+  "party_type",
+  "column_break_party1",
+  "party",
+  "charge_details_section",
+  "charge_details",
+  "charge_totals_section",
+  "total_charge_amount",
+  "financial_section",
+  "currency",
+  "conversion_rate",
+  "column_break_fin1",
+  "amount",
+  "amount_base",
+  "column_break_fin2",
+  "tax_amount",
+  "base_currency",
+  "supplier_invoice_section",
+  "supplier_invoice_no",
+  "column_break_sinv1",
+  "supplier_invoice_date",
+  "linked_documents_section",
+  "linked_invoicing_instruction",
+  "column_break_ldoc1",
+  "linked_sales_invoice",
+  "column_break_ldoc2",
+  "linked_purchase_invoice",
+  "status_tracking_section",
+  "received_on",
+  "current_status_since",
+  "column_break_strk1",
+  "assigned_to",
+  "column_break_strk2",
+  "sla_due_at",
+  "is_overdue",
+  "notes_section",
+  "notes",
+  "status_log_tab",
+  "status_log",
+  "connections_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "IVREG-.#####.-.YY.",
+   "print_hide": 1,
+   "report_hide": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "entry_type",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Entry Type",
+   "options": "\nSales\nPurchase",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_basic1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "entry_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "label": "Entry Date"
+  },
+  {
+   "columns": 2,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nReceived\nSubmitted for Approval\nReturned for Capture\nQuery with Supplier\nReady for Capture\nCaptured\nInstruction Received\nDrafted\nReturned to Draft\nIssued to Client\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_basic2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Invoice Register Entry",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "job_reference_section",
+   "fieldtype": "Section Break",
+   "label": "Job Reference"
+  },
+  {
+   "fieldname": "job_doctype",
+   "fieldtype": "Select",
+   "label": "Job Type",
+   "options": "\nForwarding Job",
+   "reqd": 1
+  },
+  {
+   "description": "Type a BL number or customer reference to find the job",
+   "fieldname": "bl_number_lookup",
+   "fieldtype": "Data",
+   "label": "Lookup by BL / Customer Reference"
+  },
+  {
+   "fieldname": "job_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Job",
+   "options": "job_doctype",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_job1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "job_name.customer",
+   "fieldname": "job_customer",
+   "fieldtype": "Link",
+   "label": "Job Customer",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "job_name.bl_number",
+   "fieldname": "job_bl_number",
+   "fieldtype": "Data",
+   "label": "BL Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_job2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "job_name.customer_reference",
+   "fieldname": "job_customer_reference",
+   "fieldtype": "Data",
+   "label": "Customer Reference",
+   "read_only": 1
+  },
+  {
+   "fieldname": "party_section",
+   "fieldtype": "Section Break",
+   "label": "Party"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "label": "Party Type",
+   "options": "\nCustomer\nSupplier",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_party1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Party",
+   "options": "party_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "charge_details_section",
+   "fieldtype": "Section Break",
+   "label": "Charge Details"
+  },
+  {
+   "fieldname": "charge_details",
+   "fieldtype": "Table",
+   "label": "Charges",
+   "options": "Invoice Register Charge"
+  },
+  {
+   "fieldname": "charge_totals_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_charge_amount",
+   "fieldtype": "Currency",
+   "label": "Total Charge Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "financial_section",
+   "fieldtype": "Section Break",
+   "label": "Financial Details"
+  },
+  {
+   "fetch_from": "job_name.currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "1.0",
+   "fetch_from": "job_name.conversion_rate",
+   "fieldname": "conversion_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate",
+   "precision": "4"
+  },
+  {
+   "fieldname": "column_break_fin1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "options": "currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "amount_base",
+   "fieldtype": "Currency",
+   "label": "Amount (Base Currency)",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_fin2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount",
+   "options": "currency",
+   "precision": "2"
+  },
+  {
+   "fetch_from": "company.default_currency",
+   "fieldname": "base_currency",
+   "fieldtype": "Read Only",
+   "label": "Base Currency"
+  },
+  {
+   "depends_on": "eval:doc.entry_type === 'Purchase'",
+   "fieldname": "supplier_invoice_section",
+   "fieldtype": "Section Break",
+   "label": "Supplier Invoice Details"
+  },
+  {
+   "fieldname": "supplier_invoice_no",
+   "fieldtype": "Data",
+   "label": "Supplier Invoice No"
+  },
+  {
+   "fieldname": "column_break_sinv1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "supplier_invoice_date",
+   "fieldtype": "Date",
+   "label": "Supplier Invoice Date"
+  },
+  {
+   "fieldname": "linked_documents_section",
+   "fieldtype": "Section Break",
+   "label": "Linked Documents"
+  },
+  {
+   "depends_on": "eval:doc.entry_type === 'Sales'",
+   "fieldname": "linked_invoicing_instruction",
+   "fieldtype": "Link",
+   "label": "Invoicing Instruction",
+   "options": "Invoicing Instruction",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ldoc1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.entry_type === 'Sales'",
+   "fieldname": "linked_sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ldoc2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.entry_type === 'Purchase'",
+   "fieldname": "linked_purchase_invoice",
+   "fieldtype": "Link",
+   "label": "Purchase Invoice",
+   "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "status_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Status Tracking"
+  },
+  {
+   "fieldname": "received_on",
+   "fieldtype": "Datetime",
+   "label": "Received On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "current_status_since",
+   "fieldtype": "Datetime",
+   "label": "Current Status Since",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_strk1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_to",
+   "fieldtype": "Link",
+   "label": "Assigned To",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_strk2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sla_due_at",
+   "fieldtype": "Datetime",
+   "label": "SLA Due At",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_overdue",
+   "fieldtype": "Check",
+   "label": "Is Overdue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Long Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "status_log_tab",
+   "fieldtype": "Tab Break",
+   "label": "Status Log"
+  },
+  {
+   "fieldname": "status_log",
+   "fieldtype": "Table",
+   "label": "Status Log",
+   "options": "Invoice Status Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Invoicing Instruction",
+   "link_fieldname": "linked_register_entry"
+  },
+  {
+   "link_doctype": "Sales Invoice",
+   "link_fieldname": "name"
+  }
+ ],
+ "modified": "2026-05-01 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Invoicing",
+ "name": "Invoice Register Entry",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Admin",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

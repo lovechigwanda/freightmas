@@ -1,0 +1,98 @@
+{
+ "app": "freightmas",
+ "charts": [],
+ "content": "[{\"id\":\"hdr_inv\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Invoicing</span>\",\"col\":12}},{\"id\":\"spc_inv1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sc_ire\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":3}},{\"id\":\"sc_ii\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":3}},{\"id\":\"spc_inv2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"card_quick\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"card_reports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2026-05-01 20:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "file",
+ "idx": 0,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Invoicing",
+ "link_type": "DocType",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Links",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Invoice Register Entry",
+   "link_count": 0,
+   "link_to": "Invoice Register Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Invoicing Instruction",
+   "link_count": 0,
+   "link_to": "Invoicing Instruction",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "FreightMas Settings",
+   "link_count": 0,
+   "link_to": "FreightMas Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  }
+ ],
+ "modified": "2026-05-01 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Invoicing",
+ "name": "Invoicing",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "FreightMas",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 50.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Invoice Register Entry",
+   "link_to": "Invoice Register Entry",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Invoicing Instruction",
+   "link_to": "Invoicing Instruction",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Invoicing",
+ "type": "Workspace"
+}

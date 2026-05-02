@@ -42,7 +42,22 @@
   "api_settings_section",
   "shipping_tracker_api_key",
   "column_break_st2",
-  "default_tracking_type"
+  "default_tracking_type",
+  "invoicing_tab",
+  "enable_invoice_register",
+  "column_break_inv1",
+  "default_bookkeeper",
+  "backup_bookkeeper",
+  "sla_settings_section",
+  "sla_supplier_invoice_routing_hours",
+  "sla_supplier_approval_hours",
+  "column_break_inv2",
+  "sla_query_resolution_days",
+  "sla_sales_invoice_turnaround_hours",
+  "closure_settings_section",
+  "sla_job_closure_days",
+  "column_break_inv3",
+  "margin_variance_threshold_pct"
  ],
  "fields": [
   {
@@ -275,12 +290,110 @@
    "fieldtype": "Select",
    "label": "Default Tracking Type",
    "options": "BL\nCT\nBK"
+  },
+  {
+   "fieldname": "invoicing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Invoicing"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_invoice_register",
+   "fieldtype": "Check",
+   "label": "Enable Invoice Register"
+  },
+  {
+   "fieldname": "column_break_inv1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "default_bookkeeper",
+   "fieldtype": "Link",
+   "label": "Default Bookkeeper",
+   "options": "User"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "backup_bookkeeper",
+   "fieldtype": "Link",
+   "label": "Backup Bookkeeper",
+   "options": "User"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "sla_settings_section",
+   "fieldtype": "Section Break",
+   "label": "SLA Settings"
+  },
+  {
+   "default": "24",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Hours allowed for routing a supplier invoice for approval",
+   "fieldname": "sla_supplier_invoice_routing_hours",
+   "fieldtype": "Int",
+   "label": "Supplier Invoice Routing (Hours)"
+  },
+  {
+   "default": "24",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Hours allowed for approving a supplier invoice",
+   "fieldname": "sla_supplier_approval_hours",
+   "fieldtype": "Int",
+   "label": "Supplier Approval (Hours)"
+  },
+  {
+   "fieldname": "column_break_inv2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "2",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Working days allowed for resolving a supplier query",
+   "fieldname": "sla_query_resolution_days",
+   "fieldtype": "Int",
+   "label": "Query Resolution (Days)"
+  },
+  {
+   "default": "3",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Hours allowed for turning around a sales invoice instruction",
+   "fieldname": "sla_sales_invoice_turnaround_hours",
+   "fieldtype": "Int",
+   "label": "Sales Invoice Turnaround (Hours)"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "closure_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Closure Settings"
+  },
+  {
+   "default": "2",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Working days allowed for closing a completed job",
+   "fieldname": "sla_job_closure_days",
+   "fieldtype": "Int",
+   "label": "Job Closure (Days)"
+  },
+  {
+   "fieldname": "column_break_inv3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "depends_on": "eval:doc.enable_invoice_register",
+   "description": "Percentage threshold for flagging margin variances on job closure",
+   "fieldname": "margin_variance_threshold_pct",
+   "fieldtype": "Float",
+   "label": "Margin Variance Threshold (%)",
+   "precision": "1"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-16 23:30:00.000000",
+ "modified": "2026-05-01 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Settings",

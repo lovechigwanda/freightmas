@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-05-01 22:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge",
+  "column_break_chrg",
+  "description",
+  "section_break_qty",
+  "qty",
+  "column_break_rate",
+  "rate",
+  "column_break_amt",
+  "line_amount",
+  "section_break_party",
+  "line_party_type",
+  "line_party",
+  "column_break_att",
+  "attachment"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "charge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Charge",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_chrg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "charge.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_qty",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Qty",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_rate",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Rate",
+   "options": "currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_amt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "line_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_party",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "line_party_type",
+   "fieldtype": "Select",
+   "label": "Party Type",
+   "options": "\nCustomer\nSupplier"
+  },
+  {
+   "columns": 2,
+   "fieldname": "line_party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Party",
+   "options": "line_party_type"
+  },
+  {
+   "fieldname": "column_break_att",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-01 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Invoicing",
+ "name": "Invoice Register Charge",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
