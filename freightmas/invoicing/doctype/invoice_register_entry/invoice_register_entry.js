@@ -19,9 +19,14 @@ frappe.ui.form.on('Invoice Register Entry', {
         update_charge_table_labels(frm);
 
         // ========================================
+        // LOCK CAPTURED / LINKED ENTRIES
+        // ========================================
+        apply_locked_entry_state(frm);
+
+        // ========================================
         // STATUS TRANSITION BUTTONS
         // ========================================
-        if (!frm.is_new() && frm.doc.status) {
+        if (!frm.is_new() && frm.doc.status && !is_invoice_register_locked(frm)) {
             add_status_transition_buttons(frm);
         }
 
@@ -216,6 +221,59 @@ function update_charge_table_labels(frm) {
     }
 }
 
+// ==========================================================
+// Lock captured / linked entries in the form UI
+// ==========================================================
+
+const LOCKED_STATUSES = new Set(['Captured', 'Issued to Client']);
+const LOCKED_FIELDS = [
+    'company',
+    'entry_type',
+    'entry_date',
+    'status',
+    'job_doctype',
+    'bl_number_lookup',
+    'job_name',
+    'party_type',
+    'party',
+    'supplier_invoice_no',
+    'supplier_invoice_date',
+    'currency',
+    'conversion_rate',
+    'amount',
+    'tax_amount',
+    'linked_purchase_invoice',
+    'linked_sales_invoice',
+    'charge_details'
+];
+
+function is_invoice_register_locked(frm) {
+    return Boolean(
+        LOCKED_STATUSES.has(frm.doc.status) ||
+        frm.doc.linked_purchase_invoice ||
+        frm.doc.linked_sales_invoice
+    );
+}
+
+function apply_locked_entry_state(frm) {
+    if (!is_invoice_register_locked(frm)) return;
+
+    LOCKED_FIELDS.forEach(fieldname => {
+        if (frm.fields_dict[fieldname]) {
+            frm.set_df_property(fieldname, 'read_only', 1);
+        }
+    });
+
+    if (frm.fields_dict.charge_details && frm.fields_dict.charge_details.grid) {
+        frm.fields_dict.charge_details.grid.wrapper.find('.grid-add-row, .grid-remove-rows').hide();
+    }
+
+    frm.dashboard.set_headline_alert(
+        __('This Invoice Register Entry is locked because it has been captured or linked to an invoice.'),
+        'orange'
+    );
+}
+
 
 // ==========================================================
 // Calculate charge table totals
@@ -293,6 +351,7 @@ function add_status_transition_buttons(frm) {
 function add_forwarding_working_cost_button(frm) {
     const can_copy =
         !frm.is_new() &&
+        !is_invoice_register_locked(frm) &&
         frm.doc.entry_type === 'Purchase' &&
         frm.doc.job_doctype === 'Forwarding Job' &&
         frm.doc.job_name &&

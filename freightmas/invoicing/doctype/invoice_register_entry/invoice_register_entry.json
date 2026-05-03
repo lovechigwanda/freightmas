@@ -2,21 +2,22 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-05-01 20:00:00.000000",
+ "creation": "2026-05-01 20:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "basic_information_section",
-  "naming_series",
-  "entry_type",
   "entry_date",
-  "column_break_basic1",
-  "company",
-  "party_type",
   "party",
-  "column_break_basic2",
+  "column_break_basic1",
+  "entry_type",
   "status",
+  "column_break_basic2",
+  "party_type",
   "amended_from",
+  "column_break_aeht",
+  "naming_series",
+  "company",
   "job_reference_section",
   "job_doctype",
   "bl_number_lookup",
@@ -34,14 +35,15 @@
   "linked_purchase_invoice",
   "financial_section",
   "currency",
-  "conversion_rate",
-  "column_break_fin1",
-  "amount",
-  "total_charge_amount",
-  "column_break_fin2",
   "tax_amount",
+  "column_break_fin1",
+  "conversion_rate",
   "amount_base",
+  "column_break_fin2",
   "base_currency",
+  "total_charge_amount",
+  "column_break_lqch",
+  "amount",
   "linked_documents_section",
   "linked_invoicing_instruction",
   "column_break_ldoc1",
@@ -49,12 +51,12 @@
   "column_break_ldoc2",
   "status_tracking_section",
   "received_on",
-  "current_status_since",
+  "sla_due_at",
   "column_break_strk1",
   "assigned_to",
-  "sla_due_at",
-  "column_break_strk2",
   "is_overdue",
+  "column_break_strk2",
+  "current_status_since",
   "charge_details_section",
   "charge_details",
   "notes_section",
@@ -262,7 +264,7 @@
   {
    "fieldname": "amount_base",
    "fieldtype": "Currency",
-   "label": "Amount (Base Currency)",
+   "label": "Amount (Base)",
    "precision": "2",
    "read_only": 1
   },
@@ -396,7 +398,7 @@
   },
   {
    "fieldname": "notes",
-   "fieldtype": "Long Text",
+   "fieldtype": "Small Text",
    "label": "Notes"
   },
   {
@@ -416,6 +418,14 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "column_break_aeht",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_lqch",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -429,7 +439,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2026-05-01 22:00:00.000000",
+ "modified": "2026-05-03 08:06:55.739216",
  "modified_by": "Administrator",
  "module": "Invoicing",
  "name": "Invoice Register Entry",

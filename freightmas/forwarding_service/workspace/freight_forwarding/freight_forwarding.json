@@ -1,7 +1,24 @@
 {
  "app": "freightmas",
- "charts": [],
- "content": "[{\"id\":\"qI87VmQ1mW\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"uUMhwrcIl2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2WOqFmEUnM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"nKcW-cqozr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job List\",\"col\":3}},{\"id\":\"_TG_SXMd2u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Master FWJob\",\"col\":3}},{\"id\":\"a68ss4rhAT\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardQuickLinks\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"cardReports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "charts": [
+  {
+   "chart_name": "Forwarding Jobs by Status",
+   "label": "Jobs by Status"
+  },
+  {
+   "chart_name": "Forwarding Monthly Revenue Trend",
+   "label": "Monthly Revenue Trend"
+  },
+  {
+   "chart_name": "Forwarding Customer Revenue",
+   "label": "Customer Revenue"
+  },
+  {
+   "chart_name": "Forwarding Sales Pipeline",
+   "label": "Sales Pipeline"
+  }
+ ],
+ "content": "[{\"id\":\"hdrFreightForwarding\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"spTopShortcuts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"scQuotation\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"scJobOrder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"scForwardingJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"scContainerFinder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Container Finder\",\"col\":3}},{\"id\":\"spNumberCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ncActiveJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"ncContainersProgress\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers In Progress\",\"col\":3}},{\"id\":\"ncContainersMoved\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers Moved\",\"col\":3}},{\"id\":\"ncCompletedJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"spCharts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"chJobsByStatus\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Jobs by Status\",\"col\":6}},{\"id\":\"chRevenueTrend\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Monthly Revenue Trend\",\"col\":6}},{\"id\":\"chCustomerRevenue\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Customer Revenue\",\"col\":6}},{\"id\":\"chSalesPipeline\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Sales Pipeline\",\"col\":6}},{\"id\":\"spCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardOperations\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cardBillingMargin\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing & Margin\",\"col\":4}},{\"id\":\"cardTrackingExceptions\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking & Exceptions\",\"col\":4}},{\"id\":\"cardReferenceData\",\"type\":\"card\",\"data\":{\"card_name\":\"Reference Data\",\"col\":4}}]",
  "creation": "2026-02-25 23:14:35.895762",
  "custom_blocks": [],
  "docstatus": 0,
@@ -18,8 +35,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Quick Links",
-   "link_count": 0,
+   "label": "Operations",
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -27,9 +44,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Forwarding Job",
+   "label": "Quotation",
    "link_count": 0,
-   "link_to": "Forwarding Job",
+   "link_to": "Quotation",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -47,9 +64,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Quotation",
+   "label": "Forwarding Job",
    "link_count": 0,
-   "link_to": "Quotation",
+   "link_to": "Forwarding Job",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -57,71 +74,22 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Port",
+   "label": "Master Forwarding Job",
    "link_count": 0,
-   "link_to": "Port",
+   "link_to": "Master Forwarding Job",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
-   "is_query_report": 0,
-   "label": "Customer",
+   "is_query_report": 1,
+   "label": "Container Finder",
    "link_count": 0,
-   "link_to": "Customer",
-   "link_type": "DocType",
+   "link_to": "Container Finder",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Supplier",
-   "link_count": 0,
-   "link_to": "Supplier",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Incoterms",
-   "link_count": 0,
-   "link_to": "Incoterm",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Banking Details",
-   "link_count": 0,
-   "link_to": "Banking Profile",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Route",
-   "link_count": 0,
-   "link_to": "Road Freight Route",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Reports",
-   "link_count": 18,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -136,82 +104,32 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Job Register",
+   "label": "Forwarding Job Register",
+   "link_count": 0,
+   "link_to": "Forwarding Job Register",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Job Register Extended",
    "link_count": 0,
    "link_to": "Forwarding Job Register Extended",
    "link_type": "Report",
    "onboard": 0,
+   "report_ref_doctype": "Forwarding Job",
    "type": "Link"
   },
   {
    "hidden": 0,
-   "is_query_report": 1,
-   "label": "Job Register Extended",
-   "link_count": 0,
-   "link_to": "Forwarding Job Register Extended",
-   "link_type": "Report",
+   "is_query_report": 0,
+   "label": "Billing & Margin",
+   "link_count": 7,
+   "link_type": "DocType",
    "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Container Tracker Imports",
-   "link_count": 0,
-   "link_to": "Container Tracker Imports",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Container Tracker Exports",
-   "link_count": 0,
-   "link_to": "Container Tracker Exports",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Container Tracker Extended",
-   "link_count": 0,
-   "link_to": "Container Tracker Imports Extended",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Consolidated Tracking",
-   "link_count": 0,
-   "link_to": "FWJB Consolidated Tracking",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Overdue Containers",
-   "link_count": 0,
-   "link_to": "Forwarding Overdue Containers",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Incoming Cargo Tracker",
-   "link_count": 0,
-   "link_to": "Forwarding Incoming Cargo Tracker",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
+   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -219,26 +137,6 @@
    "label": "Job Billing Report",
    "link_count": 0,
    "link_to": "Forwarding Job Billing Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Forwarding Job Tracking Internal",
-   "link_count": 0,
-   "link_to": "Forwarding Job Tracking Internal",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Forwarding Job Closing Report",
-   "link_count": 0,
-   "link_to": "Forwarding Job Closing Report",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -302,13 +200,188 @@
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Tracking & Exceptions",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Overdue Containers",
+   "link_count": 0,
+   "link_to": "Forwarding Overdue Containers",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Incoming Cargo Tracker",
+   "link_count": 0,
+   "link_to": "Forwarding Incoming Cargo Tracker",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Consolidated Tracking",
+   "link_count": 0,
+   "link_to": "FWJB Consolidated Tracking",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Tracker Imports",
+   "link_count": 0,
+   "link_to": "Container Tracker Imports",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Tracker Exports",
+   "link_count": 0,
+   "link_to": "Container Tracker Exports",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Container Tracker Extended",
+   "link_count": 0,
+   "link_to": "Container Tracker Imports Extended",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Job Tracking Internal",
+   "link_count": 0,
+   "link_to": "Forwarding Job Tracking Internal",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Forwarding Job Closing Report",
+   "link_count": 0,
+   "link_to": "Forwarding Job Closing Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reference Data",
+   "link_count": 6,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Port",
+   "link_count": 0,
+   "link_to": "Port",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Supplier",
+   "link_count": 0,
+   "link_to": "Supplier",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Incoterms",
+   "link_count": 0,
+   "link_to": "Incoterm",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Banking Details",
+   "link_count": 0,
+   "link_to": "Banking Profile",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Route",
+   "link_count": 0,
+   "link_to": "Road Freight Route",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-04-24 21:04:23.385156",
+ "modified": "2026-05-02 20:30:00.000000",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Active Jobs",
+   "number_card_name": "Active Jobs"
+  },
+  {
+   "label": "Containers In Progress",
+   "number_card_name": "Containers In Progress"
+  },
+  {
+   "label": "Containers Moved",
+   "number_card_name": "Containers Moved"
+  },
+  {
+   "label": "Completed Jobs",
+   "number_card_name": "Completed Jobs"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "FreightMas",
  "public": 1,
@@ -317,7 +390,23 @@
  "sequence_id": 42.0,
  "shortcuts": [
   {
-   "color": "Grey",
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Quotation",
+   "link_to": "Quotation",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Job Order",
+   "link_to": "Job Order",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
    "doc_view": "List",
    "label": "Forwarding Job",
    "link_to": "Forwarding Job",
@@ -325,18 +414,9 @@
    "type": "DocType"
   },
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Master FWJob",
-   "link_to": "Master Forwarding Job",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Forwarding Job List",
-   "link_to": "Forwarding Job List",
+   "color": "Cyan",
+   "label": "Container Finder",
+   "link_to": "Container Finder",
    "report_ref_doctype": "Forwarding Job",
    "type": "Report"
   }

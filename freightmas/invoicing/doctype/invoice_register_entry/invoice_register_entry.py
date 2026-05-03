@@ -35,6 +35,51 @@ COMMENT_REQUIRED_STATES = {"Query with Supplier", "Returned to Draft", "Cancelle
 # Terminal states — no further transitions allowed
 TERMINAL_STATES = {"Captured", "Issued to Client", "Cancelled"}
 
+LOCKED_STATUSES = {"Captured", "Issued to Client"}
+
+LOCKED_PARENT_FIELDS = {
+    "company": "Company",
+    "entry_type": "Entry Type",
+    "entry_date": "Entry Date",
+    "status": "Status",
+    "job_doctype": "Job Type",
+    "job_name": "Job",
+    "party_type": "Party Type",
+    "party": "Party",
+    "currency": "Currency",
+    "conversion_rate": "Exchange Rate",
+    "amount": "Amount",
+    "amount_base": "Amount (Base Currency)",
+    "tax_amount": "Tax Amount",
+    "base_currency": "Base Currency",
+    "total_charge_amount": "Total Charge Amount",
+    "supplier_invoice_no": "Supplier Invoice No",
+    "supplier_invoice_date": "Supplier Invoice Date",
+    "linked_purchase_invoice": "Purchase Invoice",
+    "linked_sales_invoice": "Sales Invoice",
+}
+
+LOCKED_CHILD_FIELDS = (
+    "charge",
+    "description",
+    "qty",
+    "rate",
+    "line_amount",
+    "line_party_type",
+    "line_party",
+    "attachment",
+)
+
+NUMERIC_LOCKED_FIELDS = {
+    "conversion_rate",
+    "amount",
+    "amount_base",
+    "tax_amount",
+    "total_charge_amount",
+}
+
+NUMERIC_CHILD_FIELDS = {"qty", "rate", "line_amount"}
+
 
 class InvoiceRegisterEntry(Document):
 
@@ -44,6 +89,12 @@ class InvoiceRegisterEntry(Document):
         self.calculate_charge_totals()
         self.compute_base_amount()
         self.validate_job_reference()
+        self.validate_locked_entry()
+
+    def on_trash(self):
+        """Prevent deletion after the entry has produced an actual invoice."""
+        if self.is_locked():
+            frappe.throw(self.get_locked_message(), title=_("Invoice Register Entry Locked"))
 
     def before_insert(self):
         """Set initial status and timestamps on creation."""
@@ -82,6 +133,89 @@ class InvoiceRegisterEntry(Document):
                 self.company = frappe.db.get_value(
                     self.job_doctype, self.job_name, "company"
                 )
+
+    def is_locked(self):
+        """Return true when the register entry should no longer be edited."""
+        return (
+            self.status in LOCKED_STATUSES
+            or bool(self.linked_purchase_invoice)
+            or bool(self.linked_sales_invoice)
+        )
+
+    def get_locked_message(self):
+        """Build a clear reason for the lock."""
+        if self.linked_purchase_invoice:
+            return _(
+                "Invoice Register Entry {0} is locked because Purchase Invoice {1} has already been raised."
+            ).format(self.name, frappe.bold(self.linked_purchase_invoice))
+        if self.linked_sales_invoice:
+            return _(
+                "Invoice Register Entry {0} is locked because Sales Invoice {1} has already been raised."
+            ).format(self.name, frappe.bold(self.linked_sales_invoice))
+        return _("Invoice Register Entry {0} is locked because its status is {1}.").format(
+            self.name, frappe.bold(self.status)
+        )
+
+    def validate_locked_entry(self):
+        """
+        Freeze business fields once the saved entry is already captured or linked.
+
+        The transition into a locked state is allowed; edits after that point are blocked.
+        """
+        if self.is_new():
+            return
+
+        original = self.get_doc_before_save()
+        if not original or not original.is_locked():
+            return
+
+        changed_fields = []
+        for fieldname, label in LOCKED_PARENT_FIELDS.items():
+            if self.has_locked_field_changed(original, fieldname):
+                changed_fields.append(label)
+
+        if self.has_charge_details_changed(original):
+            changed_fields.append(_("Charges"))
+
+        if changed_fields:
+            frappe.throw(
+                _("{0}<br><br>The following field(s) cannot be changed after capture: {1}").format(
+                    self.get_locked_message(), ", ".join(changed_fields)
+                ),
+                title=_("Invoice Register Entry Locked"),
+            )
+
+    def has_locked_field_changed(self, original, fieldname):
+        """Compare locked parent fields with currency/float tolerance."""
+        current_value = self.get(fieldname)
+        original_value = original.get(fieldname)
+
+        if fieldname in NUMERIC_LOCKED_FIELDS:
+            return flt(current_value) != flt(original_value)
+
+        return (current_value or "") != (original_value or "")
+
+    def has_charge_details_changed(self, original):
+        """Detect add/remove/edit/reorder in charge rows."""
+        return self.get_locked_charge_snapshot(self) != self.get_locked_charge_snapshot(original)
+
+    def get_locked_charge_snapshot(self, doc):
+        """Create a comparable representation of charge rows."""
+        snapshot = []
+        for row in doc.get("charge_details", []):
+            row_data = {
+                "name": row.name,
+                "idx": row.idx,
+            }
+            for fieldname in LOCKED_CHILD_FIELDS:
+                value = row.get(fieldname)
+                if fieldname in NUMERIC_CHILD_FIELDS:
+                    value = flt(value)
+                else:
+                    value = value or ""
+                row_data[fieldname] = value
+            snapshot.append(row_data)
+        return snapshot
 
     def get_valid_transitions(self):
         """Return the list of valid next states from the current status."""
