@@ -153,6 +153,7 @@ after_install = "freightmas.install.after_install"
 scheduler_events = {
 	"daily": [
 		"freightmas.scheduler.quotation.expire_quotations",
+		"freightmas.invoicing.doctype.invoice_register_entry.invoice_register_entry.update_overdue_entries",
 	],
 	"cron": {
 		"0 6 * * *": [

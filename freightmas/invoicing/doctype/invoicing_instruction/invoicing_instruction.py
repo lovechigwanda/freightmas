@@ -10,18 +10,18 @@ from frappe import _
 class InvoicingInstruction(Document):
 
     def validate(self):
-        """Validate document before saving."""
         self.calculate_totals()
 
     def on_submit(self):
         """
         On submit:
-        1. Set status to Submitted
-        2. Create an Invoice Register Entry with status = Instruction Received
+        1. Set status to Submitted.
+        2. Create a Sales Invoice Register Entry (status = Instruction Received).
+        3. Copy line items into the register entry's charge_details for a full breakdown.
+        4. Link both documents back to each other.
         """
         self.db_set("status", "Submitted")
 
-        # Create the corresponding Register Entry
         register_entry = frappe.get_doc({
             "doctype": "Invoice Register Entry",
             "entry_type": "Sales",
@@ -37,16 +37,29 @@ class InvoicingInstruction(Document):
             "notes": self.notes or "",
         })
 
-        # Fetch conversion_rate from the Job
         conversion_rate = frappe.db.get_value(
             "Forwarding Job", self.forwarding_job, "conversion_rate"
         )
         if conversion_rate:
             register_entry.conversion_rate = flt(conversion_rate)
 
+        # Issue 9 fix: copy line items as charge_details so the register entry
+        # carries a full line-item breakdown, not just the header total.
+        for item in self.get("line_items", []):
+            if not item.charge:
+                continue
+            register_entry.append("charge_details", {
+                "charge": item.charge,
+                "description": item.description,
+                "qty": flt(item.qty) or 1,
+                "rate": flt(item.sell_rate),
+                "line_amount": flt(item.amount),
+                "line_party_type": "Customer",
+                "line_party": item.customer or self.customer,
+            })
+
         register_entry.insert(ignore_permissions=True)
 
-        # Link back
         self.db_set("linked_register_entry", register_entry.name)
 
         frappe.msgprint(
@@ -59,18 +72,64 @@ class InvoicingInstruction(Document):
         )
 
     def on_cancel(self):
-        """On cancel: set status to Cancelled."""
+        """
+        On cancel:
+        1. Mark this instruction as Cancelled.
+        2. If the linked register entry is still at its initial state, cancel it
+           too using direct db_set calls — avoids triggering the full save/validate
+           chain inside an ongoing cancel hook.
+        """
         self.db_set("status", "Cancelled")
 
-        # If a register entry was created but not yet actioned, cancel it too
-        if self.linked_register_entry:
-            entry = frappe.get_doc("Invoice Register Entry", self.linked_register_entry)
-            if entry.status == "Instruction Received":
-                entry.change_status("Cancelled", comment="Invoicing Instruction cancelled")
+        if not self.linked_register_entry:
+            return
+
+        entry_status = frappe.db.get_value(
+            "Invoice Register Entry", self.linked_register_entry, "status"
+        )
+        if entry_status != "Instruction Received":
+            return
+
+        # Issue 6 fix: use db_set instead of entry.change_status() → entry.save()
+        # to avoid running the full validate chain inside a cancel hook.
+        frappe.db.set_value(
+            "Invoice Register Entry",
+            self.linked_register_entry,
+            {
+                "status": "Cancelled",
+                "current_status_since": now_datetime(),
+                "is_overdue": 0,
+                "sla_due_at": None,
+            },
+        )
+
+        frappe.msgprint(
+            _("Invoice Register Entry {0} also cancelled.").format(
+                frappe.utils.get_link_to_form(
+                    "Invoice Register Entry", self.linked_register_entry
+                )
+            ),
+            alert=True,
+        )
+
+    def mark_as_actioned(self, sales_invoice):
+        """
+        Mark this instruction as Actioned once the Sales Invoice has been raised.
+
+        Called by InvoiceRegisterEntry.notify_instruction_on_invoice_link() when
+        linked_sales_invoice is first populated on the associated register entry.
+        Uses db_set to avoid triggering submit/amend validation on an already-submitted doc.
+        """
+        self.db_set({
+            "status": "Actioned",
+            "linked_sales_invoice": sales_invoice,
+            "actioned_by": frappe.session.user,
+            "actioned_on": now_datetime(),
+        })
 
     def calculate_totals(self):
         """Calculate total amount and item count from line items."""
-        total = 0
+        total = 0.0
         count = 0
         for item in self.get("line_items", []):
             qty = flt(item.qty) or 1
@@ -97,14 +156,13 @@ class InvoicingInstruction(Document):
         job = frappe.get_doc("Forwarding Job", self.forwarding_job)
         added = 0
 
-        # Track already-added source rows
-        existing_sources = set()
-        for item in self.get("line_items", []):
-            if item.source_charge_row:
-                existing_sources.add(item.source_charge_row)
+        existing_sources = {
+            item.source_charge_row
+            for item in self.get("line_items", [])
+            if item.source_charge_row
+        }
 
         for charge in job.get("forwarding_revenue_charges", []):
-            # Skip already invoiced or already added
             if charge.is_invoiced or charge.sales_invoice_reference:
                 continue
             if charge.name in existing_sources:

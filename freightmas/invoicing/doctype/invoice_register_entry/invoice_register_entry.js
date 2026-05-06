@@ -3,48 +3,21 @@
 
 frappe.ui.form.on('Invoice Register Entry', {
     refresh(frm) {
-        // ========================================
-        // DYNAMIC FIELD VISIBILITY
-        // ========================================
         toggle_entry_type_fields(frm);
-
-        // ========================================
-        // JOB SEARCH BY BL / CUSTOMER REFERENCE
-        // ========================================
         setup_job_search_query(frm);
-
-        // ========================================
-        // CHARGE TABLE LABELS
-        // ========================================
         update_charge_table_labels(frm);
-
-        // ========================================
-        // LOCK CAPTURED / LINKED ENTRIES
-        // ========================================
         apply_locked_entry_state(frm);
 
-        // ========================================
-        // STATUS TRANSITION BUTTONS
-        // ========================================
         if (!frm.is_new() && frm.doc.status && !is_invoice_register_locked(frm)) {
             add_status_transition_buttons(frm);
         }
 
-        // ========================================
-        // COPY PURCHASE CHARGES TO FORWARDING JOB
-        // ========================================
         add_forwarding_working_cost_button(frm);
-
-        // ========================================
-        // COLOUR-CODED STATUS INDICATOR
-        // ========================================
         set_status_indicator(frm);
     },
 
     entry_type(frm) {
         toggle_entry_type_fields(frm);
-
-        // Auto-set party_type
         if (frm.doc.entry_type === 'Sales') {
             frm.set_value('party_type', 'Customer');
         } else if (frm.doc.entry_type === 'Purchase') {
@@ -61,7 +34,6 @@ frappe.ui.form.on('Invoice Register Entry', {
     },
 
     job_name(frm) {
-        // When job is selected, auto-fetch party for Sales entries
         if (frm.doc.entry_type === 'Sales' && frm.doc.job_name && frm.doc.job_doctype) {
             frappe.db.get_value(frm.doc.job_doctype, frm.doc.job_name, 'customer', (r) => {
                 if (r && r.customer) {
@@ -69,14 +41,12 @@ frappe.ui.form.on('Invoice Register Entry', {
                 }
             });
         }
-        // Clear the lookup field after job is selected
         if (frm.doc.job_name && frm.doc.bl_number_lookup) {
             frm.set_value('bl_number_lookup', '');
         }
     },
 
     bl_number_lookup(frm) {
-        // When user types a BL number, search for matching Forwarding Jobs
         const lookup = frm.doc.bl_number_lookup;
         if (!lookup || lookup.length < 3) return;
 
@@ -84,9 +54,7 @@ frappe.ui.form.on('Invoice Register Entry', {
             method: 'frappe.client.get_list',
             args: {
                 doctype: 'Forwarding Job',
-                filters: {
-                    docstatus: ['<', 2]
-                },
+                filters: { docstatus: ['<', 2] },
                 or_filters: [
                     ['customer_reference', 'like', '%' + lookup + '%'],
                     ['bl_number', 'like', '%' + lookup + '%']
@@ -96,7 +64,6 @@ frappe.ui.form.on('Invoice Register Entry', {
             },
             callback(r) {
                 if (r.message && r.message.length === 1) {
-                    // Exact match — auto-populate
                     frm.set_value('job_doctype', 'Forwarding Job');
                     frm.set_value('job_name', r.message[0].name);
                     frappe.show_alert({
@@ -104,7 +71,6 @@ frappe.ui.form.on('Invoice Register Entry', {
                         indicator: 'green'
                     });
                 } else if (r.message && r.message.length > 1) {
-                    // Multiple matches — show selection dialog
                     show_job_selection_dialog(frm, r.message);
                 } else {
                     frappe.show_alert({
@@ -126,10 +92,8 @@ function toggle_entry_type_fields(frm) {
     const is_purchase = frm.doc.entry_type === 'Purchase';
     const is_sales = frm.doc.entry_type === 'Sales';
 
-    // Supplier invoice section only for Purchase
     frm.toggle_display('supplier_invoice_section', is_purchase);
 
-    // Party type label
     if (is_sales) {
         frm.set_df_property('party', 'label', 'Customer');
     } else if (is_purchase) {
@@ -159,14 +123,9 @@ function setup_job_search_query(frm) {
 // ==========================================================
 
 function show_job_selection_dialog(frm, jobs) {
-    const fields = [{
-        fieldtype: 'HTML',
-        fieldname: 'job_list_html'
-    }];
-
     const d = new frappe.ui.Dialog({
         title: __('Multiple Jobs Found'),
-        fields: fields,
+        fields: [{ fieldtype: 'HTML', fieldname: 'job_list_html' }],
         size: 'large'
     });
 
@@ -174,11 +133,11 @@ function show_job_selection_dialog(frm, jobs) {
     html += '<thead><tr><th>Job ID</th><th>Customer</th><th>Customer Reference</th><th>BL Number</th><th></th></tr></thead><tbody>';
     jobs.forEach(job => {
         html += `<tr>
-            <td>${job.name}</td>
-            <td>${job.customer || ''}</td>
-            <td>${job.customer_reference || ''}</td>
-            <td>${job.bl_number || ''}</td>
-            <td><button class="btn btn-xs btn-primary select-job" data-job="${job.name}">Select</button></td>
+            <td>${frappe.utils.escape_html(job.name)}</td>
+            <td>${frappe.utils.escape_html(job.customer || '')}</td>
+            <td>${frappe.utils.escape_html(job.customer_reference || '')}</td>
+            <td>${frappe.utils.escape_html(job.bl_number || '')}</td>
+            <td><button class="btn btn-xs btn-primary select-job" data-job="${frappe.utils.escape_html(job.name)}">Select</button></td>
         </tr>`;
     });
     html += '</tbody></table>';
@@ -221,30 +180,18 @@ function update_charge_table_labels(frm) {
     }
 }
 
+
 // ==========================================================
-// Lock captured / linked entries in the form UI
+// Lock captured / linked entries
 // ==========================================================
 
 const LOCKED_STATUSES = new Set(['Captured', 'Issued to Client']);
 const LOCKED_FIELDS = [
-    'company',
-    'entry_type',
-    'entry_date',
-    'status',
-    'job_doctype',
-    'bl_number_lookup',
-    'job_name',
-    'party_type',
-    'party',
-    'supplier_invoice_no',
-    'supplier_invoice_date',
-    'currency',
-    'conversion_rate',
-    'amount',
-    'tax_amount',
-    'linked_purchase_invoice',
-    'linked_sales_invoice',
-    'charge_details'
+    'company', 'entry_type', 'entry_date', 'status', 'job_doctype',
+    'bl_number_lookup', 'job_name', 'party_type', 'party',
+    'supplier_invoice_no', 'supplier_invoice_date', 'currency',
+    'conversion_rate', 'amount', 'tax_amount',
+    'linked_purchase_invoice', 'linked_sales_invoice', 'charge_details'
 ];
 
 function is_invoice_register_locked(frm) {
@@ -276,17 +223,21 @@ function apply_locked_entry_state(frm) {
 
 
 // ==========================================================
-// Calculate charge table totals
+// Charge table totals
 // ==========================================================
 
 function calculate_charge_totals(frm) {
+    const rows = frm.doc.charge_details || [];
     let total = 0;
-    (frm.doc.charge_details || []).forEach(row => {
+    rows.forEach(row => {
         total += flt(row.line_amount);
     });
     frm.set_value('total_charge_amount', flt(total, 2));
-    // Also update the header amount field to match
-    frm.set_value('amount', flt(total, 2));
+    // Only drive amount from the table when rows exist;
+    // otherwise preserve any manually entered value.
+    if (rows.length) {
+        frm.set_value('amount', flt(total, 2));
+    }
 }
 
 
@@ -295,13 +246,15 @@ function calculate_charge_totals(frm) {
 // ==========================================================
 
 const STATUS_BUTTON_MAP = {
-    // Purchase states
+    // --- Purchase ---
     'Received': [
         { label: 'Submit for Approval', target: 'Submitted for Approval', color: 'primary' },
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
     ],
+    // Issue 11 fix: three distinct approval paths, clearly named
     'Submitted for Approval': [
-        { label: 'Approve & Return for Capture', target: 'Returned for Capture', color: 'primary' },
+        { label: 'Approve — No Corrections Needed', target: 'Ready for Capture', color: 'success' },
+        { label: 'Approve with Corrections Needed', target: 'Returned for Capture', color: 'primary' },
         { label: 'Query with Supplier', target: 'Query with Supplier', color: 'warning' }
     ],
     'Query with Supplier': [
@@ -315,7 +268,7 @@ const STATUS_BUTTON_MAP = {
         { label: 'Mark as Captured', target: 'Captured', color: 'success' }
     ],
 
-    // Sales states
+    // --- Sales ---
     'Instruction Received': [
         { label: 'Mark as Drafted', target: 'Drafted', color: 'primary' },
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
@@ -329,19 +282,15 @@ const STATUS_BUTTON_MAP = {
     ]
 };
 
-// States requiring a comment
 const COMMENT_REQUIRED = new Set(['Query with Supplier', 'Returned to Draft', 'Cancelled']);
 
 function add_status_transition_buttons(frm) {
     const buttons = STATUS_BUTTON_MAP[frm.doc.status] || [];
-
     buttons.forEach(btn => {
         frm.add_custom_button(__(btn.label), function () {
             if (COMMENT_REQUIRED.has(btn.target)) {
-                // Show dialog for comment
                 show_status_change_dialog(frm, btn.target, btn.label);
             } else {
-                // Direct transition
                 execute_status_change(frm, btn.target);
             }
         }, __('Actions'));
@@ -365,7 +314,6 @@ function add_forwarding_working_cost_button(frm) {
             frappe.msgprint(__('Please save this Invoice Register Entry before copying charges.'));
             return;
         }
-
         frappe.call({
             method: 'copy_charges_to_forwarding_working_cost',
             doc: frm.doc,
@@ -387,15 +335,13 @@ function add_forwarding_working_cost_button(frm) {
 function show_status_change_dialog(frm, target_status, button_label) {
     const d = new frappe.ui.Dialog({
         title: __(button_label),
-        fields: [
-            {
-                label: __('Comment'),
-                fieldname: 'comment',
-                fieldtype: 'Small Text',
-                reqd: 1,
-                description: __('Please provide a reason for this status change')
-            }
-        ],
+        fields: [{
+            label: __('Comment'),
+            fieldname: 'comment',
+            fieldtype: 'Small Text',
+            reqd: 1,
+            description: __('Please provide a reason for this status change')
+        }],
         primary_action_label: __(button_label),
         primary_action(values) {
             d.hide();
@@ -409,10 +355,7 @@ function execute_status_change(frm, target_status, comment) {
     frappe.call({
         method: 'change_status',
         doc: frm.doc,
-        args: {
-            new_status: target_status,
-            comment: comment || ''
-        },
+        args: { new_status: target_status, comment: comment || '' },
         freeze: true,
         freeze_message: __('Updating status...'),
         callback(r) {

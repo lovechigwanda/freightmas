@@ -31,8 +31,6 @@
   "supplier_invoice_no",
   "column_break_sinv1",
   "supplier_invoice_date",
-  "column_break_sinv2",
-  "linked_purchase_invoice",
   "financial_section",
   "currency",
   "tax_amount",
@@ -49,6 +47,7 @@
   "column_break_ldoc1",
   "linked_sales_invoice",
   "column_break_ldoc2",
+  "linked_purchase_invoice",
   "status_tracking_section",
   "received_on",
   "sla_due_at",
@@ -306,10 +305,6 @@
    "label": "Supplier Invoice Date"
   },
   {
-   "fieldname": "column_break_sinv2",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "linked_documents_section",
    "fieldtype": "Section Break",
    "label": "Linked Documents"
@@ -439,7 +434,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2026-05-03 08:06:55.739216",
+ "modified": "2026-05-06 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Invoicing",
  "name": "Invoice Register Entry",
