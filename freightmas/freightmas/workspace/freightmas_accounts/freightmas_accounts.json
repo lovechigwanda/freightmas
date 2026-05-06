@@ -483,7 +483,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General Ledger",
-   "link_count": 5,
+   "link_count": 12,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -494,6 +494,76 @@
    "label": "Cashbook Report",
    "link_count": 0,
    "link_to": "Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Reconciliation",
+   "link_count": 0,
+   "link_to": "Cash Reconciliation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Cash Reconciliation Summary",
+   "link_count": 0,
+   "link_to": "Daily Cash Reconciliation Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Cashier",
+   "link_count": 0,
+   "link_to": "Cash Differences by Cashier",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Branch",
+   "link_count": 0,
+   "link_to": "Cash Differences by Branch",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unapproved Cash Reconciliations",
+   "link_count": 0,
+   "link_to": "Unapproved Cash Reconciliations",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Account Ledger vs Reconciled Balance",
+   "link_count": 0,
+   "link_to": "Cash Account Ledger vs Reconciled Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Reconciliation History per Cash Account",
+   "link_count": 0,
+   "link_to": "Reconciliation History per Cash Account",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
