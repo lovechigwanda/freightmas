@@ -40,6 +40,16 @@ frappe.ui.form.on("Cash Reconciliation", {
 			frm.set_value("fetched_on", null);
 			frm.trigger("calculate_difference");
 		}
+		frm.set_value("period_from", null);
+		frm.set_value("period_to", null);
+		frm.set_value("period_receipts", null);
+		frm.set_value("period_payments", null);
+		frm.set_value("period_net_flow", null);
+		frm.trigger("fetch_period_flow");
+	},
+
+	period_type(frm) {
+		frm.trigger("fetch_period_flow");
 	},
 
 	physical_cash_balance(frm) {
@@ -68,6 +78,29 @@ frappe.ui.form.on("Cash Reconciliation", {
 					frm.set_value("ledger_balance", r.message);
 					frm.set_value("fetched_on", frappe.datetime.now_datetime());
 					frm.trigger("calculate_difference");
+					frm.trigger("fetch_period_flow");
+				}
+			},
+		});
+	},
+
+	fetch_period_flow(frm) {
+		if (!frm.doc.company || !frm.doc.cash_account || !frm.doc.posting_date) return;
+		frappe.call({
+			method: "freightmas.freightmas.doctype.cash_reconciliation.cash_reconciliation.get_period_flow",
+			args: {
+				company: frm.doc.company,
+				cash_account: frm.doc.cash_account,
+				posting_date: frm.doc.posting_date,
+				period_type: frm.doc.period_type || "Day",
+			},
+			callback(r) {
+				if (r.message) {
+					frm.set_value("period_from", r.message.period_from);
+					frm.set_value("period_to", r.message.period_to);
+					frm.set_value("period_receipts", r.message.period_receipts);
+					frm.set_value("period_payments", r.message.period_payments);
+					frm.set_value("period_net_flow", r.message.period_net_flow);
 				}
 			},
 		});

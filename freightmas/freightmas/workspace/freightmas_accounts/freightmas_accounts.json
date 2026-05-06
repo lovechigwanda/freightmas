@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"scInvReg01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":3}},{\"id\":\"scInvInst01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"cdInv01\",\"type\":\"card\",\"data\":{\"card_name\":\"Invoicing\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"opRept0001\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":12}}]",
+ "content": "[{\"id\":\"RdY_MnWI3o\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">FreightMas Accounts</span>\",\"col\":12}},{\"id\":\"ypHN0ABo9L\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BFkzSnpzme\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"A25XW6lbNv\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"scInvReg01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":3}},{\"id\":\"scInvInst01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":3}},{\"id\":\"ZQ1kwSzycM\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8bM2GTYzG_\",\"type\":\"card\",\"data\":{\"card_name\":\"Receivables\",\"col\":4}},{\"id\":\"AN331D-h1Z\",\"type\":\"card\",\"data\":{\"card_name\":\"Payables\",\"col\":4}},{\"id\":\"cdInv01\",\"type\":\"card\",\"data\":{\"card_name\":\"Invoicing\",\"col\":4}},{\"id\":\"IQPiVSS7G2\",\"type\":\"card\",\"data\":{\"card_name\":\"General Ledger\",\"col\":4}},{\"id\":\"h0yWPQ7iyV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"TPXM-uNIDZ\",\"type\":\"card\",\"data\":{\"card_name\":\"Financial Reports\",\"col\":4}},{\"id\":\"cc1aBudget\",\"type\":\"card\",\"data\":{\"card_name\":\"Cost Center & Budgeting\",\"col\":4}},{\"id\":\"IVWuzy17-V\",\"type\":\"card\",\"data\":{\"card_name\":\"Management Accounts\",\"col\":4}},{\"id\":\"cc2aAssets\",\"type\":\"card\",\"data\":{\"card_name\":\"Assets\",\"col\":4}},{\"id\":\"cc5aMaster\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting Masters\",\"col\":4}},{\"id\":\"crCashRec01\",\"type\":\"card\",\"data\":{\"card_name\":\"Cash Reconciliation\",\"col\":4}},{\"id\":\"sp3Taxes01\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sp4OpenBnk\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"opRept0001\",\"type\":\"card\",\"data\":{\"card_name\":\"Operational Reports\",\"col\":12}}]",
  "creation": "2026-02-15 21:11:30.626496",
  "custom_blocks": [],
  "docstatus": 0,
@@ -483,90 +483,10 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General Ledger",
-   "link_count": 12,
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cashbook Report",
-   "link_count": 0,
-   "link_to": "Cashbook Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Cash Reconciliation",
-   "link_count": 0,
-   "link_to": "Cash Reconciliation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Daily Cash Reconciliation Summary",
-   "link_count": 0,
-   "link_to": "Daily Cash Reconciliation Summary",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash Differences by Cashier",
-   "link_count": 0,
-   "link_to": "Cash Differences by Cashier",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash Differences by Branch",
-   "link_count": 0,
-   "link_to": "Cash Differences by Branch",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Unapproved Cash Reconciliations",
-   "link_count": 0,
-   "link_to": "Unapproved Cash Reconciliations",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash Account Ledger vs Reconciled Balance",
-   "link_count": 0,
-   "link_to": "Cash Account Ledger vs Reconciled Balance",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Reconciliation History per Cash Account",
-   "link_count": 0,
-   "link_to": "Reconciliation History per Cash Account",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -612,7 +532,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Management Accounts",
-   "link_count": 10,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -649,16 +569,6 @@
   },
   {
    "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash and Bank Balance Report",
-   "link_count": 0,
-   "link_to": "Cash and Bank Balance Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
    "is_query_report": 0,
    "label": "Profit and Loss by Cost Center",
    "link_count": 0,
@@ -666,16 +576,6 @@
    "link_type": "Report",
    "onboard": 0,
    "report_ref_doctype": "GL Entry",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cash and Bank Transactions",
-   "link_count": 0,
-   "link_to": "Cash and Bank Transactions",
-   "link_type": "Report",
-   "onboard": 0,
    "type": "Link"
   },
   {
@@ -914,6 +814,115 @@
    "link_count": 0,
    "link_to": "Invoicing Instruction",
    "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Reconciliation",
+   "link_count": 10,
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Reconciliation",
+   "link_count": 0,
+   "link_to": "Cash Reconciliation",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cashbook Report",
+   "link_count": 0,
+   "link_to": "Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Cash Reconciliation Summary",
+   "link_count": 0,
+   "link_to": "Daily Cash Reconciliation Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Cashier",
+   "link_count": 0,
+   "link_to": "Cash Differences by Cashier",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Branch",
+   "link_count": 0,
+   "link_to": "Cash Differences by Branch",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unapproved Cash Reconciliations",
+   "link_count": 0,
+   "link_to": "Unapproved Cash Reconciliations",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Account Ledger vs Reconciled Balance",
+   "link_count": 0,
+   "link_to": "Cash Account Ledger vs Reconciled Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Reconciliation History per Cash Account",
+   "link_count": 0,
+   "link_to": "Reconciliation History per Cash Account",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash and Bank Balance Report",
+   "link_count": 0,
+   "link_to": "Cash and Bank Balance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash and Bank Transactions",
+   "link_count": 0,
+   "link_to": "Cash and Bank Transactions",
+   "link_type": "Report",
    "onboard": 0,
    "type": "Link"
   }

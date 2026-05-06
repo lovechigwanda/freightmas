@@ -10,23 +10,32 @@
   "reconciliation_details_section",
   "company",
   "branch",
-  "cashier",
-  "column_break_1",
-  "cash_account",
   "posting_date",
   "posting_time",
-  "balances_section",
+  "column_break_1",
+  "cash_account",
+  "cashier",
   "company_currency",
+  "balances_section",
   "ledger_balance",
   "fetched_on",
   "column_break_2",
   "physical_cash_balance",
   "difference",
   "reconciliation_status",
+  "period_analysis_section",
+  "period_type",
+  "period_from",
+  "period_to",
+  "column_break_period",
+  "period_receipts",
+  "period_payments",
+  "period_net_flow",
   "remarks_section",
   "remarks",
   "approval_section",
   "approved_by",
+  "column_break_approval",
   "approved_on"
  ],
  "fields": [
@@ -153,6 +162,55 @@
    "read_only": 1
   },
   {
+   "fieldname": "period_analysis_section",
+   "fieldtype": "Section Break",
+   "label": "Period Flow Analysis"
+  },
+  {
+   "default": "Day",
+   "fieldname": "period_type",
+   "fieldtype": "Select",
+   "label": "Period Type",
+   "options": "Day\nWeek\nMonth"
+  },
+  {
+   "fieldname": "period_from",
+   "fieldtype": "Date",
+   "label": "Period From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_to",
+   "fieldtype": "Date",
+   "label": "Period To",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_period",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "period_receipts",
+   "fieldtype": "Currency",
+   "label": "Period Receipts",
+   "options": "company_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_payments",
+   "fieldtype": "Currency",
+   "label": "Period Payments",
+   "options": "company_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_net_flow",
+   "fieldtype": "Currency",
+   "label": "Period Net Flow",
+   "options": "company_currency",
+   "read_only": 1
+  },
+  {
    "fieldname": "remarks_section",
    "fieldtype": "Section Break",
    "label": "Remarks"
@@ -174,6 +232,10 @@
    "label": "Approved By",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_approval",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "approved_on",
@@ -258,9 +320,5 @@
  "sort_order": "DESC",
  "states": [],
  "title_field": "cash_account",
- "idx": [
-  {
-   "fields": "company, cash_account, posting_date",
-   "unique": 1
-  }
- ]
+ "idx": 0
+}

@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, now, nowtime
+from frappe.utils import flt, now, nowtime, getdate, add_days, get_first_day, get_last_day
 from freightmas.freightmas.report.cash_reconciliation_common import get_cash_ledger_balance as _get_cash_ledger_balance
 from freightmas.utils.permissions import check_freightmas_role
 
@@ -13,10 +13,12 @@ class CashReconciliation(Document):
 	def validate(self):
 		self.set_defaults()
 		self.validate_cash_account()
+		self.validate_unique_reconciliation()
 		self.set_ledger_balance()
 		self.calculate_difference()
 		self.set_reconciliation_status()
 		self.validate_difference_remarks()
+		self.calculate_period_flow()
 
 	def before_submit(self):
 		self.calculate_difference()
@@ -24,6 +26,7 @@ class CashReconciliation(Document):
 		self.validate_difference_remarks(for_submit=True)
 		self.approved_by = frappe.session.user
 		self.approved_on = now()
+		self.calculate_period_flow()
 
 	def set_defaults(self):
 		if not self.posting_time:
@@ -31,6 +34,25 @@ class CashReconciliation(Document):
 
 		if self.company and not self.company_currency:
 			self.company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
+
+	def validate_unique_reconciliation(self):
+		existing = frappe.db.get_value(
+			"Cash Reconciliation",
+			{
+				"company": self.company,
+				"cash_account": self.cash_account,
+				"posting_date": self.posting_date,
+				"name": ("!=", self.name),
+				"docstatus": ("!=", 2),
+			},
+			"name",
+		)
+		if existing:
+			frappe.throw(
+				_("A Cash Reconciliation for {0} on {1} already exists: {2}.").format(
+					frappe.bold(self.cash_account), frappe.bold(self.posting_date), frappe.bold(existing)
+				)
+			)
 
 	def validate_cash_account(self):
 		if not self.cash_account:
@@ -69,12 +91,96 @@ class CashReconciliation(Document):
 		if for_submit and flt(self.difference, 2) != 0 and not self.remarks:
 			frappe.throw(_("Remarks are required before submitting a reconciliation with a cash difference."))
 
+	def calculate_period_flow(self):
+		if not (self.company and self.cash_account and self.posting_date):
+			return
+		period_type = self.period_type or "Day"
+		company_currency = frappe.get_cached_value("Company", self.company, "default_currency")
+		period_from, period_to = _get_period_dates(self.posting_date, period_type)
+
+		row = frappe.db.sql(
+			"""
+			SELECT
+				COALESCE(SUM(debit_in_account_currency), 0),
+				COALESCE(SUM(credit_in_account_currency), 0)
+			FROM `tabGL Entry`
+			WHERE company = %(company)s
+				AND account = %(cash_account)s
+				AND posting_date >= %(period_from)s
+				AND posting_date <= %(period_to)s
+				AND is_cancelled = 0
+				AND (account_currency IS NULL OR account_currency = %(currency)s)
+			""",
+			{
+				"company": self.company,
+				"cash_account": self.cash_account,
+				"period_from": period_from,
+				"period_to": period_to,
+				"currency": company_currency,
+			},
+		)[0]
+
+		self.period_from = period_from
+		self.period_to = period_to
+		self.period_receipts = flt(row[0], 2)
+		self.period_payments = flt(row[1], 2)
+		self.period_net_flow = flt(self.period_receipts - self.period_payments, 2)
+
+
+def _get_period_dates(posting_date, period_type):
+	d = getdate(posting_date)
+	if period_type == "Week":
+		start = add_days(d, -d.weekday())
+		return getdate(start), getdate(add_days(start, 6))
+	elif period_type == "Month":
+		return getdate(get_first_day(d)), getdate(get_last_day(d))
+	return d, d
+
 
 @frappe.whitelist()
 def get_cash_ledger_balance(company, cash_account, posting_date):
 	"""API endpoint wrapper for fetching cash ledger balance.
-	
+
 	Requires FreightMas User role. Delegates to common utility function.
 	"""
 	check_freightmas_role("FreightMas User")
 	return _get_cash_ledger_balance(company, cash_account, posting_date)
+
+
+@frappe.whitelist()
+def get_period_flow(company, cash_account, posting_date, period_type="Day"):
+	check_freightmas_role("FreightMas User")
+	company_currency = frappe.get_cached_value("Company", company, "default_currency")
+	period_from, period_to = _get_period_dates(posting_date, period_type)
+
+	row = frappe.db.sql(
+		"""
+		SELECT
+			COALESCE(SUM(debit_in_account_currency), 0),
+			COALESCE(SUM(credit_in_account_currency), 0)
+		FROM `tabGL Entry`
+		WHERE company = %(company)s
+			AND account = %(cash_account)s
+			AND posting_date >= %(period_from)s
+			AND posting_date <= %(period_to)s
+			AND is_cancelled = 0
+			AND (account_currency IS NULL OR account_currency = %(currency)s)
+		""",
+		{
+			"company": company,
+			"cash_account": cash_account,
+			"period_from": period_from,
+			"period_to": period_to,
+			"currency": company_currency,
+		},
+	)[0]
+
+	receipts = flt(row[0], 2)
+	payments = flt(row[1], 2)
+	return {
+		"period_from": str(period_from),
+		"period_to": str(period_to),
+		"period_receipts": receipts,
+		"period_payments": payments,
+		"period_net_flow": flt(receipts - payments, 2),
+	}
