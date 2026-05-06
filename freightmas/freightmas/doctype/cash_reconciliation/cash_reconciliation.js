@@ -19,11 +19,27 @@ frappe.ui.form.on("Cash Reconciliation", {
 			frm.add_custom_button(__("Fetch Ledger Balance"), function () {
 				frm.trigger("fetch_ledger_balance");
 			});
+
+			// Prevent submit if difference exists but no remarks
+			if (flt(frm.doc.difference, 2) !== 0 && !frm.doc.remarks) {
+				frm.page.btn_secondary.find(".primary-action").prop("disabled", true);
+				frappe.msgprint(__("(!) Remarks are required before submitting a reconciliation with a cash difference."));
+			}
 		}
 	},
 
 	company(frm) {
 		frm.set_value("cash_account", "");
+	},
+
+	posting_date(frm) {
+		// Warn user that ledger balance is now stale if it was previously fetched
+		if (frm.doc.fetched_on) {
+			frappe.msgprint(__("Posting Date has changed. Please click 'Fetch Ledger Balance' to refresh."));
+			frm.set_value("ledger_balance", null);
+			frm.set_value("fetched_on", null);
+			frm.trigger("calculate_difference");
+		}
 	},
 
 	physical_cash_balance(frm) {
@@ -57,11 +73,25 @@ frappe.ui.form.on("Cash Reconciliation", {
 		});
 	},
 
+	remarks(frm) {
+		// Re-enable submit button if remarks now filled and difference exists
+		if (flt(frm.doc.difference, 2) !== 0 && frm.doc.remarks) {
+			frm.page.btn_secondary.find(".primary-action").prop("disabled", false);
+		}
+	},
+
 	calculate_difference(frm) {
 		let physical = flt(frm.doc.physical_cash_balance);
 		let ledger = flt(frm.doc.ledger_balance);
 		let difference = physical - ledger;
 		frm.set_value("difference", difference);
 		frm.set_value("reconciliation_status", flt(difference, 2) === 0 ? "Balanced" : "Difference");
+
+		// Update submit button state based on remarks requirement
+		if (flt(difference, 2) !== 0 && !frm.doc.remarks) {
+			frm.page.btn_secondary.find(".primary-action").prop("disabled", true);
+		} else if (flt(difference, 2) !== 0 && frm.doc.remarks) {
+			frm.page.btn_secondary.find(".primary-action").prop("disabled", false);
+		}
 	},
 });

@@ -5,6 +5,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, now, nowtime
+from freightmas.freightmas.report.cash_reconciliation_common import get_cash_ledger_balance as _get_cash_ledger_balance
+from freightmas.utils.permissions import check_freightmas_role
 
 
 class CashReconciliation(Document):
@@ -44,15 +46,23 @@ class CashReconciliation(Document):
 		if account.account_type != "Cash":
 			frappe.throw(_("Please select an account with Account Type Cash."))
 
+		if account.disabled:
+			frappe.throw(_("Cannot reconcile a disabled Cash Account."))
+
 	def set_ledger_balance(self):
-		if self.ledger_balance is None or not self.fetched_on:
-			self.ledger_balance = get_cash_ledger_balance(self.company, self.cash_account, self.posting_date)
+		# Always re-fetch if posting_date changes or balance not yet fetched
+		if not self.fetched_on or self.has_value_changed("posting_date"):
+			self.ledger_balance = _get_cash_ledger_balance(self.company, self.cash_account, self.posting_date)
 			self.fetched_on = now()
 
 	def calculate_difference(self):
-		self.difference = flt(self.physical_cash_balance) - flt(self.ledger_balance)
+		# Calculate and round to 2 decimal places for consistency
+		physical = flt(self.physical_cash_balance, 2)
+		ledger = flt(self.ledger_balance, 2)
+		self.difference = flt(physical - ledger, 2)
 
 	def set_reconciliation_status(self):
+		# Determine status based on exact 2-decimal precision
 		self.reconciliation_status = "Balanced" if flt(self.difference, 2) == 0 else "Difference"
 
 	def validate_difference_remarks(self, for_submit=False):
@@ -62,33 +72,9 @@ class CashReconciliation(Document):
 
 @frappe.whitelist()
 def get_cash_ledger_balance(company, cash_account, posting_date):
-	if not company:
-		frappe.throw(_("Company is required."))
-	if not cash_account:
-		frappe.throw(_("Cash Account is required."))
-	if not posting_date:
-		frappe.throw(_("Posting Date is required."))
-
-	account = frappe.get_cached_doc("Account", cash_account)
-	if account.company != company:
-		frappe.throw(_("Cash Account must belong to the selected Company."))
-	if account.account_type != "Cash" or account.is_group:
-		frappe.throw(_("Please select a non-group Cash Account."))
-
-	balance = frappe.db.sql(
-		"""
-		SELECT COALESCE(SUM(debit - credit), 0)
-		FROM `tabGL Entry`
-		WHERE company = %(company)s
-			AND account = %(cash_account)s
-			AND posting_date <= %(posting_date)s
-			AND is_cancelled = 0
-		""",
-		{
-			"company": company,
-			"cash_account": cash_account,
-			"posting_date": posting_date,
-		},
-	)[0][0]
-
-	return flt(balance, 2)
+	"""API endpoint wrapper for fetching cash ledger balance.
+	
+	Requires FreightMas User role. Delegates to common utility function.
+	"""
+	check_freightmas_role("FreightMas User")
+	return _get_cash_ledger_balance(company, cash_account, posting_date)

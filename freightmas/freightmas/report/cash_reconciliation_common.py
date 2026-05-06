@@ -62,19 +62,57 @@ def get_reconciliation_conditions(filters, include_docstatus=True, default_docst
 
 
 def get_cash_ledger_balance(company, cash_account, posting_date):
+	"""
+	Fetch the GL ledger balance for a cash account as of a given date.
+	Handles multi-currency by filtering GL entries to company default currency.
+	
+	Args:
+		company: Company name
+		cash_account: Account name (must be Cash type, non-group account)
+		posting_date: Date to calculate balance up to (inclusive)
+		
+	Returns:
+		Balance as a float rounded to 2 decimal places
+		
+	Raises:
+		frappe.ValidationError if parameters are invalid or account is disabled
+	"""
+	if not company:
+		frappe.throw(_("Company is required."))
+	if not cash_account:
+		frappe.throw(_("Cash Account is required."))
+	if not posting_date:
+		frappe.throw(_("Posting Date is required."))
+
+	account = frappe.get_cached_doc("Account", cash_account)
+	if account.company != company:
+		frappe.throw(_("Cash Account must belong to the selected Company."))
+	if account.is_group:
+		frappe.throw(_("Please select a non-group Cash Account."))
+	if account.account_type != "Cash":
+		frappe.throw(_("Please select an account with Account Type Cash."))
+	if account.disabled:
+		frappe.throw(_("Cannot fetch balance from a disabled Cash Account."))
+
+	# Get company default currency for multi-currency filtering
+	company_currency = frappe.get_cached_value("Company", company, "default_currency")
+
+	# Query GL entries in company default currency only
 	balance = frappe.db.sql(
 		"""
-		SELECT COALESCE(SUM(debit - credit), 0)
+		SELECT COALESCE(SUM(debit_in_account_currency - credit_in_account_currency), 0)
 		FROM `tabGL Entry`
 		WHERE company = %(company)s
 			AND account = %(cash_account)s
 			AND posting_date <= %(posting_date)s
 			AND is_cancelled = 0
+			AND (account_currency IS NULL OR account_currency = %(company_currency)s)
 		""",
 		{
 			"company": company,
 			"cash_account": cash_account,
 			"posting_date": posting_date,
+			"company_currency": company_currency,
 		},
 	)[0][0]
 	return flt(balance, 2)
