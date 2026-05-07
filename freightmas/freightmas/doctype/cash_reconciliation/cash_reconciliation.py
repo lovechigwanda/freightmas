@@ -6,7 +6,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt, now, nowtime, getdate, add_days, get_first_day, get_last_day
 from freightmas.freightmas.report.cash_reconciliation_common import get_cash_ledger_balance as _get_cash_ledger_balance
-from freightmas.utils.permissions import check_freightmas_role
 
 
 class CashReconciliation(Document):
@@ -138,18 +137,16 @@ def _get_period_dates(posting_date, period_type):
 
 
 @frappe.whitelist()
+@frappe.whitelist()
 def get_cash_ledger_balance(company, cash_account, posting_date):
-	"""API endpoint wrapper for fetching cash ledger balance.
-
-	Requires FreightMas User role. Delegates to common utility function.
-	"""
-	check_freightmas_role("FreightMas User")
+	"""API endpoint wrapper for fetching cash ledger balance."""
+	frappe.has_permission("Cash Reconciliation", "read", None, throw=True)
 	return _get_cash_ledger_balance(company, cash_account, posting_date)
 
 
 @frappe.whitelist()
 def get_period_flow(company, cash_account, posting_date, period_type="Day"):
-	check_freightmas_role("FreightMas User")
+	frappe.has_permission("Cash Reconciliation", "read", None, throw=True)
 	company_currency = frappe.get_cached_value("Company", company, "default_currency")
 	period_from, period_to = _get_period_dates(posting_date, period_type)
 

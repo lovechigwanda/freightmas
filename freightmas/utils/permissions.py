@@ -8,13 +8,25 @@ from frappe import _
 FREIGHTMAS_ROLES = ("FreightMas User", "FreightMas Manager", "System Manager", "Administrator")
 
 
-def check_freightmas_role():
-    """Verify the current user holds at least one FreightMas role.
+def check_freightmas_role(role=None):
+    """Verify the current user holds a FreightMas role or a specific role.
+
+    Args:
+        role (str, optional): A specific role to require.
 
     Raises:
-        frappe.PermissionError: If the user does not have any of the required roles.
+        frappe.PermissionError: If the user does not have the required role.
     """
     roles = frappe.get_roles(frappe.session.user)
+
+    if role:
+        if role not in roles and not any(r in roles for r in ("System Manager", "Administrator")):
+            frappe.throw(
+                _("You do not have permission to perform this action."),
+                frappe.PermissionError,
+            )
+        return
+
     if not any(r in roles for r in FREIGHTMAS_ROLES):
         frappe.throw(
             _("You do not have permission to perform this action."),
