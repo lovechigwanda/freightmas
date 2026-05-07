@@ -1487,25 +1487,32 @@ def _link_invoice_register_entries_to_purchase_invoice(source_references, purcha
             continue
 
         old_status = entry.status
-        entry.linked_purchase_invoice = purchase_invoice
+        changed_at = now_datetime()
+
+        db_values = {"linked_purchase_invoice": purchase_invoice}
 
         if old_status in ("Ready for Capture", "Returned for Capture"):
-            entry.append(
-                "status_log",
-                {
-                    "from_status": old_status,
-                    "to_status": "Captured",
-                    "changed_by": frappe.session.user,
-                    "changed_at": now_datetime(),
-                    "comment": _("Purchase Invoice {0} created from Forwarding Job working cost.").format(
-                        purchase_invoice
-                    ),
-                },
-            )
-            entry.status = "Captured"
-            entry.current_status_since = now_datetime()
+            db_values["status"] = "Captured"
+            db_values["current_status_since"] = changed_at
 
-        entry.save(ignore_permissions=True)
+        # Use direct DB writes — bypasses Frappe 16 check_if_locked() bug
+        # which crashes when the document is open in a browser session.
+        frappe.db.set_value("Invoice Register Entry", entry_name, db_values)
+
+        if old_status in ("Ready for Capture", "Returned for Capture"):
+            frappe.get_doc({
+                "doctype": "Invoice Status Log",
+                "parent": entry_name,
+                "parenttype": "Invoice Register Entry",
+                "parentfield": "status_log",
+                "from_status": old_status,
+                "to_status": "Captured",
+                "changed_by": frappe.session.user,
+                "changed_at": changed_at,
+                "comment": _("Purchase Invoice {0} created from Forwarding Job working cost.").format(
+                    purchase_invoice
+                ),
+            }).insert(ignore_permissions=True)
 
 
 @frappe.whitelist()

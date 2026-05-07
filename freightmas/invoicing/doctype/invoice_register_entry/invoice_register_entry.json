@@ -74,7 +74,7 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "IVREG-.#####.-.YY.",
+   "options": "INRE-.#####.-.YY.",
    "print_hide": 1,
    "report_hide": 1,
    "reqd": 1
@@ -439,10 +439,14 @@
   },
   {
    "link_doctype": "Sales Invoice",
-   "link_fieldname": "name"
+   "link_fieldname": "invoice_register_entry"
+  },
+  {
+   "link_doctype": "Purchase Invoice",
+   "link_fieldname": "invoice_register_entry"
   }
  ],
- "modified": "2026-05-07 22:57:47.345809",
+ "modified": "2026-05-08 00:08:17.242142",
  "modified_by": "Administrator",
  "module": "Invoicing",
  "name": "Invoice Register Entry",

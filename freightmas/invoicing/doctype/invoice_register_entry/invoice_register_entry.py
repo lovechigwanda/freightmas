@@ -367,6 +367,10 @@ class InvoiceRegisterEntry(Document):
 
         Validates the transition, records working days spent in the previous
         status, appends an audit log row, resets the SLA window, then saves.
+
+        Uses frappe.db.set_value() rather than self.save() to bypass Frappe 16's
+        document locking mechanism, which incorrectly blocks saves initiated from
+        run_doc_method while the document is open in a browser session.
         """
         old_status = self.status
 
@@ -388,27 +392,38 @@ class InvoiceRegisterEntry(Document):
 
         working_days = _count_working_days(self.current_status_since, now_datetime())
 
-        self.append("status_log", {
-            "from_status": old_status,
-            "to_status": new_status,
-            "changed_by": frappe.session.user,
-            "changed_at": now_datetime(),
-            "comment": comment or "",
-            "working_days_in_previous_status": working_days,
-        })
-
+        # Compute new SLA deadline before writing to DB
         self.status = new_status
         self.current_status_since = now_datetime()
         self.compute_sla_due_at()
 
-        self.save()
+        # Write changed fields directly — bypasses check_if_locked() which is
+        # broken in Frappe 16 when a browser session holds the document open.
+        frappe.db.set_value(self.doctype, self.name, {
+            "status": self.status,
+            "current_status_since": self.current_status_since,
+            "sla_due_at": self.sla_due_at,
+        })
+
+        frappe.get_doc({
+            "doctype": "Invoice Status Log",
+            "parent": self.name,
+            "parenttype": self.doctype,
+            "parentfield": "status_log",
+            "from_status": old_status,
+            "to_status": new_status,
+            "changed_by": frappe.session.user,
+            "changed_at": self.current_status_since,
+            "comment": comment or "",
+            "working_days_in_previous_status": working_days,
+        }).insert(ignore_permissions=True)
 
         frappe.msgprint(
             _("Status changed from {0} to {1}").format(old_status, new_status),
             alert=True,
         )
 
-        return self.status
+        return new_status
 
     # ----------------------------------------------------------
     # CHARGE COPY TO FORWARDING JOB
@@ -640,6 +655,12 @@ def _create_purchase_invoice_from_ire(doc):
     from freightmas.forwarding_service.doctype.forwarding_job.forwarding_job import create_purchase_invoice_with_rows
     pi_name = create_purchase_invoice_with_rows(job.name, frappe.as_json(row_names))
 
+    # Back-link PI → IRE so it appears in the IRE's Connections tab
+    try:
+        frappe.db.set_value("Purchase Invoice", pi_name, "invoice_register_entry", doc.name)
+    except Exception:
+        pass
+
     _attach_ire_file_to_job(doc, job.name)
     return pi_name
 
@@ -687,19 +708,34 @@ def _create_sales_invoice_from_ire(doc):
     from freightmas.forwarding_service.doctype.forwarding_job.forwarding_job import create_sales_invoice_with_rows
     si_name = create_sales_invoice_with_rows(job.name, frappe.as_json(row_names))
 
-    doc.reload()
-    doc.linked_sales_invoice = si_name
-    doc.append("status_log", {
-        "from_status": doc.status,
+    changed_at = now_datetime()
+    old_status = doc.status
+
+    # Direct DB writes — bypasses Frappe 16 check_if_locked() bug
+    frappe.db.set_value("Invoice Register Entry", doc.name, {
+        "linked_sales_invoice": si_name,
+        "status": "Issued to Client",
+        "current_status_since": changed_at,
+        "sla_due_at": None,
+    })
+
+    frappe.get_doc({
+        "doctype": "Invoice Status Log",
+        "parent": doc.name,
+        "parenttype": "Invoice Register Entry",
+        "parentfield": "status_log",
+        "from_status": old_status,
         "to_status": "Issued to Client",
         "changed_by": frappe.session.user,
-        "changed_at": now_datetime(),
+        "changed_at": changed_at,
         "comment": _("Sales Invoice {0} created from Invoice Register Entry.").format(si_name),
-    })
-    doc.status = "Issued to Client"
-    doc.current_status_since = now_datetime()
-    doc.sla_due_at = None
-    doc.save(ignore_permissions=True)
+    }).insert(ignore_permissions=True)
+
+    # Back-link SI → IRE so it appears in the IRE's Connections tab
+    try:
+        frappe.db.set_value("Sales Invoice", si_name, "invoice_register_entry", doc.name)
+    except Exception:
+        pass
 
     _attach_ire_file_to_job(doc, job.name)
     return si_name
@@ -708,30 +744,34 @@ def _create_sales_invoice_from_ire(doc):
 def _attach_ire_file_to_job(doc, job_name):
     if not doc.attachment:
         return
-    already = frappe.db.exists("File", {
+    if frappe.db.exists("File", {
         "file_url": doc.attachment,
         "attached_to_doctype": "Forwarding Job",
         "attached_to_name": job_name,
-    })
-    if already:
+    }):
         return
     try:
+        # Search by file_url only — the File record may not be linked to the IRE
+        # document specifically (e.g. uploaded before doc was named).
         src = frappe.db.get_value(
             "File",
-            {"file_url": doc.attachment, "attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
+            {"file_url": doc.attachment},
             ["file_name", "is_private"],
             as_dict=True,
         )
         frappe.get_doc({
             "doctype": "File",
             "file_url": doc.attachment,
-            "file_name": src.file_name if src else doc.attachment.split("/")[-1],
+            "file_name": (src.file_name if src else None) or doc.attachment.split("/")[-1],
             "attached_to_doctype": "Forwarding Job",
             "attached_to_name": job_name,
             "is_private": src.is_private if src else 0,
         }).insert(ignore_permissions=True)
-    except Exception:
-        pass
+    except Exception as e:
+        frappe.log_error(
+            message=str(e),
+            title=f"Failed to copy IRE attachment to Forwarding Job {job_name}",
+        )
 
 
 # ========================================================
