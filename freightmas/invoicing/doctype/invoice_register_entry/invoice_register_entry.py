@@ -23,15 +23,15 @@ PURCHASE_TRANSITIONS = {
     # Issue 11 fix: direct approval path added alongside correction path
     "Submitted for Approval": ["Ready for Capture", "Returned for Capture", "Query with Supplier"],
     "Query with Supplier": ["Ready for Capture", "Cancelled"],
-    "Ready for Capture": ["Captured"],
-    "Returned for Capture": ["Captured"],
+    "Ready for Capture": [],
+    "Returned for Capture": [],
     "Captured": [],
     "Cancelled": [],
 }
 
 SALES_TRANSITIONS = {
     "Instruction Received": ["Drafted", "Cancelled"],
-    "Drafted": ["Issued to Client", "Returned to Draft"],
+    "Drafted": ["Returned to Draft"],
     "Returned to Draft": ["Drafted"],
     "Issued to Client": [],
     "Cancelled": [],
@@ -65,6 +65,7 @@ LOCKED_PARENT_FIELDS = {
     "base_currency": "Base Currency",
     "supplier_invoice_no": "Supplier Invoice No",
     "supplier_invoice_date": "Supplier Invoice Date",
+    "attachment": "Attachment",
     "linked_purchase_invoice": "Purchase Invoice",
     "linked_sales_invoice": "Sales Invoice",
 }
@@ -75,9 +76,11 @@ LOCKED_CHILD_FIELDS = (
     "qty",
     "rate",
     "line_amount",
+    "item_tax_template",
+    "line_tax_amount",
+    "line_total",
     "line_party_type",
     "line_party",
-    "attachment",
 )
 
 NUMERIC_LOCKED_FIELDS = {
@@ -87,7 +90,7 @@ NUMERIC_LOCKED_FIELDS = {
     "tax_amount",
 }
 
-NUMERIC_CHILD_FIELDS = {"qty", "rate", "line_amount"}
+NUMERIC_CHILD_FIELDS = {"qty", "rate", "line_amount", "line_tax_amount", "line_total"}
 
 
 # ========================================================
@@ -119,6 +122,7 @@ class InvoiceRegisterEntry(Document):
 
     def validate(self):
         self.set_party_type_from_entry_type()
+        self.inherit_party_on_charge_rows()
         self.calculate_charge_totals()
         self.compute_base_amount()
         self.validate_job_reference()
@@ -153,6 +157,14 @@ class InvoiceRegisterEntry(Document):
         elif self.entry_type == "Purchase" and self.party_type != "Supplier":
             self.party_type = "Supplier"
 
+    def inherit_party_on_charge_rows(self):
+        if not self.party:
+            return
+        for row in self.get("charge_details", []):
+            if not row.line_party:
+                row.line_party_type = self.party_type
+                row.line_party = self.party
+
     def compute_base_amount(self):
         rate = flt(self.conversion_rate) or 1.0
         self.amount_base = flt(flt(self.amount) * rate, 2)
@@ -169,23 +181,31 @@ class InvoiceRegisterEntry(Document):
                 )
 
     def calculate_charge_totals(self):
-        """
-        Recompute line_amount on every charge row and sync total_charge_amount.
-
-        amount is synced from the charge table when rows exist so the two fields
-        stay consistent. When there are no charge rows, amount can be set manually
-        and total_charge_amount reflects 0 (no line-item breakdown).
-        """
-        total = 0.0
+        total_net = 0.0
+        total_tax = 0.0
         for row in self.get("charge_details", []):
             qty = flt(row.qty) or 1
             rate = flt(row.rate)
             row.line_amount = flt(qty * rate, 2)
-            total += row.line_amount
 
-        self.total_charge_amount = flt(total, 2)
-        if self.get("charge_details"):
-            self.amount = self.total_charge_amount
+            if row.item_tax_template:
+                rates = frappe.db.get_all(
+                    "Item Tax Template Detail",
+                    filters={"parent": row.item_tax_template},
+                    pluck="tax_rate",
+                )
+                effective_rate = sum(flt(r) for r in rates)
+            else:
+                effective_rate = 0.0
+
+            row.line_tax_amount = flt(row.line_amount * effective_rate / 100, 2)
+            row.line_total = flt(row.line_amount + row.line_tax_amount, 2)
+            total_net += row.line_amount
+            total_tax += row.line_tax_amount
+
+        self.total_charge_amount = flt(total_net, 2)
+        self.tax_amount = flt(total_tax, 2)
+        self.amount = flt(total_net + total_tax, 2)
 
     # ----------------------------------------------------------
     # SLA / OVERDUE
@@ -459,7 +479,7 @@ class InvoiceRegisterEntry(Document):
                     "qty": qty,
                     "buy_rate": buy_rate,
                     "supplier": supplier,
-                    "attachment": charge_row.attachment,
+                    "attachment": doc.attachment,
                     "cost_amount": cost_amount,
                     "supplier_invoice_no": doc.supplier_invoice_no,
                     "supplier_invoice_date": doc.supplier_invoice_date,
@@ -549,6 +569,169 @@ def job_query(doctype, txt, searchfield, start, page_len, filters):
             "page_len": page_len,
         },
     )
+
+
+# ========================================================
+# INVOICE CREATION FROM REGISTER ENTRY
+# ========================================================
+
+@frappe.whitelist()
+def create_invoice_from_register(docname):
+    doc = frappe.get_doc("Invoice Register Entry", docname)
+    doc.check_permission("write")
+
+    if not doc.job_name or doc.job_doctype != "Forwarding Job":
+        frappe.throw(_("Please link this entry to a Forwarding Job first."))
+    if not doc.get("charge_details"):
+        frappe.throw(_("No charge rows found on this entry."))
+
+    if doc.entry_type == "Purchase":
+        return _create_purchase_invoice_from_ire(doc)
+    elif doc.entry_type == "Sales":
+        return _create_sales_invoice_from_ire(doc)
+    else:
+        frappe.throw(_("Unknown entry type: {0}").format(doc.entry_type))
+
+
+def _create_purchase_invoice_from_ire(doc):
+    if doc.linked_purchase_invoice:
+        frappe.throw(_("A Purchase Invoice is already linked to this entry."))
+    if doc.status not in ("Ready for Capture", "Returned for Capture"):
+        frappe.throw(_("Status must be Ready for Capture or Returned for Capture to create a Purchase Invoice."))
+
+    job = frappe.get_doc("Forwarding Job", doc.job_name)
+    job.check_permission("write")
+
+    copied_refs = {r.source_reference for r in job.get("forwarding_cost_charges", []) if r.source_reference}
+    added = 0
+    for row in doc.get("charge_details", []):
+        if not row.charge or row.name in copied_refs:
+            continue
+        supplier = (row.line_party if row.line_party_type == "Supplier" and row.line_party else None) or doc.party
+        if not supplier:
+            frappe.throw(
+                _("Charge row '{0}' has no supplier. Set a supplier on the charge row or the entry party.").format(row.charge)
+            )
+        qty = flt(row.qty) or 1.0
+        buy_rate = flt(row.rate)
+        job.append("forwarding_cost_charges", {
+            "charge": row.charge,
+            "description": row.description,
+            "qty": qty,
+            "buy_rate": buy_rate,
+            "cost_amount": flt(qty * buy_rate, 2),
+            "supplier": supplier,
+            "attachment": doc.attachment,
+            "supplier_invoice_no": doc.supplier_invoice_no,
+            "supplier_invoice_date": doc.supplier_invoice_date,
+            "source_reference": row.name,
+        })
+        added += 1
+
+    if added:
+        job.save()
+        job.reload()
+
+    ire_row_names = {r.name for r in doc.get("charge_details", [])}
+    row_names = [r.name for r in job.get("forwarding_cost_charges", []) if r.source_reference in ire_row_names]
+    if not row_names:
+        frappe.throw(_("No cost charge rows could be found or created in the Forwarding Job for this entry."))
+
+    from freightmas.forwarding_service.doctype.forwarding_job.forwarding_job import create_purchase_invoice_with_rows
+    pi_name = create_purchase_invoice_with_rows(job.name, frappe.as_json(row_names))
+
+    _attach_ire_file_to_job(doc, job.name)
+    return pi_name
+
+
+def _create_sales_invoice_from_ire(doc):
+    if doc.linked_sales_invoice:
+        frappe.throw(_("A Sales Invoice is already linked to this entry."))
+    if doc.status != "Drafted":
+        frappe.throw(_("Status must be Drafted to create a Sales Invoice."))
+
+    job = frappe.get_doc("Forwarding Job", doc.job_name)
+    job.check_permission("write")
+
+    copied_refs = {r.source_reference for r in job.get("forwarding_revenue_charges", []) if r.source_reference}
+    added = 0
+    for row in doc.get("charge_details", []):
+        if not row.charge or row.name in copied_refs:
+            continue
+        customer = (row.line_party if row.line_party_type == "Customer" and row.line_party else None) or doc.party
+        if not customer:
+            frappe.throw(_("Charge row '{0}' has no customer.").format(row.charge))
+        qty = flt(row.qty) or 1.0
+        sell_rate = flt(row.rate)
+        job.append("forwarding_revenue_charges", {
+            "charge": row.charge,
+            "description": row.description,
+            "qty": qty,
+            "sell_rate": sell_rate,
+            "revenue_amount": flt(qty * sell_rate, 2),
+            "customer": customer,
+            "attachment": doc.attachment,
+            "source_reference": row.name,
+        })
+        added += 1
+
+    if added:
+        job.save()
+        job.reload()
+
+    ire_row_names = {r.name for r in doc.get("charge_details", [])}
+    row_names = [r.name for r in job.get("forwarding_revenue_charges", []) if r.source_reference in ire_row_names]
+    if not row_names:
+        frappe.throw(_("No revenue charge rows could be found or created in the Forwarding Job for this entry."))
+
+    from freightmas.forwarding_service.doctype.forwarding_job.forwarding_job import create_sales_invoice_with_rows
+    si_name = create_sales_invoice_with_rows(job.name, frappe.as_json(row_names))
+
+    doc.reload()
+    doc.linked_sales_invoice = si_name
+    doc.append("status_log", {
+        "from_status": doc.status,
+        "to_status": "Issued to Client",
+        "changed_by": frappe.session.user,
+        "changed_at": now_datetime(),
+        "comment": _("Sales Invoice {0} created from Invoice Register Entry.").format(si_name),
+    })
+    doc.status = "Issued to Client"
+    doc.current_status_since = now_datetime()
+    doc.sla_due_at = None
+    doc.save(ignore_permissions=True)
+
+    _attach_ire_file_to_job(doc, job.name)
+    return si_name
+
+
+def _attach_ire_file_to_job(doc, job_name):
+    if not doc.attachment:
+        return
+    already = frappe.db.exists("File", {
+        "file_url": doc.attachment,
+        "attached_to_doctype": "Forwarding Job",
+        "attached_to_name": job_name,
+    })
+    if already:
+        return
+    try:
+        src = frappe.db.get_value(
+            "File",
+            {"file_url": doc.attachment, "attached_to_doctype": doc.doctype, "attached_to_name": doc.name},
+            ["file_name", "is_private"],
+            as_dict=True,
+        )
+        frappe.get_doc({
+            "doctype": "File",
+            "file_url": doc.attachment,
+            "file_name": src.file_name if src else doc.attachment.split("/")[-1],
+            "attached_to_doctype": "Forwarding Job",
+            "attached_to_name": job_name,
+            "is_private": src.is_private if src else 0,
+        }).insert(ignore_permissions=True)
+    except Exception:
+        pass
 
 
 # ========================================================

@@ -15,11 +15,15 @@
   "rate",
   "column_break_amt",
   "line_amount",
+  "section_break_tax",
+  "item_tax_template",
+  "column_break_taxamt",
+  "line_tax_amount",
+  "column_break_linetotal",
+  "line_total",
   "section_break_party",
   "line_party_type",
-  "line_party",
-  "column_break_att",
-  "attachment"
+  "line_party"
  ],
  "fields": [
   {
@@ -80,7 +84,49 @@
    "fieldname": "line_amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount",
+   "label": "Net Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_tax",
+   "fieldtype": "Section Break",
+   "label": "Tax"
+  },
+  {
+   "columns": 2,
+   "fieldname": "item_tax_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item Tax Template",
+   "options": "Item Tax Template"
+  },
+  {
+   "fieldname": "column_break_taxamt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "line_tax_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "VAT Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_linetotal",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "columns": 2,
+   "fieldname": "line_total",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Line Total (Incl. VAT)",
    "options": "currency",
    "precision": "2",
    "read_only": 1
@@ -102,15 +148,6 @@
    "in_list_view": 1,
    "label": "Party",
    "options": "line_party_type"
-  },
-  {
-   "fieldname": "column_break_att",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "attachment",
-   "fieldtype": "Attach",
-   "label": "Attachment"
   }
  ],
  "index_web_pages_for_search": 1,

@@ -23,8 +23,6 @@ class CashReconciliation(Document):
 		self.calculate_difference()
 		self.set_reconciliation_status()
 		self.validate_difference_remarks(for_submit=True)
-		self.approved_by = frappe.session.user
-		self.approved_on = now()
 		self.calculate_period_flow()
 
 	def set_defaults(self):
@@ -124,6 +122,12 @@ class CashReconciliation(Document):
 		self.period_receipts = flt(row[0], 2)
 		self.period_payments = flt(row[1], 2)
 		self.period_net_flow = flt(self.period_receipts - self.period_payments, 2)
+		self.period_opening_balance = flt(
+			_get_cash_ledger_balance(self.company, self.cash_account, add_days(period_from, -1)), 2
+		)
+		self.period_closing_balance = flt(
+			_get_cash_ledger_balance(self.company, self.cash_account, period_to), 2
+		)
 
 
 def _get_period_dates(posting_date, period_type):
@@ -136,7 +140,6 @@ def _get_period_dates(posting_date, period_type):
 	return d, d
 
 
-@frappe.whitelist()
 @frappe.whitelist()
 def get_cash_ledger_balance(company, cash_account, posting_date):
 	"""API endpoint wrapper for fetching cash ledger balance."""
@@ -174,10 +177,14 @@ def get_period_flow(company, cash_account, posting_date, period_type="Day"):
 
 	receipts = flt(row[0], 2)
 	payments = flt(row[1], 2)
+	opening_balance = _get_cash_ledger_balance(company, cash_account, add_days(period_from, -1))
+	closing_balance = _get_cash_ledger_balance(company, cash_account, period_to)
 	return {
 		"period_from": str(period_from),
 		"period_to": str(period_to),
 		"period_receipts": receipts,
 		"period_payments": payments,
 		"period_net_flow": flt(receipts - payments, 2),
+		"period_opening_balance": flt(opening_balance, 2),
+		"period_closing_balance": flt(closing_balance, 2),
 	}

@@ -31,14 +31,14 @@
    "type": "Link"
   },
   {
-   "child": 1,
+   "child": 0,
    "collapsible": 1,
-   "icon": "book-open-check",
+   "icon": "calculator",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Master FW Job",
-   "link_to": "Master Forwarding Job",
-   "link_type": "DocType",
+   "label": "Invoicing",
+   "link_to": "Invoicing",
+   "link_type": "Workspace",
    "show_arrow": 0,
    "type": "Link"
   },
@@ -85,7 +85,6 @@
    "indent": 1,
    "keep_closed": 1,
    "label": "Reports",
-   "link_to": null,
    "link_type": "DocType",
    "show_arrow": 1,
    "type": "Section Break"
@@ -93,7 +92,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Register",
@@ -105,7 +103,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Register Extended",
@@ -117,7 +114,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Consolidated Tracking",
@@ -129,7 +125,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Container Tracker Imports",
@@ -141,7 +136,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Container Tracker Exports",
@@ -153,7 +147,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Overdue Containers",
@@ -165,7 +158,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Incoming Cargo Tracker",
@@ -177,7 +169,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Billing Report",
@@ -189,7 +180,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Tracking Internal",
@@ -201,7 +191,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Job Closing Report",
@@ -213,7 +202,6 @@
   {
    "child": 1,
    "collapsible": 1,
-   "icon": null,
    "indent": 0,
    "keep_closed": 0,
    "label": "Outstanding Statement",
@@ -233,10 +221,22 @@
    "link_type": "DocType",
    "show_arrow": 0,
    "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "book-open-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Master FW Job",
+   "link_to": "Master Forwarding Job",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-07 22:20:27.717516",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2026-05-07 20:54:40.039462",
+ "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
  "owner": "Administrator",

@@ -8,16 +8,15 @@
  "field_order": [
   "basic_information_section",
   "entry_date",
-  "party",
-  "column_break_basic1",
-  "entry_type",
-  "status",
-  "column_break_basic2",
   "party_type",
   "amended_from",
-  "column_break_aeht",
+  "column_break_basic1",
+  "entry_type",
+  "party",
+  "column_break_basic2",
   "naming_series",
   "company",
+  "status",
   "job_reference_section",
   "job_doctype",
   "bl_number_lookup",
@@ -33,15 +32,14 @@
   "supplier_invoice_date",
   "financial_section",
   "currency",
-  "tax_amount",
+  "amount_base",
+  "amount",
   "column_break_fin1",
   "conversion_rate",
-  "amount_base",
+  "total_charge_amount",
   "column_break_fin2",
   "base_currency",
-  "total_charge_amount",
-  "column_break_lqch",
-  "amount",
+  "tax_amount",
   "linked_documents_section",
   "linked_invoicing_instruction",
   "column_break_ldoc1",
@@ -58,6 +56,8 @@
   "current_status_since",
   "charge_details_section",
   "charge_details",
+  "attachment_section",
+  "attachment",
   "notes_section",
   "notes",
   "status_log_tab",
@@ -224,7 +224,7 @@
    "bold": 1,
    "fieldname": "total_charge_amount",
    "fieldtype": "Currency",
-   "label": "Total Charge Amount",
+   "label": "Net Total (Excl. VAT)",
    "options": "currency",
    "precision": "2",
    "read_only": 1
@@ -256,14 +256,15 @@
   {
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "label": "Amount",
+   "label": "Invoice Total (Incl. VAT)",
    "options": "currency",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "amount_base",
    "fieldtype": "Currency",
-   "label": "Amount (Base)",
+   "label": "Invoice Total (Base Currency)",
    "precision": "2",
    "read_only": 1
   },
@@ -272,11 +273,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "bold": 1,
    "fieldname": "tax_amount",
    "fieldtype": "Currency",
-   "label": "Tax Amount",
+   "label": "Total VAT",
    "options": "currency",
-   "precision": "2"
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fetch_from": "company.default_currency",
@@ -293,7 +296,9 @@
   {
    "fieldname": "supplier_invoice_no",
    "fieldtype": "Data",
-   "label": "Supplier Invoice No"
+   "label": "Supplier Invoice No",
+   "mandatory_depends_on": "eval:doc.entry_type === 'Purchase'",
+   "unique": 1
   },
   {
    "fieldname": "column_break_sinv1",
@@ -302,7 +307,8 @@
   {
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
-   "label": "Supplier Invoice Date"
+   "label": "Supplier Invoice Date",
+   "mandatory_depends_on": "eval:doc.entry_type === 'Purchase'"
   },
   {
    "fieldname": "linked_documents_section",
@@ -397,6 +403,11 @@
    "label": "Notes"
   },
   {
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "label": "Attachment"
+  },
+  {
    "fieldname": "status_log_tab",
    "fieldtype": "Tab Break",
    "label": "Status Log"
@@ -415,12 +426,9 @@
    "show_dashboard": 1
   },
   {
-   "fieldname": "column_break_aeht",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_lqch",
-   "fieldtype": "Column Break"
+   "fieldname": "attachment_section",
+   "fieldtype": "Section Break",
+   "label": "Attachment"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -434,7 +442,7 @@
    "link_fieldname": "name"
   }
  ],
- "modified": "2026-05-06 00:00:00.000000",
+ "modified": "2026-05-07 22:57:47.345809",
  "modified_by": "Administrator",
  "module": "Invoicing",
  "name": "Invoice Register Entry",

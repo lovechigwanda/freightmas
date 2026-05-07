@@ -13,6 +13,7 @@ frappe.ui.form.on('Invoice Register Entry', {
         }
 
         add_forwarding_working_cost_button(frm);
+        add_create_invoice_button(frm);
         set_status_indicator(frm);
     },
 
@@ -25,8 +26,11 @@ frappe.ui.form.on('Invoice Register Entry', {
         }
     },
 
-    amount(frm) {
-        calculate_base_amount(frm);
+    party(frm) {
+        (frm.doc.charge_details || []).forEach(row => {
+            frappe.model.set_value(row.doctype, row.name, 'line_party_type', frm.doc.party_type);
+            frappe.model.set_value(row.doctype, row.name, 'line_party', frm.doc.party);
+        });
     },
 
     conversion_rate(frm) {
@@ -96,8 +100,10 @@ function toggle_entry_type_fields(frm) {
 
     if (is_sales) {
         frm.set_df_property('party', 'label', 'Customer');
+        frm.set_df_property('amount', 'label', 'Invoice Total (Incl. VAT)');
     } else if (is_purchase) {
         frm.set_df_property('party', 'label', 'Supplier');
+        frm.set_df_property('amount', 'label', 'Supplier Invoice Total (Incl. VAT)');
     }
 }
 
@@ -190,7 +196,7 @@ const LOCKED_FIELDS = [
     'company', 'entry_type', 'entry_date', 'status', 'job_doctype',
     'bl_number_lookup', 'job_name', 'party_type', 'party',
     'supplier_invoice_no', 'supplier_invoice_date', 'currency',
-    'conversion_rate', 'amount', 'tax_amount',
+    'conversion_rate', 'amount', 'tax_amount', 'attachment',
     'linked_purchase_invoice', 'linked_sales_invoice', 'charge_details'
 ];
 
@@ -228,16 +234,16 @@ function apply_locked_entry_state(frm) {
 
 function calculate_charge_totals(frm) {
     const rows = frm.doc.charge_details || [];
-    let total = 0;
+    let net_total = 0;
+    let tax_total = 0;
     rows.forEach(row => {
-        total += flt(row.line_amount);
+        net_total += flt(row.line_amount);
+        tax_total += flt(row.line_tax_amount);
     });
-    frm.set_value('total_charge_amount', flt(total, 2));
-    // Only drive amount from the table when rows exist;
-    // otherwise preserve any manually entered value.
-    if (rows.length) {
-        frm.set_value('amount', flt(total, 2));
-    }
+    frm.set_value('total_charge_amount', flt(net_total, 2));
+    frm.set_value('tax_amount', flt(tax_total, 2));
+    frm.set_value('amount', flt(net_total + tax_total, 2));
+    calculate_base_amount(frm);
 }
 
 
@@ -261,12 +267,8 @@ const STATUS_BUTTON_MAP = {
         { label: 'Mark Ready for Capture', target: 'Ready for Capture', color: 'primary' },
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
     ],
-    'Ready for Capture': [
-        { label: 'Mark as Captured', target: 'Captured', color: 'success' }
-    ],
-    'Returned for Capture': [
-        { label: 'Mark as Captured', target: 'Captured', color: 'success' }
-    ],
+    'Ready for Capture': [],
+    'Returned for Capture': [],
 
     // --- Sales ---
     'Instruction Received': [
@@ -274,7 +276,6 @@ const STATUS_BUTTON_MAP = {
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
     ],
     'Drafted': [
-        { label: 'Issue to Client', target: 'Issued to Client', color: 'success' },
         { label: 'Return to Draft', target: 'Returned to Draft', color: 'warning' }
     ],
     'Returned to Draft': [
@@ -330,6 +331,56 @@ function add_forwarding_working_cost_button(frm) {
             }
         });
     }, __('Actions'));
+}
+
+function add_create_invoice_button(frm) {
+    if (frm.is_new()) return;
+    if (frm.doc.job_doctype !== 'Forwarding Job' || !frm.doc.job_name) return;
+    if (!frm.doc.charge_details || frm.doc.charge_details.length === 0) return;
+
+    const is_purchase_ready = (
+        frm.doc.entry_type === 'Purchase' &&
+        ['Ready for Capture', 'Returned for Capture'].includes(frm.doc.status) &&
+        !frm.doc.linked_purchase_invoice
+    );
+    const is_sales_ready = (
+        frm.doc.entry_type === 'Sales' &&
+        frm.doc.status === 'Drafted' &&
+        !frm.doc.linked_sales_invoice
+    );
+
+    if (!is_purchase_ready && !is_sales_ready) return;
+
+    const label = frm.doc.entry_type === 'Sales' ? __('Create Sales Invoice') : __('Create Purchase Invoice');
+    const invoice_type = frm.doc.entry_type === 'Sales' ? 'Sales Invoice' : 'Purchase Invoice';
+    const invoice_route = frm.doc.entry_type === 'Sales' ? 'sales-invoice' : 'purchase-invoice';
+
+    frm.add_custom_button(label, function () {
+        frappe.confirm(
+            __('Create a {0} from this Invoice Register Entry and link it to {1}?', [label, frm.doc.job_name]),
+            function () {
+                frappe.call({
+                    method: 'freightmas.invoicing.doctype.invoice_register_entry.invoice_register_entry.create_invoice_from_register',
+                    args: { docname: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __('Creating invoice...'),
+                    callback(r) {
+                        if (r.message) {
+                            frappe.msgprint({
+                                title: __('Invoice Created'),
+                                message: __('{0} {1} has been created and linked to this entry.', [
+                                    invoice_type,
+                                    `<a href="/app/${invoice_route}/${r.message}">${r.message}</a>`
+                                ]),
+                                indicator: 'green',
+                            });
+                            frm.reload_doc();
+                        }
+                    }
+                });
+            }
+        );
+    }, __('Create'));
 }
 
 function show_status_change_dialog(frm, target_status, button_label) {
@@ -398,11 +449,35 @@ function set_status_indicator(frm) {
 // ==========================================================
 
 frappe.ui.form.on('Invoice Register Charge', {
+    charge_details_add(frm, cdt, cdn) {
+        if (frm.doc.party_type) {
+            frappe.model.set_value(cdt, cdn, 'line_party_type', frm.doc.party_type);
+        }
+        if (frm.doc.party) {
+            frappe.model.set_value(cdt, cdn, 'line_party', frm.doc.party);
+        }
+    },
     qty(frm, cdt, cdn) {
         calculate_charge_line_amount(frm, cdt, cdn);
     },
     rate(frm, cdt, cdn) {
         calculate_charge_line_amount(frm, cdt, cdn);
+    },
+    item_tax_template(frm, cdt, cdn) {
+        const row = frappe.get_doc(cdt, cdn);
+        if (!row.item_tax_template) {
+            frappe.model.set_value(cdt, cdn, 'line_tax_amount', 0);
+            frappe.model.set_value(cdt, cdn, 'line_total', flt(row.line_amount));
+            calculate_charge_totals(frm);
+            return;
+        }
+        frappe.db.get_doc('Item Tax Template', row.item_tax_template).then(tmpl => {
+            const effective_rate = (tmpl.taxes || []).reduce((sum, d) => sum + flt(d.tax_rate), 0);
+            const line_tax = flt(flt(row.line_amount) * effective_rate / 100, 2);
+            frappe.model.set_value(cdt, cdn, 'line_tax_amount', line_tax);
+            frappe.model.set_value(cdt, cdn, 'line_total', flt(flt(row.line_amount) + line_tax, 2));
+            calculate_charge_totals(frm);
+        });
     },
     charge_details_remove(frm) {
         calculate_charge_totals(frm);
@@ -413,6 +488,20 @@ function calculate_charge_line_amount(frm, cdt, cdn) {
     const row = frappe.get_doc(cdt, cdn);
     const qty = flt(row.qty) || 1;
     const rate = flt(row.rate);
-    frappe.model.set_value(cdt, cdn, 'line_amount', flt(qty * rate, 2));
-    calculate_charge_totals(frm);
+    const line_amount = flt(qty * rate, 2);
+    frappe.model.set_value(cdt, cdn, 'line_amount', line_amount);
+
+    if (row.item_tax_template) {
+        frappe.db.get_doc('Item Tax Template', row.item_tax_template).then(tmpl => {
+            const effective_rate = (tmpl.taxes || []).reduce((sum, d) => sum + flt(d.tax_rate), 0);
+            const line_tax = flt(line_amount * effective_rate / 100, 2);
+            frappe.model.set_value(cdt, cdn, 'line_tax_amount', line_tax);
+            frappe.model.set_value(cdt, cdn, 'line_total', flt(line_amount + line_tax, 2));
+            calculate_charge_totals(frm);
+        });
+    } else {
+        frappe.model.set_value(cdt, cdn, 'line_tax_amount', 0);
+        frappe.model.set_value(cdt, cdn, 'line_total', line_amount);
+        calculate_charge_totals(frm);
+    }
 }

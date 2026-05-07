@@ -8,33 +8,34 @@
   "naming_series",
   "reconciliation_details_section",
   "company",
-  "posting_date",
   "posting_time",
   "column_break_1",
   "cash_account",
   "cashier",
+  "column_break_wajk",
+  "posting_date",
   "company_currency",
   "balances_section",
   "ledger_balance",
-  "fetched_on",
+  "difference",
   "column_break_2",
   "physical_cash_balance",
-  "difference",
   "reconciliation_status",
+  "column_break_oipx",
+  "fetched_on",
   "period_analysis_section",
   "period_type",
-  "period_from",
-  "period_to",
+  "period_opening_balance",
+  "period_closing_balance",
   "column_break_period",
+  "period_from",
   "period_receipts",
-  "period_payments",
   "period_net_flow",
+  "column_break_jden",
+  "period_to",
+  "period_payments",
   "remarks_section",
   "remarks",
-  "approval_section",
-  "approved_by",
-  "column_break_approval",
-  "approved_on",
   "amended_from"
  ],
  "fields": [
@@ -196,9 +197,23 @@
    "read_only": 1
   },
   {
+   "fieldname": "period_opening_balance",
+   "fieldtype": "Currency",
+   "label": "Opening Balance",
+   "options": "company_currency",
+   "read_only": 1
+  },
+  {
    "fieldname": "period_net_flow",
    "fieldtype": "Currency",
    "label": "Period Net Flow",
+   "options": "company_currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "period_closing_balance",
+   "fieldtype": "Currency",
+   "label": "Closing Balance",
    "options": "company_currency",
    "read_only": 1
   },
@@ -213,29 +228,6 @@
    "label": "Remarks"
   },
   {
-   "collapsible": 1,
-   "fieldname": "approval_section",
-   "fieldtype": "Section Break",
-   "label": "Approval"
-  },
-  {
-   "fieldname": "approved_by",
-   "fieldtype": "Link",
-   "label": "Approved By",
-   "options": "User",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_approval",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "approved_on",
-   "fieldtype": "Datetime",
-   "label": "Approved On",
-   "read_only": 1
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -244,13 +236,25 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "column_break_wajk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_oipx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jden",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-07 07:50:34.618041",
+ "modified": "2026-05-07 20:22:22.252703",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Cash Reconciliation",

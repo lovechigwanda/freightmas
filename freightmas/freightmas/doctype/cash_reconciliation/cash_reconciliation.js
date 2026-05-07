@@ -45,6 +45,8 @@ frappe.ui.form.on("Cash Reconciliation", {
 		frm.set_value("period_receipts", null);
 		frm.set_value("period_payments", null);
 		frm.set_value("period_net_flow", null);
+		frm.set_value("period_opening_balance", null);
+		frm.set_value("period_closing_balance", null);
 		frm.trigger("fetch_period_flow");
 	},
 
@@ -101,6 +103,8 @@ frappe.ui.form.on("Cash Reconciliation", {
 					frm.set_value("period_receipts", r.message.period_receipts);
 					frm.set_value("period_payments", r.message.period_payments);
 					frm.set_value("period_net_flow", r.message.period_net_flow);
+					frm.set_value("period_opening_balance", r.message.period_opening_balance);
+					frm.set_value("period_closing_balance", r.message.period_closing_balance);
 				}
 			},
 		});
