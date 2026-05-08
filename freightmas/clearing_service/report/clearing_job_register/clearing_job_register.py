@@ -8,6 +8,7 @@
 
 import frappe
 from frappe.utils import flt
+from freightmas.utils.dnd_storage_days import calculate_dnd_and_storage_days
 
 def execute(filters=None):
     filters = filters or {}
@@ -84,7 +85,6 @@ def execute(filters=None):
     jobs = frappe.db.sql(query, values, as_dict=1)
 
     data = []
-    today = frappe.utils.nowdate()
 
     for job in jobs:
         # Use cargo_count directly from the database, no calculation
@@ -101,17 +101,7 @@ def execute(filters=None):
         cost_base = total_cost * conv
         profit_base = revenue_base - cost_base
 
-        # DND and Storage Days Calculation (same logic as Milestone Tracker Imports)
-        discharge_date = job.get("discharge_date") or job.get("date_created")
-        dnd_free_days = int(job.get("dnd_free_days") or 0)
-        port_free_days = int(job.get("port_free_days") or 0)
-
-        # DND end_date logic (using stack_close_date as a proxy for gate_in_empty/gate_out_full if not available)
-        dnd_end_date = job.get("stack_close_date") or today
-        storage_end_date = job.get("stack_close_date") or today
-
-        dnd_days = calculate_days(discharge_date, dnd_end_date, dnd_free_days)
-        storage_days = calculate_days(discharge_date, storage_end_date, port_free_days)
+        dnd_days, storage_days = calculate_dnd_and_storage_days(job)
 
         job.update({
             "cargo_count": cargo_count,
@@ -125,15 +115,3 @@ def execute(filters=None):
 
     return columns, data
 
-from datetime import datetime
-
-def calculate_days(start_date, end_date, free_days):
-    if not start_date or not end_date:
-        return 0
-    try:
-        start = datetime.strptime(str(start_date), "%Y-%m-%d")
-        end = datetime.strptime(str(end_date), "%Y-%m-%d")
-        days = (end - start).days + 1 - free_days
-        return days if days > 0 else 0
-    except Exception:
-        return 0
