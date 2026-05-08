@@ -87,6 +87,8 @@ def execute(filters=None):
                     gate_in_empty_date,
                     gate_out_full_date,
                     to_be_returned,
+                    is_loaded,
+                    is_returned,
                     discharge_date
                 FROM `tabCargo Package Details`
                 WHERE parent = %s
@@ -98,19 +100,30 @@ def execute(filters=None):
             if children:
                 for child in children:
                     to_be_returned = frappe.utils.cint(child.to_be_returned)
+                    is_loaded = frappe.utils.cint(child.is_loaded)
+                    is_returned = frappe.utils.cint(child.is_returned)
                     # Use per-container discharge_date with fallback to job-level
                     child_discharge_date = child.discharge_date or discharge_date
 
                     # DND end_date logic
-                    if to_be_returned == 1 and child.gate_in_empty_date:
-                        dnd_end_date = child.gate_in_empty_date
-                    elif to_be_returned == 0 and child.gate_out_full_date:
-                        dnd_end_date = child.gate_out_full_date
+                    if to_be_returned:
+                        if is_loaded and is_returned and child.gate_in_empty_date:
+                            dnd_end_date = child.gate_in_empty_date
+                        else:
+                            dnd_end_date = today
                     else:
-                        dnd_end_date = today
+                        if is_loaded and child.gate_out_full_date:
+                            dnd_end_date = child.gate_out_full_date
+                        else:
+                            dnd_end_date = today
 
                     # Storage end_date logic
-                    storage_end_date = child.gate_out_full_date or today
+                    if not is_loaded:
+                        storage_end_date = today
+                    elif child.gate_out_full_date:
+                        storage_end_date = child.gate_out_full_date
+                    else:
+                        storage_end_date = today
 
                     # Calculate DND Days
                     dnd_days = calculate_days(child_discharge_date, dnd_end_date, dnd_free_days)

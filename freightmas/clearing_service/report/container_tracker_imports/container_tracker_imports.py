@@ -121,14 +121,14 @@ def execute(filters=None):
 
             # DND days
             if dnd_end_date and discharge_date:
-                dnd_days = (dnd_end_date - discharge_date).days - dnd_free_days
+                dnd_days = (dnd_end_date - discharge_date).days + 1 - dnd_free_days
                 dnd_days = max(dnd_days, 0)
             else:
                 dnd_days = 0
 
             # Storage days
             if storage_end_date and discharge_date:
-                storage_days = (storage_end_date - discharge_date).days - port_free_days
+                storage_days = (storage_end_date - discharge_date).days + 1 - port_free_days
                 storage_days = max(storage_days, 0)
             else:
                 storage_days = 0

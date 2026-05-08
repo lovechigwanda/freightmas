@@ -139,9 +139,9 @@ def execute(filters=None):
 
             end_date = loaded_on_vessel_dt if is_loaded_on_vessel and loaded_on_vessel_dt else today_dt
 
-            dnd_days = (end_date - pick_up_empty_dt).days - dnd_free_days if pick_up_empty_dt else 0
+            dnd_days = (end_date - pick_up_empty_dt).days + 1 - dnd_free_days if pick_up_empty_dt else 0
             dnd_days = max(dnd_days, 0)
-            storage_days = (end_date - gate_in_full_dt).days - port_free_days if gate_in_full_dt else 0
+            storage_days = (end_date - gate_in_full_dt).days + 1 - port_free_days if gate_in_full_dt else 0
             storage_days = max(storage_days, 0)
 
             # --- Filter by Status if provided ---
