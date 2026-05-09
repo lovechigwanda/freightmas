@@ -1,0 +1,9 @@
+{
+    "claudeCode.useTerminal": false,
+    "chat.tools.terminal.autoApprove": {
+        "/^python -m py_compile freightmas/freightmas/report/weekly_cash_report/weekly_cash_report\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

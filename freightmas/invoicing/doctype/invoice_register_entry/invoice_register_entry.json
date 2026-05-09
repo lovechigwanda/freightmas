@@ -40,6 +40,8 @@
   "column_break_fin2",
   "base_currency",
   "tax_amount",
+  "charge_details_section",
+  "charge_details",
   "linked_documents_section",
   "linked_invoicing_instruction",
   "column_break_ldoc1",
@@ -54,8 +56,6 @@
   "is_overdue",
   "column_break_strk2",
   "current_status_since",
-  "charge_details_section",
-  "charge_details",
   "attachment_section",
   "attachment",
   "notes_section",
@@ -446,7 +446,7 @@
    "link_fieldname": "invoice_register_entry"
   }
  ],
- "modified": "2026-05-08 00:08:17.242142",
+ "modified": "2026-05-09 15:37:00.652847",
  "modified_by": "Administrator",
  "module": "Invoicing",
  "name": "Invoice Register Entry",
