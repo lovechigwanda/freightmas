@@ -4,7 +4,7 @@
 import json
 import frappe
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate, cint, getdate, add_days
+from frappe.utils import flt, nowdate, now_datetime, cint, getdate, add_days
 from frappe import _
 from freightmas.utils.permissions import check_doc_read_permission
 
@@ -1097,13 +1097,66 @@ def create_purchase_invoice_with_rows(docname, row_names):
     pi.insert()
 
     # Mark rows as purchased
+    invoice_register_sources = []
     for row in job.get("clearing_cost_charges", []):
         if row.name in row_names:
             row.is_purchased = 1
             row.purchase_invoice_reference = pi.name
+            if row.source_reference:
+                invoice_register_sources.append(row.source_reference)
+
+    _link_invoice_register_entries_to_purchase_invoice(invoice_register_sources, pi.name)
 
     job.save()
     return pi.name
+
+
+def _link_invoice_register_entries_to_purchase_invoice(source_references, purchase_invoice):
+    """Link originating Invoice Register Entries when copied working cost rows are invoiced."""
+    if not source_references:
+        return
+
+    charge_rows = frappe.get_all(
+        "Invoice Register Charge",
+        filters={"name": ["in", list(set(source_references))]},
+        fields=["parent"],
+    )
+    register_entries = {row.parent for row in charge_rows if row.parent}
+
+    for entry_name in register_entries:
+        entry = frappe.get_doc("Invoice Register Entry", entry_name)
+        if entry.entry_type != "Purchase":
+            continue
+        if entry.linked_purchase_invoice and entry.linked_purchase_invoice != purchase_invoice:
+            continue
+
+        old_status = entry.status
+        changed_at = now_datetime()
+
+        db_values = {"linked_purchase_invoice": purchase_invoice}
+
+        if old_status in ("Ready for Capture", "Returned for Capture"):
+            db_values["status"] = "Captured"
+            db_values["current_status_since"] = changed_at
+
+        # Use direct DB writes — bypasses Frappe 16 check_if_locked() bug
+        # which crashes when the document is open in a browser session.
+        frappe.db.set_value("Invoice Register Entry", entry_name, db_values)
+
+        if old_status in ("Ready for Capture", "Returned for Capture"):
+            frappe.get_doc({
+                "doctype": "Invoice Status Log",
+                "parent": entry_name,
+                "parenttype": "Invoice Register Entry",
+                "parentfield": "status_log",
+                "from_status": old_status,
+                "to_status": "Captured",
+                "changed_by": frappe.session.user,
+                "changed_at": changed_at,
+                "comment": _("Purchase Invoice {0} created from Clearing Job working cost.").format(
+                    purchase_invoice
+                ),
+            }).insert(ignore_permissions=True)
 
 
 # ========================================================
@@ -1113,8 +1166,6 @@ def create_purchase_invoice_with_rows(docname, row_names):
 @frappe.whitelist()
 def fetch_containers_from_bl(docname):
     """Fetch container tracking data from Searates API and populate the Clearing Job."""
-    from frappe.utils import now_datetime
-
     from freightmas.integrations.tracking.searates import fetch_tracking
     from freightmas.utils.master_data_sync import (
         match_container_type,
