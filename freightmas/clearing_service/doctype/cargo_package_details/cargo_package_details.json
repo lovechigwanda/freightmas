@@ -41,7 +41,13 @@
   "driver_contact_no_2",
   "column_break_gbhn",
   "trailer_reg_no",
-  "driver_licence_no"
+  "driver_licence_no",
+  "api_tracking_section",
+  "api_container_status",
+  "column_break_cpapi1",
+  "api_last_event",
+  "column_break_cpapi2",
+  "api_last_event_date"
  ],
  "fields": [
   {
@@ -87,6 +93,38 @@
    "fieldname": "driver_licence_no",
    "fieldtype": "Data",
    "label": "Driver Licence No"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "api_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "API Tracking"
+  },
+  {
+   "fieldname": "api_container_status",
+   "fieldtype": "Data",
+   "label": "API Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cpapi1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event",
+   "fieldtype": "Data",
+   "label": "Last API Event",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cpapi2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event_date",
+   "fieldtype": "Date",
+   "label": "Last API Event Date",
+   "read_only": 1
   },
   {
    "fieldname": "driver_contact_no",

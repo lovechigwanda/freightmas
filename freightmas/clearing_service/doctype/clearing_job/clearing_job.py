@@ -1104,3 +1104,188 @@ def create_purchase_invoice_with_rows(docname, row_names):
 
     job.save()
     return pi.name
+
+
+# ========================================================
+# API TRACKING - Searates Integration
+# ========================================================
+
+@frappe.whitelist()
+def fetch_containers_from_bl(docname):
+    """Fetch container tracking data from Searates API and populate the Clearing Job."""
+    from frappe.utils import now_datetime
+
+    from freightmas.integrations.tracking.searates import fetch_tracking
+    from freightmas.utils.master_data_sync import (
+        match_container_type,
+        match_or_create_port,
+        match_shipping_line,
+    )
+
+    doc = frappe.get_doc("Clearing Job", docname)
+
+    if not doc.bl_number:
+        frappe.throw(_("BL Number is required to fetch tracking data."))
+
+    tracking = fetch_tracking(doc.bl_number)
+
+    metadata = tracking["metadata"]
+    route = tracking["route"]
+    vessel = tracking["vessel"]
+    containers = tracking["containers"]
+    mappings = tracking["mappings"]
+
+    # Update parent fields only if currently blank
+    if not doc.vessel_flight_no and mappings.get("vessel_flight_no"):
+        doc.vessel_flight_no = mappings["vessel_flight_no"]
+
+    pol_data = route.get("pol") or {}
+    pod_data = route.get("pod") or {}
+
+    matched_pol = match_or_create_port(
+        pol_data.get("locode"), pol_data.get("name"), pol_data.get("country_code")
+    )
+    matched_pod = match_or_create_port(
+        pod_data.get("locode"), pod_data.get("name"), pod_data.get("country_code")
+    )
+
+    if not doc.port_of_loading and matched_pol:
+        doc.port_of_loading = matched_pol
+    if not doc.port_of_discharge and matched_pod:
+        doc.port_of_discharge = matched_pod
+
+    if not doc.etd and mappings.get("etd"):
+        doc.etd = mappings["etd"]
+    if not doc.atd and mappings.get("atd"):
+        doc.atd = mappings["atd"]
+    if mappings.get("eta"):
+        doc.eta = mappings["eta"]
+    if not doc.ata and mappings.get("ata"):
+        doc.ata = mappings["ata"]
+
+    # Update/create cargo_package_details rows with API data
+    existing_rows = {
+        row.container_number: row
+        for row in (doc.cargo_package_details or [])
+        if row.container_number
+    }
+
+    for ct in containers:
+        ct_number = (ct.get("container_number") or "").strip()
+        if not ct_number:
+            continue
+
+        matched_ct = match_container_type(ct.get("iso_code"))
+        ct_status = ct.get("status", "")
+        ct_status = ct_status.replace("_", " ").title() if ct_status else ""
+        ct_event = ct.get("latest_event_description", "")
+        ct_event_date = _extract_date(ct.get("latest_event_date"))
+
+        if ct_number in existing_rows:
+            row = existing_rows[ct_number]
+            if matched_ct and not row.container_type:
+                row.container_type = matched_ct
+            row.api_container_status = ct_status
+            row.api_last_event = ct_event
+            row.api_last_event_date = ct_event_date
+        else:
+            doc.append("cargo_package_details", {
+                "cargo_type": "Containerised",
+                "container_number": ct_number,
+                "container_type": matched_ct,
+                "api_container_status": ct_status,
+                "api_last_event": ct_event,
+                "api_last_event_date": ct_event_date,
+            })
+
+    # Find latest event across all containers for the BL-level summary
+    latest_event = ""
+    latest_event_date = None
+    for ct in containers:
+        evt_desc = ct.get("latest_event_description", "")
+        evt_date = _extract_date(ct.get("latest_event_date"))
+        if evt_date and (not latest_event_date or evt_date > latest_event_date):
+            latest_event = evt_desc
+            latest_event_date = evt_date
+
+    new_status = metadata.get("status", "")
+    new_status = new_status.replace("_", " ").title() if new_status else ""
+    now = now_datetime()
+
+    # Update BL Tracking Summary fields
+    doc.api_tracking_status = new_status
+    doc.api_last_event = latest_event
+    doc.api_last_event_date = latest_event_date
+    doc.api_last_fetched = now
+    doc.api_call_count = (doc.api_call_count or 0) + 1
+
+    # Append to tracking timeline (dedup)
+    _update_clearing_tracking_timeline(doc, new_status, latest_event, latest_event_date, now)
+
+    # Sync summary fields from last timeline row
+    _sync_clearing_tracking_summary(doc)
+
+    doc.save()
+
+    return {
+        "status": new_status,
+        "containers_count": len(containers),
+    }
+
+
+def _update_clearing_tracking_timeline(doc, new_status, latest_event, latest_event_date, now):
+    """Append or update the clearing tracking table based on BL-level API data.
+
+    Dedup: if the last API row has the same comment text, only update last_verified.
+    Otherwise append a new row.
+    """
+    date_str = ""
+    if latest_event_date:
+        try:
+            from frappe.utils import getdate
+            date_str = getdate(latest_event_date).strftime("%d-%b-%y")
+        except Exception:
+            date_str = str(latest_event_date)
+
+    parts = []
+    if new_status:
+        parts.append(new_status)
+    if latest_event:
+        parts.append(latest_event)
+    combined_comment = " - ".join(parts)
+    if date_str:
+        combined_comment = f"{combined_comment}: {date_str}"
+
+    last_api_row = None
+    for row in reversed(doc.get("clearing_tracking") or []):
+        if row.source == "API":
+            last_api_row = row
+            break
+
+    if last_api_row and last_api_row.comment == combined_comment:
+        last_api_row.last_verified = now
+    else:
+        doc.append("clearing_tracking", {
+            "source": "API",
+            "comment": combined_comment,
+            "updated_on": now,
+            "last_verified": now,
+            "updated_by": "Administrator",
+        })
+
+
+def _sync_clearing_tracking_summary(doc):
+    """Update current_comment, last_updated_by, last_updated_on from the last tracking row."""
+    timeline = doc.get("clearing_tracking") or []
+    if timeline:
+        last = timeline[-1]
+        doc.current_comment = last.comment
+        doc.last_updated_on = last.updated_on
+        doc.last_updated_by = last.updated_by_name or last.updated_by
+
+
+def _extract_date(datetime_str):
+    """Extract the date portion (YYYY-MM-DD) from a datetime string."""
+    if not datetime_str:
+        return None
+    return str(datetime_str)[:10] or None

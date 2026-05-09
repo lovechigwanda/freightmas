@@ -105,6 +105,17 @@
   "section_break_zwiv",
   "milestone_tracker",
   "tracking_tab",
+  "enable_api_tracking",
+  "bl_tracking_summary_section",
+  "api_tracking_status",
+  "column_break_ctapi1",
+  "api_last_event",
+  "column_break_ctapi2",
+  "api_last_event_date",
+  "api_last_fetched",
+  "column_break_ctapi3",
+  "api_call_count",
+  "fetch_containers_from_bl",
   "job_tracking_section",
   "clearing_tracking",
   "current_update_section",
@@ -465,6 +476,67 @@
   {
    "fieldname": "column_break_aoyq",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_api_tracking",
+   "fieldtype": "Check",
+   "label": "Enable API Tracking"
+  },
+  {
+   "collapsible": 0,
+   "depends_on": "eval:doc.enable_api_tracking",
+   "fieldname": "bl_tracking_summary_section",
+   "fieldtype": "Section Break",
+   "label": "BL Tracking Summary"
+  },
+  {
+   "fieldname": "api_tracking_status",
+   "fieldtype": "Data",
+   "label": "Tracking Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ctapi1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event",
+   "fieldtype": "Data",
+   "label": "Last Event",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ctapi2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_last_event_date",
+   "fieldtype": "Date",
+   "label": "Last Event Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "api_last_fetched",
+   "fieldtype": "Datetime",
+   "label": "Last Fetched",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ctapi3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_call_count",
+   "fieldtype": "Int",
+   "label": "API Call Count",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.enable_api_tracking",
+   "fieldname": "fetch_containers_from_bl",
+   "fieldtype": "Button",
+   "label": "Fetch Tracking from Searates"
   },
   {
    "fieldname": "job_tracking_section",
