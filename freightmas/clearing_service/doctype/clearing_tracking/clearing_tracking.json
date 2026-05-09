@@ -6,12 +6,26 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "comment",
+  "source",
+  "updated_on",
   "column_break_swlk",
+  "comment",
+  "column_break_ctby1",
   "updated_by",
-  "updated_on"
+  "updated_by_name",
+  "last_verified"
  ],
  "fields": [
+  {
+   "columns": 1,
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Source",
+   "options": "Manual\nAPI",
+   "read_only": 1,
+   "set_only_once": 1
+  },
   {
    "columns": 2,
    "default": "Now",
@@ -35,21 +49,38 @@
    "set_only_once": 1
   },
   {
-   "columns": 3,
-   "default": "User",
+   "fieldname": "column_break_ctby1",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "updated_by",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Updated By",
+   "hidden": 1,
+   "label": "Updated By User",
    "options": "User",
    "set_only_once": 1
+  },
+  {
+   "columns": 2,
+   "fetch_from": "updated_by.full_name",
+   "fieldname": "updated_by_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Updated By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_verified",
+   "fieldtype": "Datetime",
+   "label": "Last Verified",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-01 15:36:51.513700",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2025-05-09 00:00:00.000000",
+ "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Clearing Tracking",
  "owner": "Administrator",

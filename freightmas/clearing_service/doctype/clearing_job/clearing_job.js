@@ -18,6 +18,13 @@ frappe.ui.form.on('Clearing Job', {
         update_cargo_count(frm);
         toggle_costing_table_lock(frm);
 
+        // API tracking section visibility — only show when setting is enabled
+        frappe.db.get_single_value('FreightMas Settings', 'enable_shipping_tracker').then(val => {
+            frm.toggle_display('bl_tracking_summary_section', !!val);
+            frm.toggle_display('enable_api_tracking', !!val);
+            frm.toggle_display('fetch_containers_from_bl', !!val && !!frm.doc.enable_api_tracking);
+        });
+
         // Custom buttons
         if (!frm.is_new()) {
             frm.add_custom_button(__('Create Sales Invoice'), function() {
@@ -41,6 +48,47 @@ frappe.ui.form.on('Clearing Job', {
     // Revenue Recognition - Set Date Button
     set_rr_date: function(frm) {
         show_recognition_date_dialog(frm);
+    },
+
+    // API Tracking toggle — show/hide fetch button
+    enable_api_tracking: function(frm) {
+        frappe.db.get_single_value('FreightMas Settings', 'enable_shipping_tracker').then(val => {
+            frm.toggle_display('fetch_containers_from_bl', !!val && !!frm.doc.enable_api_tracking);
+        });
+    },
+
+    // Fetch Tracking from Searates
+    fetch_containers_from_bl: function(frm) {
+        if (!frm.doc.bl_number) {
+            frappe.msgprint(__('Please enter a BL Number first.'));
+            return;
+        }
+        if (frm.is_dirty()) {
+            frappe.msgprint(__('Please save the document before fetching tracking data.'));
+            return;
+        }
+        frappe.call({
+            method: 'freightmas.clearing_service.doctype.clearing_job.clearing_job.fetch_containers_from_bl',
+            args: { docname: frm.doc.name },
+            freeze: true,
+            freeze_message: __('Fetching container data from Searates...'),
+            callback: function(r) {
+                if (r.message) {
+                    frm.reload_doc();
+                    frappe.show_alert({
+                        message: __('Tracking data fetched: {0} containers, status: {1}',
+                            [r.message.containers_count, r.message.status]),
+                        indicator: 'green'
+                    }, 5);
+                }
+            },
+            error: function() {
+                frappe.show_alert({
+                    message: __('Failed to fetch tracking data. Check error log for details.'),
+                    indicator: 'red'
+                }, 5);
+            }
+        });
     },
 
     shipping_line: function(frm) {
@@ -181,7 +229,7 @@ frappe.ui.form.on('Clearing Job', {
             const last = tracking[tracking.length - 1];
             set_main_value_safe(frm, 'current_comment', last.comment);
             set_main_value_safe(frm, 'last_updated_on', last.updated_on);
-            set_main_value_safe(frm, 'last_updated_by', last.updated_by);
+            set_main_value_safe(frm, 'last_updated_by', last.updated_by_name || last.updated_by);
         }
     },
 
@@ -253,6 +301,15 @@ frappe.ui.form.on('Clearing Job', {
 });
 
 // ==========================================================
+// CLEARING TRACKING - Auto-set source and updated_by on new rows
+// ==========================================================
+frappe.ui.form.on('Clearing Tracking', {
+    clearing_tracking_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, 'source', 'Manual');
+        frappe.model.set_value(cdt, cdn, 'updated_by', frappe.session.user);
+    }
+});
+
 // CLEARING COSTING CHARGES (Quoted/Planned)
 // ==========================================================
 frappe.ui.form.on('Clearing Costing Charges', {
