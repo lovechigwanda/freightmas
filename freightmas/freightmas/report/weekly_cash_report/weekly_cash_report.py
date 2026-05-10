@@ -54,13 +54,14 @@ def execute(filters=None):
 		and e.voucher_no not in inter_account
 	]
 	je_contra = _get_je_contra_accounts(je_vouchers, account_names)
-	party_names = _get_party_names(entries)
+	voucher_parties = _get_voucher_parties(entries)
+	party_names = _get_party_names(entries, voucher_parties)
 
 	receipts = defaultdict(lambda: defaultdict(float))
 	payments = defaultdict(lambda: defaultdict(float))
 
 	for entry in entries:
-		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names)
+		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names, voucher_parties)
 		if flt(entry.debit, 6) > 0:
 			receipts[label][entry.account] += flt(entry.debit, 6)
 		if flt(entry.credit, 6) > 0:
@@ -215,12 +216,39 @@ def _get_weekly_entries(company, week_start, week_end, account_names):
 # Party name resolution
 # ---------------------------------------------------------------------------
 
-def _get_party_names(entries):
+def _get_voucher_parties(entries):
+	"""
+	Payment Entries put party=NULL on the Bank/Cash GL leg and the real party
+	on the Payable/Receivable leg. For every voucher where our cash/bank entry
+	has no party, look up the party from any other GL entry on the same voucher.
+	Returns {voucher_no: (party_type, party_id)}.
+	"""
+	no_party = {e.voucher_no for e in entries if not (e.party or "").strip()}
+	if not no_party:
+		return {}
+	rows = frappe.db.sql("""
+		SELECT voucher_no, party_type, party
+		FROM `tabGL Entry`
+		WHERE voucher_no IN %(vouchers)s
+		  AND party IS NOT NULL AND party != ''
+		  AND is_cancelled = 0
+		ORDER BY voucher_no, idx
+	""", {"vouchers": tuple(no_party)}, as_dict=True)
+	result = {}
+	for row in rows:
+		if row.voucher_no not in result:
+			result[row.voucher_no] = (row.party_type, row.party)
+	return result
+
+
+def _get_party_names(entries, voucher_parties=None):
 	"""Return {(party_type, party_id): display_name} for all parties in entries."""
 	by_type = defaultdict(set)
 	for e in entries:
 		if (e.party or "").strip():
 			by_type[e.party_type].add(e.party)
+	for pt, pid in (voucher_parties or {}).values():
+		by_type[pt].add(pid)
 
 	PARTY_FIELDS = {
 		"Customer": ("tabCustomer", "customer_name"),
@@ -305,9 +333,9 @@ def _get_je_contra_accounts(je_vouchers, account_names):
 # Row label determination
 # ---------------------------------------------------------------------------
 
-def _get_label(entry, inter_account, je_contra, account_name_map, party_names):
+def _get_label(entry, inter_account, je_contra, account_name_map, party_names, voucher_parties):
 	"""Determine the display label for a GL entry."""
-	# 1. Party display name takes precedence (customer, supplier, employee, etc.)
+	# 1. Party directly on the cash/bank GL entry (uncommon but handle it)
 	if (entry.party or "").strip():
 		return party_names.get((entry.party_type, entry.party), entry.party.strip())
 
@@ -323,11 +351,17 @@ def _get_label(entry, inter_account, je_contra, account_name_map, party_names):
 			# Paying side: label = destination account (the one that was debited)
 			return account_name_map.get(transfer["to"], transfer["to"])
 
-	# 3. Journal Entry with a known contra account
+	# 3. Party from the payable/receivable leg of the same voucher (Payment Entries)
+	vp = voucher_parties.get(voucher_no)
+	if vp:
+		pt, pid = vp
+		return party_names.get((pt, pid), pid)
+
+	# 4. Journal Entry with a known contra account
 	if voucher_no in je_contra:
 		return je_contra[voucher_no]
 
-	# 4. Fallback: remarks or voucher type
+	# 5. Fallback: remarks or voucher type
 	remarks = (entry.remarks or "").strip()
 	if remarks:
 		return remarks[:80]
@@ -770,12 +804,13 @@ def export_excel(filters):
 		and e.voucher_no not in inter_account
 	]
 	je_contra = _get_je_contra_accounts(je_vouchers, account_names)
-	party_names = _get_party_names(entries)
+	voucher_parties = _get_voucher_parties(entries)
+	party_names = _get_party_names(entries, voucher_parties)
 
 	receipts = defaultdict(lambda: defaultdict(float))
 	payments = defaultdict(lambda: defaultdict(float))
 	for entry in entries:
-		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names)
+		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names, voucher_parties)
 		if flt(entry.debit, 6) > 0:
 			receipts[label][entry.account] += flt(entry.debit, 6)
 		if flt(entry.credit, 6) > 0:
