@@ -114,9 +114,8 @@ frappe.query_reports["Weekly Cash Report"] = {
 };
 
 function _get_last_saturday() {
-  var d = frappe.datetime.now_date(true); // moment object
-  // moment: 0=Sunday, 6=Saturday
-  var dow = d.day();
+  var today = frappe.datetime.get_today();
+  var dow = new Date(today).getDay(); // 0=Sunday, 6=Saturday
   var daysBack = dow === 6 ? 0 : dow + 1; // days back to reach Saturday
-  return frappe.datetime.add_days(frappe.datetime.get_today(), -daysBack);
+  return frappe.datetime.add_days(today, -daysBack);
 }

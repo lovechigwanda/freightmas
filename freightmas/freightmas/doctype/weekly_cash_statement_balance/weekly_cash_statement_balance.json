@@ -7,9 +7,8 @@
  "field_order": [
   "company",
   "week_ending_date",
-  "column_break_1",
-  "account",
-  "statement_balance",
+  "balances_section",
+  "balances",
   "notes_section",
   "notes"
  ],
@@ -32,23 +31,15 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
+   "fieldname": "balances_section",
+   "fieldtype": "Section Break",
+   "label": "Account Balances"
   },
   {
-   "fieldname": "account",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Account",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
-   "fieldname": "statement_balance",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Statement Balance",
+   "fieldname": "balances",
+   "fieldtype": "Table",
+   "label": "Balances",
+   "options": "Weekly Cash Statement Balance Item",
    "reqd": 1
   },
   {
@@ -125,5 +116,5 @@
  "sort_field": "week_ending_date",
  "sort_order": "DESC",
  "states": [],
- "title_field": "account"
+ "title_field": "week_ending_date"
 }

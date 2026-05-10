@@ -299,12 +299,14 @@ def _get_label(entry, inter_account, je_contra, account_name_map):
 # ---------------------------------------------------------------------------
 
 def _get_statement_balances(company, week_ending_date, account_names):
-	"""Retrieve user-entered statement balances for the week."""
+	"""Retrieve user-entered statement balances for the week from the balances table."""
 	rows = frappe.db.sql("""
-		SELECT account, statement_balance
-		FROM `tabWeekly Cash Statement Balance`
-		WHERE company = %(company)s
-		  AND week_ending_date = %(week_ending_date)s
+		SELECT item.account, item.statement_balance
+		FROM `tabWeekly Cash Statement Balance Item` item
+		INNER JOIN `tabWeekly Cash Statement Balance` parent 
+			ON parent.name = item.parent
+		WHERE parent.company = %(company)s
+		  AND parent.week_ending_date = %(week_ending_date)s
 	""", {"company": company, "week_ending_date": week_ending_date}, as_dict=True)
 
 	result = {}
@@ -521,6 +523,181 @@ def _get_report_summary(summary_data, filters):
 # Excel Export
 # ---------------------------------------------------------------------------
 
+def _build_weekly_cash_excel(filters, columns, data):
+	"""Build a polished Excel workbook tailored to the matrix row_type system."""
+	import io
+	from openpyxl import Workbook
+	from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+	from openpyxl.utils import get_column_letter
+	from frappe.utils import now_datetime
+
+	wb = Workbook()
+	ws = wb.active
+	ws.title = "Weekly Cash Report"
+
+	# Palette (matches report_export_utils.py)
+	_blue    = "305496"
+	_grey    = "D6DCE4"
+	_zebra   = "F2F2F2"
+	_yellow  = "FFF2CC"
+
+	bold_white  = Font(bold=True, color="FFFFFF")
+	bold_blue   = Font(bold=True, color=_blue)
+	bold_font   = Font(bold=True)
+	italic_font = Font(italic=True)
+	default_font = Font()
+	red_font    = Font(bold=True, color="C00000")
+	title_font  = Font(bold=True, size=16)
+	sub_font    = Font(bold=True, size=13)
+	label_font  = Font(bold=True)
+
+	fill_blue   = PatternFill("solid", fgColor=_blue)
+	fill_grey   = PatternFill("solid", fgColor=_grey)
+	fill_zebra  = PatternFill("solid", fgColor=_zebra)
+	fill_yellow = PatternFill("solid", fgColor=_yellow)
+	fill_none   = PatternFill(fill_type=None)
+
+	def _border(top_color=None):
+		top = Side(style="thin", color=top_color or "DDDDDD")
+		side = Side(style="thin", color="DDDDDD")
+		return Border(top=top, left=side, right=side, bottom=side)
+
+	r_align = Alignment(horizontal="right",  vertical="center")
+	l_align = Alignment(horizontal="left",   vertical="center")
+
+	SKIP = {"row_type", "indent", "account", "party", "party_type", "voucher_type"}
+	xcols = [c for c in columns if c.get("fieldname") not in SKIP]
+	ncols = len(xcols)
+	cur_fields = {c["fieldname"] for c in xcols if c.get("fieldtype") == "Currency"}
+
+	row_idx = 1
+
+	# ── Company & title ───────────────────────────────────────────────────────
+	ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+	c = ws.cell(row=row_idx, column=1, value=filters.get("company", ""))
+	c.font = title_font; c.alignment = l_align
+	row_idx += 1
+
+	ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+	c = ws.cell(row=row_idx, column=1, value="Weekly Cash Report")
+	c.font = sub_font; c.alignment = l_align
+	row_idx += 1
+
+	# ── Filters ───────────────────────────────────────────────────────────────
+	ws.cell(row=row_idx, column=1, value="Week Ending:").font = label_font
+	ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+	ws.cell(row=row_idx, column=2, value=formatdate(filters.get("week_ending_date"), "dd MMMM yyyy"))
+	row_idx += 1
+
+	ws.cell(row=row_idx, column=1, value="Exported:").font = label_font
+	ws.merge_cells(start_row=row_idx, start_column=2, end_row=row_idx, end_column=ncols)
+	ws.cell(row=row_idx, column=2, value=now_datetime().strftime("%d-%b-%Y %H:%M"))
+	row_idx += 1
+
+	# ── Column headers ────────────────────────────────────────────────────────
+	header_row = row_idx
+	for ci, col in enumerate(xcols, 1):
+		c = ws.cell(row=row_idx, column=ci, value=col.get("label", ""))
+		c.font = bold_white
+		c.fill = fill_blue
+		c.border = _border()
+		c.alignment = r_align if col.get("fieldtype") == "Currency" else l_align
+	row_idx += 1
+
+	# Freeze: lock header row AND description column so you can scroll right
+	ws.freeze_panes = ws.cell(row=header_row + 1, column=2)
+
+	# ── Data rows ─────────────────────────────────────────────────────────────
+	pending_separator = False
+	zebra = 0
+
+	for row_data in data:
+		rt = row_data.get("row_type", "data")
+
+		if rt == "spacer":
+			pending_separator = True
+			zebra = 0
+			continue
+
+		# Resolve styles for this row type
+		if rt == "section_header":
+			r_fill, r_font, do_merge = fill_blue, bold_white, True
+			zebra = 0
+		elif rt in ("opening", "closing"):
+			r_fill, r_font, do_merge = fill_none, bold_font, False
+		elif rt == "total":
+			r_fill, r_font, do_merge = fill_grey, bold_blue, False
+			zebra = 0
+		elif rt == "statement":
+			r_fill, r_font, do_merge = fill_zebra, italic_font, False
+		elif rt == "difference":
+			r_fill, r_font, do_merge = fill_yellow, bold_font, False
+		else:  # "data"
+			zebra += 1
+			r_fill = fill_zebra if zebra % 2 == 0 else fill_none
+			r_font, do_merge = default_font, False
+
+		top_color = "AAAAAA" if pending_separator else "DDDDDD"
+		pending_separator = False
+
+		if do_merge:
+			ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+			c = ws.cell(row=row_idx, column=1, value=row_data.get("description", ""))
+			c.font = r_font; c.fill = r_fill
+			c.alignment = l_align; c.border = _border(top_color)
+		else:
+			for ci, col in enumerate(xcols, 1):
+				fn = col["fieldname"]
+				val = row_data.get(fn)
+				c = ws.cell(row=row_idx, column=ci)
+				c.fill = r_fill
+				c.border = _border(top_color if ci == 1 else "DDDDDD")
+
+				if fn in cur_fields:
+					c.value = val if isinstance(val, (int, float)) else 0
+					c.number_format = "#,##0.00"
+					c.alignment = r_align
+					# Difference row: red font for non-zero values
+					if rt == "difference" and isinstance(val, (int, float)) and val != 0:
+						c.font = red_font
+					else:
+						c.font = r_font
+				else:
+					c.value = val or ""
+					c.alignment = l_align
+					c.font = r_font
+
+		row_idx += 1
+
+	# ── Column widths ─────────────────────────────────────────────────────────
+	for ci, col in enumerate(xcols, 1):
+		ltr = get_column_letter(ci)
+		if col.get("fieldname") == "description":
+			ws.column_dimensions[ltr].width = 30
+		else:
+			best = 14
+			for row in ws.iter_rows(min_row=header_row, max_row=ws.max_row, min_col=ci, max_col=ci):
+				for cell in row:
+					try:
+						best = max(best, len(str(cell.value)) if cell.value else 0)
+					except Exception:
+						pass
+			ws.column_dimensions[ltr].width = min(best + 2, 22)
+
+	# ── Presentation ──────────────────────────────────────────────────────────
+	ws.sheet_view.showGridLines = False
+	ws.sheet_properties.pageSetUpPr.fitToPage = True
+	ws.page_setup.orientation = "landscape"
+	ws.page_setup.fitToWidth = 1
+	ws.page_setup.fitToHeight = 0
+	ws.page_setup.paperSize = ws.PAPERSIZE_A4
+
+	out = io.BytesIO()
+	wb.save(out)
+	out.seek(0)
+	return out.getvalue()
+
+
 @frappe.whitelist()
 def export_excel(filters):
 	import json
@@ -565,14 +742,8 @@ def export_excel(filters):
 	statement_bals = _get_statement_balances(filters.company, filters.week_ending_date, account_names)
 	data, _ = _assemble_rows(accounts, acc_fieldnames, opening_balances, receipts, payments, statement_bals)
 
-	from freightmas.freightmas.report.report_export_utils import build_excel_file, send_excel_response
-	file_bytes = build_excel_file(
-		filters=filters,
-		data=data,
-		columns=columns,
-		report_title="Weekly Cash Report",
-		net_field_label="Total",
-	)
+	from freightmas.freightmas.report.report_export_utils import send_excel_response
+	file_bytes = _build_weekly_cash_excel(filters, columns, data)
 	send_excel_response(file_bytes, "Weekly_Cash_Report.xlsx")
 
 
