@@ -31,7 +31,8 @@ def execute(filters=None):
 	week_end = getdate(filters.week_ending_date)
 	week_start = add_days(week_end, -6)
 
-	accounts = _get_accounts(filters.company)
+	selected = filters.get("accounts") or None
+	accounts = _get_accounts(filters.company, selected_accounts=selected)
 	if not accounts:
 		frappe.throw(_("No active Cash or Bank accounts found for this company."))
 
@@ -53,12 +54,13 @@ def execute(filters=None):
 		and e.voucher_no not in inter_account
 	]
 	je_contra = _get_je_contra_accounts(je_vouchers, account_names)
+	party_names = _get_party_names(entries)
 
 	receipts = defaultdict(lambda: defaultdict(float))
 	payments = defaultdict(lambda: defaultdict(float))
 
 	for entry in entries:
-		label = _get_label(entry, inter_account, je_contra, account_name_map)
+		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names)
 		if flt(entry.debit, 6) > 0:
 			receipts[label][entry.account] += flt(entry.debit, 6)
 		if flt(entry.credit, 6) > 0:
@@ -93,16 +95,22 @@ def _validate(filters):
 # Accounts
 # ---------------------------------------------------------------------------
 
-def _get_accounts(company):
-	return frappe.db.sql("""
+def _get_accounts(company, selected_accounts=None):
+	params = {"company": company}
+	extra = ""
+	if selected_accounts:
+		params["selected"] = tuple(selected_accounts)
+		extra = "AND name IN %(selected)s"
+	return frappe.db.sql(f"""
 		SELECT name, account_name, account_type
 		FROM `tabAccount`
 		WHERE company = %(company)s
 		  AND account_type IN ('Bank', 'Cash')
 		  AND is_group = 0
 		  AND disabled = 0
+		  {extra}
 		ORDER BY account_name ASC
-	""", {"company": company}, as_dict=True)
+	""", params, as_dict=True)
 
 
 def _build_fieldname_map(accounts):
@@ -204,6 +212,38 @@ def _get_weekly_entries(company, week_start, week_end, account_names):
 
 
 # ---------------------------------------------------------------------------
+# Party name resolution
+# ---------------------------------------------------------------------------
+
+def _get_party_names(entries):
+	"""Return {(party_type, party_id): display_name} for all parties in entries."""
+	by_type = defaultdict(set)
+	for e in entries:
+		if (e.party or "").strip():
+			by_type[e.party_type].add(e.party)
+
+	PARTY_FIELDS = {
+		"Customer": ("tabCustomer", "customer_name"),
+		"Supplier": ("tabSupplier", "supplier_name"),
+		"Employee": ("tabEmployee", "employee_name"),
+	}
+	result = {}
+	for ptype, ids in by_type.items():
+		table, name_field = PARTY_FIELDS.get(ptype, (None, None))
+		if not table:
+			for pid in ids:
+				result[(ptype, pid)] = pid
+			continue
+		rows = frappe.db.sql(
+			f"SELECT name, `{name_field}` AS display FROM `{table}` WHERE name IN %(ids)s",
+			{"ids": tuple(ids)}, as_dict=True
+		)
+		for r in rows:
+			result[(ptype, r.name)] = r.display
+	return result
+
+
+# ---------------------------------------------------------------------------
 # Inter-account transfer detection
 # ---------------------------------------------------------------------------
 
@@ -265,11 +305,11 @@ def _get_je_contra_accounts(je_vouchers, account_names):
 # Row label determination
 # ---------------------------------------------------------------------------
 
-def _get_label(entry, inter_account, je_contra, account_name_map):
+def _get_label(entry, inter_account, je_contra, account_name_map, party_names):
 	"""Determine the display label for a GL entry."""
-	# 1. Party always takes precedence (customer, supplier, employee, etc.)
+	# 1. Party display name takes precedence (customer, supplier, employee, etc.)
 	if (entry.party or "").strip():
-		return entry.party.strip()
+		return party_names.get((entry.party_type, entry.party), entry.party.strip())
 
 	voucher_no = entry.voucher_no
 
@@ -709,7 +749,8 @@ def export_excel(filters):
 	week_end = getdate(filters.week_ending_date)
 	week_start = add_days(week_end, -6)
 
-	accounts = _get_accounts(filters.company)
+	selected = filters.get("accounts") or None
+	accounts = _get_accounts(filters.company, selected_accounts=selected)
 	if not accounts:
 		frappe.throw(_("No active Cash or Bank accounts found for this company."))
 
@@ -729,11 +770,12 @@ def export_excel(filters):
 		and e.voucher_no not in inter_account
 	]
 	je_contra = _get_je_contra_accounts(je_vouchers, account_names)
+	party_names = _get_party_names(entries)
 
 	receipts = defaultdict(lambda: defaultdict(float))
 	payments = defaultdict(lambda: defaultdict(float))
 	for entry in entries:
-		label = _get_label(entry, inter_account, je_contra, account_name_map)
+		label = _get_label(entry, inter_account, je_contra, account_name_map, party_names)
 		if flt(entry.debit, 6) > 0:
 			receipts[label][entry.account] += flt(entry.debit, 6)
 		if flt(entry.credit, 6) > 0:

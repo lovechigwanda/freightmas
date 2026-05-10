@@ -19,6 +19,21 @@ frappe.query_reports["Weekly Cash Report"] = {
       reqd: 1,
       description: __("Must be a Saturday — the report covers the preceding Sunday through this date."),
     },
+    {
+      fieldname: "accounts",
+      label: __("Accounts"),
+      fieldtype: "MultiSelectList",
+      get_data: function (txt) {
+        var company = frappe.query_report.get_filter_value("company");
+        if (!company) return [];
+        return frappe.db.get_link_options("Account", txt, {
+          company: company,
+          account_type: ["in", ["Cash", "Bank"]],
+          is_group: 0,
+          disabled: 0,
+        });
+      },
+    },
   ],
 
   formatter: function (value, row, column, data, default_formatter) {
