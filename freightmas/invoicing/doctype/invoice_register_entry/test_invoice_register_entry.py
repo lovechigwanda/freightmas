@@ -65,6 +65,22 @@ class TestInvoiceRegisterEntry(FrappeTestCase):
         self.assertIn("Drafted", transitions)
         self.assertIn("Cancelled", transitions)
 
+    def test_ready_for_capture_can_manually_transition_to_captured(self):
+        doc = _make_entry("Purchase", "Ready for Capture")
+        self.assertIn("Captured", doc.get_valid_transitions())
+
+    def test_returned_for_capture_can_manually_transition_to_captured(self):
+        doc = _make_entry("Purchase", "Returned for Capture")
+        self.assertIn("Captured", doc.get_valid_transitions())
+
+    def test_drafted_can_manually_transition_to_issued_to_client(self):
+        doc = _make_entry("Sales", "Drafted")
+        self.assertIn("Issued to Client", doc.get_valid_transitions())
+
+    def test_drafted_still_allows_return_to_draft(self):
+        doc = _make_entry("Sales", "Drafted")
+        self.assertIn("Returned to Draft", doc.get_valid_transitions())
+
     def test_sales_returned_to_draft_can_re_draft(self):
         doc = _make_entry("Sales", "Returned to Draft")
         self.assertIn("Drafted", doc.get_valid_transitions())

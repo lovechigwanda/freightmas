@@ -1,25 +1,8 @@
 {
  "app": "freightmas",
- "charts": [
-  {
-   "chart_name": "Forwarding Jobs by Status",
-   "label": "Jobs by Status"
-  },
-  {
-   "chart_name": "Forwarding Monthly Revenue Trend",
-   "label": "Monthly Revenue Trend"
-  },
-  {
-   "chart_name": "Forwarding Customer Revenue",
-   "label": "Customer Revenue"
-  },
-  {
-   "chart_name": "Forwarding Sales Pipeline",
-   "label": "Sales Pipeline"
-  }
- ],
- "content": "[{\"id\":\"hdrFreightForwarding\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"spTopShortcuts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"scQuotation\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Quotation\",\"col\":3}},{\"id\":\"scJobOrder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"scForwardingJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"scContainerFinder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Container Finder\",\"col\":3}},{\"id\":\"spNumberCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ncActiveJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"ncContainersProgress\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers In Progress\",\"col\":3}},{\"id\":\"ncContainersMoved\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers Moved\",\"col\":3}},{\"id\":\"ncCompletedJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"spCharts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"chJobsByStatus\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Jobs by Status\",\"col\":6}},{\"id\":\"chRevenueTrend\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Monthly Revenue Trend\",\"col\":6}},{\"id\":\"chCustomerRevenue\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Customer Revenue\",\"col\":6}},{\"id\":\"chSalesPipeline\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Forwarding Sales Pipeline\",\"col\":6}},{\"id\":\"spCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardOperations\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cardBillingMargin\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing & Margin\",\"col\":4}},{\"id\":\"cardTrackingExceptions\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking & Exceptions\",\"col\":4}},{\"id\":\"cardReferenceData\",\"type\":\"card\",\"data\":{\"card_name\":\"Reference Data\",\"col\":4}}]",
- "creation": "2026-02-25 23:14:35.895762",
+ "charts": [],
+ "content": "[{\"id\":\"hdrFreightForwarding\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"spTopShortcuts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"scForwardingJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"scJobOrder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"scQuotation\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing\",\"col\":3}},{\"id\":\"scContainerFinder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Container Finder\",\"col\":3}},{\"id\":\"spNumberCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ncActiveJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"ncContainersProgress\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers In Progress\",\"col\":3}},{\"id\":\"ncContainersMoved\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers Moved\",\"col\":3}},{\"id\":\"ncCompletedJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"spCharts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"spCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardOperations\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cardBillingMargin\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing & Margin\",\"col\":4}},{\"id\":\"cardTrackingExceptions\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking & Exceptions\",\"col\":4}},{\"id\":\"cardReferenceData\",\"type\":\"card\",\"data\":{\"card_name\":\"Reference Data\",\"col\":4}}]",
+ "creation": "2026-05-02 20:44:33.427648",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -360,7 +343,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-02 20:30:00.000000",
+ "modified": "2026-05-11 10:33:52.135445",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
@@ -392,8 +375,8 @@
   {
    "color": "Blue",
    "doc_view": "List",
-   "label": "Quotation",
-   "link_to": "Quotation",
+   "label": "Invoicing",
+   "link_to": "Invoice Register Entry",
    "stats_filter": "[]",
    "type": "DocType"
   },

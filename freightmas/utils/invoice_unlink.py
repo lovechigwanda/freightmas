@@ -20,31 +20,31 @@ from frappe import _
 
 def before_sales_invoice_cancel(doc, method=None):
     """Skip linked document checks for job/trip child tables."""
-    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
+    doc.ignore_linked_doctypes = tuple(getattr(doc, "ignore_linked_doctypes", None) or ()) + (
         "Forwarding Revenue Charges", "Clearing Revenue Charges", "Trip Revenue Charges",
         "Road Freight Charges", "Forwarding Charges", "Clearing Charges",
         "Trip Bulk Sales Invoice Item",
         "Warehouse Job Storage Charges", "Warehouse Job Rental Charges",
         "Warehouse Job Handling Charges",
-        "Border Clearing Revenue Charges"
-    ]
+        "Border Clearing Revenue Charges",
+    )
 
 
 def before_purchase_invoice_cancel(doc, method=None):
     """Skip linked document checks for job/trip child tables."""
-    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
+    doc.ignore_linked_doctypes = tuple(getattr(doc, "ignore_linked_doctypes", None) or ()) + (
         "Forwarding Cost Charges", "Clearing Cost Charges",
         "Trip Cost Charges", "Trip Other Costs",
         "Road Freight Charges", "Forwarding Charges", "Clearing Charges",
-        "Border Clearing Cost Charges"
-    ]
+        "Border Clearing Cost Charges",
+    )
 
 
 def before_journal_entry_cancel(doc, method=None):
     """Skip linked document checks for trip child tables."""
-    doc.ignore_linked_doctypes = getattr(doc, "ignore_linked_doctypes", []) + [
-        "Trip Other Costs"
-    ]
+    doc.ignore_linked_doctypes = tuple(getattr(doc, "ignore_linked_doctypes", None) or ()) + (
+        "Trip Other Costs",
+    )
 
 
 # ========================================================

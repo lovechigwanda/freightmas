@@ -267,8 +267,12 @@ const STATUS_BUTTON_MAP = {
         { label: 'Mark Ready for Capture', target: 'Ready for Capture', color: 'primary' },
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
     ],
-    'Ready for Capture': [],
-    'Returned for Capture': [],
+    'Ready for Capture': [
+        { label: 'Mark as Captured', target: 'Captured', color: 'success' }
+    ],
+    'Returned for Capture': [
+        { label: 'Mark as Captured', target: 'Captured', color: 'success' }
+    ],
 
     // --- Sales ---
     'Instruction Received': [
@@ -276,7 +280,8 @@ const STATUS_BUTTON_MAP = {
         { label: 'Cancel', target: 'Cancelled', color: 'danger' }
     ],
     'Drafted': [
-        { label: 'Return to Draft', target: 'Returned to Draft', color: 'warning' }
+        { label: 'Return to Draft', target: 'Returned to Draft', color: 'warning' },
+        { label: 'Mark as Issued to Client', target: 'Issued to Client', color: 'success' }
     ],
     'Returned to Draft': [
         { label: 'Mark as Drafted', target: 'Drafted', color: 'primary' }
@@ -403,6 +408,14 @@ function show_status_change_dialog(frm, target_status, button_label) {
 }
 
 function execute_status_change(frm, target_status, comment) {
+    if (target_status !== 'Cancelled' && flt(frm.doc.total_charge_amount) === 0) {
+        frappe.msgprint({
+            title: __('Zero Amount Entry'),
+            message: __('Cannot proceed: this entry has no charge rows (zero amount). Add charges before advancing.'),
+            indicator: 'red'
+        });
+        return;
+    }
     frappe.call({
         method: 'change_status',
         doc: frm.doc,

@@ -23,15 +23,15 @@ PURCHASE_TRANSITIONS = {
     # Issue 11 fix: direct approval path added alongside correction path
     "Submitted for Approval": ["Ready for Capture", "Returned for Capture", "Query with Supplier"],
     "Query with Supplier": ["Ready for Capture", "Cancelled"],
-    "Ready for Capture": [],
-    "Returned for Capture": [],
+    "Ready for Capture": ["Captured"],
+    "Returned for Capture": ["Captured"],
     "Captured": [],
     "Cancelled": [],
 }
 
 SALES_TRANSITIONS = {
     "Instruction Received": ["Drafted", "Cancelled"],
-    "Drafted": ["Returned to Draft"],
+    "Drafted": ["Returned to Draft", "Issued to Client"],
     "Returned to Draft": ["Drafted"],
     "Issued to Client": [],
     "Cancelled": [],
@@ -383,6 +383,13 @@ class InvoiceRegisterEntry(Document):
                     ", ".join(valid) if valid else _("none (terminal state)"),
                 ),
                 title=_("Invalid Status Transition"),
+            )
+
+        if flt(self.total_charge_amount) == 0 and new_status != "Cancelled":
+            frappe.throw(
+                _("Cannot proceed to '{0}': this entry has no charge rows (zero amount). "
+                  "Add at least one charge before advancing.").format(new_status),
+                title=_("Zero Amount Entry"),
             )
 
         if new_status in COMMENT_REQUIRED_STATES and not comment:
