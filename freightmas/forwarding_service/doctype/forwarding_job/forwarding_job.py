@@ -1363,6 +1363,7 @@ def create_sales_invoice_with_rows(docname, row_names):
         
         si.append("items", item_dict)
 
+    si.group_same_items = 0
     si.insert()
 
     # Mark rows as invoiced
@@ -1450,6 +1451,7 @@ def create_purchase_invoice_with_rows(docname, row_names):
             },
         )
 
+    pi.group_same_items = 0
     pi.insert()
 
     # Mark rows as purchased
