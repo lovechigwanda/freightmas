@@ -50,6 +50,42 @@ frappe.ui.form.on('Invoice Register Entry', {
         }
     },
 
+    supplier_invoice_no(frm) {
+        const val = (frm.doc.supplier_invoice_no || '').trim();
+        if (!val || frm.doc.entry_type !== 'Purchase') return;
+
+        frappe.call({
+            method: 'freightmas.invoicing.doctype.invoice_register_entry.invoice_register_entry.check_duplicate_supplier_invoice',
+            args: { supplier_invoice_no: val, current_docname: frm.doc.name || '' },
+            callback(r) {
+                if (!r.message) return;
+                const hits = r.message;
+                const parts = [];
+                if (hits.ire) {
+                    parts.push(__('Invoice Register Entry {0} (Status: {1}, Party: {2})', [
+                        `<a href="/app/invoice-register-entry/${hits.ire.name}">${frappe.utils.escape_html(hits.ire.name)}</a>`,
+                        frappe.utils.escape_html(hits.ire.status),
+                        frappe.utils.escape_html(hits.ire.party || '')
+                    ]));
+                }
+                if (hits.pi) {
+                    parts.push(__('Purchase Invoice {0} (Supplier: {1})', [
+                        `<a href="/app/purchase-invoice/${hits.pi.name}">${frappe.utils.escape_html(hits.pi.name)}</a>`,
+                        frappe.utils.escape_html(hits.pi.supplier || '')
+                    ]));
+                }
+                frappe.msgprint({
+                    title: __('Duplicate Supplier Invoice Detected'),
+                    message: __('Supplier Invoice <strong>{0}</strong> already exists in:<br>{1}<br><br>Please verify before proceeding.', [
+                        frappe.utils.escape_html(val),
+                        parts.join('<br>')
+                    ]),
+                    indicator: 'red'
+                });
+            }
+        });
+    },
+
     bl_number_lookup(frm) {
         const lookup = frm.doc.bl_number_lookup;
         if (!lookup || lookup.length < 3) return;
@@ -209,6 +245,16 @@ function is_invoice_register_locked(frm) {
 }
 
 function apply_locked_entry_state(frm) {
+    // Always reset first — handles navigation from a locked doc to an unlocked one
+    LOCKED_FIELDS.forEach(fieldname => {
+        if (frm.fields_dict[fieldname]) {
+            frm.set_df_property(fieldname, 'read_only', 0);
+        }
+    });
+    if (frm.fields_dict.charge_details && frm.fields_dict.charge_details.grid) {
+        frm.fields_dict.charge_details.grid.wrapper.find('.grid-add-row, .grid-remove-rows').show();
+    }
+
     if (!is_invoice_register_locked(frm)) return;
 
     LOCKED_FIELDS.forEach(fieldname => {
@@ -216,11 +262,9 @@ function apply_locked_entry_state(frm) {
             frm.set_df_property(fieldname, 'read_only', 1);
         }
     });
-
     if (frm.fields_dict.charge_details && frm.fields_dict.charge_details.grid) {
         frm.fields_dict.charge_details.grid.wrapper.find('.grid-add-row, .grid-remove-rows').hide();
     }
-
     frm.dashboard.set_headline_alert(
         __('This Invoice Register Entry is locked because it has been captured or linked to an invoice.'),
         'orange'

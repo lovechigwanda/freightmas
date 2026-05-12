@@ -107,31 +107,31 @@ class TestInvoiceRegisterEntry(FrappeTestCase):
 
     def test_locked_when_status_is_captured(self):
         doc = _make_entry("Purchase", "Captured")
-        self.assertTrue(doc.is_locked())
+        self.assertTrue(doc.is_entry_locked())
 
     def test_locked_when_status_is_issued_to_client(self):
         doc = _make_entry("Sales", "Issued to Client")
-        self.assertTrue(doc.is_locked())
+        self.assertTrue(doc.is_entry_locked())
 
     def test_locked_when_purchase_invoice_present(self):
         doc = _make_entry("Purchase", "Received")
         doc.linked_purchase_invoice = "PINV-00001"
-        self.assertTrue(doc.is_locked())
+        self.assertTrue(doc.is_entry_locked())
 
     def test_locked_when_sales_invoice_present(self):
         doc = _make_entry("Sales", "Instruction Received")
         doc.linked_sales_invoice = "SINV-00001"
-        self.assertTrue(doc.is_locked())
+        self.assertTrue(doc.is_entry_locked())
 
     def test_not_locked_in_intermediate_purchase_state(self):
         for status in ("Received", "Submitted for Approval", "Ready for Capture", "Returned for Capture", "Query with Supplier"):
             doc = _make_entry("Purchase", status)
-            self.assertFalse(doc.is_locked(), msg=f"Should not be locked in '{status}'")
+            self.assertFalse(doc.is_entry_locked(), msg=f"Should not be locked in '{status}'")
 
     def test_not_locked_in_intermediate_sales_state(self):
         for status in ("Instruction Received", "Drafted", "Returned to Draft"):
             doc = _make_entry("Sales", status)
-            self.assertFalse(doc.is_locked(), msg=f"Should not be locked in '{status}'")
+            self.assertFalse(doc.is_entry_locked(), msg=f"Should not be locked in '{status}'")
 
     # ----------------------------------------------------------
     # Charge totals

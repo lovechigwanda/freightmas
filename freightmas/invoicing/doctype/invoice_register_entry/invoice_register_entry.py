@@ -128,10 +128,11 @@ class InvoiceRegisterEntry(Document):
         self.validate_job_reference()
         self.compute_is_overdue()
         self.notify_instruction_on_invoice_link()
+        self.validate_duplicate_supplier_invoice()
         self.validate_locked_entry()
 
     def on_trash(self):
-        if self.is_locked():
+        if self.is_entry_locked():
             frappe.throw(self.get_locked_message(), title=_("Invoice Register Entry Locked"))
 
     def before_insert(self):
@@ -275,7 +276,7 @@ class InvoiceRegisterEntry(Document):
     # LOCKING
     # ----------------------------------------------------------
 
-    def is_locked(self):
+    def is_entry_locked(self):
         return (
             self.status in LOCKED_STATUSES
             or bool(self.linked_purchase_invoice)
@@ -306,7 +307,7 @@ class InvoiceRegisterEntry(Document):
             return
 
         original = self.get_doc_before_save()
-        if not original or not original.is_locked():
+        if not original or not original.is_entry_locked():
             return
 
         changed_fields = []
@@ -348,6 +349,34 @@ class InvoiceRegisterEntry(Document):
                 row_data[fieldname] = value
             snapshot.append(row_data)
         return snapshot
+
+    # ----------------------------------------------------------
+    # DUPLICATE SUPPLIER INVOICE
+    # ----------------------------------------------------------
+
+    def validate_duplicate_supplier_invoice(self):
+        if self.entry_type != "Purchase" or not self.supplier_invoice_no:
+            return
+        existing = frappe.db.get_value(
+            "Invoice Register Entry",
+            {
+                "supplier_invoice_no": self.supplier_invoice_no,
+                "name": ["!=", self.name or ""],
+                "status": ["not in", ["Cancelled"]],
+            },
+            ["name", "status"],
+            as_dict=True,
+        )
+        if existing:
+            frappe.throw(
+                _("Supplier Invoice {0} is already registered in {1} (Status: {2}). "
+                  "Cancel the existing entry or use a different invoice number.").format(
+                    frappe.bold(self.supplier_invoice_no),
+                    frappe.get_desk_link("Invoice Register Entry", existing.name),
+                    existing.status,
+                ),
+                title=_("Duplicate Supplier Invoice"),
+            )
 
     # ----------------------------------------------------------
     # STATUS MACHINE
@@ -591,6 +620,40 @@ def job_query(doctype, txt, searchfield, start, page_len, filters):
             "page_len": page_len,
         },
     )
+
+
+# ========================================================
+# DUPLICATE SUPPLIER INVOICE CHECK
+# ========================================================
+
+@frappe.whitelist()
+def check_duplicate_supplier_invoice(supplier_invoice_no, current_docname=None):
+    """Return existing IRE and/or Purchase Invoice sharing the same supplier invoice number."""
+    result = {}
+
+    filters_ire = {
+        "supplier_invoice_no": supplier_invoice_no,
+        "status": ["not in", ["Cancelled"]],
+    }
+    if current_docname:
+        filters_ire["name"] = ["!=", current_docname]
+
+    ire = frappe.db.get_value(
+        "Invoice Register Entry", filters_ire, ["name", "status", "party"], as_dict=True
+    )
+    if ire:
+        result["ire"] = ire
+
+    pi = frappe.db.get_value(
+        "Purchase Invoice",
+        {"bill_no": supplier_invoice_no, "docstatus": ["<", 2]},
+        ["name", "supplier"],
+        as_dict=True,
+    )
+    if pi:
+        result["pi"] = pi
+
+    return result or None
 
 
 # ========================================================
