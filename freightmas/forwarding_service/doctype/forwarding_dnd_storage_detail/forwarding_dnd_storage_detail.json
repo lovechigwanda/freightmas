@@ -17,6 +17,7 @@
   "column_break_04",
   "empty_return_date",
   "to_be_returned",
+  "is_hazardous",
   "dnd_section",
   "rate_card",
   "column_break_05",
@@ -113,6 +114,15 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "To Be Returned",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_hazardous",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Hazardous?",
    "no_copy": 1,
    "read_only": 1
   },

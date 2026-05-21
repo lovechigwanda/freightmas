@@ -1796,6 +1796,7 @@ def calculate_dnd_storage(job_name):
 			"gate_out_date": row.gate_out_date,
 			"empty_return_date": row.empty_return_date,
 			"to_be_returned": row.to_be_returned,
+			"is_hazardous": int(row.is_hazardous or 0),
 		})
 
 	if not new_rows:

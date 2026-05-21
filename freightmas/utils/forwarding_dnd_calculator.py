@@ -61,17 +61,18 @@ def find_rate_card_header(shipping_line, port, direction, as_of_date=None):
 def find_container_rate(card_name, container_type):
 	"""
 	Look up the per-container-type rates from the rate card's child table.
-	Returns a dict {dnd_rate_per_day, storage_rate_per_day}, or zeros if not found.
+	Returns a dict {dnd_rate_per_day, storage_rate_per_day, storage_rate_per_day_hazardous},
+	or zeros if not found.
 	"""
 	row = frappe.db.get_value(
 		"DND Storage Rate Card Item",
 		{"parent": card_name, "container_type": container_type},
-		["dnd_rate_per_day", "storage_rate_per_day"],
+		["dnd_rate_per_day", "storage_rate_per_day", "storage_rate_per_day_hazardous"],
 		as_dict=True,
 	)
 	if row:
 		return row
-	return frappe._dict(dnd_rate_per_day=0, storage_rate_per_day=0)
+	return frappe._dict(dnd_rate_per_day=0, storage_rate_per_day=0, storage_rate_per_day_hazardous=0)
 
 
 def calculate_dnd_days(discharge_date, pickup_date, dnd_free_days, direction):
@@ -152,7 +153,12 @@ def calculate_dnd_storage_for_job(forwarding_job_doc):
 			# Per-container rates from child table
 			rates = find_container_rate(header.name, row.container_type)
 			row.dnd_rate_per_day = rates.dnd_rate_per_day or 0
-			row.storage_rate_per_day = rates.storage_rate_per_day or 0
+			# Use hazardous storage rate when cargo is hazardous and a non-zero rate exists
+			hazardous_storage_rate = rates.storage_rate_per_day_hazardous or 0
+			if row.get("is_hazardous") and hazardous_storage_rate:
+				row.storage_rate_per_day = hazardous_storage_rate
+			else:
+				row.storage_rate_per_day = rates.storage_rate_per_day or 0
 		else:
 			row.rate_card = None
 			row.rate_card_currency = None

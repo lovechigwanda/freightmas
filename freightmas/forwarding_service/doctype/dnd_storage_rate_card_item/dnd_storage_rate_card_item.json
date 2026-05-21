@@ -9,7 +9,9 @@
   "column_break_01",
   "dnd_rate_per_day",
   "column_break_02",
-  "storage_rate_per_day"
+  "storage_rate_per_day",
+  "column_break_03",
+  "storage_rate_per_day_hazardous"
  ],
  "fields": [
   {
@@ -49,6 +51,21 @@
    "fieldtype": "Currency",
    "in_list_view": 1,
    "label": "Storage Rate / Day",
+   "options": "parent_currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_03",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "columns": 3,
+   "default": "0",
+   "fieldname": "storage_rate_per_day_hazardous",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Storage Rate / Day (Hazardous)",
    "options": "parent_currency",
    "precision": "2"
   }
