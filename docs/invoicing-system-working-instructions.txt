@@ -1,0 +1,557 @@
+Gleinna Investments                                      G/FA/PO/02 — Invoicing SOP
+================================================================================
+
+SECTION 13 — SYSTEM WORKING INSTRUCTIONS
+Invoicing Process in FreightMas
+
+This section provides step-by-step guidance for each role when performing invoicing
+tasks in the FreightMas system. It supplements the process flows in Section 4 with
+the exact screens, buttons, and fields to use at each step.
+
+Button labels and field names are shown in CAPITALS or described exactly as they
+appear on screen.
+
+================================================================================
+13.1  SALES INVOICING STREAM
+================================================================================
+
+------------------------------------------------------------------------
+STEP S1 — FORWARDING: Create and Submit an Invoicing Instruction
+------------------------------------------------------------------------
+
+The Invoicing Instruction is the formal written instruction from Forwarding to the
+Bookkeeper. It is a system document in its own right and is separate from the
+Invoice Register Entry.
+
+  1.  Navigate to the Invoicing workspace and click:
+      Invoicing Instruction → New
+
+  2.  Set the Company field.
+
+  3.  In the Forwarding Job field, type the job ID, customer reference, or BL
+      number to search for and link the correct job.
+      The Customer and Currency fields are fetched automatically from the job.
+
+  4.  Add the charges to be invoiced. Two options are available:
+
+      Option A — Fetch from job (recommended):
+        Click the FETCH CHARGES FROM JOB button.
+        The system loads all uninvoiced revenue charges from the job into the
+        line items table. Review the lines and remove any that are not yet
+        ready to bill.
+
+      Option B — Enter manually:
+        In the Line Items table, add one row per charge:
+          - Charge        (select the charge/item from the list)
+          - Description   (auto-filled from the charge; edit if needed)
+          - Qty
+          - Sell Rate
+          - Customer      (defaults to the job customer; change per line if billing
+                           different customers on the same job)
+        The Amount per line and Total Amount are calculated automatically.
+
+  5.  Verify the Total Amount at the bottom of the form.
+
+  6.  Add any Notes for the Bookkeeper (e.g. special payment terms, client
+      purchase order number, billing instructions).
+
+  7.  Click SUBMIT.
+        - The Instruction status becomes Submitted.
+        - The system automatically creates a linked Invoice Register Entry
+          (Sales type) at status Instruction Received, copying all line
+          items across as charge detail rows.
+        - A confirmation message displays a link to the new Invoice Register
+          Entry.
+
+  NOTE: Once submitted, the Invoicing Instruction cannot be edited. If a
+  correction is needed before the Bookkeeper has acted, cancel the Instruction
+  (this automatically cancels the linked Invoice Register Entry if it is still
+  at Instruction Received) and raise a new Instruction.
+
+
+------------------------------------------------------------------------
+STEP S2 — BOOKKEEPER: Review the Invoice Register Entry and Advance to Drafted
+------------------------------------------------------------------------
+
+The Invoice Register Entry (IRE) is created automatically when the Invoicing
+Instruction is submitted. The Bookkeeper does not create it manually.
+
+  1.  Find the IRE via the Invoice Register list view (filter by
+      Status = Instruction Received) or follow the link shown in the
+      submission confirmation message.
+
+  2.  Open the IRE and verify the following:
+
+      - Forwarding Job and Customer are correct.
+      - Currency and Exchange Rate match the agreed billing currency.
+      - Charge Details table matches the Invoicing Instruction:
+          check charge item, description, qty, and sell rate on each row.
+      - Tax templates are applied correctly to any taxable lines.
+        (Each taxable line should have an Item Tax Template selected;
+         Line Tax Amount and Line Total are calculated automatically.)
+      - Total Charge Amount and Amount (inclusive of tax) at the top
+        of the form are as expected.
+
+  3.  If everything is correct, click the DRAFT INVOICE status button
+      at the top of the form.
+        - Status changes to Drafted.
+        - The SLA clock for Forwarding review starts.
+
+  4.  If there is a problem (wrong job, missing charges, incorrect amounts),
+      contact Forwarding before proceeding. Do not advance an entry with
+      zero charge lines — the system will block it.
+
+  5.  Notify Forwarding that the draft is ready for their review (Step S4).
+
+
+------------------------------------------------------------------------
+STEP S3 — BOOKKEEPER: Create the Sales Invoice
+------------------------------------------------------------------------
+
+This step is performed after Forwarding has reviewed and confirmed the draft
+(Step S4). The Bookkeeper creates the Frappe Sales Invoice from the IRE.
+
+  1.  Open the IRE at status Drafted.
+
+  2.  Click CREATE SALES INVOICE.
+
+  3.  The system performs the following automatically:
+        - Adds the charge lines to the Forwarding Job's revenue charges table.
+        - Creates the Frappe Sales Invoice.
+        - Links the Sales Invoice back to this IRE (the invoice number appears
+          in the Linked Sales Invoice field).
+        - Sets the IRE status to Issued to Client — no separate status update
+          is required.
+        - Marks the originating Invoicing Instruction as Actioned.
+
+  4.  The Sales Invoice name is shown in the confirmation message. Open the
+      Sales Invoice to confirm all details before handing it to Forwarding
+      for submission to the client.
+
+  NOTE: Forwarding is responsible for sending the Sales Invoice to the client.
+  The Bookkeeper does not send invoices to clients directly (see Section 3.5).
+
+
+------------------------------------------------------------------------
+STEP S4 — FORWARDING: Review the Draft Invoice
+------------------------------------------------------------------------
+
+  1.  Open the IRE at status Drafted. The Bookkeeper should notify Forwarding
+      when the entry is ready for review.
+
+  2.  Verify: client name, all charge lines, amounts, currency, tax treatment,
+      and payment terms.
+
+  3.  If the draft is correct:
+        Inform the Bookkeeper to proceed to Step S3 (Create Sales Invoice).
+        No system action is required from Forwarding at this point.
+
+  4.  If corrections are needed:
+        Click RETURN TO DRAFT.
+        A comment box appears. A reason is MANDATORY — the system will not
+        allow the transition without one.
+        Enter a clear description of what needs to change, for example:
+          "Incorrect sell rate on Ocean Freight — should be USD 950 not USD 850."
+        Status changes to Returned to Draft.
+        The Bookkeeper corrects the charge lines and re-advances to Drafted
+        for re-review by Forwarding.
+
+
+------------------------------------------------------------------------
+STEP S5 — CANCELLING A SALES INVOICE REGISTER ENTRY
+------------------------------------------------------------------------
+
+  - To cancel from the Invoicing Instruction (before the Bookkeeper has acted):
+    Cancel the Instruction document. The system automatically cancels the
+    linked IRE if it is still at Instruction Received.
+
+  - To cancel the IRE directly at any pre-issued status:
+    Open the IRE and click CANCEL.
+    A comment box appears. A reason is MANDATORY.
+    Enter the reason for cancellation.
+    Status changes to Cancelled — no further transitions are possible.
+
+  - If a Sales Invoice has already been created (IRE status = Issued to Client),
+    the IRE is locked and cannot be cancelled. A credit note must be raised in
+    the accounting system with a documented justification (see Section 6.4).
+
+
+================================================================================
+13.2  PURCHASE INVOICING STREAM
+================================================================================
+
+------------------------------------------------------------------------
+STEP P1 — BOOKKEEPER: Create the Invoice Register Entry
+------------------------------------------------------------------------
+
+When a supplier invoice arrives in the dedicated mailbox, the Bookkeeper logs
+it in the system on the same day.
+
+  1.  Navigate to the Invoicing workspace and click:
+      Invoice Register Entry → New
+
+  2.  Set Entry Type = Purchase.
+
+  3.  In the Forwarding Job field, search for the correct job. You can search by
+      any of the following:
+        - Job ID (e.g. FWD-00023)
+        - BL number / Airway Bill number
+        - Customer reference number
+        - Customer name
+      The search results show the job ID alongside the customer reference and
+      BL number, making it straightforward to match a supplier invoice to the
+      correct job even when the supplier quotes only a BL number.
+
+  4.  In the Party field (labelled Supplier on Purchase entries), select the
+      supplier.
+
+  5.  Under the Supplier Invoice Details section, enter:
+        - Supplier Invoice No.    (must be unique; the system will reject a
+                                   duplicate invoice number for the same supplier)
+        - Supplier Invoice Date
+
+  6.  In the Charge Details table, add one row for each line on the supplier
+      invoice:
+        - Charge          (select the matching charge/item from the list)
+        - Description     (auto-filled; edit to match the supplier's description
+                           if needed)
+        - Qty             (default 1; change if the supplier invoices by quantity)
+        - Buy Rate        (the unit price from the supplier invoice)
+        - Line Amount     (calculated automatically as Qty × Buy Rate)
+        - Item Tax Template (select if VAT or other tax applies to this line;
+                             Line Tax Amount and Line Total are then calculated
+                             automatically)
+
+  7.  Upload the supplier invoice (PDF or scan) using the Attachment field.
+
+  8.  Save the entry.
+        - Status is automatically set to Received.
+        - The system starts the SLA clock for same-day routing to Forwarding.
+
+  NOTE: Do not advance the entry to the next status until all charge lines and
+  the supplier invoice attachment are in place. An entry with no charge lines
+  (zero total amount) cannot be progressed — the system will block it.
+
+
+------------------------------------------------------------------------
+STEP P2 — BOOKKEEPER: Route for Forwarding Approval
+------------------------------------------------------------------------
+
+  1.  Open the IRE at status Received.
+
+  2.  Click SUBMIT FOR APPROVAL.
+        - Status changes to Submitted for Approval.
+        - The SLA clock for Forwarding approval starts (default: 24 hours).
+
+  3.  Notify Forwarding that a supplier invoice is pending their review. Include
+      the IRE reference number and supplier name in the notification.
+
+
+------------------------------------------------------------------------
+STEP P3 — FORWARDING: Approve or Query the Supplier Invoice
+------------------------------------------------------------------------
+
+Forwarding has three options when reviewing a supplier invoice at status
+Submitted for Approval. Select the outcome that matches the situation:
+
+  +---------------------------+----------------------------------------------+----------------------------------------+
+  | BUTTON                    | WHEN TO USE                                  | SYSTEM ACTION                          |
+  +---------------------------+----------------------------------------------+----------------------------------------+
+  | READY FOR CAPTURE         | Invoice matches the agreed/quoted charges     | Status → Ready for Capture.            |
+  |                           | exactly. No amendments needed.               | Returned to Bookkeeper for capture.    |
+  +---------------------------+----------------------------------------------+----------------------------------------+
+  | RETURNED FOR CAPTURE      | Invoice is approved but the Bookkeeper        | Status → Returned for Capture.         |
+  |                           | needs to note a correction (e.g. rounding,   | Use the Notes field or add a comment   |
+  |                           | description update, minor adjustment).        | to instruct the Bookkeeper on the      |
+  |                           |                                               | correction required.                   |
+  +---------------------------+----------------------------------------------+----------------------------------------+
+  | QUERY WITH SUPPLIER       | Invoice does not match agreed charges:        | Status → Query with Supplier.          |
+  |                           | wrong rate, wrong quantity, unexpected        | A reason is MANDATORY.                 |
+  |                           | charge, or invoiced item not recognised.      | Forwarding owns the resolution.        |
+  +---------------------------+----------------------------------------------+----------------------------------------+
+
+  NOTE — Query with Supplier:
+  When this button is clicked, a comment box appears. A reason is MANDATORY —
+  the system will not allow the transition without one. State clearly what the
+  discrepancy is, for example:
+    "Buy rate for Customs Examination is USD 150 per the quotation but invoice
+     shows USD 220. Queried with supplier on [date]."
+
+
+------------------------------------------------------------------------
+STEP P4 — FORWARDING: Resolve a Query with Supplier
+------------------------------------------------------------------------
+
+While the IRE is at Query with Supplier, Forwarding contacts the supplier
+to resolve the discrepancy. The Bookkeeper does not capture the invoice
+until the query is resolved.
+
+  Once the supplier responds (issues a credit note, provides a revised invoice,
+  or gives acceptable justification):
+
+  1.  Open the IRE at status Query with Supplier.
+
+  2.  If the charge amounts have changed (e.g. a revised rate was agreed),
+      update the Charge Details lines before advancing. The Bookkeeper can
+      assist with editing the charge rows if needed.
+
+  3.  Click READY FOR CAPTURE.
+        - Status changes to Ready for Capture.
+        - The Bookkeeper proceeds to Step P5.
+
+  4.  If the query cannot be resolved and the invoice is to be rejected:
+        Click CANCEL (a reason is MANDATORY).
+        Status changes to Cancelled — entry is locked.
+
+
+------------------------------------------------------------------------
+STEP P5 — BOOKKEEPER: Capture the Invoice
+------------------------------------------------------------------------
+
+  1.  Open the IRE at status Ready for Capture or Returned for Capture.
+
+  2.  OPTIONAL — Update the Forwarding Job cost charges without creating
+      the formal Purchase Invoice yet:
+        Click COPY TO FORWARDING JOB WORKING COST.
+        This copies the charge rows to the Forwarding Job's cost charges
+        table, making the actual cost and the variance against planned
+        margin immediately visible on the job to Forwarding.
+        Use this option if you are updating job visibility as part of a
+        batch run and will raise the formal Purchase Invoice separately.
+
+  3.  To create the Purchase Invoice:
+        Click CREATE PURCHASE INVOICE.
+
+        The system performs the following automatically:
+          - Copies charge rows to the Forwarding Job's cost charges table
+            (if not already copied in step 2 above).
+          - Creates the Frappe Purchase Invoice.
+          - Links the Purchase Invoice back to this IRE (the invoice number
+            appears in the Linked Purchase Invoice field).
+          - Sets IRE status to Captured — the entry is now locked.
+          - Copies the IRE attachment to the Forwarding Job for reference.
+
+  4.  Open the Purchase Invoice to confirm all details are correct before
+      saving and submitting it in the accounting system.
+
+  NOTE — After Captured:
+  The IRE is fully locked. No further edits are possible to the entry, its
+  charge lines, party, currency, or amounts. Any correction requires a credit
+  note in the accounting system with a documented justification (Section 6.4).
+
+
+------------------------------------------------------------------------
+STEP P6 — CANCELLING A PURCHASE INVOICE REGISTER ENTRY
+------------------------------------------------------------------------
+
+  - At Received or Submitted for Approval:
+    Click CANCEL and provide a mandatory reason.
+    Use this when an invoice was logged in error (e.g. duplicate entry,
+    wrong job linked).
+
+  - At Query with Supplier:
+    Forwarding clicks CANCEL if the invoice is rejected entirely
+    (mandatory reason required).
+
+  - At Captured or when a Purchase Invoice is linked:
+    The IRE is locked and cannot be cancelled.
+    Any correction must be processed as a credit note.
+
+
+================================================================================
+13.3  STATUS REFERENCE — COMPLETE STATE MACHINE
+================================================================================
+
+PURCHASE INVOICE REGISTER ENTRY
+--------------------------------
+
+  [New entry saved by Bookkeeper]
+          |
+          v
+      RECEIVED -------------------------------------------------> CANCELLED
+          |                                                      (requires reason)
+          | (Bookkeeper: Submit for Approval)
+          v
+  SUBMITTED FOR APPROVAL ----------------------------------> CANCELLED
+          |                                                  (requires reason)
+          |
+          +---------------------------+---------------------------+
+          |                           |                           |
+          v                           v                           v
+  READY FOR CAPTURE       RETURNED FOR CAPTURE         QUERY WITH SUPPLIER
+  (direct approval —      (approved with               (dispute — requires
+   no amendments)          corrections noted)            reason; Forwarding
+          |                           |                   owns resolution)
+          |                           |                           |
+          +----------+----------------+            +--------------+
+                     |                             |              |
+                     |                             v              v
+                     |                   READY FOR CAPTURE    CANCELLED
+                     |                             |          (requires reason)
+                     +-----------------------------+
+                                   |
+                                   | (Bookkeeper: Create Purchase Invoice)
+                                   v
+                              CAPTURED
+                         [Terminal — Locked]
+
+
+SALES INVOICE REGISTER ENTRY
+-----------------------------
+
+  [Invoicing Instruction submitted by Forwarding — IRE auto-created]
+          |
+          v
+  INSTRUCTION RECEIVED ----------------------------------------> CANCELLED
+          |                                                       (requires reason)
+          | (Bookkeeper: advance to Drafted)
+          v
+       DRAFTED --------------------------------------------> CANCELLED
+          |                                                   (requires reason)
+          |
+          +-----------------------+----------------------------+
+          |                       |
+          v                       v
+  RETURNED TO DRAFT     CREATE SALES INVOICE
+  (requires reason;      (Bookkeeper clicks button)
+   Forwarding returns          |
+   for correction)             v
+          |              ISSUED TO CLIENT
+          v              [Terminal — Locked]
+       DRAFTED
+   (Bookkeeper corrects
+    and re-advances)
+
+
+================================================================================
+13.4  SLA WINDOWS AND OVERDUE ALERTS
+================================================================================
+
+The system automatically tracks how long each entry has been in its current
+status. When an entry exceeds its configured SLA window, it is flagged as
+OVERDUE and appears on the Overdue dashboard card in the Invoicing workspace.
+
+  +--------------------------------+-----------+------------------+-----------------------------------+
+  | STATUS                         | SLA OWNER | DEFAULT WINDOW   | DESCRIPTION                       |
+  +--------------------------------+-----------+------------------+-----------------------------------+
+  | Received                       | Bookkeeper| 24 hours         | Route to Forwarding for approval  |
+  | Submitted for Approval         | Forwarding| 24 hours         | Approve or raise a query          |
+  | Query with Supplier            | Forwarding| 2 working days   | Resolve discrepancy with supplier |
+  | Instruction Received           | Bookkeeper| 3 hours          | Advance to Drafted                |
+  +--------------------------------+-----------+------------------+-----------------------------------+
+
+  - Entries at terminal states (Captured, Issued to Client, Cancelled) are
+    excluded from SLA tracking.
+  - The overdue flag is updated automatically by a nightly system task —
+    no manual action is needed to flag or clear it.
+  - SLA windows are configured in FreightMas Settings and can be adjusted by
+    the Finance Manager without a system change.
+  - The Invoicing workspace dashboard shows live counts:
+      Open Entries, Needs Action, Overdue, and queue views by type.
+
+
+================================================================================
+13.5  AUDIT TRAIL
+================================================================================
+
+Every status change on an Invoice Register Entry is permanently recorded in
+the Status Log tab at the bottom of the IRE form.
+
+Each log row shows:
+
+  - From / To status
+  - Changed by       (user name)
+  - Changed at       (date and time)
+  - Working days in previous status  (Monday to Friday only)
+  - Comment          (mandatory for Query with Supplier, Returned to Draft,
+                      and Cancelled; optional for other transitions)
+
+The log cannot be edited or deleted. It provides a complete, timestamped
+record of every action taken on the entry, supporting both internal review
+and external audit requirements.
+
+
+================================================================================
+13.6  INVOICE REGISTER ENTRY LOCKING
+================================================================================
+
+An Invoice Register Entry is locked once any of the following conditions are met:
+
+  - Status = Captured
+  - Status = Issued to Client
+  - A Purchase Invoice or Sales Invoice has been linked to the entry
+
+When locked, the following fields cannot be edited:
+
+  Entry-level:   Company, Entry Type, Entry Date, Forwarding Job, Party,
+                 Currency, Exchange Rate, all amounts, Supplier Invoice No.,
+                 Supplier Invoice Date, Attachment, linked invoice references.
+
+  Charge rows:   Charge, Description, Qty, Rate, Tax Template, all calculated
+                 amounts.
+
+A locked entry also cannot be deleted.
+
+If a correction is needed after an entry is locked, raise a credit note in
+the accounting system with a documented justification, per Section 6.4 of
+this SOP.
+
+
+================================================================================
+13.7  KEY FIELD REFERENCE
+================================================================================
+
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | FIELD                       | LOCATION                   | NOTES                                        |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Entry Type                  | IRE header                 | Sales or Purchase. Set at creation;          |
+  |                             |                            | cannot be changed afterwards.                |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Party                       | IRE header                 | Auto-labelled Customer (Sales) or Supplier   |
+  |                             |                            | (Purchase) based on Entry Type.              |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Forwarding Job              | IRE header                 | Searches by job ID, BL number, customer      |
+  | (BL Number Lookup)          |                            | reference, or customer name.                 |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Supplier Invoice No.        | IRE header (Purchase only) | Required for all Purchase entries. The       |
+  |                             |                            | system rejects duplicate invoice numbers     |
+  |                             |                            | for the same supplier.                       |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Supplier Invoice Date       | IRE header (Purchase only) | Required for all Purchase entries.           |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Charge Details              | IRE child table            | One row per billable charge. Each row        |
+  |                             |                            | has Charge, Description, Qty, Rate,          |
+  |                             |                            | Tax Template, and calculated amounts.        |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Buy Rate / Sell Rate        | Charge Details row         | Labelled Buy Rate on Purchase entries,       |
+  |                             |                            | Sell Rate on Sales entries.                  |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Item Tax Template           | Charge Details row         | Applies VAT or other tax to that line.       |
+  |                             |                            | Line Tax Amount and Line Total are           |
+  |                             |                            | calculated automatically.                    |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Attachment                  | IRE header                 | Upload the supplier invoice scan or          |
+  |                             |                            | supporting document. Copied to the           |
+  |                             |                            | Forwarding Job on capture.                   |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | SLA Due At                  | IRE Status section         | System-calculated deadline for the           |
+  |                             |                            | current status.                              |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Is Overdue                  | IRE Status section         | Flagged automatically by nightly task        |
+  |                             |                            | when past SLA Due At.                        |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Status Log                  | IRE bottom tab             | Full immutable audit trail of all            |
+  |                             |                            | status transitions.                          |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Linked Invoicing            | IRE (Sales entries)        | Auto-populated when the IRE is created       |
+  | Instruction                 |                            | from an Invoicing Instruction.               |
+  +-----------------------------+----------------------------+----------------------------------------------+
+  | Linked Sales Invoice /      | IRE header                 | Auto-populated when the invoice is           |
+  | Linked Purchase Invoice     |                            | created from this entry. Entry locks         |
+  |                             |                            | once either field is populated.              |
+  +-----------------------------+----------------------------+----------------------------------------------+
+
+
+================================================================================
+END OF SECTION 13
+================================================================================

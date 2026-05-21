@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:sl_name",
  "creation": "2025-05-28 08:59:21.416059",
@@ -79,7 +80,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-24 08:55:51.612624",
+ "modified": "2026-05-21 18:42:39.118871",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Shipping Line",
