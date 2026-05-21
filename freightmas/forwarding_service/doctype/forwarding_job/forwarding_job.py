@@ -1558,6 +1558,15 @@ def fetch_containers_from_bl(docname):
     mappings = tracking["mappings"]
 
     # --- Update parent Forwarding Job fields (only if currently blank, except ETA) ---
+
+    # Auto-populate shipping_line from Searates sealine_code if not already set
+    if not doc.shipping_line:
+        sealine_code = metadata.get("sealine_code")
+        if sealine_code:
+            matched_sl = match_shipping_line(sealine_code)
+            if matched_sl:
+                doc.shipping_line = matched_sl
+
     if not doc.vessel_flight_no and mappings.get("vessel_flight_no"):
         doc.vessel_flight_no = mappings["vessel_flight_no"]
 
