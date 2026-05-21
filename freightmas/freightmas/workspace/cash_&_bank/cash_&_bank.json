@@ -1,0 +1,313 @@
+{
+ "app": "freightmas",
+ "charts": [
+  {
+   "chart_name": "Cash Reconciliation by Status"
+  },
+  {
+   "chart_name": "Cash Reconciliation Daily Trend"
+  }
+ ],
+ "content": "[{\"id\":\"cbh_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Cash & Bank</span>\",\"col\":12}},{\"id\":\"cbh_spacer1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cbh_sc_cashrec\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cash Reconciliation\",\"col\":3}},{\"id\":\"cbh_sc_payment\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"cbh_sc_journal\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entry\",\"col\":3}},{\"id\":\"cbh_sc_banking\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Banking Profile\",\"col\":3}},{\"id\":\"cbh_spacer2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cbh_nc_recon_today\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Cash Reconciliations Today\",\"col\":4}},{\"id\":\"cbh_nc_diff_today\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Cash Differences Today\",\"col\":4}},{\"id\":\"cbh_nc_pending\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Cash Pending Submission\",\"col\":4}},{\"id\":\"cbh_spacer3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cbh_chart_status\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Cash Reconciliation by Status\",\"col\":6}},{\"id\":\"cbh_chart_trend\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Cash Reconciliation Daily Trend\",\"col\":6}},{\"id\":\"cbh_spacer4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cbh_card_txn\",\"type\":\"card\",\"data\":{\"card_name\":\"Cash Transactions\",\"col\":4}},{\"id\":\"cbh_card_pos\",\"type\":\"card\",\"data\":{\"card_name\":\"Cash Position\",\"col\":4}},{\"id\":\"cbh_card_setup\",\"type\":\"card\",\"data\":{\"card_name\":\"Banking Setup\",\"col\":4}},{\"id\":\"cbh_spacer5\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cbh_card_recon\",\"type\":\"card\",\"data\":{\"card_name\":\"Reconciliation\",\"col\":4}},{\"id\":\"cbh_card_analysis\",\"type\":\"card\",\"data\":{\"card_name\":\"Reconciliation Analysis\",\"col\":4}},{\"id\":\"cbh_card_history\",\"type\":\"card\",\"data\":{\"card_name\":\"Reconciliation History\",\"col\":4}}]",
+ "creation": "2026-05-07 20:00:00",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "bank",
+ "idx": 1,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Cash & Bank",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Transactions",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payment Entry",
+   "link_count": 0,
+   "link_to": "Payment Entry",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Journal Entry",
+   "link_count": 0,
+   "link_to": "Journal Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Position",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash and Bank Balance Report",
+   "link_count": 0,
+   "link_to": "Cash and Bank Balance Report",
+   "link_type": "Report",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cashbook Report",
+   "link_count": 0,
+   "link_to": "Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash and Bank Transactions",
+   "link_count": 0,
+   "link_to": "Cash and Bank Transactions",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Flow",
+   "link_count": 0,
+   "link_to": "Cash Flow",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Banking Setup",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Banking Profile",
+   "link_count": 0,
+   "link_to": "Banking Profile",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bank Account",
+   "link_count": 0,
+   "link_to": "Bank Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Chart of Accounts",
+   "link_count": 0,
+   "link_to": "Account",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reconciliation",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Cash Reconciliation",
+   "link_count": 0,
+   "link_to": "Cash Reconciliation",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Daily Cash Reconciliation Summary",
+   "link_count": 0,
+   "link_to": "Daily Cash Reconciliation Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Unapproved Cash Reconciliations",
+   "link_count": 0,
+   "link_to": "Unapproved Cash Reconciliations",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reconciliation Analysis",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Account Ledger vs Reconciled Balance",
+   "link_count": 0,
+   "link_to": "Cash Account Ledger vs Reconciled Balance",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Cashier",
+   "link_count": 0,
+   "link_to": "Cash Differences by Cashier",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash Differences by Branch",
+   "link_count": 0,
+   "link_to": "Cash Differences by Branch",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reconciliation History",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Reconciliation History per Cash Account",
+   "link_count": 0,
+   "link_to": "Reconciliation History per Cash Account",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cash and Bank Balance Report",
+   "link_count": 0,
+   "link_to": "Cash and Bank Balance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-05-07 20:00:00",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "Cash & Bank",
+ "number_cards": [
+  {},
+  {},
+  {}
+ ],
+ "owner": "Administrator",
+ "parent_page": "FreightMas Accounts",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  }
+ ],
+ "sequence_id": 39.0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Cash Reconciliation",
+   "link_to": "Cash Reconciliation",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Payment Entry",
+   "link_to": "Payment Entry",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Journal Entry",
+   "link_to": "Journal Entry",
+   "stats_filter": "",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Banking Profile",
+   "link_to": "Banking Profile",
+   "stats_filter": "",
+   "type": "DocType"
+  }
+ ],
+ "title": "Cash & Bank",
+ "type": "Workspace"
+}
