@@ -26,6 +26,7 @@ frappe.ui.form.on('Forwarding Job', {
         toggle_base_fields(frm);
         update_currency_labels(frm);
         update_cargo_count_forwarding(frm);
+        setup_dnd_storage_handlers(frm);
 
         // ========================================
         // API TRACKING CHECKBOX VISIBILITY
@@ -1923,4 +1924,146 @@ function show_recognition_date_dialog(frm) {
             dialog.show();
         }
     });
+}
+
+// ========================================
+// DND & STORAGE CALCULATOR
+// ========================================
+function setup_dnd_storage_handlers(frm) {
+    frm.fields_dict['calculate_dnd_storage_btn'] && frm.fields_dict['calculate_dnd_storage_btn'].$input.off('click').on('click', function() {
+        if (frm.is_dirty()) {
+            frappe.msgprint(__('Please save the document before calculating.'));
+            return;
+        }
+        const containerised = (frm.doc.cargo_parcel_details || []).filter(r => r.cargo_type === 'Containerised');
+        if (!containerised.length) {
+            frappe.msgprint(__('No containerised cargo found. Add containers in the Parcel tab first.'));
+            return;
+        }
+        if (!frm.doc.shipping_line) {
+            frappe.msgprint(__('Please set a Shipping Line on this job (BL Details section) before calculating — it is needed to look up DND rates.'));
+            return;
+        }
+        frappe.call({
+            method: 'freightmas.forwarding_service.doctype.forwarding_job.forwarding_job.calculate_dnd_storage',
+            args: { job_name: frm.doc.name },
+            freeze: true,
+            freeze_message: __('Refreshing containers and calculating DND & Storage...'),
+            callback: function(r) {
+                if (!r.exc && r.message) {
+                    frm.reload_doc();
+                    const fmt = (v) => format_dnd_currency(v, frm.doc.currency);
+                    frappe.show_alert({
+                        message: __('{0} container(s) calculated — DND: {1} | Storage: {2} | Total: {3}', [
+                            String(r.message.rows_count),
+                            fmt(r.message.total_est_dnd_cost),
+                            fmt(r.message.total_est_storage_cost),
+                            fmt(r.message.total_est_dnd_storage_cost)
+                        ]),
+                        indicator: 'green'
+                    }, 8);
+                }
+            }
+        });
+    });
+
+    frm.fields_dict['push_dnd_to_charges_btn'] && frm.fields_dict['push_dnd_to_charges_btn'].$input.off('click').on('click', function() {
+        if (frm.is_dirty()) {
+            frappe.msgprint(__('Please save the document before pushing to charges.'));
+            return;
+        }
+        frappe.confirm(
+            __('This will add DND and Storage rows to the Working Cost Charges. Any existing DND/Storage charge rows will be replaced. Continue?'),
+            function() {
+                frappe.call({
+                    method: 'freightmas.forwarding_service.doctype.forwarding_job.forwarding_job.push_dnd_to_charges',
+                    args: { job_name: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __('Pushing to charges...'),
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frm.reload_doc();
+                            frappe.show_alert({ message: r.message || __('Done.'), indicator: 'green' }, 6);
+                        }
+                    }
+                });
+            }
+        );
+    });
+}
+
+function format_dnd_currency(value, currency) {
+    if (!value) return '0.00';
+    return (currency ? currency + ' ' : '') + parseFloat(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ========================================
+// DND ROW LIVE RECALCULATION
+// Mirrors forwarding_dnd_calculator.py formulas exactly.
+// Triggers on any editable date or rate field in the child table.
+// ========================================
+frappe.ui.form.on('Forwarding DND Storage Detail', {
+    discharge_date:      (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    gate_out_date:       (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    empty_return_date:   (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    to_be_returned:      (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    dnd_free_days:       (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    dnd_rate_per_day:    (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    storage_free_days:   (frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+    storage_rate_per_day:(frm, cdt, cdn) => recalculate_dnd_row(frm, cdt, cdn),
+});
+
+function recalculate_dnd_row(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    const today = frappe.datetime.get_today();
+
+    // DND: discharge → empty_return_date (if to_be_returned) else gate_out_date, fallback today
+    const dnd_end = row.to_be_returned
+        ? (row.empty_return_date || today)
+        : (row.gate_out_date || today);
+    const total_dnd_days = dnd_days_inclusive(row.discharge_date, dnd_end);
+    const chargeable_dnd_days = Math.max(0, total_dnd_days - flt(row.dnd_free_days));
+    const estimated_dnd_cost = chargeable_dnd_days * flt(row.dnd_rate_per_day);
+
+    // Storage: discharge → gate_out_date, fallback today
+    const storage_end = row.gate_out_date || today;
+    const total_storage_days = dnd_days_inclusive(row.discharge_date, storage_end);
+    const chargeable_storage_days = Math.max(0, total_storage_days - flt(row.storage_free_days));
+    const estimated_storage_cost = chargeable_storage_days * flt(row.storage_rate_per_day);
+
+    const total_container_cost = estimated_dnd_cost + estimated_storage_cost;
+
+    // frappe.model.set_value fires Frappe's model event, which refreshes both the
+    // inline grid cell AND any open row-edit dialog showing these computed fields.
+    frappe.model.set_value(cdt, cdn, {
+        total_dnd_days,
+        chargeable_dnd_days,
+        estimated_dnd_cost,
+        total_storage_days,
+        chargeable_storage_days,
+        estimated_storage_cost,
+        total_container_cost,
+    });
+
+    update_dnd_totals(frm);
+}
+
+function dnd_days_inclusive(start_str, end_str) {
+    if (!start_str || !end_str) return 0;
+    const diff = frappe.datetime.get_day_diff(end_str, start_str);
+    return diff < 0 ? 0 : diff + 1;
+}
+
+function update_dnd_totals(frm) {
+    let total_dnd = 0, total_storage = 0;
+    (frm.doc.forwarding_dnd_storage_details || []).forEach(r => {
+        total_dnd += flt(r.estimated_dnd_cost);
+        total_storage += flt(r.estimated_storage_cost);
+    });
+    frm.doc.total_est_dnd_cost = total_dnd;
+    frm.doc.total_est_storage_cost = total_storage;
+    frm.doc.total_est_dnd_storage_cost = total_dnd + total_storage;
+    frm.refresh_field('total_est_dnd_cost');
+    frm.refresh_field('total_est_storage_cost');
+    frm.refresh_field('total_est_dnd_storage_cost');
 }

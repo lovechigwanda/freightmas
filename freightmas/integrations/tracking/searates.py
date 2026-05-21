@@ -110,13 +110,83 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 		latest_event = max(events, key=lambda e: e.get("order_id", 0)) if events else {}
 		latest_loc = locations.get(latest_event.get("location")) or {}
 
-		# Find discharge event for this container
+		# Find discharge, gate-out, and empty return dates.
+		# Two-pass: prefer confirmed actual events; fall back to estimated events
+		# for any date still missing (some carriers never set actual=True).
 		discharge_date = None
+		gate_out_date = None
+		empty_return_date = None
+
+		# ── Searates / DCSA event code → field mapping ────────────────────────
+		# discharge_date    : DISC (Discharged from vessel)
+		# gate_out_date     : GTOT (Gate Out Terminal / "Import to consignee", MSC)
+		#                     GOUT (Gate Out — generic DCSA)
+		#                     AVPU (Available for pickup)
+		#                     DLVR (Delivered to consignee)
+		# empty_return_date : IRTN, EMRT, RTRN (standard DCSA empty-return codes)
+		# NOTE: GTIN (Gate In Terminal) is intentionally excluded from event-code
+		#   matching.  The same code appears on the export leg ("Export received
+		#   at CY") and produces a false early date.  GTIN-based empty returns
+		#   are caught by the description-keyword fallback in pass 3 below.
+		# NOTE: ARRI (Arrived) is intentionally excluded — too generic (applies
+		#   to vessel arrivals, transshipment arrivals, etc.).  "End Import
+		#   Cycle" ARRI events (inland depot empty return) are caught by the
+		#   _EMPTY_RETURN_KEYWORDS fallback in pass 3 below.
+		# ──────────────────────────────────────────────────────────────────────
+		def _apply_event_date(code, evt_date):
+			nonlocal discharge_date, gate_out_date, empty_return_date
+			if code == "DISC" and (not discharge_date or evt_date > discharge_date):
+				discharge_date = evt_date
+			elif code in ("GOUT", "AVPU", "DLVR", "GTOT") and (not gate_out_date or evt_date > gate_out_date):
+				gate_out_date = evt_date
+			elif code in ("IRTN", "EMRT", "RTRN") and (not empty_return_date or evt_date > empty_return_date):
+				empty_return_date = evt_date
+
+		# Pass 1 — confirmed actual events (preferred)
 		for event in events:
-			if event.get("event_code") == "DISC" and event.get("actual"):
+			if not event.get("actual"):
+				continue
+			evt_date = _extract_date(event.get("date"))
+			if evt_date:
+				_apply_event_date(event.get("event_code"), evt_date)
+
+		# Pass 2 — fall back to estimated events for any date still missing
+		if not (discharge_date and gate_out_date and empty_return_date):
+			for event in events:
+				if event.get("actual"):
+					continue  # already handled in pass 1
 				evt_date = _extract_date(event.get("date"))
-				if evt_date and (not discharge_date or evt_date > discharge_date):
-					discharge_date = evt_date
+				if evt_date:
+					_apply_event_date(event.get("event_code"), evt_date)
+
+		# Pass 3 — description keyword fallback for carriers that use non-standard
+		# event codes.  Scans events in reverse order_id (most recent first) for
+		# any date still missing.
+		# gate-out keywords: covers GTOT descriptions and generic phrasing
+		_GATE_OUT_KEYWORDS = (
+			"gate out", "gate-out", "pickup", "picked up",
+			"delivery", "delivered", "available for pickup",
+			"to consignee", "import to consignee",
+		)
+		# empty-return keywords: covers GTIN "Empty received at CY",
+		# ARRI "End Import Cycle" (inland depot), and standard descriptions
+		_EMPTY_RETURN_KEYWORDS = (
+			"empty return", "empty received", "returned empty",
+			"empty gate in", "empty restitution", "empty drop",
+			"end import cycle",
+		)
+		if not gate_out_date or not empty_return_date:
+			for event in sorted(events, key=lambda e: e.get("order_id", 0), reverse=True):
+				evt_date = _extract_date(event.get("date"))
+				if not evt_date:
+					continue
+				desc = (event.get("description") or "").lower()
+				if not gate_out_date and any(kw in desc for kw in _GATE_OUT_KEYWORDS):
+					gate_out_date = evt_date
+				if not empty_return_date and any(kw in desc for kw in _EMPTY_RETURN_KEYWORDS):
+					empty_return_date = evt_date
+				if gate_out_date and empty_return_date:
+					break
 
 		containers.append({
 			"container_number": container.get("number", ""),
@@ -127,6 +197,8 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 			"latest_event_date": latest_event.get("date", ""),
 			"latest_event_port": latest_loc.get("name", ""),
 			"discharge_date": discharge_date,
+			"gate_out_date": gate_out_date,
+			"empty_return_date": empty_return_date,
 		})
 
 		# Track last voyage for vessel/voyage mapping

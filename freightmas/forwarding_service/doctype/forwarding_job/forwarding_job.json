@@ -58,6 +58,7 @@
   "column_break_mwkt",
   "column_break_rcwr",
   "bill_of_lading_details_section",
+  "shipping_line",
   "bl_number",
   "fetch_containers_from_bl",
   "is_bl_received",
@@ -164,6 +165,19 @@
   "column_break_qlnm",
   "completed_on",
   "column_break_limi",
+  "dnd_storage_tab",
+  "dnd_storage_info_section",
+  "calculate_dnd_storage_btn",
+  "section_break_xkyy",
+  "column_break_dnd_btn2",
+  "push_dnd_to_charges_btn",
+  "forwarding_dnd_storage_details",
+  "dnd_storage_summary_section",
+  "total_est_dnd_cost",
+  "column_break_dnd_s1",
+  "total_est_storage_cost",
+  "column_break_dnd_s2",
+  "total_est_dnd_storage_cost",
   "connections_tab",
   "skip_validations"
  ],
@@ -624,6 +638,14 @@
    "no_copy": 1
   },
   {
+   "fieldname": "shipping_line",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_standard_filter": 1,
+   "label": "Shipping Line",
+   "options": "Shipping Line"
+  },
+  {
    "columns": 2,
    "fieldname": "bl_number",
    "fieldtype": "Data",
@@ -706,6 +728,83 @@
    "fieldtype": "Data",
    "label": "Incoterm Place",
    "mandatory_depends_on": "eval:doc.incoterm"
+  },
+  {
+   "fieldname": "dnd_storage_tab",
+   "fieldtype": "Tab Break",
+   "label": "DND"
+  },
+  {
+   "fieldname": "dnd_storage_info_section",
+   "fieldtype": "Section Break",
+   "label": "Container DND & Storage"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "calculate_dnd_storage_btn",
+   "fieldtype": "Button",
+   "label": "Calculate DND & Storage"
+  },
+  {
+   "fieldname": "column_break_dnd_btn2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && doc.total_est_dnd_storage_cost",
+   "fieldname": "push_dnd_to_charges_btn",
+   "fieldtype": "Button",
+   "label": "Push to Working Charges"
+  },
+  {
+   "fieldname": "forwarding_dnd_storage_details",
+   "fieldtype": "Table",
+   "label": "DND & Storage Details",
+   "no_copy": 1,
+   "options": "Forwarding DND Storage Detail"
+  },
+  {
+   "fieldname": "dnd_storage_summary_section",
+   "fieldtype": "Section Break",
+   "label": "Estimated Totals",
+   "no_copy": 1
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_est_dnd_cost",
+   "fieldtype": "Currency",
+   "label": "Total DND Cost",
+   "no_copy": 1,
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dnd_s1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_est_storage_cost",
+   "fieldtype": "Currency",
+   "label": "Total Storage Cost",
+   "no_copy": 1,
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dnd_s2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "total_est_dnd_storage_cost",
+   "fieldtype": "Currency",
+   "label": "GrandTotal",
+   "no_copy": 1,
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
   },
   {
    "fieldname": "connections_tab",
@@ -1097,6 +1196,10 @@
    "label": "Set Revenue Recognition Date",
    "no_copy": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "section_break_xkyy",
+   "fieldtype": "Section Break"
   }
  ],
  "grid_page_length": 50,
@@ -1121,7 +1224,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-04-19 17:19:47.909891",
+ "modified": "2026-05-19 18:38:21.700625",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

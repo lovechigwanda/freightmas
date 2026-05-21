@@ -33,6 +33,9 @@
   "column_break_chsz",
   "driver_advance_parent_account",
   "port_clearing_tab",
+  "dnd_charge_item",
+  "column_break_dnd1",
+  "storage_charge_item",
   "quotation_tab",
   "default_quotation_tc",
   "shipping_tracker_tab",
@@ -218,6 +221,24 @@
    "fieldname": "port_clearing_tab",
    "fieldtype": "Tab Break",
    "label": "Port Clearing"
+  },
+  {
+   "description": "Item used when pushing DND (Demurrage & Detention) charges to Forwarding Job working costs",
+   "fieldname": "dnd_charge_item",
+   "fieldtype": "Link",
+   "label": "DND Charge Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_dnd1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Item used when pushing Storage charges to Forwarding Job working costs",
+   "fieldname": "storage_charge_item",
+   "fieldtype": "Link",
+   "label": "Storage Charge Item",
+   "options": "Item"
   },
   {
    "fieldname": "driver_advance_parent_account",

@@ -154,6 +154,7 @@ scheduler_events = {
 	"daily": [
 		"freightmas.scheduler.quotation.expire_quotations",
 		"freightmas.invoicing.doctype.invoice_register_entry.invoice_register_entry.update_overdue_entries",
+		"freightmas.scheduler.dnd.recalculate_open_job_dnd",
 	],
 	"cron": {
 		"0 6 * * *": [

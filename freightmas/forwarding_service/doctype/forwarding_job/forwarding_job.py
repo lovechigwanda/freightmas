@@ -43,6 +43,20 @@ class ForwardingJob(Document):
             self.validate_cargo_milestones()
             self.validate_completion_requirements()
 
+    def _sync_dnd_dates_from_cargo(self):
+        """Keep DND detail dates in sync with their linked Cargo Parcel Details row."""
+        if not self.forwarding_dnd_storage_details:
+            return
+        cargo_map = {r.name: r for r in (self.cargo_parcel_details or [])}
+        for row in self.forwarding_dnd_storage_details:
+            cargo = cargo_map.get(row.cargo_parcel_reference)
+            if not cargo:
+                continue
+            row.discharge_date = cargo.discharge_date
+            row.gate_out_date = cargo.gate_out_date
+            row.empty_return_date = cargo.empty_return_date
+            row.to_be_returned = cargo.to_be_returned
+
     def on_submit(self):
         """Handle job submission - trigger revenue and cost recognition"""
         if self.skip_validations:
@@ -1616,6 +1630,12 @@ def fetch_containers_from_bl(docname):
             row.truck_location = ct_location
             row.updated_on = now_datetime()
             row.updated_by = "Administrator"
+            if ct.get("discharge_date"):
+                row.discharge_date = ct["discharge_date"]
+            if ct.get("gate_out_date"):
+                row.gate_out_date = ct["gate_out_date"]
+            if ct.get("empty_return_date"):
+                row.empty_return_date = ct["empty_return_date"]
         else:
             # Append new row
             doc.append("cargo_parcel_details", {
@@ -1629,6 +1649,9 @@ def fetch_containers_from_bl(docname):
                 "truck_location": ct_location,
                 "updated_on": now_datetime(),
                 "updated_by": "Administrator",
+                "discharge_date": ct.get("discharge_date"),
+                "gate_out_date": ct.get("gate_out_date"),
+                "empty_return_date": ct.get("empty_return_date"),
             })
 
     # --- Find the latest event across all containers for the BL-level summary ---
@@ -1716,6 +1739,163 @@ def _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, 
             "last_verified": now,
             "updated_by": "Administrator",
         })
+
+
+@frappe.whitelist()
+def populate_dnd_from_containers(job_name):
+	"""
+	Create one DND detail row per containerised cargo, skipping any already present.
+	Returns the updated document so the client can reload.
+	"""
+	doc = frappe.get_doc("Forwarding Job", job_name)
+	existing_refs = {r.cargo_parcel_reference for r in doc.forwarding_dnd_storage_details}
+
+	job_discharge_date = doc.discharge_date or None
+
+	for row in doc.cargo_parcel_details:
+		if row.cargo_type != "Containerised":
+			continue
+		if row.name in existing_refs:
+			continue
+
+		doc.append("forwarding_dnd_storage_details", {
+			"container_number": row.container_number or "",
+			"container_type": row.container_type,
+			"cargo_parcel_reference": row.name,
+			"discharge_date": row.discharge_date or job_discharge_date,
+			"gate_out_date": row.gate_out_date,
+			"empty_return_date": row.empty_return_date,
+			"to_be_returned": row.to_be_returned,
+		})
+
+	doc.save(ignore_permissions=True)
+	return doc.name
+
+
+@frappe.whitelist()
+def calculate_dnd_storage(job_name):
+	"""
+	Clear DND rows, repopulate fresh from current cargo, then calculate DND & Storage.
+	Returns updated totals and container count.
+	"""
+	from freightmas.utils.forwarding_dnd_calculator import calculate_dnd_storage_for_job
+
+	doc = frappe.get_doc("Forwarding Job", job_name)
+
+	# Step 1 — collect cargo data FIRST before touching any child tables
+	job_discharge_date = doc.discharge_date or None
+	new_rows = []
+	for row in (doc.cargo_parcel_details or []):
+		if row.cargo_type != "Containerised":
+			continue
+		new_rows.append({
+			"container_number": row.container_number or "",
+			"container_type": row.container_type,
+			"cargo_parcel_reference": row.name,
+			"discharge_date": row.discharge_date or job_discharge_date,
+			"gate_out_date": row.gate_out_date,
+			"empty_return_date": row.empty_return_date,
+			"to_be_returned": row.to_be_returned,
+		})
+
+	if not new_rows:
+		frappe.throw(
+			_("No containerised cargo found on this job. "
+			  "Please add containers in the Parcel tab before calculating DND.")
+		)
+
+	# Step 2 — safely wipe and repopulate DND rows
+	doc.set("forwarding_dnd_storage_details", [])
+	for row_data in new_rows:
+		doc.append("forwarding_dnd_storage_details", row_data)
+
+	# Step 3 — calculate costs from the fresh rows
+	total_dnd, total_storage, total_combined = calculate_dnd_storage_for_job(doc)
+
+	doc.total_est_dnd_cost = total_dnd
+	doc.total_est_storage_cost = total_storage
+	doc.total_est_dnd_storage_cost = total_combined
+
+	doc.save(ignore_permissions=True)
+
+	return {
+		"total_est_dnd_cost": total_dnd,
+		"total_est_storage_cost": total_storage,
+		"total_est_dnd_storage_cost": total_combined,
+		"rows_count": len(new_rows),
+	}
+
+
+@frappe.whitelist()
+def push_dnd_to_charges(job_name):
+	"""
+	Create/update DND and Storage rows in forwarding_cost_charges.
+	Warns if rows already exist so the user can decide whether to overwrite.
+	Returns a status message.
+	"""
+	doc = frappe.get_doc("Forwarding Job", job_name)
+
+	if not doc.total_est_dnd_storage_cost:
+		frappe.throw("Run the DND & Storage calculation first before pushing to charges.")
+
+	settings = frappe.get_single("FreightMas Settings")
+	dnd_item = settings.get("dnd_charge_item")
+	storage_item = settings.get("storage_charge_item")
+
+	if not dnd_item or not storage_item:
+		frappe.throw(
+			"Please set DND Charge Item and Storage Charge Item in FreightMas Settings "
+			"(Port Clearing tab) before pushing to charges."
+		)
+
+	# Determine the supplier from the shipping line
+	sl_supplier = None
+	if doc.shipping_line:
+		sl_supplier = frappe.get_cached_value("Shipping Line", doc.shipping_line, "supplier_account")
+
+	# Check if DND/storage charge rows already exist
+	existing_charges = {r.charge for r in doc.forwarding_cost_charges}
+	overwriting = []
+	if dnd_item in existing_charges:
+		overwriting.append("DND Charges")
+	if storage_item in existing_charges:
+		overwriting.append("Storage Charges")
+
+	if overwriting:
+		# Remove old rows so we replace them cleanly
+		doc.forwarding_cost_charges = [
+			r for r in doc.forwarding_cost_charges
+			if r.charge not in (dnd_item, storage_item)
+		]
+
+	# Push DND row
+	if doc.total_est_dnd_cost:
+		doc.append("forwarding_cost_charges", {
+			"charge": dnd_item,
+			"description": f"DND Charges — {len(doc.forwarding_dnd_storage_details)} container(s)",
+			"qty": 1,
+			"buy_rate": doc.total_est_dnd_cost,
+			"supplier": sl_supplier,
+			"source_reference": "DND Calculator",
+		})
+
+	# Push Storage row
+	if doc.total_est_storage_cost:
+		doc.append("forwarding_cost_charges", {
+			"charge": storage_item,
+			"description": f"Storage Charges — {len(doc.forwarding_dnd_storage_details)} container(s)",
+			"qty": 1,
+			"buy_rate": doc.total_est_storage_cost,
+			"supplier": sl_supplier,
+			"source_reference": "DND Calculator",
+		})
+
+	doc.save(ignore_permissions=True)
+
+	msg = "DND & Storage charges pushed to Working Cost."
+	if overwriting:
+		msg += f" Existing rows replaced: {', '.join(overwriting)}."
+	return msg
 
 
 def _sync_tracking_summary(doc):

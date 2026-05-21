@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "creation": "2026-05-19 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "container_type",
+  "column_break_01",
+  "dnd_rate_per_day",
+  "column_break_02",
+  "storage_rate_per_day"
+ ],
+ "fields": [
+  {
+   "columns": 3,
+   "fieldname": "container_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Container Type",
+   "options": "Container Type",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "columns": 3,
+   "default": "0",
+   "fieldname": "dnd_rate_per_day",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "DND Rate / Day",
+   "options": "parent_currency",
+   "precision": "2"
+  },
+  {
+   "fieldname": "column_break_02",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "columns": 3,
+   "default": "0",
+   "fieldname": "storage_rate_per_day",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Storage Rate / Day",
+   "options": "parent_currency",
+   "precision": "2"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-05-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "DND Storage Rate Card Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

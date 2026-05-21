@@ -1,0 +1,201 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "DND-RATE-.#####.",
+ "creation": "2026-05-13 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "rate_details_section",
+  "shipping_line",
+  "column_break_01",
+  "port",
+  "column_break_02",
+  "direction",
+  "settings_section",
+  "currency",
+  "column_break_03",
+  "is_active",
+  "validity_section",
+  "valid_from",
+  "column_break_05",
+  "valid_to",
+  "free_days_section",
+  "dnd_free_days",
+  "column_break_06",
+  "storage_free_days",
+  "container_rates_section",
+  "fetch_container_types_btn",
+  "container_rates"
+ ],
+ "fields": [
+  {
+   "fieldname": "rate_details_section",
+   "fieldtype": "Section Break",
+   "label": "Rate Details"
+  },
+  {
+   "fieldname": "shipping_line",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Shipping Line",
+   "options": "Shipping Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave blank to apply to all ports for this shipping line",
+   "fieldname": "port",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Port",
+   "options": "Port"
+  },
+  {
+   "fieldname": "column_break_02",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave blank to apply to both Import and Export",
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Direction",
+   "options": "\nImport\nExport"
+  },
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_03",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "validity_section",
+   "fieldtype": "Section Break",
+   "label": "Validity"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From"
+  },
+  {
+   "fieldname": "column_break_05",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To"
+  },
+  {
+   "fieldname": "free_days_section",
+   "fieldtype": "Section Break",
+   "label": "Free Days",
+   "description": "Free days apply equally to all container types on this rate card"
+  },
+  {
+   "default": "0",
+   "fieldname": "dnd_free_days",
+   "fieldtype": "Int",
+   "label": "DND Free Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_06",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "storage_free_days",
+   "fieldtype": "Int",
+   "label": "Storage Free Days",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "container_rates_section",
+   "fieldtype": "Section Break",
+   "label": "Container Type Rates"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "fetch_container_types_btn",
+   "fieldtype": "Button",
+   "label": "Fetch Container Types"
+  },
+  {
+   "fieldname": "container_rates",
+   "fieldtype": "Table",
+   "label": "Container Rates",
+   "options": "DND Storage Rate Card Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-19 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "DND Storage Rate Card",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Logistics Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Logistics User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "shipping_line"
+}

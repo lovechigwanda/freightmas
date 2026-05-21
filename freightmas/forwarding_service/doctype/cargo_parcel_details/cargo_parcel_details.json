@@ -92,6 +92,13 @@
   "proof_of_delivery",
   "column_break_qsgx",
   "other_attachment",
+  "port_dates_section",
+  "discharge_date",
+  "column_break_pd1",
+  "gate_out_date",
+  "column_break_pd2",
+  "empty_return_date",
+  "is_triangulated",
   "api_container_status_section",
   "api_container_status",
   "column_break_acs1",
@@ -612,6 +619,46 @@
    "mandatory_depends_on": "eval:doc.custom_milestone"
   },
   {
+   "depends_on": "eval:doc.cargo_type===\"Containerised\"",
+   "fieldname": "port_dates_section",
+   "fieldtype": "Section Break",
+   "label": "Port Dates"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type===\"Containerised\"",
+   "fieldname": "discharge_date",
+   "fieldtype": "Date",
+   "label": "Discharge Date"
+  },
+  {
+   "fieldname": "column_break_pd1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type===\"Containerised\"",
+   "fieldname": "gate_out_date",
+   "fieldtype": "Date",
+   "label": "Gate-Out Date"
+  },
+  {
+   "fieldname": "column_break_pd2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned",
+   "fieldname": "empty_return_date",
+   "fieldtype": "Date",
+   "label": "Empty Return Date"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.cargo_type===\"Containerised\" && doc.to_be_returned",
+   "description": "Enter Empty Return Date manually.",
+   "fieldname": "is_triangulated",
+   "fieldtype": "Check",
+   "label": "Is Triangulated?"
+  },
+  {
    "depends_on": "eval:doc.api_container_status",
    "fieldname": "api_container_status_section",
    "fieldtype": "Section Break",
@@ -648,7 +695,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-16 10:00:00.000000",
+ "modified": "2026-05-21 13:37:37.407208",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",
