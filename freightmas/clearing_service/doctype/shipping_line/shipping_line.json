@@ -36,8 +36,7 @@
    "fieldname": "supplier_account",
    "fieldtype": "Link",
    "label": "Supplier Account",
-   "options": "Supplier",
-   "reqd": 1
+   "options": "Supplier"
   },
   {
    "fetch_from": "supplier_account.supplier_primary_address",
@@ -80,7 +79,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-21 18:42:39.118871",
+ "modified": "2026-05-21 19:26:11.109074",
  "modified_by": "Administrator",
  "module": "Clearing Service",
  "name": "Shipping Line",
