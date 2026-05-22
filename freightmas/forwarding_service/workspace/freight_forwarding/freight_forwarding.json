@@ -109,7 +109,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Billing & Margin",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -180,6 +180,16 @@
    "label": "Forwarding Monthly Summary",
    "link_count": 0,
    "link_to": "Forwarding Monthly Summary",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Closed Job Summary",
+   "link_count": 0,
+   "link_to": "Forwarding Closed Job Summary",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
