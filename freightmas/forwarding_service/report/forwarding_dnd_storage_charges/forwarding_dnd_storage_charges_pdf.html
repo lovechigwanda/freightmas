@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@page {
+    size: A4 landscape;
+    margin: 12mm 10mm 18mm 10mm;
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    color: #222;
+}
+
+/* ── Report header ── */
+.rpt-company {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+.rpt-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #305496;
+    margin-bottom: 2px;
+}
+.rpt-meta {
+    font-size: 10px;
+    color: #555;
+    margin-bottom: 10px;
+}
+.rpt-meta span {
+    margin-right: 18px;
+}
+
+/* ── Job section ── */
+.job-block {
+    margin-bottom: 14px;
+    page-break-inside: avoid;
+}
+
+.job-header {
+    background: #305496;
+    color: #fff;
+    font-weight: bold;
+    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 2px 2px 0 0;
+    display: flex;
+    gap: 20px;
+}
+.job-header .jh-label {
+    opacity: 0.75;
+    font-weight: normal;
+    margin-right: 3px;
+}
+
+/* ── Container table ── */
+table.ct {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+}
+
+table.ct thead tr th {
+    background: #eef2f7;
+    border: 1px solid #c8d0dc;
+    padding: 4px 5px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+table.ct thead tr th.r { text-align: right; }
+table.ct thead tr th.c { text-align: center; }
+
+table.ct tbody tr td {
+    border: 1px solid #d8dce4;
+    padding: 4px 5px;
+    white-space: nowrap;
+}
+table.ct tbody tr:nth-child(even) td {
+    background: #f7f8fb;
+}
+table.ct tbody tr td.r { text-align: right; }
+table.ct tbody tr td.c { text-align: center; }
+
+/* Highlight containers still at terminal */
+table.ct tbody tr.open-ct td.open-flag {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+/* ── Job subtotal row ── */
+table.ct tfoot tr td {
+    border: 1px solid #bbb;
+    border-top: 2px solid #305496;
+    padding: 5px 6px;
+    font-weight: bold;
+    font-size: 9px;
+    background: #dce4f0;
+    white-space: nowrap;
+}
+table.ct tfoot tr td.r { text-align: right; }
+
+/* ── Grand total block ── */
+.grand-total-block {
+    margin-top: 16px;
+    page-break-inside: avoid;
+}
+table.gt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+table.gt td {
+    border: 1px solid #888;
+    padding: 6px 8px;
+    font-weight: bold;
+    background: #305496;
+    color: #fff;
+    white-space: nowrap;
+}
+table.gt td.r { text-align: right; }
+
+thead { display: table-header-group; }
+tfoot { display: table-row-group; }
+</style>
+</head>
+<body>
+
+<!-- ── Report Header ── -->
+<div class="rpt-company">{{ company }}</div>
+<div class="rpt-title">DND &amp; Storage Charges Report</div>
+<div class="rpt-meta">
+    <span>{{ filter_summary }}</span>
+    <span style="float:right; color:#999;">Exported: {{ exported_at }}</span>
+</div>
+
+<!-- ── Job Sections ── -->
+{% for job in jobs %}
+<div class="job-block">
+
+    <div class="job-header">
+        <span><span class="jh-label">Job:</span>{{ job.job_no }}</span>
+        <span><span class="jh-label">Customer:</span>{{ job.customer }}</span>
+        {% if job.bl_number %}<span><span class="jh-label">BL:</span>{{ job.bl_number }}</span>{% endif %}
+        {% if job.shipping_line %}<span><span class="jh-label">Line:</span>{{ job.shipping_line }}</span>{% endif %}
+        <span><span class="jh-label">Direction:</span>{{ job.direction }}</span>
+    </div>
+
+    <table class="ct">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Container No</th>
+                <th>Type</th>
+                <th class="c">HZ</th>
+                <th>Disch Date</th>
+                <th>Gate-Out</th>
+                <th>Empty Rtn</th>
+                <th class="r">DND Free</th>
+                <th class="r">Tot DND</th>
+                <th class="r">Chgbl DND</th>
+                <th class="r">DND Rate</th>
+                <th class="r">DND Cost</th>
+                <th class="r">Stor Free</th>
+                <th class="r">Tot Stor</th>
+                <th class="r">Chgbl Stor</th>
+                <th class="r">Stor Rate</th>
+                <th class="r">Stor Cost</th>
+                <th class="r">Total Cost</th>
+                <th>Ccy</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in job.containers %}
+            <tr class="{{ 'open-ct' if c.still_at_terminal else '' }}">
+                <td class="c">{{ loop.index }}</td>
+                <td>{{ c.container_number or "" }}</td>
+                <td>{{ c.container_type or "" }}</td>
+                <td class="c">{{ "●" if c.is_hazardous else "" }}</td>
+                <td>{{ c.discharge_date_fmt }}</td>
+                <td class="{{ 'open-flag' if c.still_at_terminal else '' }}">{{ c.gate_out_date_fmt }}</td>
+                <td>{{ c.empty_return_date_fmt }}</td>
+                <td class="r">{{ c.dnd_free_days or "" }}</td>
+                <td class="r">{{ c.total_dnd_days or "" }}</td>
+                <td class="r">{{ c.chargeable_dnd_days or "" }}</td>
+                <td class="r">{{ c.dnd_rate_per_day_fmt }}</td>
+                <td class="r">{{ c.estimated_dnd_cost_fmt }}</td>
+                <td class="r">{{ c.storage_free_days or "" }}</td>
+                <td class="r">{{ c.total_storage_days or "" }}</td>
+                <td class="r">{{ c.chargeable_storage_days or "" }}</td>
+                <td class="r">{{ c.storage_rate_per_day_fmt }}</td>
+                <td class="r">{{ c.estimated_storage_cost_fmt }}</td>
+                <td class="r">{{ c.total_container_cost_fmt }}</td>
+                <td>{{ c.rate_card_currency or "" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="11" style="text-align:right;">Job Total ({{ job.containers | length }} container{{ "s" if job.containers | length != 1 else "" }}):</td>
+                <td class="r">{% if job.subtotal_dnd %}{{"%.2f"|format(job.subtotal_dnd)}}{% endif %}</td>
+                <td colspan="4" style="text-align:right;">Storage:</td>
+                <td class="r">{% if job.subtotal_storage %}{{"%.2f"|format(job.subtotal_storage)}}{% endif %}</td>
+                <td class="r">{{"%.2f"|format(job.subtotal_total)}}</td>
+                <td>{{ job.currency }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</div>
+{% endfor %}
+
+<!-- ── Grand Total ── -->
+<div class="grand-total-block">
+    <table class="gt">
+        <tr>
+            <td style="width:60%;">Grand Total — {{ jobs | length }} job{{ "s" if jobs | length != 1 else "" }}</td>
+            <td style="width:10%; text-align:right;">DND: {{ grand_dnd }}</td>
+            <td style="width:10%; text-align:right;">Storage: {{ grand_storage }}</td>
+            <td style="width:15%; text-align:right; font-size:11px;">TOTAL: {{ grand_total }}</td>
+            <td style="width:5%;"></td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
