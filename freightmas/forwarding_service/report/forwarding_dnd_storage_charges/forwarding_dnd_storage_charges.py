@@ -5,6 +5,15 @@ import frappe
 from frappe.utils import formatdate, now_datetime, flt
 
 
+def _fmt_date(d):
+    if not d:
+        return ""
+    try:
+        return formatdate(d, "dd-MMM-yy")
+    except Exception:
+        return str(d)
+
+
 def execute(filters=None):
     return get_columns(), get_data(filters or {})
 
@@ -19,9 +28,9 @@ def get_columns():
         {"label": "Container No",   "fieldname": "container_number",        "fieldtype": "Data",                                   "width": 130},
         {"label": "Type",           "fieldname": "container_type",          "fieldtype": "Link",     "options": "Container Type",  "width": 80},
         {"label": "HZ",             "fieldname": "is_hazardous",            "fieldtype": "Check",                                  "width": 45},
-        {"label": "Discharge Date", "fieldname": "discharge_date",          "fieldtype": "Date",                                   "width": 110},
-        {"label": "Gate-Out Date",  "fieldname": "gate_out_date",           "fieldtype": "Date",                                   "width": 110},
-        {"label": "Empty Return",   "fieldname": "empty_return_date",       "fieldtype": "Date",                                   "width": 110},
+        {"label": "Discharge Date", "fieldname": "discharge_date",          "fieldtype": "Data",                                   "width": 110},
+        {"label": "Gate-Out Date",  "fieldname": "gate_out_date",           "fieldtype": "Data",                                   "width": 110},
+        {"label": "Empty Return",   "fieldname": "empty_return_date",       "fieldtype": "Data",                                   "width": 110},
         {"label": "At Terminal?",   "fieldname": "still_at_terminal",       "fieldtype": "Data",                                   "width": 85},
         {"label": "DND Free",       "fieldname": "dnd_free_days",           "fieldtype": "Int",                                    "width": 75},
         {"label": "DND Rate/Day",   "fieldname": "dnd_rate_per_day",        "fieldtype": "Currency",                               "width": 105},
@@ -97,6 +106,9 @@ def get_data(filters):
 
     for row in rows:
         row["still_at_terminal"] = "Yes" if not row.get("gate_out_date") else ""
+        row["discharge_date"]    = _fmt_date(row.get("discharge_date"))
+        row["gate_out_date"]     = _fmt_date(row.get("gate_out_date"))
+        row["empty_return_date"] = _fmt_date(row.get("empty_return_date"))
 
     return rows
 
