@@ -262,7 +262,6 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -270,13 +269,9 @@
    "report": 1,
    "role": "FreightMas User",
    "select": 1,
-   "share": 1,
-   "write": 1
+   "share": 1
   },
   {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
@@ -284,9 +279,7 @@
    "report": 1,
    "role": "FreightMas Manager",
    "select": 1,
-   "share": 1,
-   "submit": 1,
-   "write": 1
+   "share": 1
   },
   {
    "amend": 1,
