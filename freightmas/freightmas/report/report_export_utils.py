@@ -74,25 +74,28 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
     sheet_title = re.sub(r'[\\/*?:\[\]]', '', report_title)[:31]
     ws.title = sheet_title
 
-    # ---- Styles (matching api.py export_report_to_excel) ----
-    title_font = Font(bold=True, size=16)
-    subtitle_font = Font(bold=True, size=13)
-    filter_label_font = Font(bold=True)
+    # ---- Styles ----
+    title_font = Font(bold=True, size=16, color="1A2F4E")
+    subtitle_font = Font(bold=True, size=12, color="4A5568")
+    filter_label_font = Font(bold=True, color="1E3A5F")
     bold_white_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="305496")
-    zebra_fill = PatternFill("solid", fgColor="F2F2F2")
-    heading_font = Font(bold=True, size=11, color="305496")
-    heading_fill = PatternFill("solid", fgColor="E8ECF1")
-    subtotal_font = Font(bold=True, color="305496")
-    subtotal_fill = PatternFill("solid", fgColor="D6DCE4")
+    header_fill = PatternFill("solid", fgColor="1E3A5F")
+    zebra_fill = PatternFill("solid", fgColor="F0F4F8")
+    heading_font = Font(bold=True, size=11, color="1A2F4E")
+    heading_fill = PatternFill("solid", fgColor="E8F0FE")
+    subtotal_font = Font(bold=True, color="1E40AF")
+    subtotal_fill = PatternFill("solid", fgColor="DBEAFE")
     grand_total_font = Font(bold=True, color="FFFFFF")
-    grand_total_fill = PatternFill("solid", fgColor="305496")
-    border = Border(
-        left=Side(style='thin', color='DDDDDD'),
-        right=Side(style='thin', color='DDDDDD'),
-        top=Side(style='thin', color='DDDDDD'),
-        bottom=Side(style='thin', color='DDDDDD'),
+    grand_total_fill = PatternFill("solid", fgColor="1E3A5F")
+    # Bottom-only border for data rows; full border for header/total rows
+    bottom_border = Border(bottom=Side(style='thin', color='CBD5E0'))
+    full_border = Border(
+        left=Side(style='thin', color='CBD5E0'),
+        right=Side(style='thin', color='CBD5E0'),
+        top=Side(style='thin', color='CBD5E0'),
+        bottom=Side(style='thin', color='CBD5E0'),
     )
+    border = bottom_border  # default for data rows
     center_align = Alignment(horizontal="center", vertical="center")
     right_align = Alignment(horizontal="right", vertical="center")
     left_align = Alignment(horizontal="left", vertical="center")
@@ -149,12 +152,13 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
 
     # ---- Column headers ----
     header_row = row_idx
+    ws.row_dimensions[header_row].height = 28
     for col_idx, col_def in enumerate(excel_columns, 1):
         cell = ws.cell(row=header_row, column=col_idx, value=strip_html(col_def.get("label", "")))
         cell.font = bold_white_font
-        cell.alignment = left_align
+        cell.alignment = center_align
         cell.fill = header_fill
-        cell.border = border
+        cell.border = full_border
     row_idx += 1
 
     # ---- Freeze panes below header ----
@@ -199,7 +203,8 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             cell.font = heading_font
             cell.fill = heading_fill
             cell.alignment = left_align
-            cell.border = border
+            cell.border = full_border
+            ws.row_dimensions[row_idx].height = 22
             row_idx += 1
             data_row_num = 0
             continue
@@ -211,6 +216,7 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             )
             t_font = grand_total_font if is_grand else subtotal_font
             t_fill = grand_total_fill if is_grand else subtotal_fill
+            t_height = 26 if is_grand else 24
 
             if text_end_col > 1:
                 ws.merge_cells(
@@ -223,7 +229,7 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             cell.font = t_font
             cell.fill = t_fill
             cell.alignment = left_align
-            cell.border = border
+            cell.border = full_border
 
             # Currency values
             for col_idx, col_def in enumerate(excel_columns, 1):
@@ -241,14 +247,16 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
                 cell.font = t_font
                 cell.fill = t_fill
                 cell.alignment = right_align
-                cell.border = border
+                cell.border = full_border
 
+            ws.row_dimensions[row_idx].height = t_height
             data_row_num = 0
             row_idx += 1
             continue
 
         # ---- Normal data row ----
         data_row_num += 1
+        ws.row_dimensions[row_idx].height = 20
 
         for col_idx, col_def in enumerate(excel_columns, 1):
             fieldname = col_def["fieldname"]
@@ -276,7 +284,7 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
             else:
                 cell.value = value
 
-            cell.border = border
+            cell.border = bottom_border
 
             # Zebra striping and alignment for normal data rows
             if data_row_num % 2 == 0:
@@ -297,9 +305,10 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
                         max_length = cell_length
                 except Exception:
                     pass
-        ws.column_dimensions[get_column_letter(col_idx)].width = max(12, min(max_length + 2, 40))
+        ws.column_dimensions[get_column_letter(col_idx)].width = max(10, min(max_length + 2, 45))
 
-    # ---- Hide gridlines ----
+    # ---- Tab colour + hide gridlines ----
+    ws.sheet_properties.tabColor = "1E3A5F"
     ws.sheet_view.showGridLines = False
 
     # ---- Print setup ----
@@ -372,28 +381,34 @@ def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_reve
     # ---- Build HTML (matching report_pdf_template.html style) ----
     html = (
         '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n<style>\n'
-        "@page { size: A4 landscape; margin: 20mm 15mm 25mm 15mm; }\n"
-        'body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; '
-        "font-size: 12px; color: #222; }\n"
-        ".print-heading { margin-bottom: 10px; }\n"
-        ".print-heading-title { font-size: 22px; font-weight: bold; }\n"
-        ".report-title { font-size: 15px; font-weight: bold; color: #000; }\n"
-        ".filters-table { margin: 10px 0 20px 0; font-size: 11px; }\n"
-        ".filters-table td { padding: 2px 8px 2px 0; }\n"
-        ".table { width: 100%; border-collapse: collapse; margin-top: 10px; }\n"
-        ".table th, .table td { border: 1px solid #bbb; padding: 7px 8px; }\n"
-        ".table th { background: #f5f7fa; font-weight: bold; font-size: 13px; text-align: left; }\n"
-        ".table td { white-space: nowrap; }\n"
-        ".text-right { text-align: right; }\n"
+        "@page { size: A4 landscape; margin: 18mm 14mm 22mm 14mm; }\n"
+        'body { font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; '
+        "font-size: 11px; color: #1a202c; line-height: 1.5; }\n"
+        ".print-heading { border-left: 4px solid #2563eb; padding-left: 10px; margin-bottom: 12px; }\n"
+        ".print-heading-title { font-size: 20px; font-weight: 700; color: #1a2f4e; line-height: 1.2; }\n"
+        ".report-title { font-size: 13px; font-weight: 600; color: #4a5568; margin-top: 2px; }\n"
+        ".filters-table { margin: 8px 0 14px 0; background: #eff6ff; border: 1px solid #bfdbfe; "
+        "border-radius: 4px; padding: 6px 10px; display: inline-block; font-size: 10.5px; }\n"
+        ".filters-table td { padding: 2px 10px 2px 0; color: #1e3a5f; }\n"
+        ".filters-table td:first-child { font-weight: 700; white-space: nowrap; }\n"
+        ".export-ts { text-align: right; font-size: 10px; color: #94a3b8; font-style: italic; margin-bottom: 6px; }\n"
+        ".table { width: 100%; border-collapse: collapse; margin-top: 4px; }\n"
+        ".table thead th { background: #1e3a5f; color: #ffffff; font-weight: 700; font-size: 10.5px; "
+        "padding: 8px 9px; text-align: left; letter-spacing: 0.3px; border: none; }\n"
+        ".table tbody td { padding: 6px 9px; border: none; border-bottom: 1px solid #e5e7eb; "
+        "font-size: 10.5px; color: #1a202c; white-space: nowrap; }\n"
+        ".table tbody tr:nth-child(even) td { background: #f0f4f8; }\n"
+        "tr.zebra td { background: #f0f4f8; }\n"
+        "tr.group-heading td { background: #e8f0fe; font-weight: 700; font-size: 11px; "
+        "color: #1a2f4e; border-bottom: 2px solid #bfdbfe; padding: 7px 9px; border-left: 3px solid #2563eb; }\n"
+        "tr.subtotal td { background: #dbeafe; font-weight: 700; color: #1e40af; "
+        "border-top: 1px solid #93c5fd; border-bottom: 1px solid #93c5fd; }\n"
+        "tr.grand-total td { background: #1e3a5f; color: #ffffff; font-weight: 700; "
+        "font-size: 11px; border-top: none; border-bottom: none; }\n"
+        "tr.separator td { border: none; height: 6px; padding: 0; background: transparent; }\n"
+        ".text-right { text-align: right; white-space: nowrap; }\n"
         ".text-left  { text-align: left; }\n"
         ".text-center { text-align: center; }\n"
-        "tr.zebra td { background: #f9f9f9; }\n"
-        "tr.group-heading td { background: #eef2f7; font-weight: bold; "
-        "font-size: 12px; border-bottom: 2px solid #bbb; }\n"
-        "tr.subtotal td { font-weight: bold; background: #e8ecf1; border-top: 1px solid #999; }\n"
-        "tr.grand-total td { font-weight: bold; background: #d6dce4; "
-        "font-size: 12px; border-top: 2px solid #555; }\n"
-        "tr.separator td { border-left: none; border-right: none; height: 4px; padding: 0; }\n"
         "thead { display: table-header-group; }\n"
         "tfoot { display: table-row-group; }\n"
         "</style>\n</head>\n<body>\n"
@@ -412,10 +427,7 @@ def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_reve
         html += f'<table class="filters-table"><tbody>\n{filter_rows}</tbody></table>\n'
 
     # Exported timestamp
-    html += (
-        f'<div style="text-align:right; font-size:11px; color:#888; margin-bottom:8px;">'
-        f"Exported: {generated}</div>\n"
-    )
+    html += f'<div class="export-ts">Exported: {generated}</div>\n'
 
     # Table header
     html += '<table class="table table-bordered table-striped">\n<thead><tr>\n'
