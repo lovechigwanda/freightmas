@@ -390,6 +390,12 @@ fixtures = [
             ["name", "in", ["Submit for Approval", "Approve", "Reject", "Send to Customer", "Mark Accepted", "Mark Rejected", "Mark Expired", "Cancel"]]
         ]
     },
+    {
+        "dt": "Custom DocPerm",
+        "filters": [
+            ["name", "like", "fm-cdp-%"]
+        ]
+    },
     # Workspaces, Workspace Sidebars, and Print Formats are managed
     # exclusively via module-level JSON files (synced during bench migrate).
     # Do NOT add them here — it creates a dual source of truth conflict.
