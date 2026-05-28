@@ -111,6 +111,8 @@ def get_data(filters):
             posting_date,
             voucher_type,
             voucher_no,
+            against_voucher_type,
+            against_voucher,
             account,
             party,
             debit,
@@ -129,12 +131,12 @@ def get_data(filters):
     else:
         all_entries = gl_entries
 
-    # Build job ID lookup maps for all GL entries in one batch
-    invoice_job_map, payment_amount_job_map, payment_all_jobs_map = build_voucher_job_maps(all_entries)
+    # Build job ID lookup map for all GL entries in one batch
+    invoice_job_map = build_invoice_job_map(all_entries)
 
     for entry in all_entries:
         balance += (entry.debit - entry.credit)
-        job_id = resolve_job_id(entry, invoice_job_map, payment_amount_job_map, payment_all_jobs_map)
+        job_id = resolve_job_id(entry, invoice_job_map)
         row = {
             "posting_date": formatdate(entry.posting_date, "dd-MMM-yy"),
             "voucher_type": entry.voucher_type,
@@ -161,7 +163,7 @@ def get_data(filters):
     return data
 
 
-def resolve_job_id(entry, invoice_job_map, payment_amount_job_map, payment_all_jobs_map):
+def resolve_job_id(entry, invoice_job_map):
     """Return the job ID string for a GL entry row."""
     vt = entry.voucher_type
     vn = entry.voucher_no
@@ -170,28 +172,26 @@ def resolve_job_id(entry, invoice_job_map, payment_amount_job_map, payment_all_j
         return invoice_job_map.get(vn, "")
 
     if vt == "Payment Entry":
-        amount = max(entry.get("debit") or 0, entry.get("credit") or 0)
-        key = (vn, amount)
-        if key in payment_amount_job_map:
-            return payment_amount_job_map[key]
-        # Fallback: show all jobs linked to this payment
-        return payment_all_jobs_map.get(vn, "")
+        # against_voucher is the specific invoice this GL row is clearing —
+        # one GL entry is created per invoice allocation, so this is always exact.
+        av_type = entry.get("against_voucher_type")
+        av = entry.get("against_voucher")
+        if av_type in ("Sales Invoice", "Purchase Invoice") and av:
+            return invoice_job_map.get(av, "")
 
     return ""
 
 
-def build_voucher_job_maps(gl_entries):
+def build_invoice_job_map(gl_entries):
     """
-    Build lookup maps for job IDs from GL entry vouchers.
+    Build {invoice_name -> job_id} for all invoices referenced in the GL entries.
 
-    Returns:
-        invoice_job_map: {voucher_no -> job_id} for Sales/Purchase Invoice GL entries
-        payment_amount_job_map: {(payment_no, allocated_amount) -> job_id_string} for Payment Entries
-        payment_all_jobs_map: {payment_no -> comma-separated job_ids} fallback for Payment Entries
+    Covers:
+    - Sales/Purchase Invoice rows (via voucher_no)
+    - Payment Entry rows (via against_voucher, which ERPNext sets to the cleared invoice)
     """
     sinv_set = set()
     pinv_set = set()
-    payment_set = set()
 
     for entry in gl_entries:
         vt = entry.voucher_type
@@ -201,7 +201,12 @@ def build_voucher_job_maps(gl_entries):
         elif vt == "Purchase Invoice":
             pinv_set.add(vn)
         elif vt == "Payment Entry":
-            payment_set.add(vn)
+            av_type = entry.get("against_voucher_type")
+            av = entry.get("against_voucher")
+            if av and av_type == "Sales Invoice":
+                sinv_set.add(av)
+            elif av and av_type == "Purchase Invoice":
+                pinv_set.add(av)
 
     invoice_job_map = {}
 
@@ -211,13 +216,7 @@ def build_voucher_job_maps(gl_entries):
     if pinv_set:
         invoice_job_map.update(_fetch_invoice_job_ids("Purchase Invoice", list(pinv_set)))
 
-    payment_amount_job_map = {}
-    payment_all_jobs_map = {}
-
-    if payment_set:
-        payment_amount_job_map, payment_all_jobs_map = _build_payment_job_maps(list(payment_set))
-
-    return invoice_job_map, payment_amount_job_map, payment_all_jobs_map
+    return invoice_job_map
 
 
 def _fetch_invoice_job_ids(doctype, names):
@@ -242,59 +241,6 @@ def _fetch_invoice_job_ids(doctype, names):
                 break
     return result
 
-
-def _build_payment_job_maps(payment_nos):
-    """
-    For a list of Payment Entry names, build:
-      - amount_map: {(payment_no, allocated_amount) -> job_id_string}
-      - all_jobs_map: {payment_no -> comma-separated job_ids}
-    """
-    refs = frappe.db.sql("""
-        SELECT parent, reference_doctype, reference_name, allocated_amount
-        FROM `tabPayment Entry Reference`
-        WHERE parent IN %(parents)s
-        AND reference_doctype IN ('Sales Invoice', 'Purchase Invoice')
-    """, {"parents": payment_nos}, as_dict=1)
-
-    if not refs:
-        return {}, {}
-
-    # Collect invoice names per doctype
-    sinv_names = set()
-    pinv_names = set()
-    for ref in refs:
-        if ref.reference_doctype == "Sales Invoice":
-            sinv_names.add(ref.reference_name)
-        elif ref.reference_doctype == "Purchase Invoice":
-            pinv_names.add(ref.reference_name)
-
-    # Fetch job IDs for all referenced invoices
-    inv_job_map = {}
-    if sinv_names:
-        inv_job_map.update(_fetch_invoice_job_ids("Sales Invoice", list(sinv_names)))
-    if pinv_names:
-        inv_job_map.update(_fetch_invoice_job_ids("Purchase Invoice", list(pinv_names)))
-
-    # Build (payment_no, amount) -> job_ids and payment_no -> all job_ids maps
-    amount_map = {}   # (payment_no, amount) -> set of job_ids
-    all_jobs = {}     # payment_no -> set of job_ids
-
-    for ref in refs:
-        job_id = inv_job_map.get(ref.reference_name)
-        if not job_id:
-            continue
-
-        pno = ref.parent
-        amt = ref.allocated_amount
-
-        all_jobs.setdefault(pno, set()).add(job_id)
-        amount_map.setdefault((pno, amt), set()).add(job_id)
-
-    # Convert sets to sorted comma-separated strings
-    return (
-        {k: ", ".join(sorted(v)) for k, v in amount_map.items()},
-        {k: ", ".join(sorted(v)) for k, v in all_jobs.items()},
-    )
 
 
 def get_opening_balance(filters):
