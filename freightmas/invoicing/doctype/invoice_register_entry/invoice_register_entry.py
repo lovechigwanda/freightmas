@@ -549,6 +549,7 @@ class InvoiceRegisterEntry(Document):
             frappe.throw(_("No eligible charge rows found to copy."))
 
         job.save()
+        _attach_ire_file_to_job(doc, job.name)
 
         message = _("{0} charge row(s) copied to Forwarding Job {1}.").format(added, job.name)
         if skipped:
@@ -835,7 +836,7 @@ def _attach_ire_file_to_job(doc, job_name):
             "file_name": (src.file_name if src else None) or doc.attachment.split("/")[-1],
             "attached_to_doctype": "Forwarding Job",
             "attached_to_name": job_name,
-            "is_private": src.is_private if src else 0,
+            "is_private": src.is_private if src else int(doc.attachment.startswith("/private/")),
         }).insert(ignore_permissions=True)
     except Exception as e:
         frappe.log_error(
