@@ -396,6 +396,12 @@ fixtures = [
             ["name", "like", "fm-cdp-%"]
         ]
     },
+    {
+        "dt": "Role Profile",
+        "filters": [
+            ["name", "like", "FreightMas%"]
+        ]
+    },
     # Workspaces, Workspace Sidebars, and Print Formats are managed
     # exclusively via module-level JSON files (synced during bench migrate).
     # Do NOT add them here — it creates a dual source of truth conflict.

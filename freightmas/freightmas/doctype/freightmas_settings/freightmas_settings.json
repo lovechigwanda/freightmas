@@ -421,10 +421,30 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "role": "FreightMas User",
+   "read": 1,
+   "select": 1,
+   "email": 1,
+   "print": 1,
+   "export": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
    "email": 1,
    "print": 1,
    "read": 1,
    "role": "FreightMas Manager",
+   "share": 1
+  },
+  {
+   "role": "FreightMas Accounts",
+   "read": 1,
+   "select": 1,
+   "email": 1,
+   "print": 1,
+   "export": 1,
+   "report": 1,
    "share": 1
   },
   {
