@@ -16,6 +16,25 @@
  "ref_doctype": "Cash Reconciliation",
  "report_name": "Daily Cash Reconciliation Summary",
  "report_type": "Script Report",
- "roles": [{"role": "System Manager"}, {"role": "Accounts Manager"}, {"role": "Accounts User"}, {"role": "FreightMas User"}, {"role": "FreightMas Manager"}],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "FreightMas Accounts"
+  }
+ ],
  "timeout": 0
 }

@@ -20,11 +20,26 @@
  "report_name": "Weekly Cash Report",
  "report_type": "Script Report",
  "roles": [
-  {"role": "System Manager"},
-  {"role": "Accounts Manager"},
-  {"role": "Accounts User"},
-  {"role": "FreightMas User"},
-  {"role": "FreightMas Manager"},
-  {"role": "FreightMas Admin"}
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "FreightMas Admin"
+  },
+  {
+   "role": "FreightMas Accounts"
+  }
  ]
 }

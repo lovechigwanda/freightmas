@@ -17,8 +17,17 @@
  "report_name": "Invoice Register by Party",
  "report_type": "Script Report",
  "roles": [
-  {"role": "System Manager"},
-  {"role": "FreightMas User"},
-  {"role": "FreightMas Manager"}
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "FreightMas Accounts"
+  }
  ]
 }

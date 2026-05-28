@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 
 
-FREIGHTMAS_ROLES = ("FreightMas User", "FreightMas Manager", "System Manager", "Administrator")
+FREIGHTMAS_ROLES = ("FreightMas User", "FreightMas Manager", "FreightMas Accounts", "System Manager", "Administrator")
 
 
 def check_freightmas_role(role=None):
