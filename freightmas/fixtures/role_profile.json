@@ -1,0 +1,69 @@
+[
+ {
+  "doctype": "Role Profile",
+  "modified": "2026-05-28 00:00:00.000000",
+  "modified_by": "Administrator",
+  "name": "FreightMas User",
+  "owner": "Administrator",
+  "role_profile": "FreightMas User",
+  "roles": [
+   {
+    "role": "FreightMas User"
+   }
+  ]
+ },
+ {
+  "doctype": "Role Profile",
+  "modified": "2026-05-28 00:00:00.000000",
+  "modified_by": "Administrator",
+  "name": "FreightMas Manager",
+  "owner": "Administrator",
+  "role_profile": "FreightMas Manager",
+  "roles": [
+   {
+    "role": "FreightMas User"
+   },
+   {
+    "role": "FreightMas Manager"
+   }
+  ]
+ },
+ {
+  "doctype": "Role Profile",
+  "modified": "2026-05-28 00:00:00.000000",
+  "modified_by": "Administrator",
+  "name": "FreightMas Accounts",
+  "owner": "Administrator",
+  "role_profile": "FreightMas Accounts",
+  "roles": [
+   {
+    "role": "FreightMas User"
+   },
+   {
+    "role": "FreightMas Accounts"
+   }
+  ]
+ },
+ {
+  "doctype": "Role Profile",
+  "modified": "2026-05-28 00:00:00.000000",
+  "modified_by": "Administrator",
+  "name": "FreightMas Admin",
+  "owner": "Administrator",
+  "role_profile": "FreightMas Admin",
+  "roles": [
+   {
+    "role": "FreightMas User"
+   },
+   {
+    "role": "FreightMas Manager"
+   },
+   {
+    "role": "FreightMas Accounts"
+   },
+   {
+    "role": "FreightMas Admin"
+   }
+  ]
+ }
+]
