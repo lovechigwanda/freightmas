@@ -688,6 +688,15 @@ def _create_purchase_invoice_from_ire(doc):
     job = frappe.get_doc("Forwarding Job", doc.job_name)
     job.check_permission("write")
 
+    if job.docstatus == 1:
+        frappe.throw(
+            _(
+                "Forwarding Job <b>{0}</b> is already closed (submitted). You cannot capture a supplier invoice "
+                "directly against a closed job as this would affect previously reported financials. "
+                "Please process this supplier cost via a <b>Journal Entry</b> instead."
+            ).format(doc.job_name)
+        )
+
     copied_refs = {r.source_reference for r in job.get("forwarding_cost_charges", []) if r.source_reference}
     added = 0
     for row in doc.get("charge_details", []):
@@ -744,6 +753,15 @@ def _create_sales_invoice_from_ire(doc):
 
     job = frappe.get_doc("Forwarding Job", doc.job_name)
     job.check_permission("write")
+
+    if job.docstatus == 1:
+        frappe.throw(
+            _(
+                "Forwarding Job <b>{0}</b> is already closed (submitted). You cannot issue a sales invoice "
+                "directly against a closed job as this would affect previously reported financials. "
+                "Please process this revenue via a <b>Journal Entry</b> instead."
+            ).format(doc.job_name)
+        )
 
     copied_refs = {r.source_reference for r in job.get("forwarding_revenue_charges", []) if r.source_reference}
     added = 0
