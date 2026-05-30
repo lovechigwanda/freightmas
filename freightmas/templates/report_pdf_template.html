@@ -5,146 +5,84 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 18mm 14mm 22mm 14mm;
+            margin: 20mm 15mm 25mm 15mm;
         }
 
         body {
-            font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-            font-size: 11px;
-            color: #1a202c;
-            line-height: 1.5;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #222;
         }
 
-        /* ── Page header ── */
         .print-heading {
-            border-left: 4px solid #2563eb;
-            padding-left: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .print-heading .print-heading-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a2f4e;
-            line-height: 1.2;
+            font-size: 22px;
+            font-weight: bold;
         }
 
-        .print-heading .print-heading-sub,
+        .print-heading .print-heading-sub {
+            font-size: 15px;
+            color: #555;
+        }
+
         .print-heading .report-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4a5568;
-            margin-top: 2px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
         }
 
-        /* ── Filters info box ── */
         .filters-table {
-            margin: 8px 0 14px 0;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 4px;
-            padding: 6px 10px;
-            display: inline-block;
-            font-size: 10.5px;
+            margin: 10px 0 20px 0;
+            font-size: 11px;
         }
 
         .filters-table td {
-            padding: 2px 10px 2px 0;
-            color: #1e3a5f;
+            padding: 2px 8px 2px 0;
         }
 
-        .filters-table td:first-child {
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        /* ── Exported timestamp ── */
-        .export-ts {
-            text-align: right;
-            font-size: 10px;
-            color: #94a3b8;
-            font-style: italic;
-            margin-bottom: 6px;
-        }
-
-        /* ── Main table ── */
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            margin-top: 10px;
         }
 
-        .table thead th {
-            background: #1e3a5f;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 10.5px;
-            padding: 8px 9px;
+        .table th, .table td {
+            border: 1px solid #bbb;
+            padding: 7px 8px;
+        }
+
+        .table th {
+            background: #f5f7fa;
+            font-weight: bold;
+            font-size: 13px;
             text-align: left;
-            letter-spacing: 0.3px;
-            border: none;
         }
 
-        .table thead th:first-child {
-            border-radius: 0;
+        .table-striped tbody tr:nth-child(even) td {
+            background: #f9f9f9;
         }
 
-        .table tbody td {
-            padding: 6px 9px;
-            border: none;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 10.5px;
-            color: #1a202c;
+        .text-right {
+            text-align: right;
+            white-space: nowrap; /* Prevent line breaks */
         }
 
-        /* Zebra striping */
-        .table tbody tr:nth-child(even) td {
-            background: #f0f4f8;
-        }
-
-        /* Group heading rows */
-        tr.group-heading td {
-            background: #e8f0fe;
-            font-weight: 700;
-            font-size: 11px;
-            color: #1a2f4e;
-            border-bottom: 2px solid #bfdbfe;
-            padding: 7px 9px;
-            border-left: 3px solid #2563eb;
-        }
-
-        /* Subtotal rows */
-        tr.subtotal td {
-            background: #dbeafe;
-            font-weight: 700;
-            color: #1e40af;
-            border-top: 1px solid #93c5fd;
-            border-bottom: 1px solid #93c5fd;
-        }
-
-        /* Grand total rows */
-        tr.grand-total td {
-            background: #1e3a5f;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 11px;
-            border-top: none;
-            border-bottom: none;
-        }
-
-        /* Separator rows */
-        tr.separator td {
-            border: none;
-            height: 6px;
-            padding: 0;
-            background: transparent;
-        }
-
-        /* Alignment helpers */
-        .text-right  { text-align: right;  white-space: nowrap; }
-        .text-left   { text-align: left; }
+        .text-left { text-align: left; }
         .text-center { text-align: center; }
-        .wrap-text   { white-space: normal; }
+
+        .table td {
+            border: 1px solid #bbb;
+            padding: 7px 8px;
+            white-space: nowrap; /* Prevent wrapping for numeric cells */
+        }
+
+        /* For remarks column that should wrap */
+        .table td.wrap-text {
+            white-space: normal;
+        }
 
         thead { display: table-header-group; }
         tfoot { display: table-row-group; }
@@ -162,7 +100,7 @@
         <tbody>
             {% for label, val in filters.items() %}
                 <tr>
-                    <td>{{ label|replace("_", " ")|title }}:</td>
+                    <td><b>{{ label|replace("_", " ")|title }}:</b></td>
                     <td>{{ val }}</td>
                 </tr>
             {% endfor %}
@@ -170,12 +108,14 @@
     </table>
     {% endif %}
 
-    <div class="export-ts">Exported: {{ exported_at }}</div>
+    <div style="text-align:right; font-size:11px; color:#888; margin-bottom:8px;">
+        Exported: {{ exported_at }}
+    </div>
 
-    <table class="table">
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th class="text-center" style="width:30px;">#</th>
+                <th class="text-center">#</th>
                 {% for col in columns %}
                     <th class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }}">
                         {{ col.label }}
@@ -189,7 +129,7 @@
                     <td class="text-center">{{ loop.index }}</td>
                     {% for col in columns %}
                         {% set value = row.get(col.fieldname, "") %}
-                        <td class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }}
+                        <td class="{{ 'text-right' if col.fieldtype in ['Int', 'Float', 'Currency'] else 'text-left' }} 
                                    {{ 'wrap-text' if col.fieldname == 'remarks' else '' }}">
                             {% if col.fieldtype in ['Int', 'Float', 'Currency'] and value != "" %}
                                 {% if value == 0 %}
