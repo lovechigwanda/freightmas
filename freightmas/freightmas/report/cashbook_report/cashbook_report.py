@@ -5,6 +5,7 @@
 
 
 from __future__ import unicode_literals
+import re
 import frappe
 from frappe import _
 from frappe.utils import formatdate
@@ -56,6 +57,15 @@ def get_columns():
         }
     ]
 
+def truncate_remarks(remarks):
+    if not remarks:
+        return remarks
+    # Keep only up to "dated YYYY-MM-DD", dropping the per-invoice breakdown
+    match = re.search(r'(.*?dated\s+\d{4}-\d{2}-\d{2})', remarks)
+    if match:
+        return match.group(1)
+    return remarks
+
 def get_data(filters):
     data = []
     
@@ -101,7 +111,7 @@ def get_data(filters):
             "posting_date": formatdate(entry.posting_date, "dd-MMM-yy"),
             "voucher_type": entry.voucher_type,  # Added voucher_type
             "voucher_no": entry.voucher_no,
-            "remarks": entry.remarks,
+            "remarks": truncate_remarks(entry.remarks),
             "debit": entry.debit,
             "credit": entry.credit,
             "balance": balance
