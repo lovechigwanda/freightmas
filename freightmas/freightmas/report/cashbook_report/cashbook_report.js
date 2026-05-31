@@ -103,6 +103,12 @@ frappe.query_reports["Cashbook Report"] = {
                     }
                 }
             }
+        },
+        {
+            "fieldname": "show_cancelled",
+            "label": __("Show Cancelled"),
+            "fieldtype": "Check",
+            "default": 0
         }
     ],
     

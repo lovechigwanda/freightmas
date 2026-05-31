@@ -132,21 +132,24 @@ def get_data(filters):
 
 def get_opening_balance(filters):
     # Get balance before from_date
+    cancelled_condition = "" if filters.get("show_cancelled") else "AND is_cancelled = 0"
     balance = frappe.db.sql("""
         SELECT SUM(debit) - SUM(credit) as balance
         FROM `tabGL Entry`
         WHERE account in (
-            SELECT name 
-            FROM tabAccount 
+            SELECT name
+            FROM tabAccount
             WHERE account_type in ('Bank', 'Cash')
         )
         AND posting_date < %(from_date)s
         AND company=%(company)s
         {account_condition}
+        {cancelled_condition}
     """.format(
-        account_condition="AND account=%(account)s" if filters.get("account") else ""
+        account_condition="AND account=%(account)s" if filters.get("account") else "",
+        cancelled_condition=cancelled_condition
     ), filters, as_dict=1)[0].balance
-    
+
     return balance or 0
 
 def get_conditions(filters):
@@ -160,5 +163,7 @@ def get_conditions(filters):
         conditions.append("posting_date<=%(to_date)s")
     if filters.get("account"):
         conditions.append("account=%(account)s")
-        
+    if not filters.get("show_cancelled"):
+        conditions.append("is_cancelled = 0")
+
     return " AND ".join(conditions)
