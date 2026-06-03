@@ -286,6 +286,7 @@ doc_events = {
     },
     "Purchase Invoice": {
         "validate": "freightmas.utils.revenue_recognition.set_wip_cost_account",
+        "on_submit": "freightmas.utils.revenue_recognition.on_purchase_invoice_submit",
         "before_cancel": "freightmas.utils.invoice_unlink.before_purchase_invoice_cancel",
         "on_cancel": [
             "freightmas.utils.invoice_unlink.on_purchase_invoice_cancel",
@@ -343,6 +344,8 @@ fixtures = [
                 "Sales Invoice-custom_is_border_clearing_invoice",
                 "Purchase Invoice-custom_border_clearing_job_reference",
                 "Purchase Invoice-custom_is_border_clearing_invoice",
+                "Sales Invoice-custom_recognition_journal_entry",
+                "Purchase Invoice-custom_recognition_journal_entry",
                 "Sales Invoice-custom_banking_details",
                 "Sales Invoice-custom_banking_details_2",
                 "Quotation-custom_job_description",
