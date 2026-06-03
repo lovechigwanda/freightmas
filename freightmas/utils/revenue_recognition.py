@@ -507,24 +507,20 @@ def create_reversal_journal_entry(original_je_name, reversal_date=None, reason=N
 def validate_invoice_income_account(invoice_doc):
     """
     Set the correct income account for forwarding-linked invoices.
-    - If job NOT recognized yet → WIP Revenue
-    - If job ALREADY recognized → Revenue account (direct income)
-    
+    Always routes to WIP Revenue — late recognition happens at on_submit.
+
     Called on Sales Invoice validate.
-    
+
     Args:
         invoice_doc: The Sales Invoice document
     """
     if not is_revenue_recognition_enabled():
         return
-    
-    # Check if this is a forwarding invoice
-    is_forwarding = getattr(invoice_doc, "is_forwarding_invoice", 0)
+
     job_reference = getattr(invoice_doc, "forwarding_job_reference", None)
-    
-    if not is_forwarding or not job_reference:
+    if not job_reference:
         return
-    
+
     # Always route through WIP — late recognition is handled at on_submit, not at validate
     target_account = get_wip_revenue_account()
 
@@ -537,24 +533,20 @@ def validate_invoice_income_account(invoice_doc):
 def validate_purchase_invoice_expense_account(invoice_doc):
     """
     Set the correct expense account for forwarding-linked purchase invoices.
-    - If job NOT recognized yet → WIP Cost (asset)
-    - If job ALREADY recognized → Cost account (direct expense)
-    
+    Always routes to WIP Cost — late recognition happens at on_submit.
+
     Called on Purchase Invoice validate.
-    
+
     Args:
         invoice_doc: The Purchase Invoice document
     """
     if not is_revenue_recognition_enabled():
         return
-    
-    # Check if this is a forwarding invoice
-    is_forwarding = getattr(invoice_doc, "is_forwarding_invoice", 0)
+
     job_reference = getattr(invoice_doc, "forwarding_job_reference", None)
-    
-    if not is_forwarding or not job_reference:
+    if not job_reference:
         return
-    
+
     # Always route through WIP — late recognition is handled at on_submit, not at validate
     target_account = get_wip_cost_account()
 
@@ -634,15 +626,15 @@ def recognize_revenue_for_job(job_doc, service_type):
 def reverse_revenue_recognition(job_doc):
     """
     Reverse revenue recognition when a job is cancelled.
-    
+    Cancels the main recognition JE and any late-invoice recognition JEs.
+
     Args:
         job_doc: The job document being cancelled
     """
     if not job_doc.revenue_recognised:
         return
-    
+
     if job_doc.revenue_recognition_journal_entry:
-        # Cancel the recognition Journal Entry
         je = frappe.get_doc("Journal Entry", job_doc.revenue_recognition_journal_entry)
         if je.docstatus == 1:
             je.flags.ignore_permissions = True
@@ -653,7 +645,23 @@ def reverse_revenue_recognition(job_doc):
                 ),
                 alert=True
             )
-    
+
+    # Also cancel any late-invoice recognition JEs (submitted after job recognition)
+    linked_si_names = frappe.get_all(
+        "Sales Invoice",
+        filters={"forwarding_job_reference": job_doc.name},
+        pluck="name"
+    )
+    for si_name in linked_si_names:
+        late_je_name = frappe.db.get_value("Sales Invoice", si_name, "custom_recognition_journal_entry")
+        if late_je_name:
+            late_je = frappe.get_doc("Journal Entry", late_je_name)
+            if late_je.docstatus == 1:
+                late_je.flags.ignore_permissions = True
+                late_je.cancel()
+            frappe.db.set_value("Sales Invoice", si_name,
+                "custom_recognition_journal_entry", None, update_modified=False)
+
     # Reset recognition fields
     job_doc.revenue_recognised = 0
     job_doc.revenue_recognition_journal_entry = None
@@ -730,15 +738,15 @@ def recognize_cost_for_job(job_doc, service_type):
 def reverse_cost_recognition(job_doc):
     """
     Reverse cost recognition when a job is cancelled.
-    
+    Cancels the main cost recognition JE and any late-invoice cost recognition JEs.
+
     Args:
         job_doc: The job document being cancelled
     """
     if not job_doc.cost_recognised:
         return
-    
+
     if job_doc.cost_recognition_journal_entry:
-        # Cancel the cost recognition Journal Entry
         je = frappe.get_doc("Journal Entry", job_doc.cost_recognition_journal_entry)
         if je.docstatus == 1:
             je.flags.ignore_permissions = True
@@ -749,7 +757,23 @@ def reverse_cost_recognition(job_doc):
                 ),
                 alert=True
             )
-    
+
+    # Also cancel any late-invoice cost recognition JEs (submitted after job recognition)
+    linked_pi_names = frappe.get_all(
+        "Purchase Invoice",
+        filters={"forwarding_job_reference": job_doc.name},
+        pluck="name"
+    )
+    for pi_name in linked_pi_names:
+        late_je_name = frappe.db.get_value("Purchase Invoice", pi_name, "custom_recognition_journal_entry")
+        if late_je_name:
+            late_je = frappe.get_doc("Journal Entry", late_je_name)
+            if late_je.docstatus == 1:
+                late_je.flags.ignore_permissions = True
+                late_je.cancel()
+            frappe.db.set_value("Purchase Invoice", pi_name,
+                "custom_recognition_journal_entry", None, update_modified=False)
+
     # Reset cost recognition fields
     job_doc.cost_recognised = 0
     job_doc.cost_recognition_journal_entry = None
@@ -774,6 +798,10 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
     if not job_reference:
         return
     
+    # Guard: do not double-recognise if this invoice already has a recognition JE
+    if frappe.db.get_value("Sales Invoice", invoice_doc.name, "custom_recognition_journal_entry"):
+        return
+
     job_doc = frappe.get_doc(job_doctype, job_reference)
 
     # Check if job already has revenue recognized
@@ -789,18 +817,20 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         )
         return
 
-    # Create immediate recognition for this invoice
+    # Create immediate recognition for this invoice — use today, not original recognition date,
+    # to avoid posting into a locked accounting period.
     je_name, amount = create_single_invoice_recognition_je(
         job_doc,
         invoice_doc,
-        job_doc.revenue_recognised_on,
+        nowdate(),
         service_type
     )
     
-    # Update job's total recognized revenue
-    job_doc.total_recognised_revenue = flt(job_doc.total_recognised_revenue) + amount
-    job_doc.flags.ignore_validate_update_after_submit = True
-    job_doc.save()
+    # Safe increment — re-read from DB to avoid overwriting a concurrent update
+    current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_revenue"))
+    frappe.db.set_value(job_doctype, job_reference,
+        "total_recognised_revenue", current_total + amount,
+        update_modified=False)
 
     # Store JE reference on the invoice so cancellation can find and reverse it
     invoice_doc.db_set("custom_recognition_journal_entry", je_name, update_modified=False)
@@ -831,6 +861,10 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
     if not job_reference:
         return
 
+    # Guard: do not double-recognise if this invoice already has a recognition JE
+    if frappe.db.get_value("Purchase Invoice", invoice_doc.name, "custom_recognition_journal_entry"):
+        return
+
     job_doc = frappe.get_doc(job_doctype, job_reference)
 
     if not job_doc.cost_recognised or not job_doc.revenue_recognised_on:
@@ -844,16 +878,19 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
         )
         return
 
+    # Use today, not original recognition date, to avoid posting into a locked accounting period.
     je_name, amount = create_cost_recognition_journal_entry(
         job_doc,
         [invoice_doc],
-        job_doc.revenue_recognised_on,
+        nowdate(),
         service_type
     )
 
-    job_doc.total_recognised_cost = flt(job_doc.total_recognised_cost) + amount
-    job_doc.flags.ignore_validate_update_after_submit = True
-    job_doc.save()
+    # Safe increment — re-read from DB to avoid overwriting a concurrent update
+    current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_cost"))
+    frappe.db.set_value(job_doctype, job_reference,
+        "total_recognised_cost", current_total + amount,
+        update_modified=False)
 
     # Store JE reference on the invoice so cancellation can find and reverse it
     invoice_doc.db_set("custom_recognition_journal_entry", je_name, update_modified=False)
