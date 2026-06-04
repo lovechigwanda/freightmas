@@ -857,7 +857,6 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "working_revenue_section",
    "fieldtype": "Section Break",
    "label": "Working Revenue"
@@ -875,7 +874,6 @@
    "label": "Fetch Revenue from Job Costing"
   },
   {
-   "collapsible": 1,
    "fieldname": "working_cost_section",
    "fieldtype": "Section Break",
    "label": "Working Cost"
@@ -1117,8 +1115,8 @@
    "link_fieldname": "border_clearing_job_reference"
   }
  ],
- "modified": "2026-03-15 14:44:29.906620",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2026-06-04 16:30:05.708384",
+ "modified_by": "Administrator",
  "module": "Border Clearing Service",
  "name": "Border Clearing Job",
  "naming_rule": "By \"Naming Series\" field",

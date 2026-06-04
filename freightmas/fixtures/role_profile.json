@@ -1,10 +1,9 @@
 [
  {
+  "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-05-28 00:00:00.000000",
-  "modified_by": "Administrator",
+  "modified": "2026-05-28 00:00:00",
   "name": "FreightMas User",
-  "owner": "Administrator",
   "role_profile": "FreightMas User",
   "roles": [
    {
@@ -13,11 +12,10 @@
   ]
  },
  {
+  "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-05-28 00:00:00.000000",
-  "modified_by": "Administrator",
+  "modified": "2026-05-28 00:00:00",
   "name": "FreightMas Manager",
-  "owner": "Administrator",
   "role_profile": "FreightMas Manager",
   "roles": [
    {
@@ -29,11 +27,10 @@
   ]
  },
  {
+  "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-05-28 00:00:00.000000",
-  "modified_by": "Administrator",
+  "modified": "2026-05-28 00:00:00",
   "name": "FreightMas Accounts",
-  "owner": "Administrator",
   "role_profile": "FreightMas Accounts",
   "roles": [
    {
@@ -45,11 +42,10 @@
   ]
  },
  {
+  "docstatus": 0,
   "doctype": "Role Profile",
-  "modified": "2026-05-28 00:00:00.000000",
-  "modified_by": "Administrator",
+  "modified": "2026-05-28 00:00:00",
   "name": "FreightMas Admin",
-  "owner": "Administrator",
   "role_profile": "FreightMas Admin",
   "roles": [
    {
