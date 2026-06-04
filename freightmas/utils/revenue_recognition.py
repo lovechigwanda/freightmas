@@ -653,14 +653,14 @@ def reverse_revenue_recognition(job_doc):
         pluck="name"
     )
     for si_name in linked_si_names:
-        late_je_name = frappe.db.get_value("Sales Invoice", si_name, "custom_recognition_journal_entry")
+        late_je_name = frappe.db.get_value("Sales Invoice", si_name, "recognition_journal_entry")
         if late_je_name:
             late_je = frappe.get_doc("Journal Entry", late_je_name)
             if late_je.docstatus == 1:
                 late_je.flags.ignore_permissions = True
                 late_je.cancel()
             frappe.db.set_value("Sales Invoice", si_name,
-                "custom_recognition_journal_entry", None, update_modified=False)
+                "recognition_journal_entry", None, update_modified=False)
 
     # Reset recognition fields
     job_doc.revenue_recognised = 0
@@ -765,14 +765,14 @@ def reverse_cost_recognition(job_doc):
         pluck="name"
     )
     for pi_name in linked_pi_names:
-        late_je_name = frappe.db.get_value("Purchase Invoice", pi_name, "custom_recognition_journal_entry")
+        late_je_name = frappe.db.get_value("Purchase Invoice", pi_name, "recognition_journal_entry")
         if late_je_name:
             late_je = frappe.get_doc("Journal Entry", late_je_name)
             if late_je.docstatus == 1:
                 late_je.flags.ignore_permissions = True
                 late_je.cancel()
             frappe.db.set_value("Purchase Invoice", pi_name,
-                "custom_recognition_journal_entry", None, update_modified=False)
+                "recognition_journal_entry", None, update_modified=False)
 
     # Reset cost recognition fields
     job_doc.cost_recognised = 0
@@ -799,7 +799,7 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         return
     
     # Guard: do not double-recognise if this invoice already has a recognition JE
-    if frappe.db.get_value("Sales Invoice", invoice_doc.name, "custom_recognition_journal_entry"):
+    if frappe.db.get_value("Sales Invoice", invoice_doc.name, "recognition_journal_entry"):
         return
 
     job_doc = frappe.get_doc(job_doctype, job_reference)
@@ -833,7 +833,7 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         update_modified=False)
 
     # Store JE reference on the invoice so cancellation can find and reverse it
-    invoice_doc.db_set("custom_recognition_journal_entry", je_name, update_modified=False)
+    invoice_doc.db_set("recognition_journal_entry", je_name, update_modified=False)
 
     frappe.msgprint(
         _("Late invoice revenue recognized immediately. Journal Entry: {0}").format(
@@ -862,7 +862,7 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
         return
 
     # Guard: do not double-recognise if this invoice already has a recognition JE
-    if frappe.db.get_value("Purchase Invoice", invoice_doc.name, "custom_recognition_journal_entry"):
+    if frappe.db.get_value("Purchase Invoice", invoice_doc.name, "recognition_journal_entry"):
         return
 
     job_doc = frappe.get_doc(job_doctype, job_reference)
@@ -893,7 +893,7 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
         update_modified=False)
 
     # Store JE reference on the invoice so cancellation can find and reverse it
-    invoice_doc.db_set("custom_recognition_journal_entry", je_name, update_modified=False)
+    invoice_doc.db_set("recognition_journal_entry", je_name, update_modified=False)
 
     frappe.msgprint(
         _("Late purchase invoice cost recognized immediately. Journal Entry: {0}").format(
@@ -927,7 +927,7 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
         return
     
     # --- Fallback: invoice was submitted AFTER job recognition (has its own recognition JE) ---
-    late_je_name = getattr(invoice_doc, "custom_recognition_journal_entry", None)
+    late_je_name = getattr(invoice_doc, "recognition_journal_entry", None)
     if late_je_name:
         late_je = frappe.get_doc("Journal Entry", late_je_name)
         late_amount = sum(
@@ -1034,7 +1034,7 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
         return
     
     # --- Fallback: invoice was submitted AFTER job recognition (has its own recognition JE) ---
-    late_je_name = getattr(invoice_doc, "custom_recognition_journal_entry", None)
+    late_je_name = getattr(invoice_doc, "recognition_journal_entry", None)
     if late_je_name:
         late_je = frappe.get_doc("Journal Entry", late_je_name)
         late_amount = sum(
