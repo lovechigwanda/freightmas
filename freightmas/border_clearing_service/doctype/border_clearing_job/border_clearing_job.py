@@ -485,54 +485,138 @@ class BorderClearingJob(Document):
         return f"BCJB Cost Sheet {self.name}.pdf"
 
     def get_all_charges_summary(self):
-        """Get a summary of all charges for cost sheet."""
+        """Get a summary of all charges (quoted, working, invoiced) for cost sheet."""
         charges_summary = {}
 
-        for row in self.get("border_clearing_costing_charges", []):
-            charge_name = row.charge
-            if charge_name not in charges_summary:
-                charges_summary[charge_name] = {
+        def _ensure_charge(name, is_pass_through=0):
+            if name not in charges_summary:
+                charges_summary[name] = {
                     "quoted_revenue": 0, "quoted_cost": 0,
                     "working_revenue": 0, "working_cost": 0,
                     "invoiced_revenue": 0, "invoiced_cost": 0,
-                    "is_pass_through": cint(row.is_pass_through),
+                    "is_pass_through": cint(is_pass_through),
                 }
-            charges_summary[charge_name]["quoted_revenue"] += flt(row.revenue_amount)
-            charges_summary[charge_name]["quoted_cost"] += flt(row.cost_amount)
+
+        for row in self.get("border_clearing_costing_charges", []):
+            _ensure_charge(row.charge, row.is_pass_through)
+            charges_summary[row.charge]["quoted_revenue"] += flt(row.revenue_amount)
+            charges_summary[row.charge]["quoted_cost"] += flt(row.cost_amount)
 
         for row in self.get("border_clearing_revenue_charges", []):
-            charge_name = row.charge
-            if charge_name not in charges_summary:
-                charges_summary[charge_name] = {
-                    "quoted_revenue": 0, "quoted_cost": 0,
-                    "working_revenue": 0, "working_cost": 0,
-                    "invoiced_revenue": 0, "invoiced_cost": 0,
-                    "is_pass_through": cint(row.is_pass_through),
-                }
-            charges_summary[charge_name]["working_revenue"] += flt(row.revenue_amount)
+            _ensure_charge(row.charge, row.is_pass_through)
+            charges_summary[row.charge]["working_revenue"] += flt(row.revenue_amount)
 
         for row in self.get("border_clearing_cost_charges", []):
-            charge_name = row.charge
-            if charge_name not in charges_summary:
-                charges_summary[charge_name] = {
-                    "quoted_revenue": 0, "quoted_cost": 0,
-                    "working_revenue": 0, "working_cost": 0,
-                    "invoiced_revenue": 0, "invoiced_cost": 0,
-                    "is_pass_through": cint(row.is_pass_through),
-                }
-            charges_summary[charge_name]["working_cost"] += flt(row.cost_amount)
+            _ensure_charge(row.charge, row.is_pass_through)
+            charges_summary[row.charge]["working_cost"] += flt(row.cost_amount)
+
+        # Invoiced amounts from submitted Sales Invoices
+        sales_invoices = frappe.get_all(
+            "Sales Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["name"]
+        )
+        for si in sales_invoices:
+            si_doc = frappe.get_doc("Sales Invoice", si.name)
+            for item in (si_doc.items or []):
+                charge_name = item.item_code or item.item_name
+                _ensure_charge(charge_name)
+                charges_summary[charge_name]["invoiced_revenue"] += flt(item.amount or 0)
+
+        # Invoiced amounts from submitted Purchase Invoices
+        purchase_invoices = frappe.get_all(
+            "Purchase Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["name"]
+        )
+        for pi in purchase_invoices:
+            pi_doc = frappe.get_doc("Purchase Invoice", pi.name)
+            for item in (pi_doc.items or []):
+                charge_name = item.item_code or item.item_name
+                _ensure_charge(charge_name)
+                charges_summary[charge_name]["invoiced_cost"] += flt(item.amount or 0)
 
         return charges_summary
 
+    def get_all_parties_summary(self):
+        """Get a summary of all parties (customers/suppliers) for cost sheet."""
+        parties_summary = {}
+
+        def _ensure_party(name, party_type):
+            if name not in parties_summary:
+                parties_summary[name] = {
+                    "party_type": party_type,
+                    "quoted_revenue": 0, "quoted_cost": 0,
+                    "working_revenue": 0, "working_cost": 0,
+                    "invoiced_revenue": 0, "invoiced_cost": 0,
+                }
+
+        for row in self.get("border_clearing_costing_charges", []):
+            if row.customer:
+                _ensure_party(row.customer, "Customer")
+                parties_summary[row.customer]["quoted_revenue"] += flt(row.revenue_amount or 0)
+            if row.supplier:
+                _ensure_party(row.supplier, "Supplier")
+                parties_summary[row.supplier]["quoted_cost"] += flt(row.cost_amount or 0)
+
+        for row in self.get("border_clearing_revenue_charges", []):
+            if row.customer:
+                _ensure_party(row.customer, "Customer")
+                parties_summary[row.customer]["working_revenue"] += flt(row.revenue_amount or 0)
+
+        for row in self.get("border_clearing_cost_charges", []):
+            if row.supplier:
+                _ensure_party(row.supplier, "Supplier")
+                parties_summary[row.supplier]["working_cost"] += flt(row.cost_amount or 0)
+
+        sales_invoices = frappe.get_all(
+            "Sales Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["name", "customer"]
+        )
+        for si in sales_invoices:
+            _ensure_party(si.customer, "Customer")
+            si_doc = frappe.get_doc("Sales Invoice", si.name)
+            for item in (si_doc.items or []):
+                parties_summary[si.customer]["invoiced_revenue"] += flt(item.amount or 0)
+
+        purchase_invoices = frappe.get_all(
+            "Purchase Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["name", "supplier"]
+        )
+        for pi in purchase_invoices:
+            _ensure_party(pi.supplier, "Supplier")
+            pi_doc = frappe.get_doc("Purchase Invoice", pi.name)
+            for item in (pi_doc.items or []):
+                parties_summary[pi.supplier]["invoiced_cost"] += flt(item.amount or 0)
+
+        return parties_summary
+
     def get_job_totals_summary(self):
-        """Get overall totals and margin metrics."""
+        """Get overall totals and margin metrics including invoiced amounts."""
         quoted_revenue = flt(self.total_quoted_revenue)
         quoted_cost = flt(self.total_quoted_cost)
         working_revenue = flt(self.total_working_revenue)
         working_cost = flt(self.total_working_cost)
 
+        sales_invoices = frappe.get_all(
+            "Sales Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["total"]
+        )
+        invoiced_revenue = sum(flt(si.get("total", 0)) for si in sales_invoices)
+
+        purchase_invoices = frappe.get_all(
+            "Purchase Invoice",
+            filters={"border_clearing_job_reference": self.name, "docstatus": 1},
+            fields=["total"]
+        )
+        invoiced_cost = sum(flt(pi.get("total", 0)) for pi in purchase_invoices)
+
         quoted_margin = quoted_revenue - quoted_cost
         working_margin = working_revenue - working_cost
+        invoiced_margin = invoiced_revenue - invoiced_cost
 
         return {
             "quoted_revenue": quoted_revenue,
@@ -543,6 +627,76 @@ class BorderClearingJob(Document):
             "working_cost": working_cost,
             "working_margin": working_margin,
             "working_margin_percent": (working_margin / working_revenue * 100) if working_revenue else 0,
+            "invoiced_revenue": invoiced_revenue,
+            "invoiced_cost": invoiced_cost,
+            "invoiced_margin": invoiced_margin,
+            "invoiced_margin_percent": (invoiced_margin / invoiced_revenue * 100) if invoiced_revenue else 0,
+        }
+
+    def get_charge_details_for_cost_sheet(self):
+        """Get organised charge details for the cost sheet print format."""
+        charges_summary = self.get_all_charges_summary()
+        totals = self.get_job_totals_summary()
+
+        charges_list = []
+        for charge_name, amounts in charges_summary.items():
+            charges_list.append({
+                "charge": charge_name,
+                "quoted_revenue": amounts["quoted_revenue"],
+                "quoted_cost": amounts["quoted_cost"],
+                "working_revenue": amounts["working_revenue"],
+                "working_cost": amounts["working_cost"],
+                "invoiced_revenue": amounts["invoiced_revenue"],
+                "invoiced_cost": amounts["invoiced_cost"],
+            })
+
+        return {
+            "charges": sorted(charges_list, key=lambda x: x["charge"]),
+            "totals": {
+                "quoted_revenue": totals["quoted_revenue"],
+                "quoted_cost": totals["quoted_cost"],
+                "working_revenue": totals["working_revenue"],
+                "working_cost": totals["working_cost"],
+                "invoiced_revenue": totals["invoiced_revenue"],
+                "invoiced_cost": totals["invoiced_cost"],
+                "invoiced_margin": totals["invoiced_margin"],
+            },
+        }
+
+    def get_party_details_for_cost_sheet(self):
+        """Get organised party details for the cost sheet print format."""
+        parties_summary = self.get_all_parties_summary()
+        totals = self.get_job_totals_summary()
+
+        customers = []
+        suppliers = []
+
+        for party_name, amounts in parties_summary.items():
+            party_data = {
+                "party": party_name,
+                "quoted_revenue": amounts["quoted_revenue"],
+                "quoted_cost": amounts["quoted_cost"],
+                "working_revenue": amounts["working_revenue"],
+                "working_cost": amounts["working_cost"],
+                "invoiced_revenue": amounts["invoiced_revenue"],
+                "invoiced_cost": amounts["invoiced_cost"],
+            }
+            if amounts["party_type"] == "Customer":
+                customers.append(party_data)
+            else:
+                suppliers.append(party_data)
+
+        return {
+            "customers": sorted(customers, key=lambda x: x["party"]),
+            "suppliers": sorted(suppliers, key=lambda x: x["party"]),
+            "totals": {
+                "quoted_revenue": totals["quoted_revenue"],
+                "quoted_cost": totals["quoted_cost"],
+                "working_revenue": totals["working_revenue"],
+                "working_cost": totals["working_cost"],
+                "invoiced_revenue": totals["invoiced_revenue"],
+                "invoiced_cost": totals["invoiced_cost"],
+            },
         }
 
 
