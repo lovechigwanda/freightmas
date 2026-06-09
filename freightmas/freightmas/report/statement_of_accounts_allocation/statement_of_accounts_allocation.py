@@ -47,13 +47,15 @@ def get_columns():
             "fieldname": "reference_doc",
             "label": _("Reference Doc"),
             "fieldtype": "Data",
-            "width": 160
+            "width": 160,
+            "align": "left"
         },
         {
             "fieldname": "voucher_type",
             "label": _("Voucher Type"),
             "fieldtype": "Data",
-            "width": 130
+            "width": 130,
+            "align": "left"
         },
         {
             "fieldname": "voucher_no",
@@ -85,7 +87,8 @@ def get_columns():
             "fieldname": "remarks",
             "label": _("Remarks"),
             "fieldtype": "Text",
-            "width": 340
+            "width": 340,
+            "align": "left"
         }
     ]
 
