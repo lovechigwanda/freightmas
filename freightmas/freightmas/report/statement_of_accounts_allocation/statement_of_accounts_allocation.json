@@ -14,11 +14,11 @@
  "modified": "2026-06-09 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
- "name": "Statement of Accounts (Allocation)",
+ "name": "Statement of Accounts Allocation",
  "owner": "Administrator",
  "prepared_report": 0,
  "ref_doctype": "GL Entry",
- "report_name": "Statement of Accounts (Allocation)",
+ "report_name": "Statement of Accounts Allocation",
  "report_type": "Script Report",
  "roles": [
   {

@@ -482,65 +482,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "General Ledger",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Cashbook Report",
-   "link_count": 0,
-   "link_to": "Cashbook Report",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "General Ledger",
-   "link_count": 0,
-   "link_to": "General Ledger",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Accounts Outstanding Statement",
-   "link_count": 0,
-   "link_to": "Accounts Outstanding Statement",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Sales Invoice Job Linkage",
-   "link_count": 0,
-   "link_to": "Sales Invoice Job Linkage",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 1,
-   "label": "Purchase Invoice Job Linkage",
-   "link_count": 0,
-   "link_to": "Purchase Invoice Job Linkage",
-   "link_type": "Report",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Management Accounts",
    "link_count": 8,
    "link_type": "DocType",
@@ -628,10 +569,100 @@
    "onboard": 0,
    "report_ref_doctype": "Purchase Invoice",
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "General Ledger",
+   "link_count": 8,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Cashbook Report",
+   "link_count": 0,
+   "link_to": "Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "General Ledger",
+   "link_count": 0,
+   "link_to": "General Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Accounts Outstanding Statement",
+   "link_count": 0,
+   "link_to": "Accounts Outstanding Statement",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Invoice Job Linkage",
+   "link_count": 0,
+   "link_to": "Sales Invoice Job Linkage",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Purchase Invoice Job Linkage",
+   "link_count": 0,
+   "link_to": "Purchase Invoice Job Linkage",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Statement of Accounts Allocation",
+   "link_count": 0,
+   "link_to": "Statement of Accounts Allocation",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Statement of Account Job Linked",
+   "link_count": 0,
+   "link_to": "Statement of Account Job Linked",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Multicurrency Cashbook Report",
+   "link_count": 0,
+   "link_to": "Multicurrency Cashbook Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "GL Entry",
+   "type": "Link"
   }
  ],
- "modified": "2026-03-08 08:55:35.175326",
- "modified_by": "lchigwanda@outlook.com",
+ "modified": "2026-06-09 19:43:38.992773",
+ "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Accounts",
  "number_cards": [],
@@ -645,12 +676,6 @@
   },
   {
    "role": "Accounts Manager"
-  },
-  {
-   "role": "FreightMas Manager"
-  },
-  {
-   "role": "FreightMas Accounts"
   }
  ],
  "sequence_id": 38.0,

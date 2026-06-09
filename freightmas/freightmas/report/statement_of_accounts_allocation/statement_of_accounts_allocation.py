@@ -16,9 +16,20 @@ def _truncate_remarks(text, max_len=MAX_REMARKS_LENGTH):
     return text if len(text) <= max_len else text[:max_len].rstrip() + "..."
 
 
+def _truncate_payment_entry_remarks(text):
+    """Keep only the first sentence — stop at the first '. ' or '.\n' not preceded by a digit."""
+    if not text:
+        return text
+    import re
+    text = str(text)
+    match = re.search(r'(?<!\d)\.\s', text[10:])
+    if match:
+        return text[:10 + match.start() + 1]
+    return text if len(text) <= 80 else text[:80].rstrip() + "..."
+
+
 def execute(filters=None):
     filters = filters or {}
-    filters["party_type"] = "Customer"
     columns = get_columns()
     data = get_data(filters)
     return columns, data
@@ -149,7 +160,7 @@ def get_data(filters):
             "debit": entry.debit or 0,
             "credit": entry.credit or 0,
             "balance": balance,
-            "remarks": _truncate_remarks(entry.remarks),
+            "remarks": _truncate_payment_entry_remarks(entry.remarks) if entry.voucher_type == "Payment Entry" else _truncate_remarks(entry.remarks),
             "cssClass": css_class
         }
         data.append(row)
