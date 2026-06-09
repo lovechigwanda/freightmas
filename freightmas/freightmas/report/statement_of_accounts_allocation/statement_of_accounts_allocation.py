@@ -28,6 +28,43 @@ def _truncate_payment_entry_remarks(text):
     return text if len(text) <= 80 else text[:80].rstrip() + "..."
 
 
+def _sort_entries_by_invoice_date(entries, party_type):
+    """Sort GL entries so groups are ordered by invoice date, with invoice rows first per group."""
+    from collections import defaultdict
+
+    invoice_type = "Sales Invoice" if party_type == "Customer" else "Purchase Invoice"
+
+    groups = defaultdict(list)
+    for e in entries:
+        groups[e["_ref_doc"]].append(e)
+
+    unallocated = groups.pop("Unallocated", [])
+
+    def anchor_date(group_entries):
+        for e in group_entries:
+            if e["voucher_type"] == invoice_type:
+                return e["posting_date"]
+        return min(e["posting_date"] for e in group_entries)
+
+    sorted_groups = sorted(groups.items(), key=lambda g: anchor_date(g[1]))
+
+    result = []
+    for _ref, group in sorted_groups:
+        invoices = sorted(
+            [e for e in group if e["voucher_type"] == invoice_type],
+            key=lambda e: e["posting_date"]
+        )
+        others = sorted(
+            [e for e in group if e["voucher_type"] != invoice_type],
+            key=lambda e: e["posting_date"]
+        )
+        result.extend(invoices)
+        result.extend(others)
+
+    result.extend(sorted(unallocated, key=lambda e: e["posting_date"]))
+    return result
+
+
 def execute(filters=None):
     filters = filters or {}
     columns = get_columns()
@@ -95,6 +132,7 @@ def get_columns():
 
 def get_data(filters):
     data = []
+    party_type = filters.get("party_type") or "Customer"
 
     show_opening = filters.get("show_opening_balance", 1)
     opening_balance = get_opening_balance(filters) if show_opening else 0
@@ -132,22 +170,27 @@ def get_data(filters):
         ORDER BY posting_date, creation
     """.format(conditions=conditions), params, as_dict=1)
 
-    # Batch-build lookups to avoid N+1 queries
     credit_note_map = build_credit_note_map(gl_entries)
+
+    # Pass 1: attach reference_doc to each entry for grouping/sorting
+    for entry in gl_entries:
+        entry["_ref_doc"] = resolve_reference_doc(entry, credit_note_map, party_type)
+
+    # Sort: groups ordered by invoice date, invoice rows first within each group
+    gl_entries = _sort_entries_by_invoice_date(gl_entries, party_type)
 
     total_debit = 0.0
     total_credit = 0.0
-
-    # Track group colour alternation
     current_ref_doc = None
     group_index = 0
 
+    # Pass 2: compute running balance in sorted order
     for entry in gl_entries:
         balance += (entry.debit - entry.credit)
         total_debit += entry.debit
         total_credit += entry.credit
 
-        reference_doc = resolve_reference_doc(entry, credit_note_map)
+        reference_doc = entry["_ref_doc"]
 
         if reference_doc != current_ref_doc:
             current_ref_doc = reference_doc
@@ -168,7 +211,6 @@ def get_data(filters):
         }
         data.append(row)
 
-    # Totals row
     data.append({
         "posting_date": "",
         "reference_doc": "",
@@ -181,31 +223,29 @@ def get_data(filters):
         "bold": 1
     })
 
-    # Integrity check: closing balance must equal direct GL sum + opening balance
     _verify_closing_balance(filters, params, conditions, balance, opening_balance)
 
     return data
 
 
-def resolve_reference_doc(entry, credit_note_map):
+def resolve_reference_doc(entry, credit_note_map, party_type="Customer"):
     """Derive the Reference Doc column value for a GL Entry row."""
     vt = entry.voucher_type
     vn = entry.voucher_no
     av = entry.get("against_voucher") or ""
     av_type = entry.get("against_voucher_type") or ""
+    invoice_type = "Sales Invoice" if party_type == "Customer" else "Purchase Invoice"
 
-    if vt == "Sales Invoice":
-        # Credit notes have return_against set
+    if vt == invoice_type:
         if vn in credit_note_map:
             return credit_note_map[vn]
         return vn
 
     if vt in ("Payment Entry", "Journal Entry"):
-        if av and av_type == "Sales Invoice":
+        if av and av_type == invoice_type:
             return av
         return "Unallocated"
 
-    # Fallback for other voucher types
     if av:
         return av
     return vn
