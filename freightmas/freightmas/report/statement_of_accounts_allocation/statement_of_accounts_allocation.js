@@ -45,9 +45,7 @@ frappe.query_reports["Statement of Accounts Allocation"] = {
             "on_change": function() {
                 let party_type = frappe.query_report.get_filter_value('party_type');
                 frappe.query_report.set_filter_value('party', '');
-
                 let party_field = frappe.query_report.get_filter('party');
-                party_field.df.options = party_type;
                 party_field.df.label = __(party_type);
                 party_field.refresh();
             }
@@ -55,11 +53,12 @@ frappe.query_reports["Statement of Accounts Allocation"] = {
         {
             "fieldname": "party",
             "label": __("Party"),
-            "fieldtype": "Link",
-            "options": "Customer",
+            "fieldtype": "MultiSelectList",
             "reqd": 1,
-            "get_query": function() {
-                return { filters: { "disabled": 0 } };
+            "get_data": function(txt) {
+                let party_type = frappe.query_report.get_filter_value("party_type");
+                if (!party_type) return;
+                return frappe.db.get_link_options(party_type, txt, { disabled: 0 });
             }
         },
         {

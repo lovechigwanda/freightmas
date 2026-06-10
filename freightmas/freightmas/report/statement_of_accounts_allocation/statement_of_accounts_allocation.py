@@ -67,6 +67,11 @@ def _sort_entries_by_invoice_date(entries, party_type):
 
 def execute(filters=None):
     filters = filters or {}
+    if filters.get("party"):
+        party = frappe.parse_json(filters.get("party"))
+        filters["party"] = party if isinstance(party, list) else [party]
+    if not filters.get("party"):
+        return get_columns(), []
     columns = get_columns()
     data = get_data(filters)
     return columns, data
@@ -271,7 +276,7 @@ def build_credit_note_map(gl_entries):
 def get_opening_balance(filters):
     params = {
         "party_type": filters.get("party_type"),
-        "party": filters.get("party"),
+        "party": tuple(filters.get("party")),
         "company": filters.get("company"),
         "from_date": filters.get("from_date"),
     }
@@ -284,7 +289,7 @@ def get_opening_balance(filters):
         SELECT SUM(debit) - SUM(credit) as balance
         FROM `tabGL Entry`
         WHERE party_type = %(party_type)s
-        AND party = %(party)s
+        AND party IN %(party)s
         AND company = %(company)s
         AND posting_date < %(from_date)s
         AND is_cancelled = 0
@@ -298,14 +303,14 @@ def get_conditions(filters):
     conditions = []
     params = {
         "party_type": filters.get("party_type"),
-        "party": filters.get("party"),
+        "party": tuple(filters.get("party")),
         "company": filters.get("company"),
         "from_date": filters.get("from_date"),
         "to_date": filters.get("to_date"),
     }
 
     conditions.append("company = %(company)s")
-    conditions.append("party = %(party)s")
+    conditions.append("party IN %(party)s")
 
     if filters.get("from_date"):
         conditions.append("posting_date >= %(from_date)s")
