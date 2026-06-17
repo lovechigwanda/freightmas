@@ -93,8 +93,15 @@ def get_columns():
             "align": "left"
         },
         {
-            "fieldname": "voucher_type",
-            "label": _("Voucher Type"),
+            "fieldname": "job_id",
+            "label": _("Job ID"),
+            "fieldtype": "Data",
+            "width": 120,
+            "align": "left"
+        },
+        {
+            "fieldname": "voucher_subtype",
+            "label": _("Voucher Sub Type"),
             "fieldtype": "Data",
             "width": 130,
             "align": "left"
@@ -147,7 +154,9 @@ def get_data(filters):
         data.append({
             "posting_date": formatdate(filters.get("from_date"), "dd-MMM-yy"),
             "reference_doc": "",
+            "job_id": "",
             "voucher_type": "",
+            "voucher_subtype": "",
             "voucher_no": "Opening Balance",
             "debit": opening_balance if opening_balance > 0 else 0,
             "credit": abs(opening_balance) if opening_balance < 0 else 0,
@@ -162,6 +171,7 @@ def get_data(filters):
         SELECT
             posting_date,
             voucher_type,
+            voucher_subtype,
             voucher_no,
             against_voucher_type,
             against_voucher,
@@ -183,6 +193,9 @@ def get_data(filters):
 
     # Sort: groups ordered by invoice date, invoice rows first within each group
     gl_entries = _sort_entries_by_invoice_date(gl_entries, party_type)
+
+    ref_docs = {e["_ref_doc"] for e in gl_entries}
+    job_id_map = build_job_id_map(ref_docs, party_type)
 
     total_debit = 0.0
     total_credit = 0.0
@@ -206,7 +219,9 @@ def get_data(filters):
         row = {
             "posting_date": formatdate(entry.posting_date, "dd-MMM-yy"),
             "reference_doc": reference_doc,
+            "job_id": job_id_map.get(reference_doc, ""),
             "voucher_type": entry.voucher_type,
+            "voucher_subtype": entry.voucher_subtype or entry.voucher_type,
             "voucher_no": entry.voucher_no,
             "debit": entry.debit or 0,
             "credit": entry.credit or 0,
@@ -219,7 +234,9 @@ def get_data(filters):
     data.append({
         "posting_date": "",
         "reference_doc": "",
+        "job_id": "",
         "voucher_type": "",
+        "voucher_subtype": "",
         "voucher_no": "Totals",
         "debit": total_debit,
         "credit": total_credit,
@@ -271,6 +288,40 @@ def build_credit_note_map(gl_entries):
         as_dict=1
     )
     return {r.name: r.return_against for r in rows}
+
+
+def build_job_id_map(reference_docs, party_type):
+    """Return {invoice_name: job_name} by querying charge tables for each job type."""
+    invoices = tuple(d for d in reference_docs if d and d != "Unallocated")
+    if not invoices:
+        return {}
+
+    params = {"invoices": invoices}
+    result = {}
+
+    if party_type == "Customer":
+        queries = [
+            "SELECT sales_invoice_reference AS inv, parent FROM `tabForwarding Revenue Charges` WHERE sales_invoice_reference IN %(invoices)s",
+            "SELECT sales_invoice_reference AS inv, parent FROM `tabClearing Revenue Charges` WHERE sales_invoice_reference IN %(invoices)s",
+            "SELECT sales_invoice_reference AS inv, parent FROM `tabBorder Clearing Revenue Charges` WHERE sales_invoice_reference IN %(invoices)s",
+            "SELECT sales_invoice AS inv, parent FROM `tabTrip Revenue Charges` WHERE sales_invoice IN %(invoices)s",
+            "SELECT sales_invoice AS inv, parent FROM `tabWarehouse Job Storage Charges` WHERE sales_invoice IN %(invoices)s",
+            "SELECT sales_invoice AS inv, parent FROM `tabWarehouse Job Handling Charges` WHERE sales_invoice IN %(invoices)s",
+            "SELECT sales_invoice AS inv, parent FROM `tabWarehouse Job Rental Charges` WHERE sales_invoice IN %(invoices)s",
+        ]
+    else:
+        queries = [
+            "SELECT purchase_invoice_reference AS inv, parent FROM `tabForwarding Cost Charges` WHERE purchase_invoice_reference IN %(invoices)s",
+            "SELECT purchase_invoice_reference AS inv, parent FROM `tabClearing Cost Charges` WHERE purchase_invoice_reference IN %(invoices)s",
+            "SELECT purchase_invoice_reference AS inv, parent FROM `tabBorder Clearing Cost Charges` WHERE purchase_invoice_reference IN %(invoices)s",
+        ]
+
+    for query in queries:
+        for row in frappe.db.sql(query, params, as_dict=1):
+            if row.inv and row.inv not in result:
+                result[row.inv] = row.parent
+
+    return result
 
 
 def get_opening_balance(filters):

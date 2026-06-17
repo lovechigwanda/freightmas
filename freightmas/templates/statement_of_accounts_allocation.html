@@ -150,7 +150,8 @@
             <tr>
                 <th style="width: 65px;">Date</th>
                 <th style="width: 110px;">Reference Doc</th>
-                <th style="width: 100px;">Voucher Type</th>
+                <th style="width: 90px;">Job ID</th>
+                <th style="width: 100px;">Voucher Sub Type</th>
                 <th style="width: 130px;">Voucher No</th>
                 <th style="width: 80px;" class="text-right">Debit</th>
                 <th style="width: 80px;" class="text-right">Credit</th>
@@ -163,7 +164,8 @@
             <tr {% if row.get('bold') %}class="bold-row"{% endif %}>
                 <td>{{ row.posting_date or "" }}</td>
                 <td>{{ row.reference_doc or "" }}</td>
-                <td>{{ row.voucher_type or "" }}</td>
+                <td>{{ row.job_id or "" }}</td>
+                <td>{{ row.voucher_subtype or "" }}</td>
                 <td>{{ row.voucher_no or "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.debit) if row.debit else "" }}</td>
                 <td class="amount">{{ frappe.utils.fmt_money(row.credit) if row.credit else "" }}</td>
