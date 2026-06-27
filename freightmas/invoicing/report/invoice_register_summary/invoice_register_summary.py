@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.utils import formatdate
 
 
 def execute(filters=None):
@@ -17,17 +18,11 @@ def get_columns():
 			"options": "Invoice Register Entry",
 			"width": 170,
 		},
-		{"fieldname": "entry_date", "label": _("Date"), "fieldtype": "Date", "width": 100},
+		{"fieldname": "entry_date", "label": _("Date"), "fieldtype": "Data", "width": 100},
 		{"fieldname": "entry_type", "label": _("Type"), "fieldtype": "Data", "width": 90},
 		{"fieldname": "status", "label": _("Status"), "fieldtype": "Data", "width": 170},
-		{
-			"fieldname": "company",
-			"label": _("Company"),
-			"fieldtype": "Link",
-			"options": "Company",
-			"width": 140,
-		},
 		{"fieldname": "party", "label": _("Party"), "fieldtype": "Data", "width": 180},
+		{"fieldname": "job_bl_number", "label": _("BL Number"), "fieldtype": "Data", "width": 140},
 		{
 			"fieldname": "currency",
 			"label": _("Currency"),
@@ -62,15 +57,15 @@ def get_columns():
 
 def get_data(filters):
 	conditions = get_conditions(filters)
-	return frappe.db.sql(
+	data = frappe.db.sql(
 		f"""
 		SELECT
 			ire.name,
 			ire.entry_date,
 			ire.entry_type,
 			ire.status,
-			ire.company,
 			ire.party,
+			ire.job_bl_number,
 			ire.currency,
 			ire.total_charge_amount,
 			ire.tax_amount,
@@ -84,6 +79,12 @@ def get_data(filters):
 		filters,
 		as_dict=1,
 	)
+
+	for row in data:
+		if row.entry_date:
+			row.entry_date = formatdate(row.entry_date, "dd-MMM-yy")
+
+	return data
 
 
 def get_conditions(filters):
@@ -99,5 +100,7 @@ def get_conditions(filters):
 	if filters.get("status"):
 		conditions += " AND ire.status = %(status)s"
 	if filters.get("party"):
-		conditions += " AND ire.party = %(party)s"
+		conditions += " AND ire.party LIKE CONCAT('%%', %(party)s, '%%')"
+	if filters.get("bl_number"):
+		conditions += " AND ire.job_bl_number LIKE CONCAT('%%', %(bl_number)s, '%%')"
 	return conditions
