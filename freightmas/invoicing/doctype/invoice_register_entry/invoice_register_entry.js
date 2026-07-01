@@ -338,7 +338,9 @@ function add_status_transition_buttons(frm) {
     const buttons = STATUS_BUTTON_MAP[frm.doc.status] || [];
     buttons.forEach(btn => {
         frm.add_custom_button(__(btn.label), function () {
-            if (COMMENT_REQUIRED.has(btn.target)) {
+            if (btn.target === 'Captured' && !frm.doc.linked_purchase_invoice) {
+                show_capture_without_invoice_dialog(frm, btn.target, btn.label);
+            } else if (COMMENT_REQUIRED.has(btn.target)) {
                 show_status_change_dialog(frm, btn.target, btn.label);
             } else {
                 execute_status_change(frm, btn.target);
@@ -451,7 +453,38 @@ function show_status_change_dialog(frm, target_status, button_label) {
     d.show();
 }
 
-function execute_status_change(frm, target_status, comment) {
+function show_capture_without_invoice_dialog(frm, target_status, button_label) {
+    const d = new frappe.ui.Dialog({
+        title: __(button_label),
+        fields: [
+            {
+                label: __('I confirm the invoice has been created outside this workflow'),
+                fieldname: 'confirm_no_invoice',
+                fieldtype: 'Check',
+                default: 0
+            },
+            {
+                label: __('Comment'),
+                fieldname: 'comment',
+                fieldtype: 'Small Text',
+                reqd: 1,
+                description: __('Explain how/where the invoice was created')
+            }
+        ],
+        primary_action_label: __(button_label),
+        primary_action(values) {
+            if (!values.confirm_no_invoice) {
+                frappe.msgprint(__('Please tick the confirmation checkbox to proceed.'));
+                return;
+            }
+            d.hide();
+            execute_status_change(frm, target_status, values.comment, 1);
+        }
+    });
+    d.show();
+}
+
+function execute_status_change(frm, target_status, comment, confirm_no_invoice) {
     if (target_status !== 'Cancelled' && flt(frm.doc.total_charge_amount) === 0) {
         frappe.msgprint({
             title: __('Zero Amount Entry'),
@@ -463,7 +496,7 @@ function execute_status_change(frm, target_status, comment) {
     frappe.call({
         method: 'change_status',
         doc: frm.doc,
-        args: { new_status: target_status, comment: comment || '' },
+        args: { new_status: target_status, comment: comment || '', confirm_no_invoice: confirm_no_invoice ? 1 : 0 },
         freeze: true,
         freeze_message: __('Updating status...'),
         callback(r) {

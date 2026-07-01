@@ -118,6 +118,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
+   "no_copy": 1,
    "options": "\nReceived\nSubmitted for Approval\nReturned for Capture\nQuery with Supplier\nReady for Capture\nCaptured\nInstruction Received\nDrafted\nReturned to Draft\nIssued to Client\nCancelled",
    "read_only": 1
   },
@@ -300,6 +301,7 @@
    "fieldtype": "Data",
    "label": "Supplier Invoice No",
    "mandatory_depends_on": "eval:doc.entry_type === 'Purchase'",
+   "no_copy": 1,
    "unique": 1
   },
   {
@@ -310,7 +312,8 @@
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
    "label": "Supplier Invoice Date",
-   "mandatory_depends_on": "eval:doc.entry_type === 'Purchase'"
+   "mandatory_depends_on": "eval:doc.entry_type === 'Purchase'",
+   "no_copy": 1
   },
   {
    "fieldname": "linked_documents_section",
@@ -348,6 +351,16 @@
    "label": "Purchase Invoice",
    "options": "Purchase Invoice",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "captured_without_invoice",
+   "fieldtype": "Check",
+   "label": "Captured Without Invoice",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
   },
   {
    "collapsible": 1,
@@ -448,8 +461,8 @@
    "link_fieldname": "invoice_register_entry"
   }
  ],
- "modified": "2026-05-09 15:37:00.652847",
- "modified_by": "Administrator",
+ "modified": "2026-07-01 23:04:20.417460",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Invoicing",
  "name": "Invoice Register Entry",
  "naming_rule": "By \"Naming Series\" field",
@@ -466,16 +479,16 @@
    "share": 1
   },
   {
-   "role": "FreightMas Manager",
-   "read": 1,
-   "write": 1,
    "create": 1,
-   "select": 1,
    "email": 1,
-   "print": 1,
    "export": 1,
+   "print": 1,
+   "read": 1,
    "report": 1,
-   "share": 1
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
   },
   {
    "create": 1,

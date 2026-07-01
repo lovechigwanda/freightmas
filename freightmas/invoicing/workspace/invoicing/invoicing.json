@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"hdr_inv\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Invoicing</span>\",\"col\":12}},{\"id\":\"94Yq-ORRdM\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Sales Queue\",\"col\":4}},{\"id\":\"q1VXIzkxNW\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Purchase Queue\",\"col\":4}},{\"id\":\"ENnzg9HONs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Overdue\",\"col\":4}},{\"id\":\"NcMPcQsmqw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Needs Action\",\"col\":4}},{\"id\":\"9Lxsi9o3Kj\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Open Entries\",\"col\":4}},{\"id\":\"bM5Ah60EAU\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed\",\"col\":4}},{\"id\":\"spc_inv1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sc_ire\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":4}},{\"id\":\"sc_ii\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":4}},{\"id\":\"spc_inv2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"card_quick\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"card_reports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"hdr_inv\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Invoicing</span>\",\"col\":12}},{\"id\":\"nc_draft\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Draft\",\"col\":3}},{\"id\":\"nc_approval\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Waiting Approval\",\"col\":3}},{\"id\":\"nc_query\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Query with Supplier\",\"col\":3}},{\"id\":\"nc_capture\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ready for Capture\",\"col\":3}},{\"id\":\"spc_inv1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"YVhAkq4TmN\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"sc_ire\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoice Register Entry\",\"col\":4}},{\"id\":\"sc_ii\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing Instruction\",\"col\":4}},{\"id\":\"spc_inv2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"card_quick\",\"type\":\"card\",\"data\":{\"card_name\":\"Quick Links\",\"col\":4}},{\"id\":\"card_reports\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2026-05-01 20:00:00",
  "custom_blocks": [],
  "docstatus": 0,
@@ -104,34 +104,26 @@
    "type": "Link"
   }
  ],
- "modified": "2026-05-11 21:00:00",
- "modified_by": "Administrator",
+ "modified": "2026-07-01 22:04:03.784483",
+ "modified_by": "lchigwanda@outlook.com",
  "module": "Invoicing",
  "name": "Invoicing",
  "number_cards": [
   {
-   "label": "Sales Queue",
-   "number_card_name": "Invoice Register Sales Queue"
+   "label": "Waiting Approval",
+   "number_card_name": "Invoice Register Waiting Approval"
   },
   {
-   "label": "Purchase Queue",
-   "number_card_name": "Invoice Register Purchase Queue"
+   "label": "Draft",
+   "number_card_name": "Invoice Register Draft"
   },
   {
-   "label": "Open Entries",
-   "number_card_name": "Invoice Register Open Entries"
+   "label": "Query with Supplier",
+   "number_card_name": "Invoice Register Query with Supplier"
   },
   {
-   "label": "Overdue",
-   "number_card_name": "Invoice Register Overdue"
-  },
-  {
-   "label": "Needs Action",
-   "number_card_name": "Invoice Register Needs Action"
-  },
-  {
-   "label": "Completed",
-   "number_card_name": "Invoice Register Completed"
+   "label": "Ready for Capture",
+   "number_card_name": "Invoice Register Ready for Capture"
   }
  ],
  "owner": "Administrator",

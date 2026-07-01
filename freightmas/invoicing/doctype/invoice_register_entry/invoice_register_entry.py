@@ -390,7 +390,7 @@ class InvoiceRegisterEntry(Document):
         return []
 
     @frappe.whitelist()
-    def change_status(self, new_status, comment=None):
+    def change_status(self, new_status, comment=None, confirm_no_invoice=False):
         """
         Transition to a new workflow status.
 
@@ -426,20 +426,43 @@ class InvoiceRegisterEntry(Document):
                 _("A comment is required when transitioning to '{0}'").format(new_status)
             )
 
+        capture_override = False
+        if new_status == "Captured" and not self.linked_purchase_invoice:
+            if not confirm_no_invoice:
+                frappe.throw(
+                    _("Cannot mark as Captured: no Purchase Invoice is linked to this entry. "
+                      "If you have already created the invoice outside this workflow, tick the "
+                      "confirmation checkbox to proceed."),
+                    title=_("No Linked Invoice"),
+                )
+            if not comment:
+                frappe.throw(
+                    _("Please explain how/where the invoice was created when confirming "
+                      "capture without a linked invoice."),
+                    title=_("Comment Required"),
+                )
+            capture_override = True
+
         working_days = _count_working_days(self.current_status_since, now_datetime())
 
         # Compute new SLA deadline before writing to DB
         self.status = new_status
         self.current_status_since = now_datetime()
         self.compute_sla_due_at()
+        if capture_override:
+            self.captured_without_invoice = 1
 
         # Write changed fields directly — bypasses check_if_locked() which is
         # broken in Frappe 16 when a browser session holds the document open.
-        frappe.db.set_value(self.doctype, self.name, {
+        update_values = {
             "status": self.status,
             "current_status_since": self.current_status_since,
             "sla_due_at": self.sla_due_at,
-        })
+        }
+        if capture_override:
+            update_values["captured_without_invoice"] = 1
+
+        frappe.db.set_value(self.doctype, self.name, update_values)
 
         frappe.get_doc({
             "doctype": "Invoice Status Log",
