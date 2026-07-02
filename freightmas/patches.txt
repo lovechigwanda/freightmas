@@ -11,4 +11,3 @@ freightmas.patches.unlink_cancelled_documents
 freightmas.patches.migrate_tracking_timeline
 freightmas.patches.delete_renamed_reports
 freightmas.patches.move_discharge_date_to_containers
-freightmas.patches.add_invoice_register_entry_back_reference
