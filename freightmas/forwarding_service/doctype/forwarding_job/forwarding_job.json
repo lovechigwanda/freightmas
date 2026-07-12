@@ -208,6 +208,7 @@
    "fieldname": "created_by",
    "fieldtype": "Link",
    "label": "Created By",
+   "no_copy": 1,
    "options": "User"
   },
   {
@@ -226,7 +227,8 @@
    "fieldtype": "Date",
    "in_filter": 1,
    "in_list_view": 1,
-   "label": "Date Created"
+   "label": "Date Created",
+   "no_copy": 1
   },
   {
    "fieldname": "shipment_mode",
@@ -249,9 +251,11 @@
    "set_only_once": 1
   },
   {
+   "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
+   "no_copy": 1,
    "options": "Draft\nIn Progress\nDelivered\nCompleted\nClosed\nCancelled",
    "read_only": 1
   },
@@ -358,12 +362,14 @@
   {
    "fieldname": "vessel_flight_no",
    "fieldtype": "Data",
-   "label": "Vessel / Flight No"
+   "label": "Vessel / Flight No",
+   "no_copy": 1
   },
   {
    "fieldname": "vessel_flight_date",
    "fieldtype": "Date",
-   "label": "Voyage / Flight Date"
+   "label": "Voyage / Flight Date",
+   "no_copy": 1
   },
   {
    "fetch_from": "port_of_loading.country",
@@ -391,12 +397,14 @@
   {
    "fieldname": "booking_date",
    "fieldtype": "Date",
-   "label": "Booking Date"
+   "label": "Booking Date",
+   "no_copy": 1
   },
   {
    "fieldname": "cargo_ready_date",
    "fieldtype": "Date",
-   "label": "Cargo Ready Date"
+   "label": "Cargo Ready Date",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_ttcq",
@@ -405,12 +413,14 @@
   {
    "fieldname": "etd",
    "fieldtype": "Date",
-   "label": "Estimated Departure"
+   "label": "Estimated Departure",
+   "no_copy": 1
   },
   {
    "fieldname": "atd",
    "fieldtype": "Date",
-   "label": "Actual Departure"
+   "label": "Actual Departure",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_okym",
@@ -420,12 +430,14 @@
    "fieldname": "eta",
    "fieldtype": "Date",
    "label": "Estimated Arrival",
+   "no_copy": 1,
    "reqd": 1
   },
   {
    "fieldname": "ata",
    "fieldtype": "Date",
-   "label": "Actual Arrival"
+   "label": "Actual Arrival",
+   "no_copy": 1
   },
   {
    "fieldname": "cargo_tab",
@@ -533,12 +545,14 @@
    "fieldname": "api_tracking_status",
    "fieldtype": "Data",
    "label": "Tracking Status",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "api_last_event",
    "fieldtype": "Data",
    "label": "Last Event",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -549,12 +563,14 @@
    "fieldname": "api_last_event_date",
    "fieldtype": "Date",
    "label": "Last Event Date",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "api_last_fetched",
    "fieldtype": "Datetime",
    "label": "Last Fetched",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -562,6 +578,7 @@
    "fieldname": "api_call_count",
    "fieldtype": "Int",
    "label": "API Calls",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -572,6 +589,7 @@
   {
    "fieldname": "tracking_timeline",
    "fieldtype": "Table",
+   "no_copy": 1,
    "options": "Forwarding Tracking Event"
   },
   {
@@ -581,7 +599,8 @@
   {
    "fieldname": "current_comment",
    "fieldtype": "Read Only",
-   "label": "Current Comment"
+   "label": "Current Comment",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_hrnc",
@@ -590,7 +609,8 @@
   {
    "fieldname": "last_updated_by",
    "fieldtype": "Read Only",
-   "label": "Last Updated By"
+   "label": "Last Updated By",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_afpk",
@@ -600,6 +620,7 @@
    "fieldname": "last_updated_on",
    "fieldtype": "Date",
    "label": "Last Updated On",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -610,6 +631,7 @@
    "fieldname": "completed_on",
    "fieldtype": "Date",
    "label": "Completed On",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -652,7 +674,8 @@
    "in_filter": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "BL Number"
+   "label": "BL Number",
+   "no_copy": 1
   },
   {
    "depends_on": "eval:doc.bl_number && doc.enable_api_tracking",
@@ -664,14 +687,16 @@
    "default": "0",
    "fieldname": "is_bl_received",
    "fieldtype": "Check",
-   "label": "Is BL Received"
+   "label": "Is BL Received",
+   "no_copy": 1
   },
   {
    "depends_on": "eval:doc.is_bl_received",
    "fieldname": "bl_received_date",
    "fieldtype": "Date",
    "label": "BL Received Date",
-   "mandatory_depends_on": "eval:doc.is_bl_received"
+   "mandatory_depends_on": "eval:doc.is_bl_received",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_csxl",
@@ -681,20 +706,23 @@
    "fieldname": "bl_type",
    "fieldtype": "Select",
    "label": "BL Type",
+   "no_copy": 1,
    "options": "OBL\nTelex\nExpress\nAWB"
   },
   {
    "default": "0",
    "fieldname": "is_bl_confirmed",
    "fieldtype": "Check",
-   "label": "Is BL Confirmed"
+   "label": "Is BL Confirmed",
+   "no_copy": 1
   },
   {
    "depends_on": "eval:doc.is_bl_confirmed",
    "fieldname": "bl_confirmed_date",
    "fieldtype": "Date",
    "label": "BL Confirmed Date",
-   "mandatory_depends_on": "eval:doc.is_bl_confirmed"
+   "mandatory_depends_on": "eval:doc.is_bl_confirmed",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_cosr",
@@ -703,7 +731,8 @@
   {
    "fieldname": "bl_issued_date",
    "fieldtype": "Date",
-   "label": "BL Issue Date"
+   "label": "BL Issue Date",
+   "no_copy": 1
   },
   {
    "fieldname": "documents_checklist_section",
@@ -1173,7 +1202,8 @@
   {
    "fieldname": "discharge_date",
    "fieldtype": "Date",
-   "label": "Discharge Date"
+   "label": "Discharge Date",
+   "no_copy": 1
   },
   {
    "fieldname": "section_break_lppq",

@@ -131,12 +131,14 @@
   {
    "fieldname": "supplier_invoice_no",
    "fieldtype": "Data",
-   "label": "Supplier Invoice No"
+   "label": "Supplier Invoice No",
+   "no_copy": 1
   },
   {
    "fieldname": "supplier_invoice_date",
    "fieldtype": "Date",
-   "label": "Supplier Invoice Date"
+   "label": "Supplier Invoice Date",
+   "no_copy": 1
   },
   {
    "fieldname": "source_reference",

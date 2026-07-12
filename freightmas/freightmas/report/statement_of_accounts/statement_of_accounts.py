@@ -87,21 +87,23 @@ def get_data(filters):
     
     conditions = get_conditions(filters)
     
-    # Get GL entries for the party
+    # Get GL entries for the party, consolidated to one row per voucher
+    # (a payment allocated across several invoices creates one GL Entry per
+    # allocation; is_cancelled kept in GROUP BY so a cancelled voucher and
+    # its reversal don't net out when shown)
     gl_entries = frappe.db.sql("""
-        SELECT 
+        SELECT
             posting_date,
             voucher_type,
             voucher_no,
-            account,
-            party,
-            debit,
-            credit,
-            remarks
+            SUM(debit) AS debit,
+            SUM(credit) AS credit,
+            MAX(remarks) AS remarks
         FROM `tabGL Entry`
         WHERE party_type = %(party_type)s
         AND {conditions}
-        ORDER BY posting_date, creation
+        GROUP BY voucher_type, voucher_no, posting_date, is_cancelled
+        ORDER BY posting_date, MIN(creation)
     """.format(conditions=conditions), filters, as_dict=1)
 
     # Get draft invoices if requested
