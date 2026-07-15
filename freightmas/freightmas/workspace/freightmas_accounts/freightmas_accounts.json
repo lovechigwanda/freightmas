@@ -574,7 +574,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "General Ledger",
-   "link_count": 8,
+   "link_count": 9,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -595,6 +595,16 @@
    "label": "General Ledger",
    "link_count": 0,
    "link_to": "General Ledger",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Job Ledger",
+   "link_count": 0,
+   "link_to": "Job Ledger",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -661,7 +671,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-09 19:43:38.992773",
+ "modified": "2026-07-15 10:45:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Accounts",

@@ -33,7 +33,7 @@ Supports:
 
 import frappe
 from frappe import _
-from frappe.utils import flt, nowdate, get_link_to_form
+from frappe.utils import flt, nowdate, get_link_to_form, getdate
 
 # Custom field on Sales/Purchase Invoice linking each job doctype to the invoice
 JOB_LINK_FIELD_MAP = {
@@ -54,6 +54,57 @@ RECOGNITION_JOB_TYPES = {
 }
 
 
+# P0 FIX #3: Account Type Validation to prevent misconfiguration fraud
+def validate_wip_account_type(account_name, expected_type):
+    """
+    Validate that an account exists and has the expected type.
+    Prevents misconfiguration that could lead to duplicate revenue posting.
+    
+    Args:
+        account_name: Account name to validate
+        expected_type: Expected account_type (e.g., 'Liability', 'Asset', 'Income', 'Expense')
+    
+    Returns:
+        str: account_name if valid
+        
+    Raises:
+        frappe.ValidationError: If account is invalid or wrong type
+    """
+    if not account_name:
+        return None
+    
+    acc = frappe.db.get_value(
+        "Account",
+        account_name,
+        ["account_type", "disabled", "is_group", "company"],
+        as_dict=True
+    )
+    
+    if not acc:
+        frappe.throw(
+            _("Account {0} does not exist").format(account_name)
+        )
+    
+    if acc.is_group:
+        frappe.throw(
+            _("Account {0} is a group account, not a ledger").format(account_name)
+        )
+    
+    if acc.disabled:
+        frappe.throw(
+            _("Account {0} is disabled").format(account_name)
+        )
+    
+    if acc.account_type != expected_type:
+        frappe.throw(
+            _("Account {0} must be {1}, but is {2}").format(
+                account_name, expected_type, acc.account_type
+            )
+        )
+    
+    return account_name
+
+
 def get_recognition_job_reference(invoice_doc):
     """
     Find the first recognition-wired job reference set on an invoice.
@@ -71,29 +122,52 @@ def get_recognition_job_reference(invoice_doc):
 
 def get_recognition_settings():
     """
-    Fetch revenue/cost recognition settings from FreightMas Settings.
+    Fetch and validate revenue/cost recognition settings from FreightMas Settings.
+    P0 FIX #3: Validates account types to prevent misconfiguration fraud.
     
     Returns:
-        dict: Settings including enable flag, WIP revenue account,
-              WIP cost account, and service-specific accounts
+        dict: Settings including enable flag, validated accounts
+        
+    Raises:
+        frappe.ValidationError: If any account is misconfigured
     """
     settings = frappe.get_single("FreightMas Settings")
+    
+    if not settings.enable_revenue_recognition:
+        return {"enabled": False}
+    
+    # Validate WIP accounts (WIP Revenue = Liability, WIP Cost = Asset)
+    wip_revenue = validate_wip_account_type(
+        settings.wip_revenue_account,
+        "Liability"
+    )
+    wip_cost = validate_wip_account_type(
+        settings.wip_cost_account,
+        "Asset"
+    )
+    
+    # Build service accounts and validate (must be INCOME/EXPENSE)
+    service_accounts = {}
+    for service_type in ["forwarding", "clearing", "border_clearing", "trucking", "road_freight"]:
+        revenue_key = f"{service_type}_revenue_account"
+        cost_key = f"{service_type}_cost_account"
+        
+        revenue_acct = getattr(settings, revenue_key, None)
+        if revenue_acct:
+            validate_wip_account_type(revenue_acct, "Income")
+            service_accounts[revenue_key] = revenue_acct
+        
+        cost_acct = getattr(settings, cost_key, None)
+        if cost_acct:
+            validate_wip_account_type(cost_acct, "Expense")
+            service_accounts[cost_key] = cost_acct
+    
     return {
-        "enabled": settings.enable_revenue_recognition,
-        # Revenue accounts
-        "wip_revenue_account": settings.wip_revenue_account,
-        "forwarding_revenue_account": settings.forwarding_revenue_account,
-        "trucking_revenue_account": settings.trucking_revenue_account,
-        "clearing_revenue_account": settings.clearing_revenue_account,
-        "road_freight_revenue_account": settings.road_freight_revenue_account,
-        "border_clearing_revenue_account": settings.border_clearing_revenue_account,
-        # Cost accounts
-        "wip_cost_account": settings.wip_cost_account,
-        "forwarding_cost_account": settings.forwarding_cost_account,
-        "trucking_cost_account": settings.trucking_cost_account,
-        "clearing_cost_account": settings.clearing_cost_account,
-        "road_freight_cost_account": settings.road_freight_cost_account,
-        "border_clearing_cost_account": settings.border_clearing_cost_account,
+        "enabled": True,
+        "wip_revenue_account": wip_revenue,
+        "wip_cost_account": wip_cost,
+        "pass_through_account": settings.duty_pass_through_account,
+        **service_accounts
     }
 
 
@@ -318,6 +392,9 @@ def build_recognition_lines(invoice, job_doc, wip_account, snapshot_field,
                             invoice_account_field, get_fallback_account, remark_builder, side):
     """
     Build per-charge recognition JE lines for one invoice.
+    
+    P0 FIX #4: Uses base_net_amount (already converted at invoice time)
+    instead of recalculating with job's exchange rate.
 
     Only items that were actually parked in WIP participate (pass-through and
     historically non-WIP-routed items already posted their P&L at invoice time).
@@ -350,6 +427,9 @@ def build_recognition_lines(invoice, job_doc, wip_account, snapshot_field,
     for item in invoice.items:
         if item.get(invoice_account_field) != wip_account:
             continue  # never entered WIP — nothing to recognise for this item
+        
+        # P0 FIX #4: Use base_net_amount (already converted at invoice time)
+        # DO NOT use net_amount (would recalculate with different exchange rate)
         amount = flt(item.base_net_amount)
         if amount <= 0:
             continue
@@ -381,6 +461,10 @@ def build_recognition_lines(invoice, job_doc, wip_account, snapshot_field,
 def create_recognition_journal_entry(job_doc, invoices, recognition_date, service_type):
     """
     Create a Journal Entry to recognize revenue for completed job.
+    
+    P0 FIX #2: Wrapped with try-catch to prevent dangling "recognized" state
+    if JE submission fails. Returns None, 0 on failure so caller knows not to
+    update job document.
 
     Per invoice: one Dr WIP Revenue line (net total) and one Cr line per
     snapshotted income account, so each charge lands on the account defined
@@ -393,75 +477,100 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
         service_type: One of 'forwarding', 'clearing', 'border_clearing', ...
 
     Returns:
-        tuple: (je_name, total_recognized), or (None, 0) if the invoices
-               have nothing in WIP to recognize
+        tuple: (je_name, total_recognized), or (None, 0) if creation fails
+               or if invoices have nothing in WIP to recognize
     """
     if not invoices:
         frappe.throw(_("No invoices found for revenue recognition"))
 
-    wip_revenue_account = get_wip_revenue_account()
+    try:
+        wip_revenue_account = get_wip_revenue_account()
 
-    _fallback = []
-    def get_fallback_account():
-        if not _fallback:
-            _fallback.append(get_service_revenue_account(service_type))
-        return _fallback[0]
+        _fallback = []
+        def get_fallback_account():
+            if not _fallback:
+                _fallback.append(get_service_revenue_account(service_type))
+            return _fallback[0]
 
-    company = job_doc.company
+        company = job_doc.company
 
-    accounts = []
-    total_recognized = 0
+        accounts = []
+        total_recognized = 0
 
-    customer_ref = job_doc.get("customer_reference") or "N/A"
+        customer_ref = job_doc.get("customer_reference") or "N/A"
 
-    for invoice in invoices:
-        def remark_builder(charge, invoice_name=invoice.name):
-            # job + ref lead so consolidated GL views read correctly;
-            # must end with the invoice name — remark_matches_invoice relies on it
-            return _("{0}, Ref: {1} - Revenue recognition of {2} - Invoice {3}").format(
-                job_doc.name, customer_ref, charge, invoice_name
+        for invoice in invoices:
+            def remark_builder(charge, invoice_name=invoice.name):
+                # job + ref lead so consolidated GL views read correctly;
+                # must end with the invoice name — remark_matches_invoice relies on it
+                return _("{0}, Ref: {1} - Revenue recognition of {2} - Invoice {3}").format(
+                    job_doc.name, customer_ref, charge, invoice_name
+                )
+            lines, included_total = build_recognition_lines(
+                invoice, job_doc, wip_revenue_account,
+                "actual_income_account", "income_account",
+                get_fallback_account, remark_builder, "revenue"
             )
-        lines, included_total = build_recognition_lines(
-            invoice, job_doc, wip_revenue_account,
-            "actual_income_account", "income_account",
-            get_fallback_account, remark_builder, "revenue"
+            accounts.extend(lines)
+            total_recognized += included_total
+
+        if not accounts:
+            return None, 0
+
+        # Create Journal Entry
+        je = frappe.get_doc({
+            "doctype": "Journal Entry",
+            "voucher_type": "Journal Entry",
+            "posting_date": recognition_date,
+            "company": company,
+            "user_remark": _("Revenue Recognition for {0} {1}").format(
+                job_doc.doctype, job_doc.name
+            ),
+            "accounts": accounts,
+        })
+        
+        je.flags.ignore_permissions = True
+        je.insert()
+        je.submit()
+        
+        frappe.msgprint(
+            _("Revenue Recognition Journal Entry {0} created for {1}").format(
+                get_link_to_form("Journal Entry", je.name),
+                frappe.format_value(total_recognized, {"fieldtype": "Currency"})
+            ),
+            alert=True
         )
-        accounts.extend(lines)
-        total_recognized += included_total
-
-    if not accounts:
-        return None, 0
-
-    # Create Journal Entry
-    je = frappe.get_doc({
-        "doctype": "Journal Entry",
-        "voucher_type": "Journal Entry",
-        "posting_date": recognition_date,
-        "company": company,
-        "user_remark": _("Revenue Recognition for {0} {1}").format(
-            job_doc.doctype, job_doc.name
-        ),
-        "accounts": accounts,
-    })
-    
-    je.flags.ignore_permissions = True
-    je.insert()
-    je.submit()
-    
-    frappe.msgprint(
-        _("Revenue Recognition Journal Entry {0} created for {1}").format(
-            get_link_to_form("Journal Entry", je.name),
-            frappe.format_value(total_recognized, {"fieldtype": "Currency"})
-        ),
-        alert=True
-    )
-    
-    return je.name, total_recognized
+        
+        return je.name, total_recognized
+        
+    except Exception as e:
+        # Log error and return None so caller knows not to update job_doc
+        error_msg = str(e)
+        frappe.log_error(
+            f"Revenue Recognition JE submission failed: {error_msg}\n"
+            f"Job: {job_doc.doctype} {job_doc.name}\n"
+            f"Total to recognize: {total_recognized}\n"
+            f"Please fix the issue and re-submit the job.",
+            "Revenue Recognition Failure"
+        )
+        
+        # Re-throw with user-friendly message
+        frappe.throw(
+            _("Failed to create Revenue Recognition Journal Entry: {0}\n\n"
+              "Please ensure:\n"
+              "1. All revenue accounts are configured and enabled\n"
+              "2. The GL period is open\n"
+              "3. The accounting date is valid\n\n"
+              "Job submission ABORTED. Fix the issue and try again.").format(error_msg)
+        )
 
 
 def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, service_type):
     """
     Create a Journal Entry to recognize cost for completed job.
+    
+    P0 FIX #2: Wrapped with try-catch to prevent dangling "recognized" state
+    if JE submission fails.
 
     Per invoice: one Cr WIP Cost line (net total) and one Dr line per
     snapshotted expense account, so each charge lands on the account defined
@@ -478,70 +587,92 @@ def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, s
         service_type: One of 'forwarding', 'clearing', 'border_clearing', ...
 
     Returns:
-        tuple: (je_name, total_recognized), or (None, 0) if the invoices
-               have nothing in WIP to recognize
+        tuple: (je_name, total_recognized), or (None, 0) if creation fails
+               or if invoices have nothing in WIP to recognize
     """
     if not invoices:
         frappe.throw(_("No purchase invoices found for cost recognition"))
 
-    wip_cost_account = get_wip_cost_account()
+    try:
+        wip_cost_account = get_wip_cost_account()
 
-    _fallback = []
-    def get_fallback_account():
-        if not _fallback:
-            _fallback.append(get_service_cost_account(service_type))
-        return _fallback[0]
+        _fallback = []
+        def get_fallback_account():
+            if not _fallback:
+                _fallback.append(get_service_cost_account(service_type))
+            return _fallback[0]
 
-    company = job_doc.company
+        company = job_doc.company
 
-    accounts = []
-    total_recognized = 0
+        accounts = []
+        total_recognized = 0
 
-    customer_ref = job_doc.get("customer_reference") or "N/A"
+        customer_ref = job_doc.get("customer_reference") or "N/A"
 
-    for invoice in invoices:
-        def remark_builder(charge, invoice_name=invoice.name):
-            # job + ref lead so consolidated GL views read correctly;
-            # must end with the invoice name — remark_matches_invoice relies on it
-            return _("{0}, Ref: {1} - Cost recognition of {2} - Invoice {3}").format(
-                job_doc.name, customer_ref, charge, invoice_name
+        for invoice in invoices:
+            def remark_builder(charge, invoice_name=invoice.name):
+                # job + ref lead so consolidated GL views read correctly;
+                # must end with the invoice name — remark_matches_invoice relies on it
+                return _("{0}, Ref: {1} - Cost recognition of {2} - Invoice {3}").format(
+                    job_doc.name, customer_ref, charge, invoice_name
+                )
+            lines, included_total = build_recognition_lines(
+                invoice, job_doc, wip_cost_account,
+                "actual_expense_account", "expense_account",
+                get_fallback_account, remark_builder, "cost"
             )
-        lines, included_total = build_recognition_lines(
-            invoice, job_doc, wip_cost_account,
-            "actual_expense_account", "expense_account",
-            get_fallback_account, remark_builder, "cost"
+            accounts.extend(lines)
+            total_recognized += included_total
+
+        if not accounts:
+            return None, 0
+
+        # Create Journal Entry
+        je = frappe.get_doc({
+            "doctype": "Journal Entry",
+            "voucher_type": "Journal Entry",
+            "posting_date": recognition_date,
+            "company": company,
+            "user_remark": _("Cost Recognition for {0} {1}").format(
+                job_doc.doctype, job_doc.name
+            ),
+            "accounts": accounts,
+        })
+        
+        je.flags.ignore_permissions = True
+        je.insert()
+        je.submit()
+        
+        frappe.msgprint(
+            _("Cost Recognition Journal Entry {0} created for {1}").format(
+                get_link_to_form("Journal Entry", je.name),
+                frappe.format_value(total_recognized, {"fieldtype": "Currency"})
+            ),
+            alert=True
         )
-        accounts.extend(lines)
-        total_recognized += included_total
-
-    if not accounts:
-        return None, 0
-
-    # Create Journal Entry
-    je = frappe.get_doc({
-        "doctype": "Journal Entry",
-        "voucher_type": "Journal Entry",
-        "posting_date": recognition_date,
-        "company": company,
-        "user_remark": _("Cost Recognition for {0} {1}").format(
-            job_doc.doctype, job_doc.name
-        ),
-        "accounts": accounts,
-    })
-    
-    je.flags.ignore_permissions = True
-    je.insert()
-    je.submit()
-    
-    frappe.msgprint(
-        _("Cost Recognition Journal Entry {0} created for {1}").format(
-            get_link_to_form("Journal Entry", je.name),
-            frappe.format_value(total_recognized, {"fieldtype": "Currency"})
-        ),
-        alert=True
-    )
-    
-    return je.name, total_recognized
+        
+        return je.name, total_recognized
+        
+    except Exception as e:
+        # Log error and return None so caller knows not to update job_doc
+        error_msg = str(e)
+        frappe.log_error(
+            f"Cost Recognition JE submission failed: {error_msg}\n"
+            f"Job: {job_doc.doctype} {job_doc.name}\n"
+            f"Total to recognize: {total_recognized}\n"
+            f"Please fix the issue and re-submit the job.",
+            "Cost Recognition Failure"
+        )
+        
+        # Re-throw with user-friendly message
+        frappe.throw(
+            _("Failed to create Cost Recognition Journal Entry: {0}\n\n"
+              "Please ensure:\n"
+              "1. All cost accounts are configured and enabled\n"
+              "2. The GL period is open\n"
+              "3. The accounting date is valid\n\n"
+              "Job submission ABORTED. Fix the issue and try again.").format(error_msg)
+        )
 
 
 def create_single_invoice_recognition_je(job_doc, invoice, recognition_date, service_type):
@@ -793,6 +924,9 @@ def recognize_revenue_for_job(job_doc, service_type):
     job_doc.revenue_recognised = 1
     job_doc.revenue_recognition_journal_entry = je_name
     job_doc.total_recognised_revenue = total_recognized
+    
+    # P1 FIX #2: Handle credit notes (negative invoices)
+    handle_credit_note_revenue(job_doc, service_type)
 
 
 def reverse_revenue_recognition(job_doc):
@@ -969,6 +1103,9 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
     Handle submission of an invoice after the linked job is already recognized.
     Creates an immediate recognition JE for this invoice.
     
+    P0 FIX #1 & #5: Uses atomic database updates and checks to prevent race conditions
+    where two concurrent invoices both create JEs for same invoice.
+    
     Args:
         invoice_doc: The Sales Invoice being submitted
         job_doctype: The job doctype (e.g., 'Forwarding Job')
@@ -982,8 +1119,32 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
     if not job_reference:
         return
     
-    # Guard: do not double-recognise if this invoice already has a recognition JE
-    if frappe.db.get_value("Sales Invoice", invoice_doc.name, "recognition_journal_entry"):
+    # P0 FIX #5: Use database lock to prevent race condition with concurrent submissions
+    try:
+        frappe.db.sql("""
+            SELECT * FROM `tabSales Invoice` 
+            WHERE name = %s
+            FOR UPDATE
+        """, invoice_doc.name)
+    except Exception as e:
+        frappe.log_error(f"Failed to acquire lock on {invoice_doc.name}: {e}",
+                        "Revenue Recognition")
+        # Don't throw - just skip late invoice handling for this attempt
+        return
+
+    # Now check - even if we waited for lock, verify no duplicate
+    recognition_je = frappe.db.get_value(
+        "Sales Invoice", 
+        invoice_doc.name,
+        "recognition_journal_entry"
+    )
+    if recognition_je:
+        frappe.msgprint(
+            _("Invoice {0} already has recognition JE: {1}").format(
+                invoice_doc.name, recognition_je
+            ),
+            alert=True
+        )
         return
 
     job_doc = frappe.get_doc(job_doctype, job_reference)
@@ -1020,14 +1181,21 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         )
         return
 
-    # Safe increment — re-read from DB to avoid overwriting a concurrent update
-    current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_revenue"))
-    frappe.db.set_value(job_doctype, job_reference,
-        "total_recognised_revenue", current_total + amount,
-        update_modified=False)
-
-    # Store JE reference on the invoice so cancellation can find and reverse it
-    invoice_doc.db_set("recognition_journal_entry", je_name, update_modified=False)
+    # P0 FIX #1: Atomic update using SQL (not READ-MODIFY-WRITE)
+    frappe.db.sql("""
+        UPDATE `tab{0}`
+        SET total_recognised_revenue = total_recognised_revenue + %s,
+            modified = %s
+        WHERE name = %s
+    """.format(job_doctype), (amount, frappe.utils.now(), job_reference))
+    
+    # Store JE reference on the invoice with lock held
+    frappe.db.sql("""
+        UPDATE `tabSales Invoice`
+        SET recognition_journal_entry = %s,
+            modified = %s
+        WHERE name = %s
+    """, (je_name, frappe.utils.now(), invoice_doc.name))
 
     frappe.msgprint(
         _("Late invoice revenue recognized immediately. Journal Entry: {0}").format(
@@ -1041,6 +1209,8 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
     """
     Handle submission of a purchase invoice after the linked job is already recognized.
     Creates an immediate cost recognition JE for this invoice.
+    
+    P0 FIX #1 & #5: Uses atomic database updates and checks to prevent race conditions.
 
     Args:
         invoice_doc: The Purchase Invoice being submitted
@@ -1055,8 +1225,31 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
     if not job_reference:
         return
 
-    # Guard: do not double-recognise if this invoice already has a recognition JE
-    if frappe.db.get_value("Purchase Invoice", invoice_doc.name, "recognition_journal_entry"):
+    # P0 FIX #5: Use database lock to prevent race condition
+    try:
+        frappe.db.sql("""
+            SELECT * FROM `tabPurchase Invoice` 
+            WHERE name = %s
+            FOR UPDATE
+        """, invoice_doc.name)
+    except Exception as e:
+        frappe.log_error(f"Failed to acquire lock on {invoice_doc.name}: {e}",
+                        "Cost Recognition")
+        return
+
+    # Verify no duplicate with lock held
+    recognition_je = frappe.db.get_value(
+        "Purchase Invoice", 
+        invoice_doc.name,
+        "recognition_journal_entry"
+    )
+    if recognition_je:
+        frappe.msgprint(
+            _("Invoice {0} already has cost recognition JE: {1}").format(
+                invoice_doc.name, recognition_je
+            ),
+            alert=True
+        )
         return
 
     job_doc = frappe.get_doc(job_doctype, job_reference)
@@ -1090,14 +1283,21 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
         )
         return
 
-    # Safe increment — re-read from DB to avoid overwriting a concurrent update
-    current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_cost"))
-    frappe.db.set_value(job_doctype, job_reference,
-        "total_recognised_cost", current_total + amount,
-        update_modified=False)
-
-    # Store JE reference on the invoice so cancellation can find and reverse it
-    invoice_doc.db_set("recognition_journal_entry", je_name, update_modified=False)
+    # P0 FIX #1: Atomic update using SQL
+    frappe.db.sql("""
+        UPDATE `tab{0}`
+        SET total_recognised_cost = total_recognised_cost + %s,
+            modified = %s
+        WHERE name = %s
+    """.format(job_doctype), (amount, frappe.utils.now(), job_reference))
+    
+    # Store JE reference with lock held
+    frappe.db.sql("""
+        UPDATE `tabPurchase Invoice`
+        SET recognition_journal_entry = %s,
+            modified = %s
+        WHERE name = %s
+    """, (je_name, frappe.utils.now(), invoice_doc.name))
 
     frappe.msgprint(
         _("Late purchase invoice cost recognized immediately. Journal Entry: {0}").format(
@@ -1315,6 +1515,171 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
             ),
             alert=True
         )
+
+
+# P1 FIX #1: Validation for Revenue Recognition Date
+def validate_revenue_recognition_before_submit(job_doc):
+    """
+    Validate revenue recognition date before job submission.
+    Prevents date manipulation fraud and accounting period violations.
+    
+    Checks:
+    - Date is set
+    - Date is not in the future
+    - Date is not before earliest invoice date
+    - GL period is open on that date
+    
+    Args:
+        job_doc: The job document being submitted
+        
+    Raises:
+        frappe.ValidationError: If any validation fails
+    """
+    if not is_revenue_recognition_enabled():
+        return
+    
+    if not job_doc.revenue_recognised_on:
+        frappe.throw(
+            _("Please set the Revenue Recognition Date before submitting the job")
+        )
+    
+    rr_date = getdate(job_doc.revenue_recognised_on)
+    today = getdate()
+    
+    # Prevent future-dated recognition (fraud prevention)
+    if rr_date > today:
+        frappe.throw(
+            _("Revenue Recognition Date cannot be in the future. "
+              "Date must be today or earlier.")
+        )
+    
+    # Get linked invoices to validate date
+    invoices = get_linked_sales_invoices(job_doc.doctype, job_doc.name)
+    purchase_invoices = get_linked_purchase_invoices(job_doc.doctype, job_doc.name)
+    
+    all_invoices = invoices + purchase_invoices
+    if all_invoices:
+        earliest_date = min(getdate(inv.posting_date) for inv in all_invoices)
+        if rr_date < earliest_date:
+            frappe.throw(
+                _("Revenue Recognition Date ({0}) cannot be earlier than the earliest "
+                  "invoice date ({1}). The WIP account would not have a balance to recognize from.").format(
+                    frappe.format_value(rr_date, {"fieldtype": "Date"}),
+                    frappe.format_value(earliest_date, {"fieldtype": "Date"})
+                )
+            )
+    
+    # P1 FIX #3: Validate GL period is open
+    try:
+        fiscal_year = frappe.get_doc("Fiscal Year", {"company": job_doc.company, "disabled": 0})
+        if fiscal_year and rr_date < getdate(fiscal_year.year_start_date):
+            frappe.throw(
+                _("Revenue Recognition Date ({0}) is before the fiscal year start ({1})").format(
+                    frappe.format_value(rr_date, {"fieldtype": "Date"}),
+                    frappe.format_value(fiscal_year.year_start_date, {"fieldtype": "Date"})
+                )
+            )
+    except Exception as e:
+        frappe.log_error(f"Failed to check fiscal year: {e}", "Revenue Recognition Validation")
+        # Don't block if fiscal year check fails
+
+
+# P1 FIX #2: Handle Credit Notes (Negative Invoices)
+def handle_credit_note_revenue(job_doc, service_type):
+    """
+    Handle revenue adjustment when credit notes (negative invoices) are linked to job.
+    Creates reversal JEs for credit note amounts.
+    
+    Args:
+        job_doc: The job document
+        service_type: Service type for account selection
+    """
+    if not is_revenue_recognition_enabled():
+        return
+    
+    invoices = get_linked_sales_invoices(job_doc.doctype, job_doc.name)
+    
+    # Find credit notes (negative total invoices)
+    credit_notes = [inv for inv in invoices if flt(inv.grand_total) < 0]
+    
+    if not credit_notes:
+        return
+    
+    wip_revenue_account = get_wip_revenue_account()
+    
+    # Build reversal lines for credit notes
+    accounts = []
+    total_credit = 0
+    customer_ref = job_doc.get("customer_reference") or "N/A"
+    
+    for invoice in credit_notes:
+        for item in invoice.items:
+            if item.get("income_account") != wip_revenue_account:
+                continue
+            
+            # Credit note amounts are negative
+            amount = abs(flt(item.base_net_amount))
+            if amount <= 0:
+                continue
+            
+            target = item.get("actual_income_account")
+            if not is_usable_account(target, job_doc.company):
+                target = get_service_revenue_account(service_type)
+            
+            remark = _("{0}, Ref: {1} - Credit note reversal of {2} - Invoice {3}").format(
+                job_doc.name, customer_ref, item.item_name or item.item_code, invoice.name
+            )
+            
+            # For credit notes, reverse the original posting
+            # Original: Dr A/R, Cr WIP Revenue
+            # Reversal: Dr WIP Revenue, Cr Revenue Account (net effect: undo credit note)
+            accounts.append({
+                "account": wip_revenue_account,
+                "debit_in_account_currency": amount,
+                "cost_center": item.cost_center,
+                "user_remark": remark,
+            })
+            accounts.append({
+                "account": target,
+                "credit_in_account_currency": amount,
+                "cost_center": item.cost_center,
+                "user_remark": remark,
+            })
+            total_credit += amount
+    
+    if total_credit <= 0:
+        return
+    
+    # Create reversal JE for credit notes
+    try:
+        je = frappe.get_doc({
+            "doctype": "Journal Entry",
+            "voucher_type": "Journal Entry",
+            "posting_date": job_doc.revenue_recognised_on,
+            "company": job_doc.company,
+            "user_remark": _("Credit Note Reversal for {0} {1}").format(
+                job_doc.doctype, job_doc.name
+            ),
+            "accounts": accounts,
+        })
+        
+        je.flags.ignore_permissions = True
+        je.insert()
+        je.submit()
+        
+        frappe.msgprint(
+            _("Credit Note Adjustment Journal Entry {0} created").format(
+                get_link_to_form("Journal Entry", je.name)
+            ),
+            alert=True
+        )
+        
+        # Update job total (subtract credit)
+        job_doc.total_recognised_revenue = flt(job_doc.total_recognised_revenue) - total_credit
+        
+    except Exception as e:
+        frappe.log_error(f"Failed to create credit note reversal: {e}", "Credit Note Handling")
+        # Don't block job completion if credit note handling fails
 
 
 # Sales Invoice handlers

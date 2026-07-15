@@ -45,9 +45,10 @@ class BorderClearingJob(Document):
         if self.skip_validations:
             return
 
-        self.validate_revenue_recognition_before_submit()
+        # P1 FIX #1: Validate Revenue Recognition Date before proceeding
+        from freightmas.utils.revenue_recognition import validate_revenue_recognition_before_submit, recognize_revenue_for_job, recognize_cost_for_job
+        validate_revenue_recognition_before_submit(self)
 
-        from freightmas.utils.revenue_recognition import recognize_revenue_for_job, recognize_cost_for_job
         recognize_revenue_for_job(self, "border_clearing")
         recognize_cost_for_job(self, "border_clearing")
 
