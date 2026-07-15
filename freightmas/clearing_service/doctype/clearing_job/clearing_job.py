@@ -982,30 +982,16 @@ def create_sales_invoice_with_rows(docname, row_names):
     cargo_desc = job.get("cargo_description") or "N/A"
     si.remarks = f"{job.name}, Ref: {customer_ref}, {cargo_desc}"
 
-    # Get WIP Revenue account if revenue recognition is enabled
-    wip_revenue_account = None
-    try:
-        from freightmas.utils.revenue_recognition import (
-            is_revenue_recognition_enabled,
-            get_wip_revenue_account,
-        )
-        if is_revenue_recognition_enabled():
-            wip_revenue_account = get_wip_revenue_account()
-    except Exception:
-        pass
-
+    # Income accounts are left for ERPNext to resolve naturally; the Sales
+    # Invoice validate hook snapshots them and routes items through WIP Revenue
+    # when revenue recognition is enabled.
     for row in selected_rows:
-        item_dict = {
+        si.append("items", {
             "item_code": row.charge,
             "description": row.description or row.charge,
             "qty": row.qty or 1,
             "rate": row.sell_rate or 0,
-        }
-        # Force WIP Revenue account if revenue recognition is enabled
-        if wip_revenue_account:
-            item_dict["income_account"] = wip_revenue_account
-
-        si.append("items", item_dict)
+        })
 
     si.insert()
 

@@ -97,14 +97,16 @@
    "fieldname": "forwarding_revenue_account",
    "fieldtype": "Link",
    "label": "Forwarding Revenue Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "trucking_revenue_account",
    "fieldtype": "Link",
    "label": "Trucking Revenue Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "fieldname": "column_break_rrev2",
@@ -115,21 +117,24 @@
    "fieldname": "clearing_revenue_account",
    "fieldtype": "Link",
    "label": "Clearing Revenue Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "road_freight_revenue_account",
    "fieldtype": "Link",
    "label": "Road Freight Revenue Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "border_clearing_revenue_account",
    "fieldtype": "Link",
    "label": "Border Clearing Revenue Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
@@ -156,14 +161,16 @@
    "fieldname": "forwarding_cost_account",
    "fieldtype": "Link",
    "label": "Forwarding Cost Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "trucking_cost_account",
    "fieldtype": "Link",
    "label": "Trucking Cost Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "fieldname": "column_break_cost1",
@@ -174,21 +181,24 @@
    "fieldname": "clearing_cost_account",
    "fieldtype": "Link",
    "label": "Clearing Cost Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "road_freight_cost_account",
    "fieldtype": "Link",
    "label": "Road Freight Cost Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
    "fieldname": "border_clearing_cost_account",
    "fieldtype": "Link",
    "label": "Border Clearing Cost Account",
-   "options": "Account"
+   "options": "Account",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
   },
   {
    "fieldname": "border_clearing_tab",

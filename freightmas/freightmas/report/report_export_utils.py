@@ -50,7 +50,8 @@ def truncate_remarks(text, max_len=None):
 # EXCEL EXPORT
 # ============================================================
 
-def build_excel_file(filters, data, columns, report_title, net_field_label="Net Amount"):
+def build_excel_file(filters, data, columns, report_title, net_field_label="Net Amount",
+                     drop_fieldnames=None):
     """
     Build a formatted Excel workbook and return it as bytes.
 
@@ -63,6 +64,8 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
         columns: list of column dicts from the report
         report_title: e.g. "Revenue Detail Report"
         net_field_label: label for the net amount column header
+        drop_fieldnames: columns to exclude; defaults to ALWAYS_DROP
+            (pass a list to override for reports where e.g. account matters)
     """
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -98,7 +101,8 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
     left_align = Alignment(horizontal="left", vertical="center")
 
     # ---- Filter columns for Excel (drop Account, Party, Party Type, Voucher Type) ----
-    excel_columns = [c for c in columns if c.get("fieldname") not in ALWAYS_DROP]
+    drop = ALWAYS_DROP if drop_fieldnames is None else list(drop_fieldnames)
+    excel_columns = [c for c in columns if c.get("fieldname") not in drop]
     ncols = len(excel_columns)
 
     row_idx = 1
@@ -124,6 +128,9 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
         "party": "Party",
         "voucher_type": "Voucher Type",
         "group_by": "Group By",
+        "job_type": "Job Type",
+        "job": "Job",
+        "date_basis": "Date Based On",
     }
     for key, label in display_filters.items():
         val = filters.get(key)
@@ -320,17 +327,19 @@ def build_excel_file(filters, data, columns, report_title, net_field_label="Net 
 # PDF EXPORT
 # ============================================================
 
-def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_revenue"):
+def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_revenue",
+                   drop_fieldnames=None):
     """
     Build a formatted PDF and return it as bytes.
 
     Matches the standard system PDF style (report_pdf_template.html)
     with additional support for group-heading, subtotal and grand-total rows.
+    ``drop_fieldnames`` overrides the default ALWAYS_DROP column exclusions.
     """
     from frappe.utils.pdf import get_pdf
 
     # Filter columns for PDF (drop technical columns for page width)
-    pdf_drop = set(ALWAYS_DROP + PDF_EXTRA_DROP)
+    pdf_drop = set((ALWAYS_DROP if drop_fieldnames is None else list(drop_fieldnames)) + PDF_EXTRA_DROP)
     pdf_columns = [c for c in columns if c.get("fieldname") not in pdf_drop]
 
     company = filters.get("company", "")
@@ -356,6 +365,9 @@ def build_pdf_file(filters, data, columns, report_title, net_fieldname="net_reve
         "party": "Party",
         "voucher_type": "Voucher Type",
         "group_by": "Group By",
+        "job_type": "Job Type",
+        "job": "Job",
+        "date_basis": "Date Based On",
     }
 
     filter_rows = ""

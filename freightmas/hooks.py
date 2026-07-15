@@ -135,6 +135,12 @@ after_install = "freightmas.install.after_install"
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
+# Keep per-charge WIP lines separate in the GL for job-linked invoices
+override_doctype_class = {
+    "Sales Invoice": "freightmas.overrides.invoice_gl.FreightMasSalesInvoice",
+    "Purchase Invoice": "freightmas.overrides.invoice_gl.FreightMasPurchaseInvoice",
+}
+
 # Document Events
 # ---------------
 # Hook on document methods and events
@@ -346,6 +352,8 @@ fixtures = [
                 "Purchase Invoice-custom_is_border_clearing_invoice",
                 "Sales Invoice-custom_recognition_journal_entry",
                 "Purchase Invoice-custom_recognition_journal_entry",
+                "Sales Invoice Item-actual_income_account",
+                "Purchase Invoice Item-actual_expense_account",
                 "Sales Invoice-custom_banking_details",
                 "Sales Invoice-custom_banking_details_2",
                 "Quotation-custom_job_description",

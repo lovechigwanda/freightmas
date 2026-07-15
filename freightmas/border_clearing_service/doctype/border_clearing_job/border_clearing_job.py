@@ -749,21 +749,12 @@ def create_sales_invoice_with_rows(docname, row_names):
     cargo_desc = job.get("cargo_description") or "N/A"
     si.remarks = f"{job.name}, Ref: {customer_ref}, {cargo_desc}"
 
-    # Get WIP Revenue account if revenue recognition is enabled
-    wip_revenue_account = None
-    try:
-        from freightmas.utils.revenue_recognition import (
-            is_revenue_recognition_enabled,
-            get_wip_revenue_account,
-        )
-        if is_revenue_recognition_enabled():
-            wip_revenue_account = get_wip_revenue_account()
-    except Exception:
-        pass
-
     # Get pass-through account
     pass_through_account = frappe.db.get_single_value("FreightMas Settings", "duty_pass_through_account")
 
+    # Non-pass-through income accounts are left for ERPNext to resolve naturally;
+    # the Sales Invoice validate hook snapshots them and routes items through
+    # WIP Revenue when revenue recognition is enabled.
     for row in selected_rows:
         item_dict = {
             "item_code": row.charge,
@@ -774,8 +765,6 @@ def create_sales_invoice_with_rows(docname, row_names):
         # Pass-through rows use clearing account instead of income
         if cint(row.is_pass_through) and pass_through_account:
             item_dict["income_account"] = pass_through_account
-        elif wip_revenue_account:
-            item_dict["income_account"] = wip_revenue_account
 
         si.append("items", item_dict)
 

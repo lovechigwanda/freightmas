@@ -8,24 +8,65 @@ This module provides event-based revenue recognition for FreightMas services.
 Revenue is recognized when jobs are completed (submitted), not when invoices are raised.
 
 Accounting Flow:
-1. On Sales Invoice submission (linked to a job):
+1. On Sales Invoice validate (linked to a job):
+   - Each item's natural income account (Item Default -> Item Group -> Brand ->
+     Company default, or user-chosen) is snapshotted into actual_income_account,
+     then the item is routed to WIP Revenue.
+2. On Sales Invoice submission:
    - Dr Accounts Receivable
-   - Cr WIP Revenue
+   - Cr WIP Revenue (per item, net amount)
 
-2. On Job submission (completion):
-   - Dr WIP Revenue
-   - Cr Service Revenue (Forwarding/Trucking/Clearing/Road Freight)
+3. On Job submission (completion):
+   - Dr WIP Revenue (net total per invoice)
+   - Cr each item's snapshotted income account
+     (fallback: the service-level revenue account from FreightMas Settings)
+
+Purchase Invoices mirror this with actual_expense_account / WIP Cost.
 
 Supports:
-- Multiple invoices per job (one JE line per invoice for traceability)
+- Multiple invoices per job (JE lines carry the invoice name for traceability)
 - Late invoices (auto-recognition if job already completed)
 - Invoice amendments (auto-adjustment with correcting JE)
 - Multi-currency with base currency conversion
+- Border Clearing duty pass-through rows (settle at invoice time, never in WIP)
 """
 
 import frappe
 from frappe import _
 from frappe.utils import flt, nowdate, get_link_to_form
+
+# Custom field on Sales/Purchase Invoice linking each job doctype to the invoice
+JOB_LINK_FIELD_MAP = {
+    "Forwarding Job": "forwarding_job_reference",
+    "Clearing Job": "clearing_job_reference",
+    "Trip": "trip_reference",
+    "Road Freight Job": "road_freight_job_reference",
+    "Border Clearing Job": "border_clearing_job_reference",
+}
+
+# Job types wired into the recognition engine: doctype -> (link field, service type).
+# Trip / Road Freight Job are excluded: their controllers never call
+# recognize_*_for_job, so forcing their invoices into WIP would strand balances.
+RECOGNITION_JOB_TYPES = {
+    "Forwarding Job": ("forwarding_job_reference", "forwarding"),
+    "Clearing Job": ("clearing_job_reference", "clearing"),
+    "Border Clearing Job": ("border_clearing_job_reference", "border_clearing"),
+}
+
+
+def get_recognition_job_reference(invoice_doc):
+    """
+    Find the first recognition-wired job reference set on an invoice.
+
+    Returns:
+        tuple: (job_doctype, job_name, link_field, service_type),
+               or (None, None, None, None) if the invoice is not job-linked
+    """
+    for job_doctype, (link_field, service_type) in RECOGNITION_JOB_TYPES.items():
+        job_name = invoice_doc.get(link_field)
+        if job_name:
+            return job_doctype, job_name, link_field, service_type
+    return None, None, None, None
 
 
 def get_recognition_settings():
@@ -155,6 +196,66 @@ def get_service_cost_account(service_type):
     return account
 
 
+def get_duty_pass_through_account():
+    """Get the duty pass-through account (Border Clearing), or None if unset."""
+    return frappe.db.get_single_value("FreightMas Settings", "duty_pass_through_account")
+
+
+def resolve_item_default_account(item_code, company, account_fieldname):
+    """
+    Resolve the account explicitly configured for an item:
+    Item Default -> Item Group default -> Brand default.
+
+    Deliberately does NOT consult the Company default income/expense account —
+    that is only a last resort in the snapshot chain, after the per-service
+    account from FreightMas Settings.
+
+    Args:
+        item_code: The Item code
+        company: The company to resolve defaults for
+        account_fieldname: 'income_account' or 'expense_account'
+
+    Returns:
+        str or None: Account name, or None if no explicit default exists
+    """
+    if not item_code:
+        return None
+
+    from erpnext.stock.doctype.item.item import get_item_defaults
+    from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
+    from erpnext.setup.doctype.brand.brand import get_brand_defaults
+
+    for get_defaults in (get_item_defaults, get_item_group_defaults, get_brand_defaults):
+        try:
+            defaults = get_defaults(item_code, company)
+        except Exception:
+            defaults = None
+        account = (defaults or {}).get(account_fieldname)
+        if account:
+            return account
+
+    return None
+
+
+def is_usable_account(account, company):
+    """Check that an account exists, is a ledger (not group), enabled, and belongs to the company."""
+    if not account:
+        return False
+    acc = frappe.db.get_value(
+        "Account", account, ["company", "disabled", "is_group"], as_dict=True
+    )
+    return bool(acc) and not acc.disabled and not acc.is_group and acc.company == company
+
+
+def remark_matches_invoice(remark, invoice_name):
+    """
+    Match a JE line to its invoice. Recognition remarks always end with
+    '... Invoice {name}', so an end-anchored match avoids false positives
+    between prefix-sharing names (e.g. INV-001 vs INV-0010).
+    """
+    return bool(remark) and remark.rstrip().endswith(" " + invoice_name)
+
+
 def get_linked_sales_invoices(job_doctype, job_name, only_submitted=True):
     """
     Get all Sales Invoices linked to a job.
@@ -167,16 +268,7 @@ def get_linked_sales_invoices(job_doctype, job_name, only_submitted=True):
     Returns:
         list: List of Sales Invoice documents
     """
-    # Map job doctype to the custom field used for linking
-    link_field_map = {
-        "Forwarding Job": "forwarding_job_reference",
-        "Clearing Job": "clearing_job_reference",
-        "Trip": "trip_reference",
-        "Road Freight Job": "road_freight_job_reference",
-        "Border Clearing Job": "border_clearing_job_reference",
-    }
-    
-    link_field = link_field_map.get(job_doctype)
+    link_field = JOB_LINK_FIELD_MAP.get(job_doctype)
     if not link_field:
         frappe.throw(_("Unsupported job doctype: {0}").format(job_doctype))
     
@@ -205,16 +297,7 @@ def get_linked_purchase_invoices(job_doctype, job_name, only_submitted=True):
     Returns:
         list: List of Purchase Invoice documents
     """
-    # Map job doctype to the custom field used for linking
-    link_field_map = {
-        "Forwarding Job": "forwarding_job_reference",
-        "Clearing Job": "clearing_job_reference",
-        "Trip": "trip_reference",
-        "Road Freight Job": "road_freight_job_reference",
-        "Border Clearing Job": "border_clearing_job_reference",
-    }
-    
-    link_field = link_field_map.get(job_doctype)
+    link_field = JOB_LINK_FIELD_MAP.get(job_doctype)
     if not link_field:
         frappe.throw(_("Unsupported job doctype: {0}").format(job_doctype))
     
@@ -231,74 +314,124 @@ def get_linked_purchase_invoices(job_doctype, job_name, only_submitted=True):
     return [frappe.get_doc("Purchase Invoice", name) for name in invoice_names]
 
 
+def build_recognition_lines(invoice, job_doc, wip_account, snapshot_field,
+                            invoice_account_field, get_fallback_account, remark_builder, side):
+    """
+    Build per-charge recognition JE lines for one invoice.
+
+    Only items that were actually parked in WIP participate (pass-through and
+    historically non-WIP-routed items already posted their P&L at invoice time).
+    Each charge gets its own mirror pair — WIP line + snapshotted-account line
+    for its base net amount — so the JE literally reverses what the invoice
+    put into WIP (net of taxes/discounts), charge by charge.
+
+    Args:
+        invoice: Sales/Purchase Invoice document
+        job_doc: The job document (for company)
+        wip_account: The WIP account items were routed to
+        snapshot_field: 'actual_income_account' or 'actual_expense_account'
+        invoice_account_field: 'income_account' or 'expense_account'
+        get_fallback_account: callable returning the service-level account,
+            invoked only when a line actually needs the fallback
+        remark_builder: callable(charge_name) -> user_remark; the remark MUST
+            end with the invoice name (remark_matches_invoice relies on it)
+        side: 'revenue' (Cr item accounts / Dr WIP) or 'cost' (Dr / Cr)
+
+    Returns:
+        tuple: (lines, included_total)
+    """
+    company = job_doc.company
+    item_side = "credit_in_account_currency" if side == "revenue" else "debit_in_account_currency"
+    wip_side = "debit_in_account_currency" if side == "revenue" else "credit_in_account_currency"
+
+    lines = []
+    included_total = 0
+
+    for item in invoice.items:
+        if item.get(invoice_account_field) != wip_account:
+            continue  # never entered WIP — nothing to recognise for this item
+        amount = flt(item.base_net_amount)
+        if amount <= 0:
+            continue
+        target = item.get(snapshot_field)
+        if not is_usable_account(target, company):
+            target = get_fallback_account()
+
+        remark = remark_builder(item.item_name or item.item_code)
+        lines.append({
+            "account": wip_account,
+            wip_side: amount,
+            "cost_center": item.cost_center,
+            "user_remark": remark,
+        })
+        lines.append({
+            "account": target,
+            item_side: amount,
+            "cost_center": item.cost_center,
+            "user_remark": remark,
+        })
+        included_total = flt(included_total + amount, 2)
+
+    if included_total <= 0:
+        return [], 0
+
+    return lines, included_total
+
+
 def create_recognition_journal_entry(job_doc, invoices, recognition_date, service_type):
     """
     Create a Journal Entry to recognize revenue for completed job.
-    
-    Creates one debit/credit pair per invoice for full traceability.
-    Uses company base currency with proper exchange rate conversion.
-    
+
+    Per invoice: one Dr WIP Revenue line (net total) and one Cr line per
+    snapshotted income account, so each charge lands on the account defined
+    for its Item (fallback: the service revenue account from settings).
+
     Args:
-        job_doc: The job document (Forwarding Job, Trip, etc.)
+        job_doc: The job document (Forwarding Job, Clearing Job, etc.)
         invoices: List of Sales Invoice documents to recognize
         recognition_date: Date for revenue recognition
-        service_type: One of 'forwarding', 'trucking', 'clearing', 'road_freight'
-    
+        service_type: One of 'forwarding', 'clearing', 'border_clearing', ...
+
     Returns:
-        str: Name of the created Journal Entry
+        tuple: (je_name, total_recognized), or (None, 0) if the invoices
+               have nothing in WIP to recognize
     """
     if not invoices:
         frappe.throw(_("No invoices found for revenue recognition"))
-    
+
     wip_revenue_account = get_wip_revenue_account()
-    revenue_account = get_service_revenue_account(service_type)
-    
+
+    _fallback = []
+    def get_fallback_account():
+        if not _fallback:
+            _fallback.append(get_service_revenue_account(service_type))
+        return _fallback[0]
+
     company = job_doc.company
-    base_currency = frappe.get_cached_value("Company", company, "default_currency")
-    
+
     accounts = []
     total_recognized = 0
-    
+
+    customer_ref = job_doc.get("customer_reference") or "N/A"
+
     for invoice in invoices:
-        # Calculate base amount using invoice's conversion rate
-        invoice_total = flt(invoice.grand_total)
-        conversion_rate = flt(invoice.conversion_rate) or 1
-        base_amount = flt(invoice_total * conversion_rate)
-
-        # Skip zero-amount invoices (defensive check)
-        if base_amount <= 0:
-            continue
-
-        total_recognized += base_amount
-
-        # Get cost center from first invoice item if available
-        cost_center = None
-        if invoice.items:
-            cost_center = invoice.items[0].cost_center
-
-        remark = _("Revenue recognition for {0} - Invoice {1}").format(
-            job_doc.name, invoice.name
+        def remark_builder(charge, invoice_name=invoice.name):
+            # job + ref lead so consolidated GL views read correctly;
+            # must end with the invoice name — remark_matches_invoice relies on it
+            return _("{0}, Ref: {1} - Revenue recognition of {2} - Invoice {3}").format(
+                job_doc.name, customer_ref, charge, invoice_name
+            )
+        lines, included_total = build_recognition_lines(
+            invoice, job_doc, wip_revenue_account,
+            "actual_income_account", "income_account",
+            get_fallback_account, remark_builder, "revenue"
         )
+        accounts.extend(lines)
+        total_recognized += included_total
 
-        # Debit WIP Revenue (reduce liability)
-        accounts.append({
-            "account": wip_revenue_account,
-            "debit_in_account_currency": base_amount,
-            "cost_center": cost_center,
-            "user_remark": remark,
-        })
-
-        # Credit Revenue Account (recognize income)
-        accounts.append({
-            "account": revenue_account,
-            "credit_in_account_currency": base_amount,
-            "cost_center": cost_center,
-            "user_remark": remark,
-        })
-    
     if not accounts:
-        frappe.throw(_("No accounting entries to create for revenue recognition"))
-    
+        return None, 0
+
     # Create Journal Entry
     je = frappe.get_doc({
         "doctype": "Journal Entry",
@@ -329,74 +462,61 @@ def create_recognition_journal_entry(job_doc, invoices, recognition_date, servic
 def create_cost_recognition_journal_entry(job_doc, invoices, recognition_date, service_type):
     """
     Create a Journal Entry to recognize cost for completed job.
-    
-    Creates one debit/credit pair per invoice for full traceability.
-    Uses company base currency with proper exchange rate conversion.
-    
+
+    Per invoice: one Cr WIP Cost line (net total) and one Dr line per
+    snapshotted expense account, so each charge lands on the account defined
+    for its Item (fallback: the service cost account from settings).
+
     Accounting:
-        Dr  Cost of Services (Expense)
+        Dr  each item's expense account
         Cr  WIP Cost (Asset)
-    
+
     Args:
-        job_doc: The job document (Forwarding Job, Trip, etc.)
+        job_doc: The job document (Forwarding Job, Clearing Job, etc.)
         invoices: List of Purchase Invoice documents to recognize
         recognition_date: Date for cost recognition
-        service_type: One of 'forwarding', 'trucking', 'clearing', 'road_freight'
-    
+        service_type: One of 'forwarding', 'clearing', 'border_clearing', ...
+
     Returns:
-        tuple: (je_name, total_recognized)
+        tuple: (je_name, total_recognized), or (None, 0) if the invoices
+               have nothing in WIP to recognize
     """
     if not invoices:
         frappe.throw(_("No purchase invoices found for cost recognition"))
-    
+
     wip_cost_account = get_wip_cost_account()
-    cost_account = get_service_cost_account(service_type)
-    
+
+    _fallback = []
+    def get_fallback_account():
+        if not _fallback:
+            _fallback.append(get_service_cost_account(service_type))
+        return _fallback[0]
+
     company = job_doc.company
-    
+
     accounts = []
     total_recognized = 0
-    
+
+    customer_ref = job_doc.get("customer_reference") or "N/A"
+
     for invoice in invoices:
-        # Calculate base amount using invoice's conversion rate
-        invoice_total = flt(invoice.grand_total)
-        conversion_rate = flt(invoice.conversion_rate) or 1
-        base_amount = flt(invoice_total * conversion_rate)
-
-        # Skip zero-amount invoices (defensive check)
-        if base_amount <= 0:
-            continue
-
-        total_recognized += base_amount
-
-        # Get cost center from first invoice item if available
-        cost_center = None
-        if invoice.items:
-            cost_center = invoice.items[0].cost_center
-
-        remark = _("Cost recognition for {0} - Invoice {1}").format(
-            job_doc.name, invoice.name
+        def remark_builder(charge, invoice_name=invoice.name):
+            # job + ref lead so consolidated GL views read correctly;
+            # must end with the invoice name — remark_matches_invoice relies on it
+            return _("{0}, Ref: {1} - Cost recognition of {2} - Invoice {3}").format(
+                job_doc.name, customer_ref, charge, invoice_name
+            )
+        lines, included_total = build_recognition_lines(
+            invoice, job_doc, wip_cost_account,
+            "actual_expense_account", "expense_account",
+            get_fallback_account, remark_builder, "cost"
         )
+        accounts.extend(lines)
+        total_recognized += included_total
 
-        # Debit Cost of Services (recognize expense)
-        accounts.append({
-            "account": cost_account,
-            "debit_in_account_currency": base_amount,
-            "cost_center": cost_center,
-            "user_remark": remark,
-        })
-
-        # Credit WIP Cost (reduce asset)
-        accounts.append({
-            "account": wip_cost_account,
-            "credit_in_account_currency": base_amount,
-            "cost_center": cost_center,
-            "user_remark": remark,
-        })
-    
     if not accounts:
-        frappe.throw(_("No accounting entries to create for cost recognition"))
-    
+        return None, 0
+
     # Create Journal Entry
     je = frappe.get_doc({
         "doctype": "Journal Entry",
@@ -506,8 +626,9 @@ def create_reversal_journal_entry(original_je_name, reversal_date=None, reason=N
 
 def validate_invoice_income_account(invoice_doc):
     """
-    Set the correct income account for forwarding-linked invoices.
-    Always routes to WIP Revenue — late recognition happens at on_submit.
+    Route job-linked Sales Invoice items through WIP Revenue, first snapshotting
+    each item's natural income account into actual_income_account so job closure
+    can post to it. Late recognition happens at on_submit.
 
     Called on Sales Invoice validate.
 
@@ -517,23 +638,46 @@ def validate_invoice_income_account(invoice_doc):
     if not is_revenue_recognition_enabled():
         return
 
-    job_reference = getattr(invoice_doc, "forwarding_job_reference", None)
+    _, job_reference, _, service_type = get_recognition_job_reference(invoice_doc)
     if not job_reference:
         return
 
-    # Always route through WIP — late recognition is handled at on_submit, not at validate
-    target_account = get_wip_revenue_account()
+    wip_account = get_wip_revenue_account()
+    pass_through_account = get_duty_pass_through_account()
+    service_fallback = get_recognition_settings().get(f"{service_type}_revenue_account")
+    company_default = frappe.get_cached_value(
+        "Company", invoice_doc.company, "default_income_account"
+    )
 
-    # Auto-correct income account silently
     for item in invoice_doc.items:
-        if item.income_account != target_account:
-            item.income_account = target_account
+        # Duty pass-through rows settle at invoice time and never enter WIP
+        if pass_through_account and item.income_account == pass_through_account:
+            continue
+        if (item.income_account
+                and item.income_account != wip_account
+                and item.income_account != company_default):
+            # Explicit account: an item/group/brand default resolved by ERPNext,
+            # or one picked on the line. The company default is excluded here —
+            # ERPNext uses it as a catch-all, and unconfigured charges should
+            # fall to the service account instead of generic Sales/COGS.
+            item.actual_income_account = item.income_account
+        elif not item.get("actual_income_account"):
+            explicit = resolve_item_default_account(
+                item.item_code, invoice_doc.company, "income_account"
+            )
+            if explicit == wip_account:
+                # Item Default poisoned by ERPNext's account auto-learning
+                # before the WIP guard existed — never snapshot WIP itself
+                explicit = None
+            item.actual_income_account = explicit or service_fallback or company_default
+        item.income_account = wip_account
 
 
 def validate_purchase_invoice_expense_account(invoice_doc):
     """
-    Set the correct expense account for forwarding-linked purchase invoices.
-    Always routes to WIP Cost — late recognition happens at on_submit.
+    Route job-linked Purchase Invoice items through WIP Cost, first snapshotting
+    each item's natural expense account into actual_expense_account so job
+    closure can post to it. Late recognition happens at on_submit.
 
     Called on Purchase Invoice validate.
 
@@ -543,17 +687,35 @@ def validate_purchase_invoice_expense_account(invoice_doc):
     if not is_revenue_recognition_enabled():
         return
 
-    job_reference = getattr(invoice_doc, "forwarding_job_reference", None)
+    _, job_reference, _, service_type = get_recognition_job_reference(invoice_doc)
     if not job_reference:
         return
 
-    # Always route through WIP — late recognition is handled at on_submit, not at validate
-    target_account = get_wip_cost_account()
+    wip_account = get_wip_cost_account()
+    pass_through_account = get_duty_pass_through_account()
+    service_fallback = get_recognition_settings().get(f"{service_type}_cost_account")
+    company_default = frappe.get_cached_value(
+        "Company", invoice_doc.company, "default_expense_account"
+    )
 
-    # Auto-correct expense account silently
     for item in invoice_doc.items:
-        if item.expense_account != target_account:
-            item.expense_account = target_account
+        # Duty pass-through rows settle at invoice time and never enter WIP
+        if pass_through_account and item.expense_account == pass_through_account:
+            continue
+        if (item.expense_account
+                and item.expense_account != wip_account
+                and item.expense_account != company_default):
+            # Explicit account (see income mirror for the company-default rationale)
+            item.actual_expense_account = item.expense_account
+        elif not item.get("actual_expense_account"):
+            explicit = resolve_item_default_account(
+                item.item_code, invoice_doc.company, "expense_account"
+            )
+            if explicit == wip_account:
+                # see income mirror — never snapshot WIP itself
+                explicit = None
+            item.actual_expense_account = explicit or service_fallback or company_default
+        item.expense_account = wip_account
 
 
 def recognize_revenue_for_job(job_doc, service_type):
@@ -616,7 +778,17 @@ def recognize_revenue_for_job(job_doc, service_type):
         job_doc.revenue_recognised_on,
         service_type
     )
-    
+
+    if not je_name:
+        # Nothing parked in WIP (e.g. pass-through-only invoices) — never block closure
+        frappe.msgprint(
+            _("Linked Sales Invoices have no WIP Revenue balance to recognize."),
+            alert=True
+        )
+        job_doc.revenue_recognised = 1
+        job_doc.total_recognised_revenue = 0
+        return
+
     # Update job with recognition details
     job_doc.revenue_recognised = 1
     job_doc.revenue_recognition_journal_entry = je_name
@@ -647,11 +819,12 @@ def reverse_revenue_recognition(job_doc):
             )
 
     # Also cancel any late-invoice recognition JEs (submitted after job recognition)
+    link_field = JOB_LINK_FIELD_MAP.get(job_doc.doctype)
     linked_si_names = frappe.get_all(
         "Sales Invoice",
-        filters={"forwarding_job_reference": job_doc.name},
+        filters={link_field: job_doc.name},
         pluck="name"
-    )
+    ) if link_field else []
     for si_name in linked_si_names:
         late_je_name = frappe.db.get_value("Sales Invoice", si_name, "recognition_journal_entry")
         if late_je_name:
@@ -728,7 +901,17 @@ def recognize_cost_for_job(job_doc, service_type):
         job_doc.revenue_recognised_on,
         service_type
     )
-    
+
+    if not je_name:
+        # Nothing parked in WIP (e.g. pass-through-only invoices) — never block closure
+        frappe.msgprint(
+            _("Linked Purchase Invoices have no WIP Cost balance to recognize."),
+            alert=True
+        )
+        job_doc.cost_recognised = 1
+        job_doc.total_recognised_cost = 0
+        return
+
     # Update job with cost recognition details
     job_doc.cost_recognised = 1
     job_doc.cost_recognition_journal_entry = je_name
@@ -759,11 +942,12 @@ def reverse_cost_recognition(job_doc):
             )
 
     # Also cancel any late-invoice cost recognition JEs (submitted after job recognition)
+    link_field = JOB_LINK_FIELD_MAP.get(job_doc.doctype)
     linked_pi_names = frappe.get_all(
         "Purchase Invoice",
-        filters={"forwarding_job_reference": job_doc.name},
+        filters={link_field: job_doc.name},
         pluck="name"
-    )
+    ) if link_field else []
     for pi_name in linked_pi_names:
         late_je_name = frappe.db.get_value("Purchase Invoice", pi_name, "recognition_journal_entry")
         if late_je_name:
@@ -825,7 +1009,17 @@ def handle_late_invoice_submission(invoice_doc, job_doctype, job_link_field, ser
         nowdate(),
         service_type
     )
-    
+
+    if not je_name:
+        # Nothing parked in WIP (e.g. pass-through-only invoice) — nothing to recognize
+        frappe.msgprint(
+            _("Sales Invoice {0} has no WIP Revenue balance. Skipping revenue recognition.").format(
+                invoice_doc.name
+            ),
+            alert=True
+        )
+        return
+
     # Safe increment — re-read from DB to avoid overwriting a concurrent update
     current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_revenue"))
     frappe.db.set_value(job_doctype, job_reference,
@@ -885,6 +1079,16 @@ def handle_late_purchase_invoice_submission(invoice_doc, job_doctype, job_link_f
         nowdate(),
         service_type
     )
+
+    if not je_name:
+        # Nothing parked in WIP (e.g. pass-through-only invoice) — nothing to recognize
+        frappe.msgprint(
+            _("Purchase Invoice {0} has no WIP Cost balance. Skipping cost recognition.").format(
+                invoice_doc.name
+            ),
+            alert=True
+        )
+        return
 
     # Safe increment — re-read from DB to avoid overwriting a concurrent update
     current_total = flt(frappe.db.get_value(job_doctype, job_reference, "total_recognised_cost"))
@@ -956,21 +1160,21 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
 
     je = frappe.get_doc("Journal Entry", je_name)
 
-    # Calculate amount and cost center to reverse for this invoice by checking user_remark
-    invoice_amount = 0
-    cost_center = None
-    for account in je.accounts:
-        if (account.user_remark and invoice_doc.name in account.user_remark and
-            flt(account.credit_in_account_currency) > 0):
-            invoice_amount = flt(account.credit_in_account_currency)
-            cost_center = account.cost_center
-            break
+    # Collect every line of the main JE belonging to this invoice. New-format JEs
+    # have one WIP line + one line per income account; old-format JEs have one
+    # Dr/Cr pair — swapping each matched line reverses both correctly.
+    matched_lines = [
+        account for account in je.accounts
+        if remark_matches_invoice(account.user_remark, invoice_doc.name)
+    ]
+
+    # Recognized amount for this invoice = sum of its income-side (credit) lines
+    invoice_amount = sum(
+        flt(account.credit_in_account_currency) for account in matched_lines
+    )
 
     if invoice_amount > 0:
-        # Create partial reversal for this invoice
-        wip_revenue_account = get_wip_revenue_account()
-        revenue_account = get_service_revenue_account(service_type)
-
+        # Create partial reversal for this invoice, mirroring the original lines
         reversal_je = frappe.get_doc({
             "doctype": "Journal Entry",
             "voucher_type": "Journal Entry",
@@ -979,17 +1183,15 @@ def handle_invoice_cancellation(invoice_doc, job_doctype, job_link_field, servic
             "user_remark": _("Reversal for cancelled Invoice {0}").format(invoice_doc.name),
             "accounts": [
                 {
-                    "account": revenue_account,
-                    "debit_in_account_currency": invoice_amount,
-                    "cost_center": cost_center,
-                    "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
-                },
-                {
-                    "account": wip_revenue_account,
-                    "credit_in_account_currency": invoice_amount,
-                    "cost_center": cost_center,
-                    "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
+                    "account": account.account,
+                    "debit_in_account_currency": flt(account.credit_in_account_currency),
+                    "credit_in_account_currency": flt(account.debit_in_account_currency),
+                    "cost_center": account.cost_center,
+                    # mirror the original remark so the reversal line keeps the
+                    # job/ref/charge context and stays discoverable by job name
+                    "user_remark": _("Reversal: {0}").format(account.user_remark or ""),
                 }
+                for account in matched_lines
             ],
         })
 
@@ -1063,21 +1265,21 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
 
     je = frappe.get_doc("Journal Entry", je_name)
 
-    # Calculate amount and cost center to reverse for this invoice by checking user_remark
-    invoice_amount = 0
-    cost_center = None
-    for account in je.accounts:
-        if (account.user_remark and invoice_doc.name in account.user_remark and
-            flt(account.debit_in_account_currency) > 0):
-            invoice_amount = flt(account.debit_in_account_currency)
-            cost_center = account.cost_center
-            break
+    # Collect every line of the main JE belonging to this invoice. New-format JEs
+    # have one WIP line + one line per expense account; old-format JEs have one
+    # Dr/Cr pair — swapping each matched line reverses both correctly.
+    matched_lines = [
+        account for account in je.accounts
+        if remark_matches_invoice(account.user_remark, invoice_doc.name)
+    ]
+
+    # Recognized amount for this invoice = sum of its expense-side (debit) lines
+    invoice_amount = sum(
+        flt(account.debit_in_account_currency) for account in matched_lines
+    )
 
     if invoice_amount > 0:
-        # Create partial reversal for this invoice
-        wip_cost_account = get_wip_cost_account()
-        cost_account = get_service_cost_account(service_type)
-
+        # Create partial reversal for this invoice, mirroring the original lines
         reversal_je = frappe.get_doc({
             "doctype": "Journal Entry",
             "voucher_type": "Journal Entry",
@@ -1086,17 +1288,15 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
             "user_remark": _("Cost Reversal for cancelled Invoice {0}").format(invoice_doc.name),
             "accounts": [
                 {
-                    "account": wip_cost_account,
-                    "debit_in_account_currency": invoice_amount,
-                    "cost_center": cost_center,
-                    "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
-                },
-                {
-                    "account": cost_account,
-                    "credit_in_account_currency": invoice_amount,
-                    "cost_center": cost_center,
-                    "user_remark": _("Reversal: Invoice {0} cancelled").format(invoice_doc.name),
+                    "account": account.account,
+                    "debit_in_account_currency": flt(account.credit_in_account_currency),
+                    "credit_in_account_currency": flt(account.debit_in_account_currency),
+                    "cost_center": account.cost_center,
+                    # mirror the original remark so the reversal line keeps the
+                    # job/ref/charge context and stays discoverable by job name
+                    "user_remark": _("Reversal: {0}").format(account.user_remark or ""),
                 }
+                for account in matched_lines
             ],
         })
 
@@ -1117,56 +1317,49 @@ def handle_purchase_invoice_cancellation(invoice_doc, job_doctype, job_link_fiel
         )
 
 
-# Forwarding Job specific handlers
-def on_forwarding_job_submit(doc, method=None):
-    """Hook called when Forwarding Job is submitted."""
-    recognize_revenue_for_job(doc, "forwarding")
-    recognize_cost_for_job(doc, "forwarding")
-
-
-def on_forwarding_job_cancel(doc, method=None):
-    """Hook called when Forwarding Job is cancelled."""
-    reverse_revenue_recognition(doc)
-    reverse_cost_recognition(doc)
-
-
 # Sales Invoice handlers
 def on_sales_invoice_submit(doc, method=None):
     """Hook called when Sales Invoice is submitted."""
-    if getattr(doc, "forwarding_job_reference", None):
-        handle_late_invoice_submission(doc, "Forwarding Job", "forwarding_job_reference", "forwarding")
+    job_doctype, job_name, link_field, service_type = get_recognition_job_reference(doc)
+    if job_name:
+        handle_late_invoice_submission(doc, job_doctype, link_field, service_type)
 
 
 def set_wip_revenue_account(doc, method=None):
     """
     Hook called on Sales Invoice validate.
-    Auto-sets the WIP Revenue account for Forwarding Job invoices.
+    Snapshots each item's natural income account and routes it to WIP Revenue
+    for job-linked invoices.
     """
     validate_invoice_income_account(doc)
 
 
 def on_sales_invoice_cancel_for_recognition(doc, method=None):
     """Hook called when Sales Invoice is cancelled - handle recognition reversal."""
-    if getattr(doc, "forwarding_job_reference", None):
-        handle_invoice_cancellation(doc, "Forwarding Job", "forwarding_job_reference", "forwarding")
+    job_doctype, job_name, link_field, service_type = get_recognition_job_reference(doc)
+    if job_name:
+        handle_invoice_cancellation(doc, job_doctype, link_field, service_type)
 
 
 # Purchase Invoice handlers
 def set_wip_cost_account(doc, method=None):
     """
     Hook called on Purchase Invoice validate.
-    Auto-sets the WIP Cost account for Forwarding Job invoices.
+    Snapshots each item's natural expense account and routes it to WIP Cost
+    for job-linked invoices.
     """
     validate_purchase_invoice_expense_account(doc)
 
 
 def on_purchase_invoice_submit(doc, method=None):
     """Hook called when Purchase Invoice is submitted."""
-    if getattr(doc, "forwarding_job_reference", None):
-        handle_late_purchase_invoice_submission(doc, "Forwarding Job", "forwarding_job_reference", "forwarding")
+    job_doctype, job_name, link_field, service_type = get_recognition_job_reference(doc)
+    if job_name:
+        handle_late_purchase_invoice_submission(doc, job_doctype, link_field, service_type)
 
 
 def on_purchase_invoice_cancel_for_recognition(doc, method=None):
     """Hook called when Purchase Invoice is cancelled - handle cost recognition reversal."""
-    if getattr(doc, "forwarding_job_reference", None):
-        handle_purchase_invoice_cancellation(doc, "Forwarding Job", "forwarding_job_reference", "forwarding")
+    job_doctype, job_name, link_field, service_type = get_recognition_job_reference(doc)
+    if job_name:
+        handle_purchase_invoice_cancellation(doc, job_doctype, link_field, service_type)
