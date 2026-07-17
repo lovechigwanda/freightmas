@@ -19,6 +19,16 @@
   "date_created",
   "shipment_type",
   "amended_from",
+  "services_required_section",
+  "requires_sea_air_freight",
+  "column_break_srcb0",
+  "requires_port_clearance",
+  "column_break_srcb1",
+  "is_trucking_required",
+  "column_break_srcb1b",
+  "requires_border_clearance",
+  "column_break_srcb2",
+  "requires_warehousing",
   "client_and_party_information_section",
   "customer",
   "notify_party",
@@ -73,7 +83,6 @@
   "documents_checklist",
   "parcel_tab",
   "loading_master_section",
-  "is_trucking_required",
   "column_break_vwaw",
   "cargo_count",
   "route",
@@ -142,6 +151,20 @@
   "column_break_cr1",
   "cost_recognition_journal_entry",
   "total_recognised_cost",
+  "milestones_tab",
+  "overall_milestone_progress",
+  "sea_air_freight_milestones_section",
+  "sea_air_freight_progress_summary",
+  "road_freight_milestones_section",
+  "road_freight_milestones",
+  "port_clearance_milestones_section",
+  "port_clearance_milestones",
+  "road_transport_milestones_section",
+  "road_transport_progress_summary",
+  "border_clearance_milestones_section",
+  "border_clearance_milestones",
+  "warehouse_milestones_section",
+  "warehouse_milestones",
   "tracking_tab",
   "bl_tracking_summary_section",
   "enable_api_tracking",
@@ -266,6 +289,62 @@
    "options": "\nFCL\nLCL\nConsol",
    "reqd": 1,
    "set_only_once": 1
+  },
+  {
+   "fieldname": "services_required_section",
+   "fieldtype": "Section Break",
+   "label": "Services Required"
+  },
+  {
+   "default": "1",
+   "fieldname": "requires_sea_air_freight",
+   "fieldtype": "Check",
+   "label": "Sea/Air Freight",
+   "read_only_depends_on": "eval:!doc.__islocal && doc.requires_sea_air_freight"
+  },
+  {
+   "fieldname": "column_break_srcb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_port_clearance",
+   "fieldtype": "Check",
+   "label": "Port Clearance",
+   "read_only_depends_on": "eval:!doc.__islocal && doc.requires_port_clearance"
+  },
+  {
+   "fieldname": "column_break_srcb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_trucking_required",
+   "fieldtype": "Check",
+   "label": "Trucking Service",
+   "read_only_depends_on": "eval:doc.trucks_required || (!doc.__islocal && doc.is_trucking_required)"
+  },
+  {
+   "fieldname": "column_break_srcb1b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_border_clearance",
+   "fieldtype": "Check",
+   "label": "Border Clearance",
+   "read_only_depends_on": "eval:!doc.__islocal && doc.requires_border_clearance"
+  },
+  {
+   "fieldname": "column_break_srcb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_warehousing",
+   "fieldtype": "Check",
+   "label": "Warehousing",
+   "read_only_depends_on": "eval:!doc.__islocal && doc.requires_warehousing"
   },
   {
    "fieldname": "basic_information_section",
@@ -519,6 +598,100 @@
   {
    "fieldname": "column_break_lpog",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "milestones_tab",
+   "fieldtype": "Tab Break",
+   "label": "Milestones"
+  },
+  {
+   "fieldname": "overall_milestone_progress",
+   "fieldtype": "HTML",
+   "label": "Overall Milestone Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.requires_sea_air_freight",
+   "fieldname": "sea_air_freight_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Sea / Air Freight Progress"
+  },
+  {
+   "depends_on": "eval:doc.requires_sea_air_freight",
+   "description": "Read-only rollup of shipment dates (ETD/ATD, ETA/ATA) and per-container tracking (Discharged/Gate Out/Empty Returned) already captured elsewhere on this job - not a separate checklist.",
+   "fieldname": "sea_air_freight_progress_summary",
+   "fieldtype": "HTML",
+   "label": "Sea / Air Freight Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.shipment_mode==\"Road\"",
+   "fieldname": "road_freight_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Road Freight Milestones (International)"
+  },
+  {
+   "depends_on": "eval:doc.shipment_mode==\"Road\"",
+   "fieldname": "road_freight_milestones",
+   "fieldtype": "Table",
+   "no_copy": 1,
+   "options": "Job Milestone Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.requires_port_clearance",
+   "fieldname": "port_clearance_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Port Clearance Milestones"
+  },
+  {
+   "depends_on": "eval:doc.requires_port_clearance",
+   "fieldname": "port_clearance_milestones",
+   "fieldtype": "Table",
+   "no_copy": 1,
+   "options": "Job Milestone Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.is_trucking_required",
+   "fieldname": "road_transport_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Road Transport Progress"
+  },
+  {
+   "depends_on": "eval:doc.is_trucking_required",
+   "description": "Per-container/parcel tracking (booked/loaded/offloaded/returned) is captured directly on the Parcel tab's Cargo / Parcel Details table - this is a read-only rollup of that data, not a separate checklist.",
+   "fieldname": "road_transport_progress_summary",
+   "fieldtype": "HTML",
+   "label": "Road Transport Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.requires_border_clearance",
+   "fieldname": "border_clearance_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Border Clearance Milestones"
+  },
+  {
+   "depends_on": "eval:doc.requires_border_clearance",
+   "fieldname": "border_clearance_milestones",
+   "fieldtype": "Table",
+   "no_copy": 1,
+   "options": "Job Milestone Progress"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.requires_warehousing",
+   "fieldname": "warehouse_milestones_section",
+   "fieldtype": "Section Break",
+   "label": "Warehouse Milestones"
+  },
+  {
+   "depends_on": "eval:doc.requires_warehousing",
+   "fieldname": "warehouse_milestones",
+   "fieldtype": "Table",
+   "no_copy": 1,
+   "options": "Job Milestone Progress"
   },
   {
    "fieldname": "tracking_tab",
@@ -900,13 +1073,6 @@
    "label": "Loading Master"
   },
   {
-   "default": "0",
-   "fieldname": "is_trucking_required",
-   "fieldtype": "Check",
-   "label": "Is Trucking Required",
-   "read_only_depends_on": "eval:doc.trucks_required"
-  },
-  {
    "depends_on": "eval:doc.is_trucking_required",
    "fieldname": "loading_master_section2",
    "fieldtype": "Section Break"
@@ -1254,7 +1420,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-05-19 18:38:21.700625",
+ "modified": "2026-07-16 16:18:42.538727",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

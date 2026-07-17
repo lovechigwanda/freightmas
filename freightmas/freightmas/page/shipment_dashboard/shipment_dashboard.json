@@ -1,0 +1,30 @@
+{
+ "creation": "2026-07-17 09:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "octicon octicon-package",
+ "idx": 0,
+ "modified": "2026-07-17 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "shipment-dashboard",
+ "owner": "Administrator",
+ "page_name": "shipment-dashboard",
+ "roles": [
+  {
+   "role": "FreightMas User"
+  },
+  {
+   "role": "FreightMas Manager"
+  },
+  {
+   "role": "FreightMas Accounts"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "Shipment Dashboard"
+}

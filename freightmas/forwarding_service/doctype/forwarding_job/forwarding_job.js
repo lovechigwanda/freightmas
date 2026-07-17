@@ -27,6 +27,8 @@ frappe.ui.form.on('Forwarding Job', {
         update_currency_labels(frm);
         update_cargo_count_forwarding(frm);
         setup_dnd_storage_handlers(frm);
+        lock_milestone_grids(frm);
+        refresh_milestone_progress_ui(frm);
 
         // ========================================
         // API TRACKING CHECKBOX VISIBILITY
@@ -1044,6 +1046,384 @@ function calculate_actual_totals(frm) {
 }
 
 
+// ==========================================================
+// MILESTONES TAB - progress summary + auto-set completed date
+// ==========================================================
+
+const MILESTONE_TABLE_FIELDS = [
+    "road_freight_milestones",
+    "port_clearance_milestones",
+    "border_clearance_milestones",
+    "warehouse_milestones"
+];
+
+// Maps each collapsible Milestones-tab section to the child table it holds,
+// so a progress badge can be shown right on the section header - visible even
+// while the section is collapsed.
+const MILESTONE_SECTION_MAP = {
+    "road_freight_milestones_section": "road_freight_milestones",
+    "port_clearance_milestones_section": "port_clearance_milestones",
+    "border_clearance_milestones_section": "border_clearance_milestones",
+    "warehouse_milestones_section": "warehouse_milestones"
+};
+
+function milestone_progress_color(percent) {
+    if (percent === 100) return '#2f9e44'; // green
+    if (percent >= 50) return '#f08c00'; // orange
+    if (percent > 0) return '#f2994a'; // amber
+    return '#e03131'; // red
+}
+
+// Milestone rows are a fixed, system-managed checklist mirroring Milestone
+// Definition - rows cannot be added, duplicated, or deleted; only Done/
+// Completed On/Remarks are user-editable. cannot_delete_rows/cannot_add_rows
+// are runtime-only grid properties in Frappe (not DocField schema
+// properties), so they must be set here via set_df_property rather than
+// in the JSON.
+function lock_milestone_grids(frm) {
+    MILESTONE_TABLE_FIELDS.forEach(fieldname => {
+        frm.set_df_property(fieldname, 'cannot_delete_rows', true);
+        frm.set_df_property(fieldname, 'cannot_add_rows', true);
+    });
+}
+
+// Single entry point: refresh both the overall bar and each section's badge.
+function refresh_milestone_progress_ui(frm) {
+    render_milestone_summary(frm);
+    render_milestone_section_badges(frm);
+    render_road_transport_section_badge(frm);
+    render_road_transport_progress_summary(frm);
+    render_sea_air_section_badge(frm);
+    render_sea_air_progress_summary(frm);
+}
+
+// Sea/Air Freight progress is NOT a separate checklist either - same reasoning
+// as Road Transport. ETD/ATD/ETA/ATA are shipment-level (Details tab); the
+// discharge/gate-out/empty-return dates are per-container (cargo_parcel_details).
+// "Done" simply means the relevant date is set.
+function get_sea_air_progress_counts(frm) {
+    let total = 2; // Departed (atd), Arrived (ata) - shipment-level, always applicable
+    let completed = 0;
+    if (frm.doc.atd) completed += 1;
+    if (frm.doc.ata) completed += 1;
+
+    const containers = (frm.doc.cargo_parcel_details || []).filter(r => r.cargo_type === 'Containerised');
+    containers.forEach(r => {
+        const checks = [!!r.discharge_date, !!r.gate_out_date];
+        if (r.to_be_returned) checks.push(!!r.empty_return_date);
+
+        total += checks.length;
+        completed += checks.filter(Boolean).length;
+    });
+
+    return { completed, total };
+}
+
+function render_sea_air_progress_summary(frm) {
+    const summary_field = frm.fields_dict['sea_air_freight_progress_summary'];
+    if (!summary_field) return;
+
+    const containers = (frm.doc.cargo_parcel_details || []).filter(r => r.cargo_type === 'Containerised');
+
+    const shipment_row = (label, done, date) => `
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px;">
+            <span style="width: 90px;">${label}</span>
+            ${done
+                ? `<span style="color: #2f9e44; font-weight: 700;">&#10003;</span><span class="text-muted">${frappe.datetime.str_to_user(date)}</span>`
+                : `<span style="color: #e03131; font-weight: 700;">&#10007;</span><span class="text-muted">${__('Not yet')}</span>`}
+        </div>
+    `;
+
+    let html = `
+        <div style="margin-bottom: 10px;">
+            ${shipment_row(__('Departed'), !!frm.doc.atd, frm.doc.atd)}
+            ${shipment_row(__('Arrived'), !!frm.doc.ata, frm.doc.ata)}
+        </div>
+    `;
+
+    if (containers.length) {
+        html += build_sea_air_container_table_html(containers);
+    }
+
+    summary_field.$wrapper.html(html);
+}
+
+function build_sea_air_container_table_html(containers) {
+    const cell = (date, applicable = true) => {
+        if (!applicable) return `<span style="color: #adb5bd;">&ndash;</span>`;
+        return date
+            ? `<span style="color: #2f9e44; font-weight: 700;" title="${frappe.datetime.str_to_user(date)}">&#10003;</span>`
+            : `<span style="color: #e03131; font-weight: 700;">&#10007;</span>`;
+    };
+
+    const body_rows = containers.map(r => {
+        const label = r.container_number || __('Container');
+        return `
+            <tr>
+                <td style="padding: 4px 8px; font-size: 12px;">${frappe.utils.escape_html(label)}</td>
+                <td style="text-align: center;">${cell(r.discharge_date)}</td>
+                <td style="text-align: center;">${cell(r.gate_out_date)}</td>
+                <td style="text-align: center;">${cell(r.empty_return_date, !!r.to_be_returned)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <table class="table table-bordered" style="margin-top: 4px; font-size: 12px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 4px 8px;">${__('Container')}</th>
+                    <th style="text-align: center;">${__('Discharged')}</th>
+                    <th style="text-align: center;">${__('Gate Out')}</th>
+                    <th style="text-align: center;">${__('Empty Returned')}</th>
+                </tr>
+            </thead>
+            <tbody>${body_rows}</tbody>
+        </table>
+    `;
+}
+
+// Badge on the "Sea / Air Freight Progress" section header, matching the
+// style used for the Job Milestone Progress-backed sections.
+function render_sea_air_section_badge(frm) {
+    const section_field = frm.fields_dict['sea_air_freight_milestones_section'];
+    if (!section_field || !section_field.wrapper) return;
+
+    const $head = $(section_field.wrapper).find('.section-head').first();
+    if (!$head.length) return;
+
+    $head.find('.milestone-section-badge').remove();
+
+    const { completed, total } = get_sea_air_progress_counts(frm);
+    if (!total) return;
+
+    const percent = Math.round((completed / total) * 100);
+    const bar_color = milestone_progress_color(percent);
+
+    $head.append(`
+        <span class="milestone-section-badge" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; vertical-align: middle;">
+            <span style="width: 60px; height: 6px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: inline-block;">
+                <span style="display: block; width: ${percent}%; height: 100%; background: ${bar_color};"></span>
+            </span>
+            <span style="font-size: 11px; font-weight: 600; color: ${bar_color};">${completed}/${total}</span>
+        </span>
+    `);
+}
+
+// Road Transport progress is NOT a separate checklist - it's a read-only rollup
+// of the per-container/parcel tracking already captured on the Parcel tab's
+// cargo_parcel_details table (is_booked/is_loaded/is_offloaded/is_returned).
+// This avoids a second, disconnected place to track the same thing per truck/container.
+//
+// Counting rule (used here, in the section badge, and in the Overall Milestone
+// Progress bar): each truck-required row contributes 4 always-applicable
+// checks (booked/loaded/offloaded/completed), plus a 5th (returned) only for
+// containers actually flagged to_be_returned - so a job with no returnable
+// containers isn't penalised for a stage that doesn't apply to it.
+function get_road_transport_progress_counts(frm) {
+    const rows = (frm.doc.cargo_parcel_details || []).filter(r => r.is_truck_required);
+    let total = 0;
+    let completed = 0;
+
+    rows.forEach(r => {
+        const is_returnable = r.cargo_type === 'Containerised' && r.to_be_returned;
+        const checks = [r.is_booked, r.is_loaded, r.is_offloaded, r.is_completed];
+        if (is_returnable) checks.push(r.is_returned);
+
+        total += checks.length;
+        completed += checks.filter(Boolean).length;
+    });
+
+    return { completed, total };
+}
+
+function render_road_transport_progress_summary(frm) {
+    const summary_field = frm.fields_dict['road_transport_progress_summary'];
+    if (!summary_field) return;
+
+    const rows = (frm.doc.cargo_parcel_details || []).filter(r => r.is_truck_required);
+
+    if (!rows.length) {
+        summary_field.$wrapper.html(`<div class="text-muted" style="font-size: 12px;">${__('No parcels/containers currently require trucking.')}</div>`);
+        return;
+    }
+
+    const returnable_rows = rows.filter(r => r.cargo_type === 'Containerised' && r.to_be_returned);
+    summary_field.$wrapper.html(build_road_transport_container_table_html(rows, returnable_rows));
+}
+
+// Per-container/parcel breakdown - shown for every job with at least one
+// container/parcel requiring trucking, whether that's one or many.
+function build_road_transport_container_table_html(rows, returnable_rows) {
+    const returnable_names = new Set(returnable_rows.map(r => r.name));
+
+    const cell = (ok, applicable = true) => {
+        if (!applicable) return `<span style="color: #adb5bd;">&ndash;</span>`;
+        return ok
+            ? `<span style="color: #2f9e44; font-weight: 700;">&#10003;</span>`
+            : `<span style="color: #e03131; font-weight: 700;">&#10007;</span>`;
+    };
+
+    const body_rows = rows.map(r => {
+        const label = r.container_number || r.cargo_item_description || __('Parcel');
+        const is_returnable = returnable_names.has(r.name);
+        return `
+            <tr>
+                <td style="padding: 4px 8px; font-size: 12px;">${frappe.utils.escape_html(label)}</td>
+                <td style="text-align: center;">${cell(r.is_booked)}</td>
+                <td style="text-align: center;">${cell(r.is_loaded)}</td>
+                <td style="text-align: center;">${cell(r.is_offloaded)}</td>
+                <td style="text-align: center;">${cell(r.is_returned, is_returnable)}</td>
+                <td style="text-align: center;">${cell(r.is_completed)}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <table class="table table-bordered" style="margin-top: 4px; font-size: 12px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 4px 8px;">${__('Container / Parcel')}</th>
+                    <th style="text-align: center;">${__('Booked')}</th>
+                    <th style="text-align: center;">${__('Loaded')}</th>
+                    <th style="text-align: center;">${__('Offloaded')}</th>
+                    <th style="text-align: center;">${__('Returned')}</th>
+                    <th style="text-align: center;">${__('Completed')}</th>
+                </tr>
+            </thead>
+            <tbody>${body_rows}</tbody>
+        </table>
+    `;
+}
+
+// Badge on the "Road Transport Progress" section header, matching the style
+// used for the Job Milestone Progress-backed sections, so it's visible even
+// while the section is collapsed.
+function render_road_transport_section_badge(frm) {
+    const section_field = frm.fields_dict['road_transport_milestones_section'];
+    if (!section_field || !section_field.wrapper) return;
+
+    const $head = $(section_field.wrapper).find('.section-head').first();
+    if (!$head.length) return;
+
+    $head.find('.milestone-section-badge').remove();
+
+    const { completed, total } = get_road_transport_progress_counts(frm);
+    if (!total) return;
+
+    const percent = Math.round((completed / total) * 100);
+    const bar_color = milestone_progress_color(percent);
+
+    $head.append(`
+        <span class="milestone-section-badge" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; vertical-align: middle;">
+            <span style="width: 60px; height: 6px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: inline-block;">
+                <span style="display: block; width: ${percent}%; height: 100%; background: ${bar_color};"></span>
+            </span>
+            <span style="font-size: 11px; font-weight: 600; color: ${bar_color};">${completed}/${total}</span>
+        </span>
+    `);
+}
+
+function render_milestone_section_badges(frm) {
+    Object.entries(MILESTONE_SECTION_MAP).forEach(([section_fieldname, table_fieldname]) => {
+        const section_field = frm.fields_dict[section_fieldname];
+        if (!section_field || !section_field.wrapper) return;
+
+        const $head = $(section_field.wrapper).find('.section-head').first();
+        if (!$head.length) return;
+
+        $head.find('.milestone-section-badge').remove();
+
+        const rows = frm.doc[table_fieldname] || [];
+        if (!rows.length) return;
+
+        const completed = rows.filter(r => r.is_completed).length;
+        const total = rows.length;
+        const percent = Math.round((completed / total) * 100);
+        const bar_color = milestone_progress_color(percent);
+
+        $head.append(`
+            <span class="milestone-section-badge" style="display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; vertical-align: middle;">
+                <span style="width: 60px; height: 6px; background: #e9ecef; border-radius: 4px; overflow: hidden; display: inline-block;">
+                    <span style="display: block; width: ${percent}%; height: 100%; background: ${bar_color};"></span>
+                </span>
+                <span style="font-size: 11px; font-weight: 600; color: ${bar_color};">${completed}/${total}</span>
+            </span>
+        `);
+    });
+}
+
+function render_milestone_summary(frm) {
+    const progress_field = frm.fields_dict['overall_milestone_progress'];
+    if (!progress_field) return;
+
+    let total = 0;
+    let completed = 0;
+
+    MILESTONE_TABLE_FIELDS.forEach(fieldname => {
+        const rows = frm.doc[fieldname] || [];
+        total += rows.length;
+        completed += rows.filter(r => r.is_completed).length;
+    });
+
+    // Road Transport isn't a Job Milestone Progress table - fold its
+    // per-container rollup counts in too, so it contributes to the overall total.
+    const road_transport = get_road_transport_progress_counts(frm);
+    total += road_transport.total;
+    completed += road_transport.completed;
+
+    // Same for Sea/Air Freight - shipment-level + per-container date rollup.
+    if (frm.doc.requires_sea_air_freight) {
+        const sea_air = get_sea_air_progress_counts(frm);
+        total += sea_air.total;
+        completed += sea_air.completed;
+    }
+
+    if (!total) {
+        progress_field.$wrapper.html('');
+        return;
+    }
+
+    const percent = Math.round((completed / total) * 100);
+    const bar_color = milestone_progress_color(percent);
+
+    progress_field.$wrapper.html(`
+        <div style="margin: 4px 0 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                <span>${__('Overall Milestone Progress')}</span>
+                <span class="text-muted" style="font-weight: normal;">${completed} / ${total} (${percent}%)</span>
+            </div>
+            <div style="background: #e9ecef; border-radius: 6px; height: 10px; overflow: hidden;">
+                <div style="width: ${percent}%; background: ${bar_color}; height: 100%; border-radius: 6px; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+    `);
+}
+
+// Auto-set/clear the Completed On date when a milestone is ticked/unticked,
+// and refresh the progress summary for the parent field.
+frappe.ui.form.on('Job Milestone Progress', {
+    is_completed: function(frm, cdt, cdn) {
+        const row = locals[cdt][cdn];
+        frappe.model.set_value(cdt, cdn, 'completed_on', row.is_completed ? frappe.datetime.get_today() : null);
+        refresh_milestone_progress_ui(frm);
+    }
+});
+
+// atd/ata feed the Sea/Air Freight progress rollup directly - refresh it live.
+frappe.ui.form.on('Forwarding Job', {
+    atd: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    },
+    ata: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    }
+});
+
 //////////////////////////////////////////
 /// Prevent editing of costing charges once job is not Draft
 //////////////////////////////////////////
@@ -1151,26 +1531,32 @@ frappe.ui.form.on('Cargo Parcel Details', {
             clear_all_milestones(row);
             frm.refresh_field('cargo_parcel_details');
         }
+        render_road_transport_progress_summary(frm);
     },
 
     is_booked: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_booked', 'booked_on_date');
+        render_road_transport_progress_summary(frm);
     },
 
     is_loaded: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_loaded', 'loaded_on_date');
+        render_road_transport_progress_summary(frm);
     },
 
     is_offloaded: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_offloaded', 'offloaded_on_date');
+        render_road_transport_progress_summary(frm);
     },
 
     is_returned: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_returned', 'returned_on_date');
+        render_road_transport_progress_summary(frm);
     },
 
     is_completed: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_completed', 'completed_on_date');
+        render_road_transport_progress_summary(frm);
     },
 
     // Date field validations
@@ -1188,6 +1574,38 @@ frappe.ui.form.on('Cargo Parcel Details', {
 
     completed_on_date: function(frm, cdt, cdn) {
         validate_milestone_date_sequence(frm, cdt, cdn);
+    },
+
+    // Sea/Air Freight per-container progress rollup - refresh on any of the
+    // fields it reads from.
+    discharge_date: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    },
+
+    gate_out_date: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    },
+
+    empty_return_date: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    },
+
+    to_be_returned: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
+    },
+
+    cargo_type: function(frm) {
+        render_sea_air_progress_summary(frm);
+        render_sea_air_section_badge(frm);
+        render_milestone_summary(frm);
     }
 });
 

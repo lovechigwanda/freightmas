@@ -31,6 +31,9 @@ class ForwardingJob(Document):
         # Calculate the number of trucks required
         self.calculate_trucks_required()
 
+        # Auto-populate milestone checklists for each ticked service mode
+        self.populate_mode_milestones()
+
         # Skip validations if checkbox is ticked (for cancelling problematic jobs)
         if self.skip_validations:
             if "System Manager" not in frappe.get_roles():
@@ -42,6 +45,79 @@ class ForwardingJob(Document):
             self.prevent_editing_costing_charges()
             self.validate_cargo_milestones()
             self.validate_completion_requirements()
+            self.lock_services_required_once_set()
+            self.prevent_milestone_row_deletion()
+            self.prevent_manual_milestone_rows()
+
+    def lock_services_required_once_set(self):
+        """Once a Services Required checkbox has been saved as ticked, it can
+        never be turned off again (0 -> 1 is always allowed; 1 -> 0 is not).
+        This prevents the scope of a job silently shrinking after milestone
+        tracking/charges have already started against that service."""
+        if self.is_new():
+            return
+
+        locked_fields = [
+            "requires_sea_air_freight",
+            "requires_port_clearance",
+            "is_trucking_required",
+            "requires_border_clearance",
+            "requires_warehousing",
+        ]
+        previous = frappe.db.get_value(self.doctype, self.name, locked_fields, as_dict=True) or {}
+        for fieldname in locked_fields:
+            if previous.get(fieldname) and not self.get(fieldname):
+                frappe.throw(
+                    _("{0} was already enabled for this job and cannot be turned off.").format(
+                        self.meta.get_label(fieldname)
+                    )
+                )
+
+    def prevent_milestone_row_deletion(self):
+        """Milestone rows are an audit trail of what happened and when - once
+        saved, a row cannot be removed from any of the milestone tables
+        (client-side this is also enforced via cannot_delete_rows on the grid,
+        this is the authoritative server-side check)."""
+        if self.is_new():
+            return
+
+        milestone_fields = [
+            "road_freight_milestones",
+            "port_clearance_milestones",
+            "border_clearance_milestones",
+            "warehouse_milestones",
+        ]
+        for fieldname in milestone_fields:
+            previous_names = set(
+                frappe.get_all(
+                    "Job Milestone Progress",
+                    filters={"parent": self.name, "parentfield": fieldname, "parenttype": "Forwarding Job"},
+                    pluck="name",
+                )
+            )
+            if not previous_names:
+                continue
+            current_names = {row.name for row in (self.get(fieldname) or []) if row.name}
+            if previous_names - current_names:
+                frappe.throw(_("Milestone rows cannot be deleted once added."))
+
+    def prevent_manual_milestone_rows(self):
+        """Milestone rows are a fixed, system-managed checklist mirroring active
+        Milestone Definition records - users cannot add or duplicate rows
+        (client-side this is also enforced via cannot_add_rows on the grid).
+        Every row populated by populate_mode_milestones() always has a
+        `milestone` link set, so any row missing it must have been added
+        manually (e.g. via API) and is rejected here."""
+        milestone_fields = [
+            "road_freight_milestones",
+            "port_clearance_milestones",
+            "border_clearance_milestones",
+            "warehouse_milestones",
+        ]
+        for fieldname in milestone_fields:
+            for row in self.get(fieldname) or []:
+                if not row.milestone:
+                    frappe.throw(_("Milestone rows cannot be added or duplicated manually."))
 
     def _sync_dnd_dates_from_cargo(self):
         """Keep DND detail dates in sync with their linked Cargo Parcel Details row."""
@@ -74,6 +150,47 @@ class ForwardingJob(Document):
         from freightmas.utils.revenue_recognition import reverse_revenue_recognition, reverse_cost_recognition
         reverse_revenue_recognition(self)
         reverse_cost_recognition(self)
+
+    def populate_mode_milestones(self):
+        """Populate each mode's milestone checklist from active Milestone Definition
+        records the first time that mode is enabled on this job.
+
+        Rows are snapshotted (milestone_code/milestone_label copied as plain values)
+        and never re-synced afterwards, so later edits to Milestone Definition
+        (rewording, retiring, adding new milestones) never retroactively change a
+        job that already has its checklist populated - this keeps historical
+        reporting stable even as milestone definitions evolve.
+        """
+        mode_map = {
+            "road_freight_milestones": ("Road Freight", self.shipment_mode == "Road"),
+            "port_clearance_milestones": ("Port Clearance", bool(self.requires_port_clearance)),
+            "border_clearance_milestones": ("Border Clearance", bool(self.requires_border_clearance)),
+            "warehouse_milestones": ("Warehouse", bool(self.requires_warehousing)),
+        }
+
+        for fieldname, (service_module, is_enabled) in mode_map.items():
+            if not is_enabled or self.get(fieldname):
+                continue  # mode not selected, or checklist already populated - never re-sync
+
+            definitions = frappe.get_all(
+                "Milestone Definition",
+                filters={
+                    "service_module": service_module,
+                    "is_active": 1,
+                    "direction": ["in", ["Both", self.direction or "Both"]],
+                    "customer": ["in", ["", self.customer or ""]],
+                },
+                fields=["name", "milestone_code", "milestone_label"],
+                order_by="sequence asc",
+            )
+
+            for definition in definitions:
+                self.append(fieldname, {
+                    "milestone": definition.name,
+                    "milestone_code": definition.milestone_code,
+                    "milestone_label": definition.milestone_label,
+                    "service_module": service_module,
+                })
 
     def set_base_currency(self):
         """Ensure base_currency and conversion_rate are set."""

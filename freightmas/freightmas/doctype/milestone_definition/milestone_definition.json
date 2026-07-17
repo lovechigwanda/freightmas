@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-07-16 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "milestone_details_section",
+  "milestone_code",
+  "milestone_label",
+  "column_break_mdcb1",
+  "service_module",
+  "direction",
+  "column_break_mdcb2",
+  "sequence",
+  "is_active",
+  "customer_override_section",
+  "customer"
+ ],
+ "fields": [
+  {
+   "fieldname": "milestone_details_section",
+   "fieldtype": "Section Break",
+   "label": "Milestone Details"
+  },
+  {
+   "description": "System-generated stable key used by reports and automation (mirrors the record ID).",
+   "fieldname": "milestone_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Milestone Code",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "milestone_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Milestone Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mdcb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_module",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Service Module",
+   "options": "Sea/Air Freight\nRoad Freight\nPort Clearance\nRoad Transport\nBorder Clearance\nWarehouse",
+   "reqd": 1
+  },
+  {
+   "default": "Both",
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Direction",
+   "options": "Both\nImport\nExport"
+  },
+  {
+   "fieldname": "column_break_mdcb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "sequence",
+   "fieldtype": "Int",
+   "label": "Sequence"
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Active"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "customer_override_section",
+   "fieldtype": "Section Break",
+   "label": "Customer-Specific Override"
+  },
+  {
+   "description": "Leave blank for a generic milestone used by all customers. Set a Customer here to define a customer-specific wording/step that only applies to their jobs (in addition to the generic ones).",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-16 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "Milestone Definition",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Admin",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "milestone_label,service_module",
+ "sort_field": "sequence",
+ "sort_order": "ASC",
+ "states": []
+}

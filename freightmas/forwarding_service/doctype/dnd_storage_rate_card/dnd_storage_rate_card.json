@@ -1,8 +1,9 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "DND-RATE-.#####.",
- "creation": "2026-05-13 00:00:00.000000",
+ "creation": "2026-05-13 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -110,10 +111,10 @@
    "label": "Valid To"
   },
   {
+   "description": "Free days apply equally to all container types on this rate card",
    "fieldname": "free_days_section",
    "fieldtype": "Section Break",
-   "label": "Free Days",
-   "description": "Free days apply equally to all container types on this rate card"
+   "label": "Free Days"
   },
   {
    "default": "0",
@@ -153,10 +154,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-05-19 00:00:00.000000",
+ "modified": "2026-07-17 16:49:17.301816",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "DND Storage Rate Card",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {
