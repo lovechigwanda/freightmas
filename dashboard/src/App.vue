@@ -11,21 +11,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { api } from "./modules/overview/api";
+import { onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { NAV_ITEMS } from "./router";
+import { useSessionStore } from "./stores/session";
 import Sidebar from "./shell/Sidebar.vue";
 import TopBar from "./shell/TopBar.vue";
 
 const navItems = NAV_ITEMS;
-const branding = ref({});
 
-onMounted(async () => {
-	try {
-		branding.value = await api.getBranding();
-	} catch (e) {
-		branding.value = { company_name: "FreightMas" };
-	}
-});
+// Branding is fetched once here and shared via the session store; the shell
+// components read it from the store rather than each fetching their own.
+const session = useSessionStore();
+const { branding } = storeToRefs(session);
+
+onMounted(() => session.loadBranding());
 </script>
 

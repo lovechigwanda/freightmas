@@ -19,9 +19,19 @@ frappe.pages["freightmas-command-center"].on_page_load = function (wrapper) {
 
 	const $mount = $('<div id="freightmas-command-center-app"></div>').appendTo(page.main);
 
+	// The bundle is emitted with fixed filenames (dashboard.js/.css) so this
+	// controller can reference them, but that means the browser + frappe.require
+	// cache them by URL and can serve a stale bundle after a rebuild/deploy.
+	// Append a cache-busting query so a new release is always fetched fresh:
+	// in developer mode bust on every load; otherwise key on the app version
+	// (bump the freightmas app version on deploy).
+	const v = frappe.boot.developer_mode
+		? Date.now()
+		: (frappe.boot.versions && frappe.boot.versions.freightmas) || "1";
+
 	frappe.require([
-		"/assets/freightmas/dashboard/dashboard.css",
-		"/assets/freightmas/dashboard/dashboard.js",
+		`/assets/freightmas/dashboard/dashboard.css?v=${v}`,
+		`/assets/freightmas/dashboard/dashboard.js?v=${v}`,
 	]).then(() => {
 		if (window.mountFreightMasDashboard) {
 			window.mountFreightMasDashboard("#freightmas-command-center-app");

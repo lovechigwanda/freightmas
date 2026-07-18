@@ -766,6 +766,26 @@ h1, h2, h3, h4 {
 	z-index: 1;
 }
 
+.sd-modal-header-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.sd-modal-edit {
+	font-size: 13px;
+	padding: 6px 12px;
+	border: 1px solid var(--sd-border);
+	border-radius: 8px;
+	background: var(--sd-surface-alt);
+}
+
+.sd-modal-edit:hover {
+	background: var(--sd-accent-soft);
+	border-color: var(--sd-accent);
+	text-decoration: none;
+}
+
 .sd-modal-close {
 	display: inline-flex;
 	align-items: center;
@@ -1418,4 +1438,63 @@ h1, h2, h3, h4 {
 	flex-shrink: 0;
 	margin-top: 1px;
 	color: var(--sd-amber);
+}
+
+/* Job-id cell: drawer button + inline "open in Desk" icon */
+.sd-cell-linkgroup {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.sd-cell-linkgroup .sd-desklink-icon {
+	opacity: 0;
+}
+
+.sd-cell-linkgroup:hover .sd-desklink-icon {
+	opacity: 0.6;
+}
+
+/* ---- DeskLink: open a document in Frappe Desk (new tab) ---- */
+.sd-desklink {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--sd-accent);
+	font-weight: 600;
+	text-decoration: none;
+	border-radius: var(--sd-radius-sm);
+	transition: color 0.12s ease;
+}
+
+.sd-desklink:hover {
+	color: var(--sd-accent-soft-text);
+	text-decoration: underline;
+}
+
+.sd-desklink-icon {
+	opacity: 0.65;
+	flex-shrink: 0;
+}
+
+.sd-desklink:hover .sd-desklink-icon {
+	opacity: 1;
+}
+
+/* Plain variant: reads as normal text in dense tables, reveals accent on hover */
+.sd-desklink-plain {
+	color: var(--sd-text);
+	font-weight: 600;
+}
+
+.sd-desklink-plain .sd-desklink-icon {
+	opacity: 0;
+}
+
+.sd-desklink-plain:hover {
+	color: var(--sd-accent);
+}
+
+.sd-desklink-plain:hover .sd-desklink-icon {
+	opacity: 0.7;
 }
