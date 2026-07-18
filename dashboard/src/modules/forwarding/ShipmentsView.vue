@@ -14,7 +14,7 @@
 			</nav>
 
 			<div class="sd-filters" style="margin-bottom: 0;">
-				<input v-model="search" type="text" placeholder="Search job, BL, reference, vessel..." @input="onFilterChange" />
+				<input v-model="search" type="text" placeholder="Search job, BL, reference, consignee..." @input="onFilterChange" />
 				<select v-model="direction" @change="onFilterChange">
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>

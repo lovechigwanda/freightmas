@@ -302,7 +302,7 @@ def get_jobs(customer=None, status=None, direction=None, search=None, limit_star
 			["name", "like", f"%{search}%"],
 			["customer_reference", "like", f"%{search}%"],
 			["bl_number", "like", f"%{search}%"],
-			["vessel_flight_no", "like", f"%{search}%"],
+			["consignee", "like", f"%{search}%"],
 		]
 
 	fields = [
