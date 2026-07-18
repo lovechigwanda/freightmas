@@ -25,15 +25,15 @@
 						</div>
 						<div class="sd-grid sd-grid-2">
 							<div class="sd-list">
-								<li><span class="sd-muted">Reference</span><span>{{ detail.header.customer_reference || "\u2013" }}</span></li>
+								<li><span class="sd-muted">Consignee</span><span>{{ detail.header.consignee || "\u2013" }}</span></li>
+								<li><span class="sd-muted">BL Number</span><span>{{ detail.header.bl_number || "\u2013" }}</span></li>
 								<li><span class="sd-muted">Direction / Mode</span><span>{{ detail.header.direction }} &middot; {{ detail.header.shipment_mode }}</span></li>
-								<li><span class="sd-muted">Route</span><span>{{ detail.header.port_of_loading }} &rarr; {{ detail.header.port_of_discharge }} &rarr; {{ detail.header.destination }}</span></li>
-								<li><span class="sd-muted">Vessel / Flight</span><span>{{ detail.header.vessel_flight_no || "\u2013" }}</span></li>
+								<li><span class="sd-muted">Cargo Description</span><span>{{ detail.header.cargo_description || "\u2013" }}</span></li>
 							</div>
 							<div class="sd-list">
-								<li><span class="sd-muted">BL Number</span><span>{{ detail.header.bl_number || "\u2013" }}</span></li>
-								<li><span class="sd-muted">BL Received / Confirmed</span><span>{{ detail.header.is_bl_received ? "Yes" : "No" }} / {{ detail.header.is_bl_confirmed ? "Yes" : "No" }}</span></li>
-								<li><span class="sd-muted">Consignee</span><span>{{ detail.header.consignee || "\u2013" }}</span></li>
+								<li><span class="sd-muted">Reference</span><span>{{ detail.header.customer_reference || "\u2013" }}</span></li>
+								<li><span class="sd-muted">Cargo Count</span><span>{{ detail.header.cargo_count || "\u2013" }}</span></li>
+								<li><span class="sd-muted">Route</span><span>{{ detail.header.port_of_loading }} &rarr; {{ detail.header.port_of_discharge }} &rarr; {{ detail.header.destination }}</span></li>
 								<li><span class="sd-muted">Last Update</span><span>{{ formatDate(detail.header.last_updated_on) }} &middot; {{ detail.header.last_updated_by || "\u2013" }}</span></li>
 							</div>
 						</div>
@@ -43,66 +43,111 @@
 						</div>
 					</div>
 
-					<!-- Stage tracker -->
+					<!-- Sea / Air Freight -->
 					<div class="sd-card">
 						<div class="sd-card-title">
-							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Shipment Progress</span>
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Sea / Air Freight</span>
 						</div>
 
 						<div class="sd-stage-group">
-							<div class="sd-stage-group-title">Shipment</div>
+							<div class="sd-stage-grid">
+								<div
+									v-for="stage in shipmentStages"
+									:key="stage.label"
+									class="sd-stage-row"
+								>
+									<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'"><Check v-if="stage.done" :size="12" stroke-width="3" /></span>
+									<span class="sd-stage-label">{{ stage.label }}</span>
+									<span class="sd-stage-date">{{ stage.date ? formatDate(stage.date) : "Pending" }}</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Cargo / containers: sea/air per-container tracking only (discharge/gate-out/return) -->
+						<div v-if="detail.cargo && detail.cargo.length" class="sd-stage-group">
+							<div class="sd-stage-group-title">Cargo / Containers ({{ detail.cargo.length }})</div>
+							<table class="sd-table">
+								<thead>
+									<tr>
+										<th>Container / Item</th>
+										<th>Type</th>
+										<th>Discharged</th>
+										<th>Gate Out</th>
+										<th>Returned</th>
+										<th>API Status</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="row in detail.cargo" :key="row.name">
+										<td>{{ row.container_number }}</td>
+										<td>{{ row.container_type || "\u2013" }}</td>
+										<td>{{ row.discharge_date ? formatDate(row.discharge_date) : "" }}<TickCross v-if="!row.discharge_date" :value="false" /></td>
+										<td>{{ row.gate_out_date ? formatDate(row.gate_out_date) : "" }}<TickCross v-if="!row.gate_out_date" :value="false" /></td>
+										<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
+										<td>{{ row.api_container_status || "\u2013" }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					<!-- Job Milestones -->
+					<div class="sd-card">
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Job Milestones</span>
+						</div>
+
+						<!-- Road Transport: per-truck/container tracking (booked/loaded/offloaded/returned/completed), separate from the sea/air table above -->
+						<div v-if="truckRequiredCargo.length" class="sd-stage-group">
+							<div class="sd-stage-group-title">Road Transport</div>
+							<table class="sd-table">
+								<thead>
+									<tr>
+										<th>Container / Item</th>
+										<th>Type</th>
+										<th>Booked</th>
+										<th>Loaded</th>
+										<th>Offloaded</th>
+										<th>Returned</th>
+										<th>Completed</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr v-for="row in truckRequiredCargo" :key="row.name">
+										<td>{{ row.container_number }}</td>
+										<td>{{ row.container_type || "\u2013" }}</td>
+										<td><TickCross :value="!!row.is_booked" /></td>
+										<td><TickCross :value="!!row.is_loaded" /></td>
+										<td><TickCross :value="!!row.is_offloaded" /></td>
+										<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
+										<td><TickCross :value="!!row.is_completed" /></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-stage-group">
+							<div class="sd-stage-group-title">{{ group.group }}</div>
+							<div class="sd-stage-grid">
+								<div v-for="m in group.milestones" :key="m.label" class="sd-stage-row">
+									<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'"><Check v-if="m.is_completed" :size="12" stroke-width="3" /></span>
+									<span class="sd-stage-label">{{ m.label }}</span>
+									<span class="sd-stage-date">{{ m.completed_on ? formatDate(m.completed_on) : "Pending" }}</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="sd-stage-completion">
 							<div
-								v-for="stage in shipmentStages"
+								v-for="stage in completionStages"
 								:key="stage.label"
-								class="sd-stage-row"
+								class="sd-stage-row sd-stage-row-completion"
 							>
 								<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'"><Check v-if="stage.done" :size="12" stroke-width="3" /></span>
 								<span class="sd-stage-label">{{ stage.label }}</span>
 								<span class="sd-stage-date">{{ stage.date ? formatDate(stage.date) : "Pending" }}</span>
 							</div>
 						</div>
-
-						<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-stage-group">
-							<div class="sd-stage-group-title">{{ group.group }}</div>
-							<div v-for="m in group.milestones" :key="m.label" class="sd-stage-row">
-								<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'"><Check v-if="m.is_completed" :size="12" stroke-width="3" /></span>
-								<span class="sd-stage-label">{{ m.label }}</span>
-								<span class="sd-stage-date">{{ m.completed_on ? formatDate(m.completed_on) : "Pending" }}</span>
-							</div>
-						</div>
-					</div>
-
-					<!-- Cargo / containers -->
-					<div v-if="detail.cargo && detail.cargo.length" class="sd-card">
-						<div class="sd-card-title">
-							<span class="sd-card-title-main"><span class="sd-card-title-icon"><Package /></span>Cargo / Containers ({{ detail.cargo.length }})</span>
-						</div>
-						<table class="sd-table">
-							<thead>
-								<tr>
-									<th>Container / Item</th>
-									<th>Type</th>
-									<th>Booked</th>
-									<th>Loaded</th>
-									<th>Discharged</th>
-									<th>Gate Out</th>
-									<th>Returned</th>
-									<th>API Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="row in detail.cargo" :key="row.name">
-									<td>{{ row.container_number }}</td>
-									<td>{{ row.container_type || "\u2013" }}</td>
-									<td><TickCross :value="!!row.is_booked" /></td>
-									<td><TickCross :value="!!row.is_loaded" /></td>
-									<td>{{ row.discharge_date ? formatDate(row.discharge_date) : "" }}<TickCross v-if="!row.discharge_date" :value="false" /></td>
-									<td>{{ row.gate_out_date ? formatDate(row.gate_out_date) : "" }}<TickCross v-if="!row.gate_out_date" :value="false" /></td>
-									<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
-									<td>{{ row.api_container_status || "\u2013" }}</td>
-								</tr>
-							</tbody>
-						</table>
 					</div>
 
 					<!-- DND -->
@@ -261,17 +306,35 @@ const loading = ref(true);
 const error = ref("");
 const detail = ref(null);
 
+// Sea/Air Freight milestones only - shipment-level dates that mirror the
+// Forwarding Job's own read-only rollup (atd/ata/discharge_date). Booking
+// Confirmed and Cargo Ready are pre-shipment admin steps, not milestones.
 const shipmentStages = computed(() => {
 	if (!detail.value) return [];
 	const d = detail.value.shipment_dates;
 	const isImport = detail.value.header.direction === "Import";
 	return [
-		{ label: "Booking Confirmed", date: d.booking_date, done: !!d.booking_date },
-		{ label: "Cargo Ready", date: d.cargo_ready_date, done: !!d.cargo_ready_date },
 		{ label: isImport ? "Departed Origin (ATD)" : "Estimated Departure", date: d.atd || d.etd, done: !!d.atd },
 		{ label: isImport ? "Arrived (ATA)" : "Departed (ATD)", date: d.ata || d.atd, done: isImport ? !!d.ata : !!d.atd },
 		{ label: "Discharged", date: d.discharge_date, done: !!d.discharge_date },
+	];
+});
+
+// Road Transport (trucking) tracking is per-container/parcel but distinct from
+// Sea/Air Freight tracking - only rows actually flagged as needing a truck leg.
+const truckRequiredCargo = computed(() => {
+	if (!detail.value) return [];
+	return (detail.value.cargo || []).filter((r) => r.is_truck_required);
+});
+
+// Not milestones - just completeness indicators, shown separately so they
+// aren't mistaken for tracking progress.
+const completionStages = computed(() => {
+	if (!detail.value) return [];
+	const d = detail.value.shipment_dates;
+	return [
 		{ label: "Completed", date: d.completed_on, done: !!d.completed_on },
+		{ label: "Revenue Recognised", date: d.revenue_recognised_on, done: !!d.revenue_recognised_on },
 	];
 });
 

@@ -389,6 +389,8 @@ def get_job_detail(job_name):
 		"bl_number": doc.bl_number,
 		"is_bl_received": doc.is_bl_received,
 		"is_bl_confirmed": doc.is_bl_confirmed,
+		"cargo_description": doc.cargo_description,
+		"cargo_count": doc.cargo_count,
 		"currency": doc.currency,
 		"incoterms": doc.incoterms,
 		"current_comment": doc.current_comment,
@@ -405,6 +407,7 @@ def get_job_detail(job_name):
 		"ata": doc.ata,
 		"discharge_date": doc.discharge_date,
 		"completed_on": doc.completed_on,
+		"revenue_recognised_on": doc.revenue_recognised_on,
 	}
 
 	milestone_stages = []

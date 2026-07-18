@@ -878,6 +878,29 @@ h1, h2, h3, h4 {
 	font-size: 12px;
 }
 
+.sd-stage-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 24px;
+}
+
+.sd-stage-completion {
+	margin-top: 4px;
+	padding-top: 12px;
+	border-top: 1px dashed var(--sd-border);
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	column-gap: 24px;
+}
+
+.sd-stage-row-completion {
+	opacity: 0.75;
+}
+
+.sd-stage-row-completion .sd-stage-label {
+	font-style: italic;
+}
+
 /* ============================================================
    Command Center shell (sidebar + top bar + routed content)
    ============================================================ */
