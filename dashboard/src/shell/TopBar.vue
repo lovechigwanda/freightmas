@@ -40,12 +40,14 @@ const currentTitle = computed(() => {
 
 const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "2-digit", month: "short", year: "numeric" });
 
-// Forwarding module is the only one backed by real Desk data so far -
-// everything else falls back to the Desk home.
-const deskLink = computed(() => {
-	if (route.name === "overview" || route.name === "forwarding") return "/app/forwarding-job";
-	return "/app";
-});
+// Map the active module route to its Desk list view; unknown routes fall back
+// to the Desk home.
+const DESK_LIST = {
+	overview: "/app/forwarding-job",
+	forwarding: "/app/forwarding-job",
+	clearing: "/app/clearing-job",
+};
+const deskLink = computed(() => DESK_LIST[route.name] || "/app");
 
 function refresh() {
 	// Prefer an in-place data refetch on the executive overview; other module
