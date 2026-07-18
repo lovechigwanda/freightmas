@@ -13,9 +13,9 @@ const props = defineProps({
 });
 
 const color = computed(() => {
-	if (props.percent >= 100) return "#16a34a";
-	if (props.percent >= 50) return "#2e6da4";
-	if (props.percent > 0) return "#d97706";
-	return "#dc2626";
+	if (props.percent >= 100) return "#15803d";
+	if (props.percent >= 50) return "#4f46e5";
+	if (props.percent > 0) return "#b45309";
+	return "#b91c1c";
 });
 </script>

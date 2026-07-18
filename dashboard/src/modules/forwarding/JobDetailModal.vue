@@ -6,7 +6,7 @@
 					<div style="font-size: 12px; color: var(--sd-text-muted)">Forwarding Job</div>
 					<div style="font-size: 18px; font-weight: 700">{{ jobName }}</div>
 				</div>
-				<button class="sd-modal-close" @click="$emit('close')">&#10005;</button>
+				<button class="sd-modal-close" @click="$emit('close')"><X :size="16" stroke-width="2" /></button>
 			</div>
 
 			<div class="sd-modal-body">
@@ -34,14 +34,17 @@
 								<li><span class="sd-muted">Last Update</span><span>{{ formatDate(detail.header.last_updated_on) }} &middot; {{ detail.header.last_updated_by || "\u2013" }}</span></li>
 							</div>
 						</div>
-						<div v-if="detail.header.current_comment" style="margin-top: 12px; padding: 10px 12px; background: #fef3e0; border-radius: 8px; font-size: 13px;">
-							<strong>Latest update:</strong> {{ detail.header.current_comment }}
+						<div v-if="detail.header.current_comment" class="cc-modal-note">
+							<MessageSquare />
+							<span><strong>Latest update:</strong> {{ detail.header.current_comment }}</span>
 						</div>
 					</div>
 
 					<!-- Stage tracker -->
 					<div class="sd-card">
-						<div class="sd-card-title">Shipment Progress</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Shipment Progress</span>
+						</div>
 
 						<div class="sd-stage-group">
 							<div class="sd-stage-group-title">Shipment</div>
@@ -50,7 +53,7 @@
 								:key="stage.label"
 								class="sd-stage-row"
 							>
-								<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'">{{ stage.done ? "\u2713" : "" }}</span>
+								<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'"><Check v-if="stage.done" :size="12" stroke-width="3" /></span>
 								<span class="sd-stage-label">{{ stage.label }}</span>
 								<span class="sd-stage-date">{{ stage.date ? formatDate(stage.date) : "Pending" }}</span>
 							</div>
@@ -59,7 +62,7 @@
 						<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-stage-group">
 							<div class="sd-stage-group-title">{{ group.group }}</div>
 							<div v-for="m in group.milestones" :key="m.label" class="sd-stage-row">
-								<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'">{{ m.is_completed ? "\u2713" : "" }}</span>
+								<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'"><Check v-if="m.is_completed" :size="12" stroke-width="3" /></span>
 								<span class="sd-stage-label">{{ m.label }}</span>
 								<span class="sd-stage-date">{{ m.completed_on ? formatDate(m.completed_on) : "Pending" }}</span>
 							</div>
@@ -68,7 +71,9 @@
 
 					<!-- Cargo / containers -->
 					<div v-if="detail.cargo && detail.cargo.length" class="sd-card">
-						<div class="sd-card-title">Cargo / Containers ({{ detail.cargo.length }})</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><Package /></span>Cargo / Containers ({{ detail.cargo.length }})</span>
+						</div>
 						<table class="sd-table">
 							<thead>
 								<tr>
@@ -86,11 +91,11 @@
 								<tr v-for="row in detail.cargo" :key="row.name">
 									<td>{{ row.container_number }}</td>
 									<td>{{ row.container_type || "\u2013" }}</td>
-									<td>{{ tickCross(row.is_booked) }}</td>
-									<td>{{ tickCross(row.is_loaded) }}</td>
-									<td>{{ row.discharge_date ? formatDate(row.discharge_date) : tickCross(false) }}</td>
-									<td>{{ row.gate_out_date ? formatDate(row.gate_out_date) : tickCross(false) }}</td>
-									<td>{{ row.to_be_returned ? tickCross(row.is_returned) : "\u2013" }}</td>
+									<td><TickCross :value="!!row.is_booked" /></td>
+									<td><TickCross :value="!!row.is_loaded" /></td>
+									<td>{{ row.discharge_date ? formatDate(row.discharge_date) : "" }}<TickCross v-if="!row.discharge_date" :value="false" /></td>
+									<td>{{ row.gate_out_date ? formatDate(row.gate_out_date) : "" }}<TickCross v-if="!row.gate_out_date" :value="false" /></td>
+									<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
 									<td>{{ row.api_container_status || "\u2013" }}</td>
 								</tr>
 							</tbody>
@@ -99,7 +104,9 @@
 
 					<!-- DND -->
 					<div v-if="detail.dnd_totals && detail.dnd_totals.total_est_dnd_storage_cost" class="sd-card">
-						<div class="sd-card-title">DND &amp; Storage Exposure</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><AlertTriangle /></span>DND &amp; Storage Exposure</span>
+						</div>
 						<div class="sd-grid sd-grid-kpi" style="margin-bottom: 12px;">
 							<KpiCard label="DND Cost" :value="formatMoney(detail.dnd_totals.total_est_dnd_cost, detail.header.currency)" />
 							<KpiCard label="Storage Cost" :value="formatMoney(detail.dnd_totals.total_est_storage_cost, detail.header.currency)" />
@@ -131,7 +138,9 @@
 
 					<!-- Finance -->
 					<div class="sd-card">
-						<div class="sd-card-title">Finance</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><Wallet /></span>Finance</span>
+						</div>
 						<table class="sd-table">
 							<thead>
 								<tr>
@@ -170,7 +179,9 @@
 
 					<!-- Invoices -->
 					<div v-if="detail.sales_invoices.length || detail.purchase_invoices.length" class="sd-card">
-						<div class="sd-card-title">Invoices</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><Receipt /></span>Invoices</span>
+						</div>
 						<table class="sd-table" v-if="detail.sales_invoices.length">
 							<thead>
 								<tr><th colspan="5" class="sd-muted" style="text-transform: none; font-weight: 600;">Sales Invoices</th></tr>
@@ -209,7 +220,9 @@
 
 					<!-- Tracking timeline -->
 					<div v-if="detail.tracking.length" class="sd-card">
-						<div class="sd-card-title">Recent Tracking Updates</div>
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><History /></span>Recent Tracking Updates</span>
+						</div>
 						<ul class="sd-list">
 							<li v-for="(t, idx) in detail.tracking" :key="idx" style="display: block;">
 								<div style="display: flex; justify-content: space-between;">
@@ -228,10 +241,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { api } from "../api";
-import { formatMoney, formatDate, formatDateTime } from "../format";
-import StatusBadge from "./StatusBadge.vue";
-import KpiCard from "./KpiCard.vue";
+import { X, Check, Package, AlertTriangle, Wallet, Receipt, History, ListChecks, MessageSquare } from "@lucide/vue";
+import { api } from "./api";
+import { formatMoney, formatDate, formatDateTime } from "../../format";
+import StatusBadge from "../../components/StatusBadge.vue";
+import KpiCard from "../../components/KpiCard.vue";
+import TickCross from "../../components/TickCross.vue";
 
 const props = defineProps({
 	jobName: { type: String, required: true },
@@ -255,10 +270,6 @@ const shipmentStages = computed(() => {
 		{ label: "Completed", date: d.completed_on, done: !!d.completed_on },
 	];
 });
-
-function tickCross(val) {
-	return val ? "\u2713" : "\u2717";
-}
 
 async function load() {
 	loading.value = true;

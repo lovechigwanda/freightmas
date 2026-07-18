@@ -1,7 +1,7 @@
 {
  "app": "freightmas",
  "charts": [],
- "content": "[{\"id\":\"hdrFreightForwarding\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"spTopShortcuts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"scForwardingJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"scJobOrder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"scQuotation\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing\",\"col\":3}},{\"id\":\"scContainerFinder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Container Finder\",\"col\":3}},{\"id\":\"scShipmentDashboard\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Shipment Dashboard\",\"col\":3}},{\"id\":\"spNumberCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ncActiveJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"ncContainersProgress\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers In Progress\",\"col\":3}},{\"id\":\"ncContainersMoved\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers Moved\",\"col\":3}},{\"id\":\"ncCompletedJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"spCharts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"spCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardOperations\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cardBillingMargin\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing & Margin\",\"col\":4}},{\"id\":\"cardTrackingExceptions\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking & Exceptions\",\"col\":4}},{\"id\":\"cardReferenceData\",\"type\":\"card\",\"data\":{\"card_name\":\"Reference Data\",\"col\":4}}]",
+ "content": "[{\"id\":\"hdrFreightForwarding\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Freight Forwarding Service</span>\",\"col\":12}},{\"id\":\"spTopShortcuts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"scForwardingJob\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Forwarding Job\",\"col\":3}},{\"id\":\"scJobOrder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Order\",\"col\":3}},{\"id\":\"scQuotation\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Invoicing\",\"col\":3}},{\"id\":\"scContainerFinder\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Container Finder\",\"col\":3}},{\"id\":\"scShipmentDashboard\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Command Center\",\"col\":3}},{\"id\":\"spNumberCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ncActiveJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Active Jobs\",\"col\":3}},{\"id\":\"ncContainersProgress\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers In Progress\",\"col\":3}},{\"id\":\"ncContainersMoved\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Containers Moved\",\"col\":3}},{\"id\":\"ncCompletedJobs\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Completed Jobs\",\"col\":3}},{\"id\":\"spCharts\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"spCards\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"cardOperations\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"cardBillingMargin\",\"type\":\"card\",\"data\":{\"card_name\":\"Billing & Margin\",\"col\":4}},{\"id\":\"cardTrackingExceptions\",\"type\":\"card\",\"data\":{\"card_name\":\"Tracking & Exceptions\",\"col\":4}},{\"id\":\"cardReferenceData\",\"type\":\"card\",\"data\":{\"card_name\":\"Reference Data\",\"col\":4}}]",
  "creation": "2026-07-17 19:44:01.555441",
  "custom_blocks": [],
  "docstatus": 0,
@@ -27,9 +27,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Shipment Dashboard",
+   "label": "Command Center",
    "link_count": 0,
-   "link_to": "shipment-dashboard",
+   "link_to": "freightmas-command-center",
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
@@ -373,7 +373,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-07-17 19:45:49.907091",
+ "modified": "2026-07-17 22:00:17.256391",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Freight Forwarding",
@@ -435,8 +435,8 @@
   },
   {
    "color": "Purple",
-   "label": "Shipment Dashboard",
-   "link_to": "shipment-dashboard",
+   "label": "Command Center",
+   "link_to": "freightmas-command-center",
    "stats_filter": "[]",
    "type": "Page"
   }

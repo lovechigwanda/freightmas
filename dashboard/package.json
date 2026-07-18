@@ -8,7 +8,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "vue": "^3.4.21"
+    "@fontsource-variable/inter": "^5.0.20",
+    "@lucide/vue": "^1.25.0",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

@@ -12,14 +12,18 @@
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
 			</div>
-			<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">Export to Excel</a>
+			<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">
+				<Download :size="14" stroke-width="2" /> Export to Excel
+			</a>
 		</div>
 
 		<div class="sd-card">
-			<div v-if="loading" class="sd-state">Loading shipments...</div>
+			<div v-if="loading">
+				<div class="cc-row-skeleton cc-skeleton" v-for="i in 8" :key="i"></div>
+			</div>
 			<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 			<template v-else>
-				<table class="sd-table">
+				<table class="sd-table" v-if="jobs.length">
 					<thead>
 						<tr>
 							<th>Job</th>
@@ -32,13 +36,13 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="job in jobs" :key="job.name" :style="job.is_overdue ? 'background:#fdeaea' : ''">
+						<tr v-for="job in jobs" :key="job.name" :class="{ 'cc-row-overdue': job.is_overdue }">
 							<td><button class="sd-table-link" @click="$emit('open-job', job.name)">{{ job.name }}</button></td>
 							<td>{{ job.customer }}</td>
-							<td>{{ job.port_of_loading || "\u2013" }} &rarr; {{ job.port_of_discharge || "\u2013" }}</td>
+							<td>{{ job.port_of_loading || "–" }} &rarr; {{ job.port_of_discharge || "–" }}</td>
 							<td>
-								<div>{{ job.vessel_flight_no || "\u2013" }}</div>
-								<div class="sd-muted" style="font-size: 11px;">{{ job.bl_number || "\u2013" }}</div>
+								<div>{{ job.vessel_flight_no || "–" }}</div>
+								<div class="sd-muted" style="font-size: 11px;">{{ job.bl_number || "–" }}</div>
 							</td>
 							<td>
 								<div>{{ formatDate(job.eta) }}</div>
@@ -47,15 +51,13 @@
 							<td><StatusBadge :status="job.status" /></td>
 							<td><ProgressBar :percent="job.milestone_percent" /></td>
 						</tr>
-						<tr v-if="!jobs.length">
-							<td colspan="7" class="sd-muted" style="text-align: center; padding: 24px;">No shipments match these filters.</td>
-						</tr>
 					</tbody>
 				</table>
+				<EmptyState v-else :icon="SearchX" title="No shipments match these filters" sub="Try clearing the search or filters above." />
 
-				<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+				<div v-if="jobs.length" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
 					<span class="sd-muted" style="font-size: 12px;">{{ totalCount }} shipment(s)</span>
-					<div style="display: flex; gap: 8px;">
+					<div style="display: flex; gap: 8px; align-items: center;">
 						<button class="sd-table-link" :disabled="page === 0" @click="changePage(-1)">&larr; Prev</button>
 						<button class="sd-table-link" :disabled="(page + 1) * pageSize >= totalCount" @click="changePage(1)">Next &rarr;</button>
 					</div>
@@ -67,10 +69,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { api, exportUrl } from "../api";
-import { formatDate } from "../format";
-import StatusBadge from "../components/StatusBadge.vue";
-import ProgressBar from "../components/ProgressBar.vue";
+import { Download, SearchX } from "@lucide/vue";
+import { api, exportUrl } from "./api";
+import { formatDate } from "../../format";
+import StatusBadge from "../../components/StatusBadge.vue";
+import ProgressBar from "../../components/ProgressBar.vue";
+import EmptyState from "../../components/EmptyState.vue";
 
 defineEmits(["open-job"]);
 
