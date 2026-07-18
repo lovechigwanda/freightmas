@@ -57,12 +57,20 @@ RECOGNITION_JOB_TYPES = {
 # P0 FIX #3: Account Type Validation to prevent misconfiguration fraud
 def validate_wip_account_type(account_name, expected_type):
     """
-    Validate that an account exists and has the expected type.
-    Prevents misconfiguration that could lead to duplicate revenue posting.
+    Validate that an account exists and has the expected balance-sheet
+    classification (root type).
+
+    Note: `expected_type` is checked against the account's `root_type`
+    ('Asset', 'Liability', 'Income', 'Expense', 'Equity'), not the more
+    granular `account_type` sub-classification. ERPNext's `account_type`
+    Select field has no plain 'Asset'/'Income'/'Expense' options (only
+    sub-types like 'Current Asset', 'Income Account', 'Direct Income', etc.),
+    so comparing directly against `account_type` would reject virtually
+    every real-world account of the expected kind.
     
     Args:
         account_name: Account name to validate
-        expected_type: Expected account_type (e.g., 'Liability', 'Asset', 'Income', 'Expense')
+        expected_type: Expected root_type (e.g., 'Liability', 'Asset', 'Income', 'Expense')
     
     Returns:
         str: account_name if valid
@@ -76,7 +84,7 @@ def validate_wip_account_type(account_name, expected_type):
     acc = frappe.db.get_value(
         "Account",
         account_name,
-        ["account_type", "disabled", "is_group", "company"],
+        ["account_type", "root_type", "disabled", "is_group", "company"],
         as_dict=True
     )
     
@@ -95,10 +103,10 @@ def validate_wip_account_type(account_name, expected_type):
             _("Account {0} is disabled").format(account_name)
         )
     
-    if acc.account_type != expected_type:
+    if acc.root_type != expected_type:
         frappe.throw(
-            _("Account {0} must be {1}, but is {2}").format(
-                account_name, expected_type, acc.account_type
+            _("Account {0} must be of type {1}, but is {2}").format(
+                account_name, expected_type, acc.root_type
             )
         )
     
