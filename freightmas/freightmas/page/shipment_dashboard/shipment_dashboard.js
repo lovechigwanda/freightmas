@@ -16,9 +16,15 @@ frappe.pages["shipment-dashboard"].on_page_load = function (wrapper) {
 
 	const $mount = $('<div id="shipment-dashboard-app"></div>').appendTo(page.main);
 
+	// Cache-bust the fixed-name bundle so a rebuild/deploy is fetched fresh
+	// (see freightmas_command_center.js for the rationale).
+	const v = frappe.boot.developer_mode
+		? Date.now()
+		: (frappe.boot.versions && frappe.boot.versions.freightmas) || "1";
+
 	frappe.require([
-		"/assets/freightmas/dashboard/dashboard.css",
-		"/assets/freightmas/dashboard/dashboard.js",
+		`/assets/freightmas/dashboard/dashboard.css?v=${v}`,
+		`/assets/freightmas/dashboard/dashboard.js?v=${v}`,
 	]).then(() => {
 		if (window.mountShipmentDashboard) {
 			window.mountShipmentDashboard("#shipment-dashboard-app");

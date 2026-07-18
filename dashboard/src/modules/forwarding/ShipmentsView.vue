@@ -37,7 +37,12 @@
 					</thead>
 					<tbody>
 						<tr v-for="job in jobs" :key="job.name" :class="{ 'cc-row-overdue': job.is_overdue }">
-							<td><button class="sd-table-link" @click="$emit('open-job', job.name)">{{ job.name }}</button></td>
+							<td>
+								<div class="sd-cell-linkgroup">
+									<button class="sd-table-link" @click="$emit('open-job', job.name)">{{ job.name }}</button>
+									<DeskLink doctype="Forwarding Job" :name="job.name" icon-only />
+								</div>
+							</td>
 							<td>{{ job.customer }}</td>
 							<td>{{ job.port_of_loading || "–" }} &rarr; {{ job.port_of_discharge || "–" }}</td>
 							<td>
@@ -75,6 +80,7 @@ import { formatDate } from "../../format";
 import StatusBadge from "../../components/StatusBadge.vue";
 import ProgressBar from "../../components/ProgressBar.vue";
 import EmptyState from "../../components/EmptyState.vue";
+import DeskLink from "../../components/DeskLink.vue";
 
 defineEmits(["open-job"]);
 

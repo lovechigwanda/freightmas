@@ -6,7 +6,10 @@
 					<div style="font-size: 12px; color: var(--sd-text-muted)">Forwarding Job</div>
 					<div style="font-size: 18px; font-weight: 700">{{ jobName }}</div>
 				</div>
-				<button class="sd-modal-close" @click="$emit('close')"><X :size="16" stroke-width="2" /></button>
+				<div class="sd-modal-header-actions">
+					<DeskLink doctype="Forwarding Job" :name="jobName" label="Edit in Desk" class="sd-modal-edit" />
+					<button class="sd-modal-close" @click="$emit('close')"><X :size="16" stroke-width="2" /></button>
+				</div>
 			</div>
 
 			<div class="sd-modal-body">
@@ -191,7 +194,7 @@
 							</thead>
 							<tbody>
 								<tr v-for="inv in detail.sales_invoices" :key="inv.name">
-									<td>{{ inv.name }}</td>
+									<td><DeskLink doctype="Sales Invoice" :name="inv.name" plain /></td>
 									<td>{{ formatDate(inv.posting_date) }}</td>
 									<td>{{ formatDate(inv.due_date) }}</td>
 									<td class="sd-right">{{ formatMoney(inv.grand_total, detail.header.currency) }}</td>
@@ -208,7 +211,7 @@
 							</thead>
 							<tbody>
 								<tr v-for="inv in detail.purchase_invoices" :key="inv.name">
-									<td>{{ inv.name }}</td>
+									<td><DeskLink doctype="Purchase Invoice" :name="inv.name" plain /></td>
 									<td>{{ formatDate(inv.posting_date) }}</td>
 									<td>{{ formatDate(inv.due_date) }}</td>
 									<td class="sd-right">{{ formatMoney(inv.grand_total, detail.header.currency) }}</td>
@@ -247,6 +250,7 @@ import { formatMoney, formatDate, formatDateTime } from "../../format";
 import StatusBadge from "../../components/StatusBadge.vue";
 import KpiCard from "../../components/KpiCard.vue";
 import TickCross from "../../components/TickCross.vue";
+import DeskLink from "../../components/DeskLink.vue";
 
 const props = defineProps({
 	jobName: { type: String, required: true },

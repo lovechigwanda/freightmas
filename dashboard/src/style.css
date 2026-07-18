@@ -766,6 +766,26 @@ h1, h2, h3, h4 {
 	z-index: 1;
 }
 
+.sd-modal-header-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.sd-modal-edit {
+	font-size: 13px;
+	padding: 6px 12px;
+	border: 1px solid var(--sd-border);
+	border-radius: 8px;
+	background: var(--sd-surface-alt);
+}
+
+.sd-modal-edit:hover {
+	background: var(--sd-accent-soft);
+	border-color: var(--sd-accent);
+	text-decoration: none;
+}
+
 .sd-modal-close {
 	display: inline-flex;
 	align-items: center;
@@ -1418,4 +1438,160 @@ h1, h2, h3, h4 {
 	flex-shrink: 0;
 	margin-top: 1px;
 	color: var(--sd-amber);
+}
+
+/* ---- Executive overview ---- */
+.cc-overview-meta {
+	margin-bottom: 14px;
+	font-size: 12px;
+}
+
+.cc-section-title {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--sd-text-muted);
+	margin: 4px 0 10px;
+}
+
+.cc-scorecard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.cc-scorecard {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.cc-scorecard:hover {
+	border-color: var(--sd-accent);
+	box-shadow: var(--sd-shadow-md, 0 4px 16px rgba(15, 23, 42, 0.08));
+	transform: translateY(-1px);
+}
+
+.cc-scorecard-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.cc-scorecard-name {
+	font-weight: 700;
+	font-size: 14px;
+	color: var(--sd-text);
+}
+
+.cc-scorecard-active {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--sd-text);
+	margin-bottom: 10px;
+}
+
+.cc-scorecard-active .sd-muted {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.cc-scorecard-metrics {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 8px;
+}
+
+.cc-scorecard-metric-label {
+	font-size: 11px;
+	color: var(--sd-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.cc-scorecard-metric-value {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--sd-text);
+}
+
+.cc-scorecard-metric-value.pos {
+	color: var(--sd-green, #16a34a);
+}
+
+.cc-scorecard-metric-value.neg {
+	color: var(--sd-red, #dc2626);
+}
+
+.cc-scorecard-attn {
+	font-size: 12px;
+	color: var(--sd-amber, #d97706);
+	border-top: 1px solid var(--sd-border);
+	padding-top: 8px;
+}
+
+.cc-scorecard-attn.sd-muted {
+	color: var(--sd-text-faint);
+}
+
+/* Job-id cell: drawer button + inline "open in Desk" icon */
+.sd-cell-linkgroup {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.sd-cell-linkgroup .sd-desklink-icon {
+	opacity: 0;
+}
+
+.sd-cell-linkgroup:hover .sd-desklink-icon {
+	opacity: 0.6;
+}
+
+/* ---- DeskLink: open a document in Frappe Desk (new tab) ---- */
+.sd-desklink {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	color: var(--sd-accent);
+	font-weight: 600;
+	text-decoration: none;
+	border-radius: var(--sd-radius-sm);
+	transition: color 0.12s ease;
+}
+
+.sd-desklink:hover {
+	color: var(--sd-accent-soft-text);
+	text-decoration: underline;
+}
+
+.sd-desklink-icon {
+	opacity: 0.65;
+	flex-shrink: 0;
+}
+
+.sd-desklink:hover .sd-desklink-icon {
+	opacity: 1;
+}
+
+/* Plain variant: reads as normal text in dense tables, reveals accent on hover */
+.sd-desklink-plain {
+	color: var(--sd-text);
+	font-weight: 600;
+}
+
+.sd-desklink-plain .sd-desklink-icon {
+	opacity: 0;
+}
+
+.sd-desklink-plain:hover {
+	color: var(--sd-accent);
+}
+
+.sd-desklink-plain:hover .sd-desklink-icon {
+	opacity: 0.7;
 }
