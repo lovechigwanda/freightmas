@@ -1,14 +1,14 @@
 <template>
 	<div class="sd-card cc-kpi" :class="tone">
-		<div class="cc-kpi-top">
-			<div class="cc-kpi-icon">
-				<component :is="icon" stroke-width="2" />
-			</div>
-			<Sparkline v-if="trend && trend.length > 1" :values="trend" :color="sparkColor" :width="64" :height="28" />
+		<div class="cc-kpi-icon">
+			<component :is="icon" stroke-width="2" />
 		</div>
-		<div class="sd-kpi-label">{{ label }}</div>
-		<div class="sd-kpi-value" :class="tone">{{ value }}</div>
-		<div v-if="sub" class="sd-kpi-sub">{{ sub }}</div>
+		<div class="cc-kpi-text">
+			<div class="sd-kpi-label">{{ label }}</div>
+			<div class="sd-kpi-value" :class="tone">{{ value }}</div>
+			<div v-if="sub" class="sd-kpi-sub">{{ sub }}</div>
+		</div>
+		<Sparkline v-if="trend && trend.length > 1" :values="trend" :color="sparkColor" :width="40" :height="24" class="cc-kpi-spark" />
 	</div>
 </template>
 
