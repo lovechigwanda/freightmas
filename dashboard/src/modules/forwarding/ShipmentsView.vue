@@ -1,20 +1,28 @@
 <template>
 	<div>
 		<div class="sd-toolbar">
+			<nav class="sd-tabs" style="margin-bottom: 0;">
+				<button
+					v-for="tab in statusTabs"
+					:key="tab.value"
+					class="sd-tab"
+					:class="{ active: status === tab.value }"
+					@click="setStatus(tab.value)"
+				>
+					{{ tab.label }}
+				</button>
+			</nav>
+
 			<div class="sd-filters" style="margin-bottom: 0;">
 				<input v-model="search" type="text" placeholder="Search job, BL, reference, vessel..." @input="onFilterChange" />
-				<select v-model="status" @change="onFilterChange">
-					<option value="">All Statuses</option>
-					<option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
-				</select>
 				<select v-model="direction" @change="onFilterChange">
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
+				<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">
+					<Download :size="14" stroke-width="2" /> Export to Excel
+				</a>
 			</div>
-			<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">
-				<Download :size="14" stroke-width="2" /> Export to Excel
-			</a>
 		</div>
 
 		<div class="sd-card">
@@ -28,8 +36,7 @@
 						<tr>
 							<th>Job</th>
 							<th>Customer</th>
-							<th>Route</th>
-							<th>Vessel / BL</th>
+							<th>BL / Cargo Count</th>
 							<th>ETA / ATA</th>
 							<th>Status</th>
 							<th>Progress</th>
@@ -44,14 +51,11 @@
 								</div>
 							</td>
 							<td>{{ job.customer }}</td>
-							<td>{{ job.port_of_loading || "–" }} &rarr; {{ job.port_of_discharge || "–" }}</td>
 							<td>
-								<div>{{ job.vessel_flight_no || "–" }}</div>
-								<div class="sd-muted" style="font-size: 11px;">{{ job.bl_number || "–" }}</div>
+								{{ job.bl_number || "–" }}<span v-if="job.cargo_count" class="sd-muted"> · {{ job.cargo_count }}</span>
 							</td>
 							<td>
-								<div>{{ formatDate(job.eta) }}</div>
-								<div class="sd-muted" style="font-size: 11px;">{{ job.ata ? formatDate(job.ata) : "Pending" }}</div>
+								{{ formatDate(job.eta) }}<span class="sd-muted"> · {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
 							</td>
 							<td><StatusBadge :status="job.status" /></td>
 							<td><ProgressBar :percent="job.milestone_percent" /></td>
@@ -84,7 +88,14 @@ import DeskLink from "../../components/DeskLink.vue";
 
 defineEmits(["open-job"]);
 
-const statuses = ["Draft", "In Progress", "Delivered", "Completed", "Closed", "Cancelled"];
+const statusTabs = [
+	{ value: "", label: "All" },
+	{ value: "Draft", label: "Draft" },
+	{ value: "In Progress", label: "In Progress" },
+	{ value: "Delivered", label: "Delivered" },
+	{ value: "Completed", label: "Completed" },
+	{ value: "Closed", label: "Closed" },
+];
 const directions = ["Import", "Export", "Local", "Transit"];
 
 const search = ref("");
@@ -122,6 +133,13 @@ function onFilterChange() {
 	page.value = 0;
 	clearTimeout(debounceTimer);
 	debounceTimer = setTimeout(load, 300);
+}
+
+function setStatus(value) {
+	if (status.value === value) return;
+	status.value = value;
+	page.value = 0;
+	load();
 }
 
 const exportHref = computed(() =>

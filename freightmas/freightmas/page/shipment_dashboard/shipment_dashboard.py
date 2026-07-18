@@ -308,7 +308,7 @@ def get_jobs(customer=None, status=None, direction=None, search=None, limit_star
 	fields = [
 		"name", "customer", "customer_reference", "direction", "shipment_mode",
 		"status", "port_of_loading", "port_of_discharge", "destination",
-		"vessel_flight_no", "bl_number", "eta", "ata", "etd", "atd",
+		"vessel_flight_no", "bl_number", "cargo_count", "eta", "ata", "etd", "atd",
 		"discharge_date", "current_comment", "last_updated_on",
 	]
 
