@@ -17,6 +17,22 @@ frappe.pages["freightmas-command-center"].on_page_load = function (wrapper) {
 
 	page.main.css({ padding: 0, margin: 0, "max-width": "none" });
 
+	// The Command Center brings its own sidebar/nav (see dashboard/src/shell),
+	// so hide Desk's chrome around it: the page-head breadcrumb bar and the
+	// global workspace sidebar. Scoped to this page's route so it reverts
+	// automatically when navigating elsewhere in Desk.
+	if (!document.getElementById("freightmas-command-center-chrome-css")) {
+		$(
+			`<style id="freightmas-command-center-chrome-css">
+				body[data-route="freightmas-command-center"] .page-head,
+				body[data-route="freightmas-command-center"] .body-sidebar-container,
+				body[data-route="freightmas-command-center"] .body-sidebar-placeholder {
+					display: none !important;
+				}
+			</style>`
+		).appendTo("head");
+	}
+
 	const $mount = $('<div id="freightmas-command-center-app"></div>').appendTo(page.main);
 
 	// The bundle is emitted with fixed filenames (dashboard.js/.css) so this
@@ -29,16 +45,37 @@ frappe.pages["freightmas-command-center"].on_page_load = function (wrapper) {
 		? Date.now()
 		: (frappe.boot.versions && frappe.boot.versions.freightmas) || "1";
 
-	frappe.require([
-		`/assets/freightmas/dashboard/dashboard.css?v=${v}`,
-		`/assets/freightmas/dashboard/dashboard.js?v=${v}`,
-	]).then(() => {
-		if (window.mountFreightMasDashboard) {
-			window.mountFreightMasDashboard("#freightmas-command-center-app");
-		} else {
+	// frappe.require() can hang silently here: its AssetManager resolves
+	// script/link onerror the same as onload "for backward compatibility",
+	// so a stuck load_promises Promise.all never settles and never rejects
+	// either - no console error, just a permanently blank page. Load the
+	// two assets ourselves instead of going through that machinery.
+	function load_asset(url) {
+		return new Promise((resolve, reject) => {
+			const is_css = url.split("?")[0].endsWith(".css");
+			const el = is_css
+				? Object.assign(document.createElement("link"), { rel: "stylesheet", href: url })
+				: Object.assign(document.createElement("script"), { src: url });
+			el.onload = () => resolve();
+			el.onerror = () => reject(new Error(`Failed to load ${url}`));
+			document.head.appendChild(el);
+		});
+	}
+
+	load_asset(`/assets/freightmas/dashboard/dashboard.css?v=${v}`)
+		.then(() => load_asset(`/assets/freightmas/dashboard/dashboard.js?v=${v}`))
+		.then(() => {
+			if (window.mountFreightMasDashboard) {
+				window.mountFreightMasDashboard("#freightmas-command-center-app");
+			} else {
+				$mount.html(
+					'<div style="padding: 24px; color: #d03e3e;">Command Center bundle failed to load. Run the frontend build (npm run build in the dashboard/ project) and reload.</div>'
+				);
+			}
+		})
+		.catch((err) => {
 			$mount.html(
-				'<div style="padding: 24px; color: #d03e3e;">Command Center bundle failed to load. Run the frontend build (npm run build in the dashboard/ project) and reload.</div>'
+				`<div style="padding: 24px; color: #d03e3e;">Command Center bundle failed to load: ${frappe.utils.escape_html(err.message)}</div>`
 			);
-		}
-	});
+		});
 };

@@ -1,8 +1,8 @@
 <template>
 	<header class="cc-topbar">
 		<div class="cc-topbar-titles">
-			<div class="cc-topbar-title">{{ currentTitle }}</div>
-			<div class="cc-topbar-sub">{{ branding.company_name || "FreightMas" }} &middot; {{ today }}</div>
+			<span class="cc-topbar-title">{{ currentTitle }}</span>
+			<span class="cc-topbar-sub">{{ branding.company_name || "FreightMas" }} &middot; {{ today }}</span>
 		</div>
 
 		<div class="cc-topbar-actions">
