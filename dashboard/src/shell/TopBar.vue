@@ -24,6 +24,9 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { RefreshCw, ExternalLink, LayoutGrid } from "@lucide/vue";
 import { NAV_ITEMS } from "../router";
+import { useOverviewStore } from "../stores/overview";
+
+const overview = useOverviewStore();
 
 defineProps({
 	branding: { type: Object, default: () => ({}) },
@@ -45,6 +48,12 @@ const deskLink = computed(() => {
 });
 
 function refresh() {
-	window.location.reload();
+	// Prefer an in-place data refetch on the executive overview; other module
+	// routes fall back to a full reload until they get their own stores.
+	if (route.name === "overview") {
+		overview.refresh();
+	} else {
+		window.location.reload();
+	}
 }
 </script>

@@ -10,4 +10,7 @@ const client = createApiClient("freightmas.freightmas.page.freightmas_command_ce
 export const api = {
 	getBranding: () => client.call("get_branding"),
 	getOverview: () => client.call("get_overview"),
+	// Cross-module executive rollup (KPIs, module scorecards, invoicing, cash,
+	// combined trend, top customers).
+	getExecutiveOverview: (params) => client.call("get_executive_overview", params),
 };

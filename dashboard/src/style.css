@@ -1440,6 +1440,103 @@ h1, h2, h3, h4 {
 	color: var(--sd-amber);
 }
 
+/* ---- Executive overview ---- */
+.cc-overview-meta {
+	margin-bottom: 14px;
+	font-size: 12px;
+}
+
+.cc-section-title {
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--sd-text-muted);
+	margin: 4px 0 10px;
+}
+
+.cc-scorecard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.cc-scorecard {
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+}
+
+.cc-scorecard:hover {
+	border-color: var(--sd-accent);
+	box-shadow: var(--sd-shadow-md, 0 4px 16px rgba(15, 23, 42, 0.08));
+	transform: translateY(-1px);
+}
+
+.cc-scorecard-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.cc-scorecard-name {
+	font-weight: 700;
+	font-size: 14px;
+	color: var(--sd-text);
+}
+
+.cc-scorecard-active {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--sd-text);
+	margin-bottom: 10px;
+}
+
+.cc-scorecard-active .sd-muted {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.cc-scorecard-metrics {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 8px;
+}
+
+.cc-scorecard-metric-label {
+	font-size: 11px;
+	color: var(--sd-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.cc-scorecard-metric-value {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--sd-text);
+}
+
+.cc-scorecard-metric-value.pos {
+	color: var(--sd-green, #16a34a);
+}
+
+.cc-scorecard-metric-value.neg {
+	color: var(--sd-red, #dc2626);
+}
+
+.cc-scorecard-attn {
+	font-size: 12px;
+	color: var(--sd-amber, #d97706);
+	border-top: 1px solid var(--sd-border);
+	padding-top: 8px;
+}
+
+.cc-scorecard-attn.sd-muted {
+	color: var(--sd-text-faint);
+}
+
 /* Job-id cell: drawer button + inline "open in Desk" icon */
 .sd-cell-linkgroup {
 	display: inline-flex;
