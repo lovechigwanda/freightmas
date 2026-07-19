@@ -454,6 +454,10 @@ h1, h2, h3, h4 {
 	text-align: right;
 }
 
+.sd-table th.sd-right {
+	text-align: right;
+}
+
 /* ============================================================
    Badges
    ============================================================ */
@@ -884,21 +888,36 @@ h1, h2, h3, h4 {
 	column-gap: 24px;
 }
 
-.sd-stage-completion {
-	margin-top: 4px;
-	padding-top: 12px;
-	border-top: 1px dashed var(--sd-border);
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	column-gap: 24px;
-}
-
 .sd-stage-row-completion {
 	opacity: 0.75;
 }
 
 .sd-stage-row-completion .sd-stage-label {
 	font-style: italic;
+}
+
+.sd-progress-badge {
+	font-size: 11px;
+	font-weight: 700;
+	padding: 3px 9px;
+	border-radius: 999px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.sd-progress-badge.pending {
+	background: var(--sd-border-soft);
+	color: var(--sd-text-muted);
+}
+
+.sd-progress-badge.partial {
+	background: var(--sd-amber-soft);
+	color: var(--sd-amber);
+}
+
+.sd-progress-badge.done {
+	background: var(--sd-green-soft);
+	color: var(--sd-green);
 }
 
 /* ============================================================

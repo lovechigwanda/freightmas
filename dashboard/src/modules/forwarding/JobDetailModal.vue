@@ -43,10 +43,11 @@
 						</div>
 					</div>
 
-					<!-- Sea / Air Freight -->
+					<!-- Sea / Air Freight (a Job Milestone section, same as Road Transport / Port Clearance / etc. below) -->
 					<div class="sd-card">
 						<div class="sd-card-title">
 							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Sea / Air Freight</span>
+							<span class="sd-progress-badge" :class="progressTone(seaAirProgress.percent)">{{ seaAirProgress.completed }}/{{ seaAirProgress.total }} &middot; {{ seaAirProgress.percent }}%</span>
 						</div>
 
 						<div class="sd-stage-group">
@@ -63,9 +64,9 @@
 							</div>
 						</div>
 
-						<!-- Cargo / containers: sea/air per-container tracking only (discharge/gate-out/return) -->
-						<div v-if="detail.cargo && detail.cargo.length" class="sd-stage-group">
-							<div class="sd-stage-group-title">Cargo / Containers ({{ detail.cargo.length }})</div>
+						<!-- Cargo / containers: sea/air per-container tracking only (discharge/gate-out/empty-return) -->
+						<div v-if="seaAirContainers.length" class="sd-stage-group">
+							<div class="sd-stage-group-title">Cargo / Containers ({{ seaAirContainers.length }})</div>
 							<table class="sd-table">
 								<thead>
 									<tr>
@@ -73,17 +74,17 @@
 										<th>Type</th>
 										<th>Discharged</th>
 										<th>Gate Out</th>
-										<th>Returned</th>
+										<th>Empty Returned</th>
 										<th>API Status</th>
 									</tr>
 								</thead>
 								<tbody>
-									<tr v-for="row in detail.cargo" :key="row.name">
+									<tr v-for="row in seaAirContainers" :key="row.name">
 										<td>{{ row.container_number }}</td>
 										<td>{{ row.container_type || "\u2013" }}</td>
 										<td>{{ row.discharge_date ? formatDate(row.discharge_date) : "" }}<TickCross v-if="!row.discharge_date" :value="false" /></td>
 										<td>{{ row.gate_out_date ? formatDate(row.gate_out_date) : "" }}<TickCross v-if="!row.gate_out_date" :value="false" /></td>
-										<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
+										<td><template v-if="row.to_be_returned">{{ row.empty_return_date ? formatDate(row.empty_return_date) : "" }}<TickCross v-if="!row.empty_return_date" :value="false" /></template><span v-else class="sd-muted">\u2013</span></td>
 										<td>{{ row.api_container_status || "\u2013" }}</td>
 									</tr>
 								</tbody>
@@ -91,43 +92,45 @@
 						</div>
 					</div>
 
-					<!-- Job Milestones -->
-					<div class="sd-card">
+					<!-- Road Transport: per-truck/container tracking (booked/loaded/offloaded/returned/completed) -->
+					<div v-if="truckRequiredCargo.length" class="sd-card">
 						<div class="sd-card-title">
-							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Job Milestones</span>
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Road Transport</span>
+							<span class="sd-progress-badge" :class="progressTone(roadTransportProgress.percent)">{{ roadTransportProgress.completed }}/{{ roadTransportProgress.total }} &middot; {{ roadTransportProgress.percent }}%</span>
 						</div>
+						<table class="sd-table">
+							<thead>
+								<tr>
+									<th>Container / Item</th>
+									<th>Type</th>
+									<th>Booked</th>
+									<th>Loaded</th>
+									<th>Offloaded</th>
+									<th>Returned</th>
+									<th>Completed</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="row in truckRequiredCargo" :key="row.name">
+									<td>{{ row.container_number }}</td>
+									<td>{{ row.container_type || "\u2013" }}</td>
+									<td><TickCross :value="!!row.is_booked" /></td>
+									<td><TickCross :value="!!row.is_loaded" /></td>
+									<td><TickCross :value="!!row.is_offloaded" /></td>
+									<td><TickCross v-if="row.cargo_type === 'Containerised' && row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
+									<td><TickCross :value="!!row.is_completed" /></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 
-						<!-- Road Transport: per-truck/container tracking (booked/loaded/offloaded/returned/completed), separate from the sea/air table above -->
-						<div v-if="truckRequiredCargo.length" class="sd-stage-group">
-							<div class="sd-stage-group-title">Road Transport</div>
-							<table class="sd-table">
-								<thead>
-									<tr>
-										<th>Container / Item</th>
-										<th>Type</th>
-										<th>Booked</th>
-										<th>Loaded</th>
-										<th>Offloaded</th>
-										<th>Returned</th>
-										<th>Completed</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr v-for="row in truckRequiredCargo" :key="row.name">
-										<td>{{ row.container_number }}</td>
-										<td>{{ row.container_type || "\u2013" }}</td>
-										<td><TickCross :value="!!row.is_booked" /></td>
-										<td><TickCross :value="!!row.is_loaded" /></td>
-										<td><TickCross :value="!!row.is_offloaded" /></td>
-										<td><TickCross v-if="row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
-										<td><TickCross :value="!!row.is_completed" /></td>
-									</tr>
-								</tbody>
-							</table>
+					<!-- One card per remaining Job Milestone section (Port Clearance, Border Clearance, Warehouse, ...) -->
+					<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-card">
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>{{ group.group }}</span>
+							<span class="sd-progress-badge" :class="progressTone(groupProgress(group).percent)">{{ groupProgress(group).completed }}/{{ groupProgress(group).total }} &middot; {{ groupProgress(group).percent }}%</span>
 						</div>
-
-						<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-stage-group">
-							<div class="sd-stage-group-title">{{ group.group }}</div>
+						<div class="sd-stage-group">
 							<div class="sd-stage-grid">
 								<div v-for="m in group.milestones" :key="m.label" class="sd-stage-row">
 									<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'"><Check v-if="m.is_completed" :size="12" stroke-width="3" /></span>
@@ -136,16 +139,24 @@
 								</div>
 							</div>
 						</div>
+					</div>
 
-						<div class="sd-stage-completion">
-							<div
-								v-for="stage in completionStages"
-								:key="stage.label"
-								class="sd-stage-row sd-stage-row-completion"
-							>
-								<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'"><Check v-if="stage.done" :size="12" stroke-width="3" /></span>
-								<span class="sd-stage-label">{{ stage.label }}</span>
-								<span class="sd-stage-date">{{ stage.date ? formatDate(stage.date) : "Pending" }}</span>
+					<!-- Not milestones - just completeness indicators, kept out of the milestone cards above so they aren't mistaken for tracked progress -->
+					<div class="sd-card">
+						<div class="sd-card-title">
+							<span class="sd-card-title-main"><span class="sd-card-title-icon"><ListChecks /></span>Completion</span>
+						</div>
+						<div class="sd-stage-group">
+							<div class="sd-stage-grid">
+								<div
+									v-for="stage in completionStages"
+									:key="stage.label"
+									class="sd-stage-row sd-stage-row-completion"
+								>
+									<span class="sd-stage-dot" :class="stage.done ? 'done' : 'pending'"><Check v-if="stage.done" :size="12" stroke-width="3" /></span>
+									<span class="sd-stage-label">{{ stage.label }}</span>
+									<span class="sd-stage-date">{{ stage.date ? formatDate(stage.date) : "Pending" }}</span>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -208,13 +219,6 @@
 									<td class="sd-right">{{ detail.finance.quoted_margin_percent.toFixed(1) }}%</td>
 								</tr>
 								<tr>
-									<td>Working</td>
-									<td class="sd-right">{{ formatMoney(detail.finance.working_revenue, detail.header.currency) }}</td>
-									<td class="sd-right">{{ formatMoney(detail.finance.working_cost, detail.header.currency) }}</td>
-									<td class="sd-right">{{ formatMoney(detail.finance.working_margin, detail.header.currency) }}</td>
-									<td class="sd-right">{{ detail.finance.working_margin_percent.toFixed(1) }}%</td>
-								</tr>
-								<tr>
 									<td>Invoiced</td>
 									<td class="sd-right">{{ formatMoney(detail.finance.invoiced_revenue, detail.header.currency) }}</td>
 									<td class="sd-right">{{ formatMoney(detail.finance.invoiced_cost, detail.header.currency) }}</td>
@@ -234,16 +238,16 @@
 							<thead>
 								<tr><th colspan="5" class="sd-muted" style="text-transform: none; font-weight: 600;">Sales Invoices</th></tr>
 								<tr>
-									<th>No.</th><th>Posting Date</th><th>Due Date</th><th class="sd-right">Amount</th><th class="sd-right">Balance</th>
+									<th>No.</th><th>Party</th><th>Due Date</th><th class="sd-right">Amount</th><th>Status</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr v-for="inv in detail.sales_invoices" :key="inv.name">
 									<td><DeskLink doctype="Sales Invoice" :name="inv.name" plain /></td>
-									<td>{{ formatDate(inv.posting_date) }}</td>
+									<td>{{ inv.customer }}</td>
 									<td>{{ formatDate(inv.due_date) }}</td>
 									<td class="sd-right">{{ formatMoney(inv.grand_total, detail.header.currency) }}</td>
-									<td class="sd-right">{{ formatMoney(inv.outstanding_amount, detail.header.currency) }}</td>
+									<td><StatusBadge :status="inv.status" /></td>
 								</tr>
 							</tbody>
 						</table>
@@ -251,16 +255,16 @@
 							<thead>
 								<tr><th colspan="5" class="sd-muted" style="text-transform: none; font-weight: 600;">Purchase Invoices</th></tr>
 								<tr>
-									<th>No.</th><th>Posting Date</th><th>Due Date</th><th class="sd-right">Amount</th><th class="sd-right">Balance</th>
+									<th>No.</th><th>Party</th><th>Due Date</th><th class="sd-right">Amount</th><th>Status</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr v-for="inv in detail.purchase_invoices" :key="inv.name">
 									<td><DeskLink doctype="Purchase Invoice" :name="inv.name" plain /></td>
-									<td>{{ formatDate(inv.posting_date) }}</td>
+									<td>{{ inv.supplier }}</td>
 									<td>{{ formatDate(inv.due_date) }}</td>
 									<td class="sd-right">{{ formatMoney(inv.grand_total, detail.header.currency) }}</td>
-									<td class="sd-right">{{ formatMoney(inv.outstanding_amount, detail.header.currency) }}</td>
+									<td><StatusBadge :status="inv.status" /></td>
 								</tr>
 							</tbody>
 						</table>
@@ -272,7 +276,7 @@
 							<span class="sd-card-title-main"><span class="sd-card-title-icon"><History /></span>Recent Tracking Updates</span>
 						</div>
 						<ul class="sd-list">
-							<li v-for="(t, idx) in detail.tracking" :key="idx" style="display: block;">
+							<li v-for="(t, idx) in recentTracking" :key="idx" style="display: block;">
 								<div style="display: flex; justify-content: space-between;">
 									<strong style="font-size: 12px;">{{ t.source }}</strong>
 									<span class="sd-muted" style="font-size: 12px;">{{ formatDateTime(t.date) }}</span>
@@ -289,7 +293,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { X, Check, Package, AlertTriangle, Wallet, Receipt, History, ListChecks, MessageSquare } from "@lucide/vue";
+import { X, Check, AlertTriangle, Wallet, Receipt, History, ListChecks, MessageSquare } from "@lucide/vue";
 import { api } from "./api";
 import { formatMoney, formatDate, formatDateTime } from "../../format";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -320,11 +324,66 @@ const shipmentStages = computed(() => {
 	];
 });
 
+// Only containerised cargo carries per-container sea/air tracking (matches
+// the same cargo_type filter the Desk form's Sea/Air Freight rollup uses).
+const seaAirContainers = computed(() => {
+	if (!detail.value) return [];
+	return (detail.value.cargo || []).filter((r) => r.cargo_type === "Containerised");
+});
+
+function toFraction(completed, total) {
+	return { completed, total, percent: total ? Math.round((completed / total) * 100) : 0 };
+}
+
+function progressTone(percent) {
+	if (percent >= 100) return "done";
+	if (percent > 0) return "partial";
+	return "pending";
+}
+
+// Same counting rule as the Desk form: shipment-level dates always count,
+// plus discharge/gate-out per container, plus empty-return only where applicable.
+const seaAirProgress = computed(() => {
+	let completed = shipmentStages.value.filter((s) => s.done).length;
+	let total = shipmentStages.value.length;
+	seaAirContainers.value.forEach((r) => {
+		const checks = [!!r.discharge_date, !!r.gate_out_date];
+		if (r.to_be_returned) checks.push(!!r.empty_return_date);
+		total += checks.length;
+		completed += checks.filter(Boolean).length;
+	});
+	return toFraction(completed, total);
+});
+
 // Road Transport (trucking) tracking is per-container/parcel but distinct from
 // Sea/Air Freight tracking - only rows actually flagged as needing a truck leg.
 const truckRequiredCargo = computed(() => {
 	if (!detail.value) return [];
 	return (detail.value.cargo || []).filter((r) => r.is_truck_required);
+});
+
+const roadTransportProgress = computed(() => {
+	let completed = 0;
+	let total = 0;
+	truckRequiredCargo.value.forEach((r) => {
+		const isReturnable = r.cargo_type === "Containerised" && r.to_be_returned;
+		const checks = [r.is_booked, r.is_loaded, r.is_offloaded, r.is_completed];
+		if (isReturnable) checks.push(r.is_returned);
+		total += checks.length;
+		completed += checks.filter(Boolean).length;
+	});
+	return toFraction(completed, total);
+});
+
+function groupProgress(group) {
+	const total = group.milestones.length;
+	const completed = group.milestones.filter((m) => m.is_completed).length;
+	return toFraction(completed, total);
+}
+
+const recentTracking = computed(() => {
+	if (!detail.value) return [];
+	return (detail.value.tracking || []).slice(0, 2);
 });
 
 // Not milestones - just completeness indicators, shown separately so they
