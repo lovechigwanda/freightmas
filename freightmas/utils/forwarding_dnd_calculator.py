@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import getdate, nowdate
+from frappe.utils import add_days, getdate, nowdate
 
 
 def find_rate_card_header(shipping_line, port, direction, as_of_date=None):
@@ -114,6 +114,19 @@ def calculate_storage_days(discharge_date, terminal_out_date, storage_free_days)
 	total = (end - start).days + 1
 	chargeable = max(0, total - int(storage_free_days or 0))
 	return total, chargeable
+
+
+def days_remaining_to_lfd(discharge_date, free_days):
+	"""
+	Days between today and the Last Free Day (discharge_date + free_days).
+	Negative means the Last Free Day has already passed (i.e. already breached).
+	Returns None if discharge_date is not set.
+	"""
+	if not discharge_date:
+		return None
+
+	last_free_day = add_days(getdate(discharge_date), int(free_days or 0))
+	return (last_free_day - getdate(nowdate())).days
 
 
 def calculate_dnd_storage_for_job(forwarding_job_doc):

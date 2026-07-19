@@ -36,6 +36,7 @@
   "dnd_charge_item",
   "column_break_dnd1",
   "storage_charge_item",
+  "dnd_storage_warning_days",
   "quotation_tab",
   "default_quotation_tc",
   "shipping_tracker_tab",
@@ -249,6 +250,13 @@
    "fieldtype": "Link",
    "label": "Storage Charge Item",
    "options": "Item"
+  },
+  {
+   "default": "3",
+   "description": "Days before Last Free Day to flag a container as at risk on the dashboard",
+   "fieldname": "dnd_storage_warning_days",
+   "fieldtype": "Int",
+   "label": "DND/Storage Warning Window (Days)"
   },
   {
    "fieldname": "driver_advance_parent_account",

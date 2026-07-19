@@ -13,7 +13,9 @@ from io import BytesIO
 
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, nowdate, add_months, get_first_day, get_last_day, formatdate
+from frappe.utils import cint, flt, getdate, nowdate, add_days, add_months, get_first_day, get_last_day, formatdate
+
+from freightmas.utils.forwarding_dnd_calculator import days_remaining_to_lfd
 
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -29,6 +31,69 @@ MILESTONE_TABLE_FIELDS = [
 	"border_clearance_milestones",
 	"warehouse_milestones",
 ]
+
+
+def _get_at_risk_containers():
+	"""
+	Containers whose DND and/or Storage clock is still running (not yet gated-out / returned)
+	and is within the configured warning window before its Last Free Day. Containers that have
+	already passed their Last Free Day are excluded here - those already show up in the
+	"Breaching Free Days" list once accrued cost is recalculated.
+	"""
+	warning_days = cint(frappe.db.get_single_value("FreightMas Settings", "dnd_storage_warning_days") or 3)
+
+	rows = frappe.db.sql(
+		"""
+		SELECT
+			d.parent, d.container_number, d.container_type,
+			d.discharge_date, d.gate_out_date, d.empty_return_date, d.to_be_returned,
+			d.dnd_free_days, d.storage_free_days,
+			fj.customer, fj.bl_number
+		FROM `tabForwarding DND Storage Detail` d
+		INNER JOIN `tabForwarding Job` fj ON fj.name = d.parent
+		WHERE d.parenttype = 'Forwarding Job' AND fj.docstatus < 2 AND fj.status NOT IN %(statuses)s
+		  AND d.discharge_date IS NOT NULL
+		""",
+		{"statuses": NOT_ACTIVE_STATUSES},
+		as_dict=True,
+	)
+
+	at_risk = []
+	for row in rows:
+		dnd_end_date = row.empty_return_date if row.to_be_returned else row.gate_out_date
+		candidates = []  # (clock_label, days_remaining, last_free_day)
+
+		if not dnd_end_date:
+			dnd_remaining = days_remaining_to_lfd(row.discharge_date, row.dnd_free_days)
+			if dnd_remaining is not None and 0 <= dnd_remaining <= warning_days:
+				lfd = add_days(getdate(row.discharge_date), cint(row.dnd_free_days))
+				candidates.append(("DND", dnd_remaining, lfd))
+
+		if not row.gate_out_date:
+			storage_remaining = days_remaining_to_lfd(row.discharge_date, row.storage_free_days)
+			if storage_remaining is not None and 0 <= storage_remaining <= warning_days:
+				lfd = add_days(getdate(row.discharge_date), cint(row.storage_free_days))
+				candidates.append(("Storage", storage_remaining, lfd))
+
+		if not candidates:
+			continue
+
+		candidates.sort(key=lambda c: c[1])
+		most_urgent = candidates[0]
+
+		at_risk.append({
+			"job": row.parent,
+			"customer": row.customer,
+			"bl_number": row.bl_number,
+			"container_number": row.container_number,
+			"container_type": row.container_type,
+			"clock": " & ".join(c[0] for c in candidates),
+			"days_remaining": most_urgent[1],
+			"last_free_day": most_urgent[2],
+		})
+
+	at_risk.sort(key=lambda r: r["days_remaining"])
+	return at_risk
 
 
 # ============================================================
@@ -153,6 +218,8 @@ def get_overview():
 		{"today": today, "statuses": NOT_ACTIVE_STATUSES},
 	)[0][0]
 
+	containers_at_risk = len(_get_at_risk_containers())
+
 	jobs_by_status = frappe.db.sql(
 		"""
 		SELECT status, COUNT(*) AS count
@@ -215,6 +282,7 @@ def get_overview():
 			"dnd_jobs": dnd_exposure[0] or 0,
 			"dnd_exposure": flt(dnd_exposure[1] or 0, 2),
 			"overdue_container_returns": returnable_overdue,
+			"containers_at_risk": containers_at_risk,
 		},
 		"jobs_by_status": jobs_by_status,
 		"monthly_trend": monthly_trend,
@@ -710,11 +778,15 @@ def get_dnd_overview():
 		as_dict=True,
 	)
 
+	at_risk_containers = _get_at_risk_containers()
+
 	return {
 		"jobs": jobs,
 		"containers": containers,
 		"totals": totals,
 		"overdue_returns": overdue_returns,
+		"at_risk_containers": at_risk_containers,
+		"at_risk_count": len(at_risk_containers),
 	}
 
 

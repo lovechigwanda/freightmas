@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div v-if="loading" class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-			<div class="sd-card cc-kpi-skeleton cc-skeleton" v-for="i in 7" :key="i"></div>
+			<div class="sd-card cc-kpi-skeleton cc-skeleton" v-for="i in 8" :key="i"></div>
 		</div>
 		<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 
@@ -46,6 +46,13 @@
 					:value="data.kpis.overdue_container_returns"
 					:tone="data.kpis.overdue_container_returns ? 'danger' : 'good'"
 					:icon="PackageX"
+				/>
+				<KpiCard
+					label="Containers At Risk"
+					:value="data.kpis.containers_at_risk"
+					:tone="data.kpis.containers_at_risk ? 'warn' : 'good'"
+					:icon="Timer"
+					sub="Approaching Last Free Day"
 				/>
 			</div>
 
@@ -147,7 +154,7 @@
 import { ref, computed, onMounted } from "vue";
 import {
 	Ship, ArrowDownToLine, ArrowUpFromLine, FileWarning, Receipt, AlertTriangle, PackageX,
-	PieChart, TrendingUp, Building2, Route, AlertCircle, CheckCircle2,
+	PieChart, TrendingUp, Building2, Route, AlertCircle, CheckCircle2, Timer,
 } from "@lucide/vue";
 import { api } from "./api";
 import { formatMoney, formatDate, statusColor } from "../../format";
