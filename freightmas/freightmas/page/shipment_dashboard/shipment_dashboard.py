@@ -598,6 +598,129 @@ def get_job_detail(job_name):
 # FINANCE
 # ============================================================
 
+def _closed_job_financials():
+	"""
+	Completed/Closed Forwarding Jobs with quoted vs invoiced (realized) financials.
+	Mirrors freightmas/forwarding_service/report/forwarding_closed_job_summary.
+	"""
+	rows = frappe.db.sql(
+		"""
+		SELECT
+			fj.name, fj.customer, fj.status, fj.completed_on,
+			fj.total_quoted_profit_base AS quoted_profit,
+			fj.quoted_margin_percent AS quoted_margin_percent,
+			COALESCE(si.invoiced_revenue, 0) AS invoiced_revenue,
+			COALESCE(pi.invoiced_cost, 0) AS invoiced_cost
+		FROM `tabForwarding Job` fj
+		LEFT JOIN (
+			SELECT forwarding_job_reference, SUM(grand_total) AS invoiced_revenue
+			FROM `tabSales Invoice`
+			WHERE docstatus = 1 AND forwarding_job_reference IS NOT NULL
+			GROUP BY forwarding_job_reference
+		) si ON si.forwarding_job_reference = fj.name
+		LEFT JOIN (
+			SELECT forwarding_job_reference, SUM(grand_total) AS invoiced_cost
+			FROM `tabPurchase Invoice`
+			WHERE docstatus = 1 AND forwarding_job_reference IS NOT NULL
+			GROUP BY forwarding_job_reference
+		) pi ON pi.forwarding_job_reference = fj.name
+		WHERE fj.status IN ('Completed', 'Closed')
+		""",
+		as_dict=True,
+	)
+
+	for r in rows:
+		r["invoiced_profit"] = flt(flt(r.invoiced_revenue) - flt(r.invoiced_cost), 2)
+		r["invoiced_margin_percent"] = flt(
+			r.invoiced_profit / r.invoiced_revenue * 100, 2
+		) if r.invoiced_revenue else 0
+		r["profit_variance"] = flt(r.invoiced_profit - flt(r.quoted_profit or 0), 2)
+		# Positive gap = invoiced margin fell short of the quoted margin (percentage points).
+		r["margin_percent_gap"] = flt(flt(r.quoted_margin_percent or 0) - r["invoiced_margin_percent"], 2)
+
+	return rows
+
+
+def _loss_making_customers(closed_rows, limit=10):
+	agg = {}
+	for r in closed_rows:
+		if not r.customer:
+			continue
+		bucket = agg.setdefault(r.customer, {"customer": r.customer, "job_count": 0, "invoiced_profit": 0.0})
+		bucket["job_count"] += 1
+		bucket["invoiced_profit"] += r.invoiced_profit
+
+	losers = [v for v in agg.values() if v["invoiced_profit"] < 0]
+	for v in losers:
+		v["invoiced_profit"] = flt(v["invoiced_profit"], 2)
+	losers.sort(key=lambda v: v["invoiced_profit"])
+	return losers[:limit]
+
+
+def _margin_at_risk_jobs(threshold_pct, limit=20):
+	"""
+	Open jobs where working-so-far margin is already trailing quoted margin by more than
+	the configured threshold - a chance to intervene before the job closes with a loss.
+	"""
+	rows = frappe.db.sql(
+		"""
+		SELECT name, customer, status, quoted_margin_percent, profit_margin_percent
+		FROM `tabForwarding Job`
+		WHERE docstatus < 2 AND status NOT IN %(statuses)s
+		  AND IFNULL(total_working_revenue_base, 0) > 0
+		""",
+		{"statuses": NOT_ACTIVE_STATUSES},
+		as_dict=True,
+	)
+
+	at_risk = []
+	for r in rows:
+		gap = flt(r.quoted_margin_percent or 0) - flt(r.profit_margin_percent or 0)
+		if gap >= threshold_pct:
+			r["margin_gap"] = flt(gap, 2)
+			at_risk.append(r)
+
+	at_risk.sort(key=lambda r: -r["margin_gap"])
+	return at_risk[:limit]
+
+
+def _aging_bucket(days_overdue):
+	if days_overdue <= 30:
+		return "0-30"
+	if days_overdue <= 60:
+		return "31-60"
+	if days_overdue <= 90:
+		return "61-90"
+	return "90+"
+
+
+def _overdue_invoices_with_aging(doctype, display_limit=20):
+	party_field = "customer" if doctype == "Sales Invoice" else "supplier"
+
+	rows = frappe.db.sql(
+		f"""
+		SELECT name, {party_field} AS party, posting_date, due_date, grand_total, outstanding_amount,
+			DATEDIFF(CURDATE(), due_date) AS days_overdue
+		FROM `tab{doctype}`
+		WHERE docstatus = 1 AND outstanding_amount > 0
+		  AND forwarding_job_reference IS NOT NULL AND due_date < CURDATE()
+		ORDER BY due_date ASC
+		LIMIT 500
+		""",
+		as_dict=True,
+	)
+
+	buckets = {b: {"bucket": b, "count": 0, "value": 0.0} for b in ("0-30", "31-60", "61-90", "90+")}
+	for r in rows:
+		bucket = buckets[_aging_bucket(r.days_overdue)]
+		bucket["count"] += 1
+		bucket["value"] += flt(r.outstanding_amount)
+	for b in buckets.values():
+		b["value"] = flt(b["value"], 2)
+
+	return rows[:display_limit], list(buckets.values())
+
+
 @frappe.whitelist()
 def get_finance_summary(from_date=None, to_date=None, customer=None):
 	check_freightmas_role()
@@ -664,27 +787,21 @@ def get_finance_summary(from_date=None, to_date=None, customer=None):
 		totals["invoiced_profit"] / totals["invoiced_revenue"] * 100, 2
 	) if totals["invoiced_revenue"] else 0
 
-	outstanding_sales = frappe.db.sql(
-		"""
-		SELECT si.name, si.customer, si.posting_date, si.due_date, si.grand_total, si.outstanding_amount
-		FROM `tabSales Invoice` si
-		WHERE si.docstatus = 1 AND si.outstanding_amount > 0 AND si.forwarding_job_reference IS NOT NULL
-		ORDER BY si.due_date ASC
-		LIMIT 20
-		""",
-		as_dict=True,
-	)
+	overdue_sales, sales_aging = _overdue_invoices_with_aging("Sales Invoice")
+	overdue_purchase, purchase_aging = _overdue_invoices_with_aging("Purchase Invoice")
 
-	outstanding_purchase = frappe.db.sql(
-		"""
-		SELECT pi.name, pi.supplier, pi.posting_date, pi.due_date, pi.grand_total, pi.outstanding_amount
-		FROM `tabPurchase Invoice` pi
-		WHERE pi.docstatus = 1 AND pi.outstanding_amount > 0 AND pi.forwarding_job_reference IS NOT NULL
-		ORDER BY pi.due_date ASC
-		LIMIT 20
-		""",
-		as_dict=True,
+	margin_variance_threshold = flt(
+		frappe.db.get_single_value("FreightMas Settings", "margin_variance_threshold_pct") or 5
 	)
+	closed_jobs = _closed_job_financials()
+	loss_making_jobs = sorted(
+		(r for r in closed_jobs if r.invoiced_profit < 0), key=lambda r: r["invoiced_profit"]
+	)
+	margin_variance_jobs = sorted(closed_jobs, key=lambda r: -r["margin_percent_gap"])[:20]
+	for r in margin_variance_jobs:
+		r["breaches_threshold"] = r["margin_percent_gap"] >= margin_variance_threshold
+	loss_making_customers = _loss_making_customers(closed_jobs)
+	margin_at_risk_jobs = _margin_at_risk_jobs(margin_variance_threshold)
 
 	top_customers_by_revenue = frappe.db.sql(
 		"""
@@ -702,8 +819,13 @@ def get_finance_summary(from_date=None, to_date=None, customer=None):
 	return {
 		"jobs": rows,
 		"totals": totals,
-		"outstanding_sales_invoices": outstanding_sales,
-		"outstanding_purchase_invoices": outstanding_purchase,
+		"overdue_sales_invoices": overdue_sales,
+		"overdue_purchase_invoices": overdue_purchase,
+		"aging_summary": {"sales": sales_aging, "purchase": purchase_aging},
+		"loss_making_jobs": loss_making_jobs,
+		"margin_variance_jobs": margin_variance_jobs,
+		"loss_making_customers": loss_making_customers,
+		"margin_at_risk_jobs": margin_at_risk_jobs,
 		"top_customers_by_revenue": top_customers_by_revenue,
 		"monthly_trend": _monthly_revenue_margin_trend(months=12),
 	}
