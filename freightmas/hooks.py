@@ -62,9 +62,9 @@ app_include_js = ["/assets/freightmas/js/session_handler.js", "/assets/freightma
 # home_page = "login"
 
 # website user home page (by Role)
-# role_home_page = {
-# 	"Role": "home_page"
-# }
+role_home_page = {
+	"Customer Portal User": "client-portal",
+}
 
 # Generators
 # ----------
@@ -274,8 +274,15 @@ doc_events = {
         "before_rename": "freightmas.utils.clearing_job_folder.before_rename_clearing_job"
     },
     "File": {
+        "before_insert": "freightmas.portal.attachments.enforce_private_on_insert",
         "after_insert": "freightmas.utils.forwarding_job_folder.file_on_insert",
         "on_update": "freightmas.utils.forwarding_job_folder.file_on_update"
+    },
+    "Contact": {
+        "validate": "freightmas.portal.provisioning.sync_portal_user_on_contact_save"
+    },
+    "User": {
+        "validate": "freightmas.portal.provisioning.enforce_portal_user_type"
     },
     "Quotation": {
 		"validate": "freightmas.utils.quotation.validate_quotation",
@@ -411,6 +418,12 @@ fixtures = [
         "dt": "Role Profile",
         "filters": [
             ["name", "like", "FreightMas%"]
+        ]
+    },
+    {
+        "dt": "Role",
+        "filters": [
+            ["name", "in", ["FreightMas User", "FreightMas Manager", "FreightMas Admin", "FreightMas Accounts", "Customer Portal User"]]
         ]
     },
     # Workspaces, Workspace Sidebars, and Print Formats are managed

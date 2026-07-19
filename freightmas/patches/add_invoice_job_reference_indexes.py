@@ -16,7 +16,6 @@ doctype, and add_index itself no-ops if the index is already present.
 """
 
 import frappe
-from frappe.database import add_index
 
 
 REF_FIELDS = [
@@ -36,4 +35,4 @@ def execute():
 			if field not in existing_columns:
 				continue
 			# Index name kept well under MySQL's 64-char limit.
-			add_index(doctype, [field], index_name=f"idx_{field}")
+			frappe.db.add_index(doctype, [field], index_name=f"idx_{field}")

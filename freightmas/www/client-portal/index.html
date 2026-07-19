@@ -1,0 +1,41 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Client Portal{% endblock %}
+
+{% block page_content %}
+<style>
+  html, body { margin: 0; padding: 0; }
+  .page-header-actions-block, .page-head-content, .standard-sidebar,
+  nav.navbar, footer, .web-footer, .footer-powered, .page-footer {
+    display: none !important;
+  }
+  .page-container, .content, .container {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+</style>
+
+{% if access_denied %}
+<div style="display:flex; align-items:center; justify-content:center; min-height:100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#0b1120; color:#e2e8f0;">
+  <div style="text-align:center; max-width: 420px; padding: 24px;">
+    <h2 style="margin-bottom: 8px; color: #e2e8f0;">Portal access not set up</h2>
+    <p style="color:#94a3b8;">Your account isn't linked to a customer profile yet. Please contact your account manager to get access to the Client Portal.</p>
+  </div>
+</div>
+{% else %}
+<div id="client-portal-app"></div>
+<script>
+  window.csrf_token = "{{ csrf_token }}";
+</script>
+<link rel="stylesheet" href="/assets/freightmas/portal/portal.css?v={{ asset_version }}">
+<script type="module" src="/assets/freightmas/portal/portal.js?v={{ asset_version }}"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    if (window.mountClientPortal) {
+      window.mountClientPortal("#client-portal-app");
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
