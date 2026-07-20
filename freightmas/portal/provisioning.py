@@ -40,14 +40,22 @@ def sync_portal_user_on_contact_save(doc, method=None):
 def enforce_portal_user_type(doc, method=None):
 	"""User validate hook: re-apply portal constraints whenever the User
 	record itself is edited (e.g. someone manually adds a Desk role)."""
-	contact_name = frappe.db.get_value("Contact", {"user": doc.name}, "name")
-	if not contact_name:
+	# A user can hold more than one Contact record - aggregate links across
+	# all of them, the same as freightmas.portal.security.get_portal_party_names,
+	# or a user provisioned via a second Contact could lose a portal role
+	# this hook should be granting.
+	contact_names = frappe.get_all("Contact", filters={"user": doc.name}, pluck="name")
+	if not contact_names:
 		return
 
 	linked_types = set(
 		frappe.get_all(
 			"Dynamic Link",
-			filters={"parenttype": "Contact", "parent": contact_name, "link_doctype": ["in", list(PARTY_ROLE_MAP)]},
+			filters={
+				"parenttype": "Contact",
+				"parent": ["in", contact_names],
+				"link_doctype": ["in", list(PARTY_ROLE_MAP)],
+			},
 			pluck="link_doctype",
 		)
 	)

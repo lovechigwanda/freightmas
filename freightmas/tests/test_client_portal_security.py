@@ -146,6 +146,45 @@ class TestClientPortalProvisioning(IntegrationTestCase):
 
 		self.assertEqual(set(names), {customer_1.name, customer_2.name})
 
+	def test_customer_names_resolve_across_multiple_contacts_for_same_user(self):
+		# A user can end up with more than one Contact record (observed in
+		# production: separate Client/Supplier Portal provisioning attempts
+		# for the same email each create their own Contact). get_portal_
+		# party_names() must aggregate Dynamic Links across all of a user's
+		# Contacts, not silently resolve to whichever one an unordered query
+		# happens to return first - see freightmas-client-portal memory.
+		customer = _make_customer("A6")
+		user = _make_user("a6")
+
+		# First Contact: no Customer link (e.g. a bare/legacy record).
+		frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": user.first_name,
+				"user": user.name,
+				"email_ids": [{"email_id": f"a6-first@example.com", "is_primary": 1}],
+			}
+		).insert(ignore_permissions=True)
+
+		# Second Contact for the same user: this is the one with the real link.
+		frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": user.first_name,
+				"user": user.name,
+				"email_ids": [{"email_id": f"a6-second@example.com", "is_primary": 1}],
+				"links": [{"link_doctype": "Customer", "link_name": customer.name}],
+			}
+		).insert(ignore_permissions=True)
+
+		frappe.set_user(user.name)
+		try:
+			names = get_portal_customer_names()
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual(names, [customer.name])
+
 
 class TestCheckPortalAccess(IntegrationTestCase):
 	def setUp(self):

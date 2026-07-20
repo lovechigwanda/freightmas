@@ -64,25 +64,29 @@ def get_portal_party_names(link_doctype):
 
 	Args:
 		link_doctype: "Customer" or "Supplier" - which Dynamic Link type on
-			the caller's Contact to resolve.
+			the caller's Contact(s) to resolve.
 
 	Returns:
-		list[str]: party names the caller's Contact is linked to. Empty if
-			there is no Contact, or the Contact has no such links. Callers
-			MUST treat an empty list as "no access" and never as "unfiltered
-			access".
+		list[str]: party names any of the caller's Contact records are
+			linked to. Empty if there is no Contact, or none of them have
+			such links. Callers MUST treat an empty list as "no access" and
+			never as "unfiltered access".
 	"""
 	user = frappe.session.user
 
-	contact_name = frappe.db.get_value("Contact", {"user": user}, "name")
-	if not contact_name:
+	# A user can legitimately hold more than one Contact record (e.g. one
+	# per party they represent) - resolving to a single arbitrary Contact
+	# here would silently drop entitlements linked from any Contact but the
+	# one an unordered query happened to return.
+	contact_names = frappe.get_all("Contact", filters={"user": user}, pluck="name")
+	if not contact_names:
 		return []
 
 	names = frappe.get_all(
 		"Dynamic Link",
 		filters={
 			"parenttype": "Contact",
-			"parent": contact_name,
+			"parent": ["in", contact_names],
 			"link_doctype": link_doctype,
 		},
 		pluck="link_name",
