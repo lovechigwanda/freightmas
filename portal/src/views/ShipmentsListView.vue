@@ -32,7 +32,7 @@
 					<thead>
 						<tr>
 							<th>Job</th>
-							<th>BL / Cargo Count</th>
+							<th>Reference / Cargo Count</th>
 							<th>ETA / ATA</th>
 							<th>Status</th>
 							<th>Progress</th>
@@ -44,10 +44,9 @@
 								<router-link class="sd-table-link" :to="`/shipments/${encodeURIComponent(job.name)}`">
 									{{ job.name }}
 								</router-link>
-								<div class="sd-muted" style="font-size: 12px;">{{ job.customer_reference || "–" }}</div>
 							</td>
 							<td>
-								{{ job.bl_number || "–" }}<span v-if="job.cargo_count" class="sd-muted"> &middot; {{ job.cargo_count }}</span>
+								{{ job.customer_reference || "–" }}<span v-if="job.cargo_count" class="sd-muted"> &middot; {{ job.cargo_count }}</span>
 							</td>
 							<td>
 								{{ formatDate(job.eta) }}<span class="sd-muted"> &middot; {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
