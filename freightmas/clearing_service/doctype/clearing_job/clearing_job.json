@@ -47,6 +47,10 @@
   "column_break_aqbr",
   "is_bl_confirmed",
   "bl_confirmed_date",
+  "clearing_agent_section",
+  "port_clearing_agent",
+  "column_break_clearing_agent1",
+  "port_clearing_agent_reference",
   "cargo_tab",
   "cargo_information_section",
   "cargo_description",
@@ -735,6 +739,27 @@
    "label": "BL Confirmed Date"
   },
   {
+   "collapsible": 1,
+   "fieldname": "clearing_agent_section",
+   "fieldtype": "Section Break",
+   "label": "Clearing Agent"
+  },
+  {
+   "fieldname": "port_clearing_agent",
+   "fieldtype": "Link",
+   "label": "Port Clearing Agent",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "column_break_clearing_agent1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_clearing_agent_reference",
+   "fieldtype": "Data",
+   "label": "Port Clearing Agent Reference"
+  },
+  {
    "default": "0",
    "fieldname": "is_port_release_confirmed",
    "fieldtype": "Check",
@@ -1230,7 +1255,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-02-22 17:00:00.000000",
+ "modified": "2026-07-20 09:00:00.000000",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Clearing Service",
  "name": "Clearing Job",

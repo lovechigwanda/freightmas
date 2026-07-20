@@ -64,6 +64,7 @@ app_include_js = ["/assets/freightmas/js/session_handler.js", "/assets/freightma
 # website user home page (by Role)
 role_home_page = {
 	"Customer Portal User": "client-portal",
+	"Supplier Portal User": "supplier-portal",
 }
 
 # Generators
@@ -423,7 +424,7 @@ fixtures = [
     {
         "dt": "Role",
         "filters": [
-            ["name", "in", ["FreightMas User", "FreightMas Manager", "FreightMas Admin", "FreightMas Accounts", "Customer Portal User"]]
+            ["name", "in", ["FreightMas User", "FreightMas Manager", "FreightMas Admin", "FreightMas Accounts", "Customer Portal User", "Supplier Portal User"]]
         ]
     },
     # Workspaces, Workspace Sidebars, and Print Formats are managed

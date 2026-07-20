@@ -1,14 +1,25 @@
-# Keeps Client Portal accounts locked to Website User + Customer Portal
-# User, and forbids a portal login from ever doubling as a staff account.
+# Keeps Client/Supplier Portal accounts locked to Website User + the
+# matching portal role, and forbids a portal login from ever doubling as a
+# staff account.
 #
 # Hooked from hooks.py on Contact.validate and User.validate so the
 # constraint holds however the linkage is created or edited: via a Contact
 # form save, a direct User edit, or "Invite as User".
+#
+# A Contact may carry Dynamic Links to both a Customer and a Supplier (e.g.
+# a broker who is legitimately both) - such a Contact's User gets both
+# portal roles rather than being rejected.
 
 import frappe
 from frappe import _
 
-from freightmas.portal.security import PORTAL_ROLE, UNIVERSAL_ROLES
+from freightmas.portal.security import CUSTOMER_PORTAL_ROLE, SUPPLIER_PORTAL_ROLE, UNIVERSAL_ROLES
+
+# link_doctype -> portal role granted when a Contact carries that link type.
+PARTY_ROLE_MAP = {
+	"Customer": CUSTOMER_PORTAL_ROLE,
+	"Supplier": SUPPLIER_PORTAL_ROLE,
+}
 
 
 def sync_portal_user_on_contact_save(doc, method=None):
@@ -16,12 +27,13 @@ def sync_portal_user_on_contact_save(doc, method=None):
 	if not doc.user:
 		return
 
-	is_customer_contact = any(link.link_doctype == "Customer" for link in doc.links)
-	if not is_customer_contact:
+	linked_types = {link.link_doctype for link in doc.links}
+	portal_roles = [role for link_doctype, role in PARTY_ROLE_MAP.items() if link_doctype in linked_types]
+	if not portal_roles:
 		return
 
 	user_doc = frappe.get_doc("User", doc.user)
-	_apply_portal_constraints(user_doc)
+	_apply_portal_constraints(user_doc, portal_roles)
 	user_doc.save(ignore_permissions=True)
 
 
@@ -32,25 +44,29 @@ def enforce_portal_user_type(doc, method=None):
 	if not contact_name:
 		return
 
-	is_customer_contact = frappe.db.exists(
-		"Dynamic Link",
-		{"parenttype": "Contact", "parent": contact_name, "link_doctype": "Customer"},
+	linked_types = set(
+		frappe.get_all(
+			"Dynamic Link",
+			filters={"parenttype": "Contact", "parent": contact_name, "link_doctype": ["in", list(PARTY_ROLE_MAP)]},
+			pluck="link_doctype",
+		)
 	)
-	if not is_customer_contact:
+	portal_roles = [role for link_doctype, role in PARTY_ROLE_MAP.items() if link_doctype in linked_types]
+	if not portal_roles:
 		return
 
-	_apply_portal_constraints(doc)
+	_apply_portal_constraints(doc, portal_roles)
 
 
-def _apply_portal_constraints(user_doc):
+def _apply_portal_constraints(user_doc, portal_roles):
 	# user_type == "System User" is just the DocType field default for any
 	# freshly created User, so it is not by itself evidence of a real staff
 	# account. The meaningful signal is whether this user already holds a
-	# Desk-access role — i.e. has actually been provisioned as internal
+	# Desk-access role - i.e. has actually been provisioned as internal
 	# staff. Throwing (rather than silently stripping) surfaces the
 	# conflict to the admin instead of quietly undoing their change.
 	if user_doc.name == "Administrator":
-		frappe.throw(_("The Administrator account cannot be used as a Client Portal login."))
+		frappe.throw(_("The Administrator account cannot be used as a portal login."))
 
 	desk_roles = set(frappe.get_all("Role", filters={"desk_access": 1}, pluck="name")) - UNIVERSAL_ROLES
 	held_desk_roles = [r.role for r in user_doc.roles if r.role in desk_roles]
@@ -58,12 +74,13 @@ def _apply_portal_constraints(user_doc):
 		frappe.throw(
 			_(
 				"{0} already holds staff role(s) ({1}) and cannot also be used "
-				"as a Client Portal login. Use a different email address for "
-				"this customer contact."
+				"as a portal login. Use a different email address for this "
+				"contact."
 			).format(user_doc.name, ", ".join(held_desk_roles))
 		)
 
 	user_doc.user_type = "Website User"
 
-	if not any(r.role == PORTAL_ROLE for r in user_doc.roles):
-		user_doc.append("roles", {"role": PORTAL_ROLE})
+	for role in portal_roles:
+		if not any(r.role == role for r in user_doc.roles):
+			user_doc.append("roles", {"role": role})

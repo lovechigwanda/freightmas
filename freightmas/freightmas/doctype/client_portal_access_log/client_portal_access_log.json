@@ -8,6 +8,8 @@
  "field_order": [
   "user",
   "customer",
+  "party_type",
+  "party",
   "action",
   "reference_doctype",
   "reference_name",
@@ -27,12 +29,30 @@
    "reqd": 1
   },
   {
+   "description": "Deprecated - retained for existing rows. New rows use party_type/party instead.",
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Customer (Deprecated)",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Customer",
-   "options": "Customer",
+   "label": "Party Type",
+   "options": "\nCustomer\nSupplier",
+   "read_only": 1
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Party",
+   "options": "party_type",
    "read_only": 1
   },
   {
@@ -79,7 +99,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-07-19 00:00:00.000000",
+ "modified": "2026-07-20 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "Client Portal Access Log",
