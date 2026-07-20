@@ -14,7 +14,7 @@
 
 			<nav class="sd-tabs">
 				<button class="sd-tab" :class="{ active: tab === 'overview' }" @click="tab = 'overview'">Overview</button>
-				<button class="sd-tab" :class="{ active: tab === 'tracking' }" @click="tab = 'tracking'">Tracking &amp; Milestones</button>
+				<button class="sd-tab" :class="{ active: tab === 'tracking' }" @click="tab = 'tracking'">Tracking</button>
 			</nav>
 
 			<div v-if="tab === 'overview'" class="sd-grid sd-grid-2">
@@ -48,22 +48,13 @@
 			</div>
 
 			<template v-else>
-				<div v-for="group in detail.milestone_stages" :key="group.group" class="sd-card" style="margin-bottom: 14px;">
-					<div class="sd-card-title"><span class="sd-card-title-main">{{ group.group }}</span></div>
-					<div class="sd-stage-group">
-						<div class="sd-stage-grid">
-							<div v-for="m in group.milestones" :key="m.label" class="sd-stage-row">
-								<span class="sd-stage-dot" :class="m.is_completed ? 'done' : 'pending'">
-									<Check v-if="m.is_completed" :size="12" stroke-width="3" />
-								</span>
-								<span class="sd-stage-label">{{ m.label }}</span>
-								<span class="sd-stage-date">{{ m.completed_on ? formatDate(m.completed_on) : "Pending" }}</span>
-							</div>
-						</div>
-					</div>
+				<div class="sd-card" style="margin-bottom: 14px;">
+					<div class="sd-card-title"><span class="sd-card-title-main">Journey</span></div>
+					<Timeline v-if="timeline.length" :items="timeline" />
+					<EmptyState v-else :icon="Clock" title="No tracking updates yet" />
 				</div>
 
-				<div v-if="detail.cargo.length" class="sd-card" style="margin-bottom: 14px;">
+				<div v-if="detail.cargo.length" class="sd-card">
 					<div class="sd-card-title"><span class="sd-card-title-main">Cargo / Containers ({{ detail.cargo.length }})</span></div>
 					<table class="sd-table">
 						<thead>
@@ -84,31 +75,19 @@
 						</tbody>
 					</table>
 				</div>
-
-				<div class="sd-card">
-					<div class="sd-card-title"><span class="sd-card-title-main">Tracking Timeline</span></div>
-					<ul class="sd-list" v-if="detail.tracking.length">
-						<li v-for="(event, idx) in detail.tracking" :key="idx">
-							<span class="cc-list-label">
-								<span class="cc-list-text">{{ event.event }}</span>
-							</span>
-							<span class="sd-muted" style="font-size: 12px;">{{ formatDate(event.date) }}</span>
-						</li>
-					</ul>
-					<EmptyState v-else :icon="Clock" title="No tracking events yet" />
-				</div>
 			</template>
 		</template>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
-import { Check, Clock } from "@lucide/vue";
+import { ref, computed, watch } from "vue";
+import { Clock } from "@lucide/vue";
 import { api } from "../api/shipments";
 import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
 import EmptyState from "../components/EmptyState.vue";
+import Timeline from "../components/Timeline.vue";
 
 const props = defineProps({ id: { type: String, required: true } });
 
@@ -116,6 +95,33 @@ const detail = ref(null);
 const loading = ref(true);
 const error = ref("");
 const tab = ref("overview");
+
+// Merges the structured milestone checklist and the free-text tracking log
+// into one chronological journey: completed milestones + logged events,
+// newest first, followed by not-yet-completed milestones (no date yet).
+const timeline = computed(() => {
+	if (!detail.value) return [];
+
+	const dated = [];
+	const pending = [];
+	for (const group of detail.value.milestone_stages || []) {
+		for (const m of group.milestones) {
+			if (m.is_completed && m.completed_on) {
+				dated.push({ label: m.label, sub: group.group, date: m.completed_on, done: true });
+			} else if (!m.is_completed) {
+				pending.push({ label: m.label, sub: group.group, date: null, done: false });
+			}
+		}
+	}
+	for (const t of detail.value.tracking || []) {
+		dated.push({ label: t.event, sub: t.source ? `via ${t.source}` : "", date: t.date, done: true });
+	}
+	dated.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+	if (pending.length) pending[0].next = true;
+
+	return [...dated, ...pending];
+});
 
 async function load(jobName) {
 	loading.value = true;

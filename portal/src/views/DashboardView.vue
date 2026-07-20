@@ -20,6 +20,18 @@
 					:icon="AlertTriangle"
 					sub="Past ETA/ETD, unconfirmed"
 				/>
+				<KpiCard
+					label="Outstanding"
+					:value="formatMoney(data.outstanding_amount)"
+					:tone="data.outstanding_amount ? 'warn' : 'good'"
+					:icon="Wallet"
+				/>
+				<KpiCard
+					label="Overdue Invoices"
+					:value="formatMoney(data.overdue_amount)"
+					:tone="data.overdue_amount ? 'danger' : 'good'"
+					:icon="Receipt"
+				/>
 			</div>
 
 			<div class="sd-card">
@@ -57,9 +69,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { Boxes, Ship, AlertTriangle } from "@lucide/vue";
+import { Boxes, Ship, AlertTriangle, Wallet, Receipt } from "@lucide/vue";
 import { api } from "../api/dashboard";
-import { formatDate, formatNumber } from "../format";
+import { formatDate, formatNumber, formatMoney } from "../format";
 import { useSessionStore } from "../stores/session";
 import KpiCard from "../components/KpiCard.vue";
 import StatusBadge from "../components/StatusBadge.vue";

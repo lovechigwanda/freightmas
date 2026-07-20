@@ -1,8 +1,4 @@
-# Client Portal dashboard overview - shipment KPIs only.
-#
-# Invoice/payment KPIs land in Phase 2 once freightmas/portal/api/invoices.py
-# and payments.py exist; the frontend renders placeholder tiles for those
-# until then rather than this endpoint guessing at their shape.
+# Client Portal dashboard overview - shipment + billing KPIs.
 
 import frappe
 from frappe import _
@@ -51,6 +47,22 @@ def get_overview():
 		):
 			overdue_count += 1
 
+	invoice_filters = {"docstatus": 1, "customer": ["in", customers], "outstanding_amount": [">", 0]}
+	outstanding_amount = (
+		frappe.get_all(
+			"Sales Invoice", filters=invoice_filters, fields=[{"SUM": "outstanding_amount", "as": "total"}]
+		)[0].total
+		or 0
+	)
+	overdue_amount = (
+		frappe.get_all(
+			"Sales Invoice",
+			filters={**invoice_filters, "due_date": ["<", today]},
+			fields=[{"SUM": "outstanding_amount", "as": "total"}],
+		)[0].total
+		or 0
+	)
+
 	log_portal_access("view_dashboard", customer=customers[0] if len(customers) == 1 else None)
 
 	return {
@@ -58,4 +70,6 @@ def get_overview():
 		"in_transit": in_transit_count,
 		"overdue": overdue_count,
 		"recent_jobs": recent_jobs,
+		"outstanding_amount": outstanding_amount,
+		"overdue_amount": overdue_amount,
 	}
