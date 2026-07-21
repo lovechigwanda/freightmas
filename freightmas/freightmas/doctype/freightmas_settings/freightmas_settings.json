@@ -47,6 +47,10 @@
   "shipping_tracker_api_key",
   "column_break_st2",
   "default_tracking_type",
+  "milestone_import_tab",
+  "job_reference_column_header",
+  "column_map_section",
+  "milestone_import_column_map",
   "invoicing_tab",
   "enable_invoice_register",
   "column_break_inv1",
@@ -329,6 +333,30 @@
    "fieldtype": "Select",
    "label": "Default Tracking Type",
    "options": "BL\nCT\nBK"
+  },
+  {
+   "fieldname": "milestone_import_tab",
+   "fieldtype": "Tab Break",
+   "label": "Milestone Import"
+  },
+  {
+   "default": "Job Reference",
+   "description": "The Excel column header the clearing agent uses for the Forwarding Job reference (e.g. FWJB-00008-26) in their daily tracking report.",
+   "fieldname": "job_reference_column_header",
+   "fieldtype": "Data",
+   "label": "Job Reference Column Header"
+  },
+  {
+   "fieldname": "column_map_section",
+   "fieldtype": "Section Break",
+   "label": "Milestone Column Mapping"
+  },
+  {
+   "description": "Map each Excel column header from the clearing agent's tracking report to the Milestone Definition it should update.",
+   "fieldname": "milestone_import_column_map",
+   "fieldtype": "Table",
+   "label": "Milestone Column Mapping",
+   "options": "Milestone Import Column Map"
   },
   {
    "fieldname": "invoicing_tab",

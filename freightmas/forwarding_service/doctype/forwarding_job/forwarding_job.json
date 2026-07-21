@@ -31,14 +31,16 @@
   "requires_warehousing",
   "client_and_party_information_section",
   "customer",
-  "notify_party",
   "customer_reference",
+  "notify_party",
   "column_break_pdto",
-  "shipper",
-  "origin_agent",
-  "consignee_reference",
-  "column_break_tggg",
   "consignee",
+  "consignee_reference",
+  "origin_agent",
+  "column_break_tggg",
+  "shipper",
+  "port_clearing_agent",
+  "border_clearing_agent",
   "routing_information_section",
   "port_of_loading",
   "origin_country",
@@ -397,6 +399,14 @@
    "fieldname": "origin_agent",
    "fieldtype": "Link",
    "label": "Origin Agent",
+   "options": "Supplier"
+  },
+  {
+   "depends_on": "eval:doc.requires_port_clearance",
+   "fieldname": "port_clearing_agent",
+   "fieldtype": "Link",
+   "label": "Port Clearing Agent",
+   "mandatory_depends_on": "eval:doc.requires_port_clearance",
    "options": "Supplier"
   },
   {
@@ -1396,6 +1406,14 @@
   {
    "fieldname": "section_break_xkyy",
    "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.requires_border_clearance",
+   "fieldname": "border_clearing_agent",
+   "fieldtype": "Link",
+   "label": "Border Clearing Agent",
+   "mandatory_depends_on": "eval:doc.requires_border_clearance",
+   "options": "Supplier"
   }
  ],
  "grid_page_length": 50,
@@ -1420,7 +1438,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-07-16 16:18:42.538727",
+ "modified": "2026-07-21 21:50:55.784256",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",

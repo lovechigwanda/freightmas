@@ -1,0 +1,207 @@
+{
+ "actions": [],
+ "autoname": "MILIMP-.#####",
+ "creation": "2026-07-21 09:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "import_details_section",
+  "service_module",
+  "column_break_1",
+  "status",
+  "template_section",
+  "download_template",
+  "upload_section",
+  "import_file",
+  "preview_section",
+  "import_preview",
+  "results_section",
+  "updated_count",
+  "column_break_2",
+  "skipped_count",
+  "column_break_3",
+  "failed_count",
+  "import_results"
+ ],
+ "fields": [
+  {
+   "fieldname": "import_details_section",
+   "fieldtype": "Section Break",
+   "label": "Import Details"
+  },
+  {
+   "description": "Which service module's milestones this run imports. Drives the downloadable template and the column matching. Cannot be changed once set.",
+   "fieldname": "service_module",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Service Module",
+   "options": "Port Clearance\nRoad Freight\nBorder Clearance\nWarehouse",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nPreviewed\nCompleted\nPartially Completed\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "template_section",
+   "fieldtype": "Section Break",
+   "label": "Template"
+  },
+  {
+   "description": "Generates an .xlsx with a Job Reference column plus one column per active milestone in the selected module - send this to the clearing agent to populate.",
+   "fieldname": "download_template",
+   "fieldtype": "Button",
+   "label": "Download Template"
+  },
+  {
+   "fieldname": "upload_section",
+   "fieldtype": "Section Break",
+   "label": "Upload"
+  },
+  {
+   "description": "The clearing agent's completed tracker file for this module.",
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "label": "Tracker File",
+   "options": ".xlsx"
+  },
+  {
+   "fieldname": "preview_section",
+   "fieldtype": "Section Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "import_preview",
+   "fieldtype": "HTML",
+   "label": "Preview"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "updated_count",
+   "fieldtype": "Int",
+   "label": "Updated",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "skipped_count",
+   "fieldtype": "Int",
+   "label": "Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "failed_count",
+   "fieldtype": "Int",
+   "label": "Failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "import_results",
+   "fieldtype": "Table",
+   "label": "Import Results",
+   "options": "Milestone Import Result",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-07-21 20:52:20.480701",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Milestone Import Run",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Accounts",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Admin",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
