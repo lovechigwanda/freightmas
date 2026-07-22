@@ -39,11 +39,12 @@ frappe.pages["freightmas-command-center"].on_page_load = function (wrapper) {
 	// controller can reference them, but that means the browser + frappe.require
 	// cache them by URL and can serve a stale bundle after a rebuild/deploy.
 	// Append a cache-busting query so a new release is always fetched fresh:
-	// in developer mode bust on every load; otherwise key on the app version
-	// (bump the freightmas app version on deploy).
+	// in developer mode bust on every load; otherwise key on the bundle's own
+	// mtime (set via the boot_session hook in freightmas/boot.py), which
+	// changes automatically on every real deploy - no manual step required.
 	const v = frappe.boot.developer_mode
 		? Date.now()
-		: (frappe.boot.versions && frappe.boot.versions.freightmas) || "1";
+		: frappe.boot.freightmas_dashboard_asset_version || "1";
 
 	// frappe.require() can hang silently here: its AssetManager resolves
 	// script/link onerror the same as onload "for backward compatibility",

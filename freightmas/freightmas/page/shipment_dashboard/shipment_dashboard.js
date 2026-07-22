@@ -20,7 +20,7 @@ frappe.pages["shipment-dashboard"].on_page_load = function (wrapper) {
 	// (see freightmas_command_center.js for the rationale).
 	const v = frappe.boot.developer_mode
 		? Date.now()
-		: (frappe.boot.versions && frappe.boot.versions.freightmas) || "1";
+		: frappe.boot.freightmas_dashboard_asset_version || "1";
 
 	frappe.require([
 		`/assets/freightmas/dashboard/dashboard.css?v=${v}`,

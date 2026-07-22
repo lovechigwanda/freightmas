@@ -116,6 +116,11 @@ after_install = "freightmas.install.after_install"
 
 # notification_config = "freightmas.notifications.get_notification_config"
 
+# Boot Session
+# ------------
+# Adds a cache-busting version for the Command Center's fixed-name bundle
+boot_session = "freightmas.boot.boot_session"
+
 # Permissions
 # -----------
 # Permissions evaluated in scripted ways
