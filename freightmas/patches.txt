@@ -20,3 +20,4 @@ freightmas.patches.retire_sea_air_freight_milestone_definitions
 freightmas.patches.add_invoice_job_reference_indexes
 freightmas.patches.enforce_private_job_attachments
 freightmas.patches.backfill_portal_access_log_party
+freightmas.patches.replace_port_clearance_milestone_definitions
