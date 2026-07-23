@@ -19,6 +19,9 @@
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
+				<a class="sd-table-link" :href="reportUrl" target="_blank" rel="noopener">
+					<Download :size="14" style="vertical-align: -2px;" /> Download Report
+				</a>
 			</div>
 		</div>
 
@@ -71,9 +74,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { onMounted } from "vue";
-import { SearchX } from "@lucide/vue";
+import { Download, SearchX } from "@lucide/vue";
 import { api } from "../api/shipments";
 import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
@@ -137,6 +140,10 @@ function changePage(delta) {
 	page.value += delta;
 	load();
 }
+
+const reportUrl = computed(() =>
+	api.exportTrackingReportUrl({ search: search.value, status: status.value, direction: direction.value })
+);
 
 onMounted(load);
 </script>
