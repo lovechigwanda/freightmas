@@ -37,41 +37,115 @@ MILESTONE_TABLE_FIELDS = [
 	"warehouse_milestones",
 ]
 
-# Milestone tables shown as their own "Milestones" columns in the tracking
-# report - each is job-level (Job Milestone Progress), not per-container, so
-# its value repeats identically on every container row of that job.
-REPORT_MILESTONE_TABLES = {
-	"port_clearance_milestones": "requires_port_clearance",
-	"border_clearance_milestones": "requires_border_clearance",
-	"warehouse_milestones": "requires_warehousing",
+# ============================================================
+# Tracking report (Excel export) - one flat table, one row per container
+# (a job with none gets one row, container columns blank). Job/BL-level
+# facts (Sea/Air dates, Port/Border/Warehouse Milestones) repeat identically
+# across a job's container rows - by design, since they genuinely are one
+# BL-level fact. Readability instead comes from giving every individual
+# milestone its own date column (blank = outstanding, amber; date entered =
+# achieved, green) and color-banding columns into sections, following the
+# reference tracking-sheet template the user supplied, rather than any
+# structural trick to avoid the repetition (two earlier versions of this
+# report tried splitting into blocks / Excel row-grouping instead - both
+# were reworked after real-file review).
+# ============================================================
+
+AMBER_FILL = "FDEBD0"
+GREEN_FILL = "D5F5E3"
+NA_FILL = "D9D9D9"
+PERCENT_FILL = "E8EDF7"
+
+# Sentinel written into a job's field dict for a dynamic (Port/Border
+# Clearance) milestone column when that service isn't required (ticked) on
+# the job at all - distinct from "required but not yet done" (None). The
+# workbook builder renders this as "-" with a neutral fill, and it's
+# excluded entirely from the % Complete applicable/completed counts.
+NOT_APPLICABLE = object()
+
+# (section title, band color, [(label, fieldname, kind), ...]) - kind is
+# "identity" (data cells shaded amber, header white-on-dark-grey), "milestone"
+# (date, amber/green/NA shaded), "status" (plain free text), or "percent"
+# (computed ratio, own fill).
+SHIPMENT_DETAILS_SECTION = ("Shipment Details", "595959", [
+	("Job ID", "job_id", "identity"),
+	("Consignee", "consignee", "identity"),
+	("Customer Reference", "customer_reference", "identity"),
+	("BL Number", "bl_number", "identity"),
+	("Container Number", "container_number", "identity"),
+	("Type", "container_type", "identity"),
+])
+
+SEA_AIR_SECTION = ("Sea / Air Freight", "2E5C8A", [
+	("Departed Origin (ATD)", "atd", "milestone"),
+	("ETA/ATA", "eta_ata", "milestone"),
+	("Discharged (Shipment)", "discharge_date", "milestone"),
+	("Container Discharged", "container_discharge_date", "milestone"),
+	("Gate Out", "gate_out_date", "milestone"),
+	("Empty Returned", "empty_return_date", "milestone"),
+])
+
+ROAD_TRANSPORT_SECTION = ("Road Transport", "1E7A6F", [
+	("Booked", "booked_on_date", "milestone"),
+	("Loaded", "loaded_on_date", "milestone"),
+	("Offloaded", "offloaded_on_date", "milestone"),
+	("Returned", "returned_on_date", "milestone"),
+	("Completed", "trucking_completed_on_date", "milestone"),
+])
+
+OVERVIEW_SECTION = ("Overview", "6B6B6B", [
+	("Completed", "job_completed_on", "milestone"),
+	("Status", "status_comment", "status"),
+	("% Complete", "percent_complete", "percent"),
+])
+
+# service_module -> band color, for the dynamic milestone sections built live
+# from Milestone Definition (sequence order) - the system's real milestone
+# set, not hardcoded column names. Warehouse dropped for now (per user
+# request) - re-add here (and to _build_report_sections()'s ordered list)
+# if it comes back.
+DYNAMIC_MILESTONE_COLORS = {
+	"Port Clearance": "5B3A8E",
+	"Border Clearance": "A04B2E",
 }
 
-# Port/Border/Warehouse Clearance are job/BL-level facts (Job Milestone
-# Progress is a child table on Forwarding Job, not on Cargo Parcel Details) -
-# they belong on a job's own row. Trucking and Completed On Date are the
-# only genuinely per-container facts - they belong on that container's own
-# row. Both row kinds share one flat table/column set (see
-# _build_tracking_workbook): a job's row populates the "job" columns and
-# leaves the "container" columns blank, its container rows do the reverse,
-# and Excel row-grouping (outline_level) makes the container rows collapse
-# under their job - one cohesive table, no repeated BL-level values.
-REPORT_COLUMNS = [
-	# "both": Job ID is written on every row (job row AND its container rows)
-	# as the structural/visual key tying container rows back to their job.
-	{"label": "Job ID", "fieldname": "job_id", "level": "both"},
-	{"label": "Consignee", "fieldname": "consignee", "level": "job"},
-	{"label": "Customer Reference", "fieldname": "customer_reference", "level": "job"},
-	{"label": "BL Number", "fieldname": "bl_number", "level": "job"},
-	{"label": "Cargo Count", "fieldname": "cargo_count", "level": "job"},
-	{"label": "Port Clearance Milestones", "fieldname": "port_clearance_milestones", "level": "job"},
-	{"label": "Border Clearance Milestones", "fieldname": "border_clearance_milestones", "level": "job"},
-	{"label": "Warehouse Milestones", "fieldname": "warehouse_milestones", "level": "job"},
-	{"label": "Latest Loading Comment", "fieldname": "latest_loading_comment", "level": "job"},
-	{"label": "Container Number", "fieldname": "container_number", "level": "container"},
-	{"label": "Container Type", "fieldname": "container_type", "level": "container"},
-	{"label": "Trucking Milestones", "fieldname": "trucking_milestones", "level": "container"},
-	{"label": "Completed On Date", "fieldname": "completed_on_date", "fieldtype": "Date", "level": "container"},
-]
+
+def _milestone_definition_columns(service_module):
+	"""One (label, fieldname) column per active Milestone Definition for this
+	service_module, in sequence order, deduped by milestone_code (used as the
+	fieldname - already globally unique, e.g. "PC_VESSEL_ARRIVED")."""
+	rows = frappe.get_all(
+		"Milestone Definition",
+		filters={"service_module": service_module, "is_active": 1},
+		fields=["milestone_code", "milestone_label"],
+		order_by="sequence asc",
+	)
+	seen = set()
+	columns = []
+	for r in rows:
+		if r.milestone_code in seen:
+			continue
+		seen.add(r.milestone_code)
+		columns.append((r.milestone_label, r.milestone_code, "milestone"))
+	return columns
+
+
+def _dynamic_section(service_module):
+	return (service_module, DYNAMIC_MILESTONE_COLORS[service_module], _milestone_definition_columns(service_module))
+
+
+def _build_report_sections():
+	"""Full ordered section list for this request, in the specific display
+	order requested: Shipment Details, Sea/Air Freight, Port Clearance, Road
+	Transport, Border Clearance, Overview."""
+	return [
+		SHIPMENT_DETAILS_SECTION,
+		SEA_AIR_SECTION,
+		_dynamic_section("Port Clearance"),
+		ROAD_TRANSPORT_SECTION,
+		_dynamic_section("Border Clearance"),
+		OVERVIEW_SECTION,
+	]
 
 
 def _caller_customer_filter():
@@ -279,73 +353,19 @@ def get_job_detail(job_name):
 	}
 
 
-def _cargo_count_summary(cargo_rows):
-	"""Mirror forwarding_job.js's update_cargo_count_forwarding grouping:
-	containerised rows grouped by container_type (qty summed), everything
-	else summed into one "General Cargo" bucket."""
-	grouped = {}
-	general_qty = 0
-	for c in cargo_rows:
-		if c.cargo_type == "Containerised":
-			key = c.container_type or "Unknown"
-			grouped[key] = grouped.get(key, 0) + (c.cargo_quantity or 0)
-		else:
-			general_qty += c.cargo_quantity or 0
-
-	parts = []
-	if grouped:
-		parts.append(", ".join(f"{qty}x{ctype}" for ctype, qty in grouped.items()))
-	if general_qty:
-		parts.append(f"{general_qty} General Cargo")
-	return " + ".join(parts)
-
-
-def _latest_milestone_label(rows):
-	"""Rows are ordered by idx (checklist sequence) - return the label/date of
-	the furthest-progressed completed milestone, blank if none completed."""
-	latest = None
-	for r in rows:
-		if r.is_completed:
-			latest = r
-	if not latest:
-		return ""
-	if latest.completed_on:
-		return f"{latest.milestone_label} ({formatdate(latest.completed_on, 'dd-MMM-yy')})"
-	return latest.milestone_label
-
-
-TRUCKING_STAGES = [
-	("is_completed", "completed_on_date", "Completed"),
-	("is_returned", "returned_on_date", "Returned"),
-	("is_offloaded", "offloaded_on_date", "Offloaded"),
-	("is_loaded", "loaded_on_date", "Loaded"),
-	("is_booked", "booked_on_date", "Booked"),
-]
-
-
-def _trucking_stage(cargo_row):
-	"""Furthest-progressed trucking stage for one container, e.g. "Loaded (15-Jul-26)"."""
-	for flag, date_field, label in TRUCKING_STAGES:
-		if cargo_row.get(flag):
-			date_value = cargo_row.get(date_field)
-			if date_value:
-				return f"{label} ({formatdate(date_value, 'dd-MMM-yy')})"
-			return label
-	return ""
-
-
-def _build_tracking_workbook(columns, rows):
-	"""Compact single-sheet workbook, one flat table: each job gets one bold
-	summary row (populating the "job"-level columns, e.g. Port/Border/
-	Warehouse Milestones), immediately followed by that job's container rows
-	(populating the "container"-level columns, e.g. Trucking Milestones) -
-	grouped via Excel's row outline/grouping so the container rows collapse
-	under their job's row (a +/- control in the row gutter), keeping
-	everything as one cohesive table without repeating job-level values on
-	every container row. Each row dict must carry a "_level" key of "job" or
-	"container" saying which columns it populates. Same underlying
-	formatting conventions as report_export_utils.build_excel_file (dd-MMM-yy
-	dates, left/right alignment, auto-fit column widths, hidden gridlines).
+def _build_tracking_workbook(sections, rows):
+	"""One flat table: every individual milestone gets its own date column,
+	color-banded into sections (Shipment Details / Sea-Air / Port Clearance /
+	Road Transport / Border Clearance / Overview), with each milestone cell
+	shaded amber (blank/outstanding), green (date present/achieved), or grey
+	with a "-" (NOT_APPLICABLE - that service isn't required on this job at
+	all), and Shipment Details cells shaded the same amber as an outstanding
+	milestone (the user's explicit color choice) - so a table that still
+	repeats job/BL-level values on every container row (that repetition is a
+	genuine BL-level fact) stays readable via color rather than a structural
+	trick. The 3 header rows are frozen.
+	`sections` is the output of _build_report_sections(); `rows` is a list of
+	flat {fieldname: value} dicts, one per report row.
 	"""
 	import io
 
@@ -353,58 +373,82 @@ def _build_tracking_workbook(columns, rows):
 	from openpyxl.styles import Alignment, Font, PatternFill
 	from openpyxl.utils import get_column_letter
 
+	# Flatten sections into one ordered column list, remembering section
+	# spans for the merged band row.
+	columns = []  # (label, fieldname, kind)
+	band_spans = []  # (title, color, start_col, end_col)
+	col_idx = 1
+	for title, color, cols in sections:
+		start = col_idx
+		for label, fieldname, kind in cols:
+			columns.append((label, fieldname, kind))
+			col_idx += 1
+		band_spans.append((title, color, start, col_idx - 1))
+	ncols = len(columns)
+
 	wb = Workbook()
 	ws = wb.active
 	ws.title = "Tracking Report"
 
-	job_row_font = Font(bold=True)
-	job_row_fill = PatternFill("solid", fgColor="D6DCE4")
+	title_font = Font(bold=True, size=14, color="1F2A44")
+	band_font = Font(bold=True, color="FFFFFF")
 	header_font = Font(bold=True, color="FFFFFF")
-	header_fill = PatternFill("solid", fgColor="305496")
+	center_wrap = Alignment(horizontal="center", vertical="center", wrap_text=True)
 	left_align = Alignment(horizontal="left", vertical="center")
-	right_align = Alignment(horizontal="right", vertical="center")
+	percent_align = Alignment(horizontal="center", vertical="center")
 
-	ncols = len(columns)
-	for col_idx, col in enumerate(columns, 1):
-		cell = ws.cell(row=1, column=col_idx, value=col["label"])
+	ws.cell(row=1, column=1, value="Shipment Tracking Report").font = title_font
+	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+
+	for title, color, start, end in band_spans:
+		cell = ws.cell(row=2, column=start, value=title)
+		cell.fill = PatternFill("solid", fgColor=color)
+		cell.font = band_font
+		cell.alignment = center_wrap
+		if end > start:
+			ws.merge_cells(start_row=2, start_column=start, end_row=2, end_column=end)
+
+	band_color_by_col = {}
+	for title, color, start, end in band_spans:
+		for c in range(start, end + 1):
+			band_color_by_col[c] = color
+
+	header_row = 3
+	for idx, (label, fieldname, kind) in enumerate(columns, 1):
+		cell = ws.cell(row=header_row, column=idx, value=label)
+		cell.fill = PatternFill("solid", fgColor=band_color_by_col[idx])
 		cell.font = header_font
-		cell.fill = header_fill
-		cell.alignment = left_align
+		cell.alignment = center_wrap
 
-	ws.freeze_panes = "A2"
-
+	data_start = header_row + 1
 	for row_offset, row_data in enumerate(rows):
-		row_idx = row_offset + 2
-		is_job_row = row_data.get("_level") == "job"
-
-		for col_idx, col in enumerate(columns, 1):
-			if col["level"] not in ("both", row_data["_level"]):
-				continue  # blank on this row - belongs to the other granularity
-
-			fieldname = col["fieldname"]
-			fieldtype = col.get("fieldtype")
+		row_idx = data_start + row_offset
+		for col_idx, (label, fieldname, kind) in enumerate(columns, 1):
 			value = row_data.get(fieldname)
-			is_numeric = fieldtype in ("Int", "Float", "Currency")
 			cell = ws.cell(row=row_idx, column=col_idx)
 
-			if fieldtype == "Date" and value:
-				cell.value = formatdate(value, "dd-MMM-yy")
-			elif is_numeric:
+			if kind == "milestone":
+				if value is NOT_APPLICABLE:
+					cell.value = "-"
+					cell.fill = PatternFill("solid", fgColor=NA_FILL)
+				else:
+					cell.value = formatdate(value, "dd-MMM-yy") if value else ""
+					cell.fill = PatternFill("solid", fgColor=GREEN_FILL if value else AMBER_FILL)
+				cell.alignment = percent_align
+			elif kind == "percent":
 				cell.value = value or 0
-			else:
+				cell.number_format = "0%"
+				cell.fill = PatternFill("solid", fgColor=PERCENT_FILL)
+				cell.alignment = percent_align
+			elif kind == "identity":
 				cell.value = value or ""
+				cell.alignment = left_align
+				cell.fill = PatternFill("solid", fgColor=AMBER_FILL)
+			else:  # status
+				cell.value = value or ""
+				cell.alignment = left_align
 
-			cell.alignment = right_align if is_numeric else left_align
-			if is_job_row:
-				cell.font = job_row_font
-				cell.fill = job_row_fill
-
-		if not is_job_row:
-			ws.row_dimensions[row_idx].outline_level = 1
-
-	# Collapse control sits above its detail rows (job row first, containers
-	# collapse underneath), not Excel's default "total row after detail".
-	ws.sheet_properties.outlinePr.summaryBelow = False
+	ws.freeze_panes = f"A{data_start}"  # pins the 3 header rows only, no column freeze
 
 	for col_idx in range(1, ncols + 1):
 		max_length = 0
@@ -435,7 +479,8 @@ def export_tracking_report(status=None, direction=None, search=None):
 		or_filters=or_filters,
 		fields=[
 			"name", "customer_reference", "consignee", "bl_number", "current_comment",
-			"requires_port_clearance", "requires_border_clearance", "requires_warehousing",
+			"atd", "eta", "ata", "discharge_date", "completed_on",
+			"requires_port_clearance", "requires_border_clearance",
 		],
 		order_by="modified desc",
 	)
@@ -451,69 +496,131 @@ def export_tracking_report(status=None, direction=None, search=None):
 			)
 		}
 
+	sections = _build_report_sections()
+	dynamic_milestone_fields = {
+		title: [fieldname for _label, fieldname, _kind in cols]
+		for title, _color, cols in sections
+		if title in ("Port Clearance", "Border Clearance")
+	}
+	section_to_table = {
+		"Port Clearance": "port_clearance_milestones",
+		"Border Clearance": "border_clearance_milestones",
+	}
+	section_requires_field = {
+		"Port Clearance": "requires_port_clearance",
+		"Border Clearance": "requires_border_clearance",
+	}
+
 	cargo_by_job = {}
-	milestone_by_job = {fieldname: {} for fieldname in REPORT_MILESTONE_TABLES}
+	milestone_rows_by_job = {table: {} for table in section_to_table.values()}
 
 	if job_names:
 		cargo_rows = frappe.get_all(
 			"Cargo Parcel Details",
 			filters={"parenttype": "Forwarding Job", "parent": ["in", job_names]},
 			fields=[
-				"parent", "container_number", "container_type", "cargo_type", "cargo_quantity",
-				"is_booked", "booked_on_date", "is_loaded", "loaded_on_date",
-				"is_offloaded", "offloaded_on_date", "is_returned", "returned_on_date",
-				"is_completed", "completed_on_date",
+				"parent", "container_number", "container_type",
+				"discharge_date", "gate_out_date", "empty_return_date",
+				"booked_on_date", "loaded_on_date", "offloaded_on_date",
+				"returned_on_date", "completed_on_date",
 			],
 			order_by="parent, idx",
 		)
 		for r in cargo_rows:
 			cargo_by_job.setdefault(r.parent, []).append(r)
 
-		for fieldname in REPORT_MILESTONE_TABLES:
+		for table in section_to_table.values():
 			rows = frappe.get_all(
 				"Job Milestone Progress",
-				filters={
-					"parenttype": "Forwarding Job", "parentfield": fieldname,
-					"parent": ["in", job_names],
-				},
-				fields=["parent", "milestone_label", "is_completed", "completed_on"],
+				filters={"parenttype": "Forwarding Job", "parentfield": table, "parent": ["in", job_names]},
+				fields=["parent", "milestone_code", "is_completed", "completed_on"],
 				order_by="parent, idx",
 			)
 			for r in rows:
-				milestone_by_job[fieldname].setdefault(r.parent, []).append(r)
+				milestone_rows_by_job[table].setdefault(r.parent, []).append(r)
 
 	report_rows = []
 	for job in jobs:
 		containers = cargo_by_job.get(job.name, [])
 
-		job_row = {
-			"_level": "job",
+		job_fields = {
 			"job_id": job.name,
 			"consignee": customer_name_map.get(job.consignee, job.consignee),
 			"customer_reference": job.customer_reference,
 			"bl_number": job.bl_number,
-			"cargo_count": _cargo_count_summary(containers),
-			"latest_loading_comment": job.current_comment,
+			"atd": job.atd,
+			"eta_ata": job.ata or job.eta,
+			"discharge_date": job.discharge_date,
+			"job_completed_on": job.completed_on,
+			"status_comment": job.current_comment,
 		}
-		for fieldname, requires_field in REPORT_MILESTONE_TABLES.items():
-			job_row[fieldname] = (
-				_latest_milestone_label(milestone_by_job[fieldname].get(job.name, []))
-				if job.get(requires_field)
-				else ""
-			)
-		report_rows.append(job_row)
+		sea_air_job_applicable = ["atd", "eta_ata", "discharge_date"]
+
+		# Per-job milestone maps: {milestone_code: completed_on}, plus counts
+		# for % Complete. A service not required (ticked) on this job at all
+		# gets NOT_APPLICABLE on every one of its milestone columns (rendered
+		# as "-", not amber) and contributes nothing to applicable/completed -
+		# explicitly gated on the job's own requires_* flag, not inferred from
+		# row presence, so a job where the flag was later unticked (rows can
+		# linger - populate_mode_milestones() never removes them) still reads
+		# as not-applicable rather than "outstanding".
+		section_counts = {}  # title -> (applicable, completed)
+		for title, table in section_to_table.items():
+			required = bool(job.get(section_requires_field[title]))
+			rows = milestone_rows_by_job[table].get(job.name, []) if required else []
+			value_map = {r.milestone_code: r.completed_on for r in rows if r.is_completed}
+			for fieldname in dynamic_milestone_fields[title]:
+				job_fields[fieldname] = value_map.get(fieldname) if required else NOT_APPLICABLE
+			section_counts[title] = (len(rows), sum(1 for r in rows if r.is_completed))
+
+		if not containers:
+			containers = [None]
 
 		for c in containers:
-			report_rows.append({
-				"_level": "container",
-				"job_id": job.name,
-				"container_number": c.container_number,
-				"container_type": c.container_type,
-				"trucking_milestones": _trucking_stage(c),
-				"completed_on_date": c.completed_on_date,
-			})
+			row = dict(job_fields)
+			if c is None:
+				row.update({
+					"container_number": None, "container_type": None,
+					"container_discharge_date": None, "gate_out_date": None, "empty_return_date": None,
+					"booked_on_date": None, "loaded_on_date": None, "offloaded_on_date": None,
+					"returned_on_date": None, "trucking_completed_on_date": None,
+				})
+			else:
+				row.update({
+					"container_number": c.container_number,
+					"container_type": c.container_type,
+					"container_discharge_date": c.discharge_date,
+					"gate_out_date": c.gate_out_date,
+					"empty_return_date": c.empty_return_date,
+					"booked_on_date": c.booked_on_date,
+					"loaded_on_date": c.loaded_on_date,
+					"offloaded_on_date": c.offloaded_on_date,
+					"returned_on_date": c.returned_on_date,
+					"trucking_completed_on_date": c.completed_on_date,
+				})
 
-	file_bytes = _build_tracking_workbook(REPORT_COLUMNS, report_rows)
+			road_transport_fields = [
+				"booked_on_date", "loaded_on_date", "offloaded_on_date",
+				"returned_on_date", "trucking_completed_on_date",
+			]
+			sea_air_container_fields = ["container_discharge_date", "gate_out_date", "empty_return_date"]
+
+			applicable = len(sea_air_job_applicable) + len(sea_air_container_fields) + len(road_transport_fields) + 1
+			completed = (
+				sum(1 for f in sea_air_job_applicable if row.get(f))
+				+ sum(1 for f in sea_air_container_fields if row.get(f))
+				+ sum(1 for f in road_transport_fields if row.get(f))
+				+ (1 if row.get("job_completed_on") else 0)
+			)
+			for title in section_to_table:
+				a, done = section_counts[title]
+				applicable += a
+				completed += done
+
+			row["percent_complete"] = (completed / applicable) if applicable else 0
+			report_rows.append(row)
+
+	file_bytes = _build_tracking_workbook(sections, report_rows)
 	filename = f"Tracking_Report_{now_datetime().strftime('%Y%m%d_%H%M')}.xlsx"
 	send_excel_response(file_bytes, filename)
 
