@@ -1103,3 +1103,396 @@ def export_dnd():
 	_write_sheet(wb.active, "DND Jobs", job_columns, res["jobs"])
 	_write_sheet(wb.create_sheet("Containers"), "Containers", container_columns, res["containers"])
 	_send_workbook(wb, _timestamped("DND_Additional_Costs"))
+
+
+# ============================================================
+# TRACKING REPORT (color-coded milestone grid)
+# ============================================================
+# Same column/section/shading design as freightmas.portal.api.shipments's
+# export_tracking_report - ported as a separate copy rather than imported,
+# per this module's existing deliberate independence from the portal (see
+# that module's own docstring: it's a re-implementation, not a delegation,
+# so the internal-staff and customer-portal trust boundaries never mix).
+# The only structural difference here is a multi-customer `customers` filter
+# instead of being implicitly locked to one caller's own customer.
+
+TRACKING_AMBER_FILL = "FDEBD0"
+TRACKING_GREEN_FILL = "D5F5E3"
+TRACKING_NA_FILL = "D9D9D9"
+TRACKING_PERCENT_FILL = "E8EDF7"
+
+# Sentinel for a Port/Border Clearance column when that service isn't
+# required (ticked) on the job at all - rendered as "-" with a neutral fill,
+# excluded from the % Complete applicable/completed counts.
+TRACKING_NOT_APPLICABLE = object()
+
+TRACKING_SHIPMENT_DETAILS_SECTION = ("Shipment Details", "595959", [
+	("Job ID", "job_id", "identity"),
+	("Consignee", "consignee", "identity"),
+	("Customer Reference", "customer_reference", "identity"),
+	("BL Number", "bl_number", "identity"),
+	("Container Number", "container_number", "identity"),
+	("Type", "container_type", "identity"),
+])
+
+TRACKING_SEA_AIR_SECTION = ("Sea / Air Freight", "2E5C8A", [
+	("Departed Origin (ATD)", "atd", "milestone"),
+	("ETA/ATA", "eta_ata", "milestone"),
+	("Discharged (Shipment)", "discharge_date", "milestone"),
+	("Container Discharged", "container_discharge_date", "milestone"),
+	("Gate Out", "gate_out_date", "milestone"),
+	("Empty Returned", "empty_return_date", "milestone"),
+])
+
+TRACKING_ROAD_TRANSPORT_SECTION = ("Road Transport", "1E7A6F", [
+	("Booked", "booked_on_date", "milestone"),
+	("Loaded", "loaded_on_date", "milestone"),
+	("Offloaded", "offloaded_on_date", "milestone"),
+	("Returned", "returned_on_date", "milestone"),
+	("Completed", "trucking_completed_on_date", "milestone"),
+])
+
+TRACKING_OVERVIEW_SECTION = ("Overview", "6B6B6B", [
+	("Completed", "job_completed_on", "milestone"),
+	("Status", "status_comment", "status"),
+	("% Complete", "percent_complete", "percent"),
+])
+
+# service_module -> band color, for the dynamic milestone sections built live
+# from Milestone Definition (sequence order).
+TRACKING_DYNAMIC_MILESTONE_COLORS = {
+	"Port Clearance": "5B3A8E",
+	"Border Clearance": "A04B2E",
+}
+
+
+def _tracking_milestone_definition_columns(service_module):
+	"""One (label, fieldname) column per active Milestone Definition for this
+	service_module, in sequence order, deduped by milestone_code (used as the
+	fieldname - already globally unique, e.g. "PC_VESSEL_ARRIVED")."""
+	rows = frappe.get_all(
+		"Milestone Definition",
+		filters={"service_module": service_module, "is_active": 1},
+		fields=["milestone_code", "milestone_label"],
+		order_by="sequence asc",
+	)
+	seen = set()
+	columns = []
+	for r in rows:
+		if r.milestone_code in seen:
+			continue
+		seen.add(r.milestone_code)
+		columns.append((r.milestone_label, r.milestone_code, "milestone"))
+	return columns
+
+
+def _tracking_dynamic_section(service_module):
+	return (
+		service_module,
+		TRACKING_DYNAMIC_MILESTONE_COLORS[service_module],
+		_tracking_milestone_definition_columns(service_module),
+	)
+
+
+def _build_tracking_report_sections():
+	"""Full ordered section list: Shipment Details, Sea/Air Freight, Port
+	Clearance, Road Transport, Border Clearance, Overview."""
+	return [
+		TRACKING_SHIPMENT_DETAILS_SECTION,
+		TRACKING_SEA_AIR_SECTION,
+		_tracking_dynamic_section("Port Clearance"),
+		TRACKING_ROAD_TRANSPORT_SECTION,
+		_tracking_dynamic_section("Border Clearance"),
+		TRACKING_OVERVIEW_SECTION,
+	]
+
+
+def _build_tracking_workbook(sections, rows):
+	"""One flat table: every individual milestone gets its own date column,
+	color-banded into sections, with each milestone cell shaded amber (blank/
+	outstanding), green (date present/achieved), or grey with a "-"
+	(TRACKING_NOT_APPLICABLE), and Shipment Details cells shaded amber too
+	(matching the outstanding-milestone color, per the portal version's own
+	final styling). The 3 header rows are frozen. `sections` is the output of
+	_build_tracking_report_sections(); `rows` is a list of flat
+	{fieldname: value} dicts, one per report row."""
+	columns = []  # (label, fieldname, kind)
+	band_spans = []  # (title, color, start_col, end_col)
+	col_idx = 1
+	for title, color, cols in sections:
+		start = col_idx
+		for label, fieldname, kind in cols:
+			columns.append((label, fieldname, kind))
+			col_idx += 1
+		band_spans.append((title, color, start, col_idx - 1))
+	ncols = len(columns)
+
+	wb = openpyxl.Workbook()
+	ws = wb.active
+	ws.title = "Tracking Report"
+
+	title_font = Font(bold=True, size=14, color="1F2A44")
+	band_font = Font(bold=True, color="FFFFFF")
+	header_font = Font(bold=True, color="FFFFFF")
+	center_wrap = Alignment(horizontal="center", vertical="center", wrap_text=True)
+	left_align = Alignment(horizontal="left", vertical="center")
+	percent_align = Alignment(horizontal="center", vertical="center")
+
+	ws.cell(row=1, column=1, value="Shipment Tracking Report").font = title_font
+	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+
+	for title, color, start, end in band_spans:
+		cell = ws.cell(row=2, column=start, value=title)
+		cell.fill = PatternFill("solid", fgColor=color)
+		cell.font = band_font
+		cell.alignment = center_wrap
+		if end > start:
+			ws.merge_cells(start_row=2, start_column=start, end_row=2, end_column=end)
+
+	band_color_by_col = {}
+	for title, color, start, end in band_spans:
+		for c in range(start, end + 1):
+			band_color_by_col[c] = color
+
+	header_row = 3
+	for idx, (label, fieldname, kind) in enumerate(columns, 1):
+		cell = ws.cell(row=header_row, column=idx, value=label)
+		cell.fill = PatternFill("solid", fgColor=band_color_by_col[idx])
+		cell.font = header_font
+		cell.alignment = center_wrap
+
+	data_start = header_row + 1
+	for row_offset, row_data in enumerate(rows):
+		row_idx = data_start + row_offset
+		for col_idx, (label, fieldname, kind) in enumerate(columns, 1):
+			value = row_data.get(fieldname)
+			cell = ws.cell(row=row_idx, column=col_idx)
+
+			if kind == "milestone":
+				if value is TRACKING_NOT_APPLICABLE:
+					cell.value = "-"
+					cell.fill = PatternFill("solid", fgColor=TRACKING_NA_FILL)
+				else:
+					cell.value = formatdate(value, "dd-MMM-yy") if value else ""
+					cell.fill = PatternFill(
+						"solid", fgColor=TRACKING_GREEN_FILL if value else TRACKING_AMBER_FILL
+					)
+				cell.alignment = percent_align
+			elif kind == "percent":
+				cell.value = value or 0
+				cell.number_format = "0%"
+				cell.fill = PatternFill("solid", fgColor=TRACKING_PERCENT_FILL)
+				cell.alignment = percent_align
+			elif kind == "identity":
+				cell.value = value or ""
+				cell.alignment = left_align
+				cell.fill = PatternFill("solid", fgColor=TRACKING_AMBER_FILL)
+			else:  # status
+				cell.value = value or ""
+				cell.alignment = left_align
+
+	ws.freeze_panes = f"A{data_start}"  # pins the 3 header rows only, no column freeze
+
+	for col_idx in range(1, ncols + 1):
+		max_length = 0
+		for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=col_idx, max_col=col_idx):
+			for cell in row:
+				length = len(str(cell.value)) if cell.value else 0
+				max_length = max(max_length, length)
+		ws.column_dimensions[get_column_letter(col_idx)].width = max(10, min(max_length + 2, 40))
+
+	ws.sheet_view.showGridLines = False
+
+	return wb
+
+
+@frappe.whitelist()
+def get_customers():
+	"""Distinct customers with at least one Forwarding Job - for populating
+	the tracking report's customer filter (not the entire Customer master,
+	which may include customers unrelated to freight forwarding)."""
+	check_freightmas_role()
+
+	return frappe.db.sql(
+		"""
+		SELECT DISTINCT c.name, c.customer_name
+		FROM `tabCustomer` c
+		INNER JOIN `tabForwarding Job` fj ON fj.customer = c.name
+		WHERE fj.docstatus < 2
+		ORDER BY c.customer_name
+		""",
+		as_dict=True,
+	)
+
+
+@frappe.whitelist()
+def export_tracking_report(customers=None, status=None, direction=None, search=None):
+	check_freightmas_role()
+
+	if customers and isinstance(customers, str):
+		customers = frappe.parse_json(customers)
+
+	filters = {"docstatus": ["<", 2]}
+	if customers:
+		filters["customer"] = ["in", customers]
+	if status:
+		filters["status"] = status
+	if direction:
+		filters["direction"] = direction
+
+	or_filters = None
+	if search:
+		or_filters = [
+			["name", "like", f"%{search}%"],
+			["customer_reference", "like", f"%{search}%"],
+			["bl_number", "like", f"%{search}%"],
+		]
+
+	jobs = frappe.get_all(
+		"Forwarding Job",
+		filters=filters,
+		or_filters=or_filters,
+		fields=[
+			"name", "consignee", "customer_reference", "bl_number", "current_comment",
+			"atd", "eta", "ata", "discharge_date", "completed_on",
+			"requires_port_clearance", "requires_border_clearance",
+		],
+		order_by="modified desc",
+	)
+	job_names = [j.name for j in jobs]
+
+	customer_name_map = {}
+	consignee_names = list({j.consignee for j in jobs if j.consignee})
+	if consignee_names:
+		customer_name_map = {
+			c.name: c.customer_name
+			for c in frappe.get_all(
+				"Customer", filters={"name": ["in", consignee_names]}, fields=["name", "customer_name"]
+			)
+		}
+
+	sections = _build_tracking_report_sections()
+	dynamic_milestone_fields = {
+		title: [fieldname for _label, fieldname, _kind in cols]
+		for title, _color, cols in sections
+		if title in ("Port Clearance", "Border Clearance")
+	}
+	section_to_table = {
+		"Port Clearance": "port_clearance_milestones",
+		"Border Clearance": "border_clearance_milestones",
+	}
+	section_requires_field = {
+		"Port Clearance": "requires_port_clearance",
+		"Border Clearance": "requires_border_clearance",
+	}
+
+	cargo_by_job = {}
+	milestone_rows_by_job = {table: {} for table in section_to_table.values()}
+
+	if job_names:
+		cargo_rows = frappe.get_all(
+			"Cargo Parcel Details",
+			filters={"parenttype": "Forwarding Job", "parent": ["in", job_names]},
+			fields=[
+				"parent", "container_number", "container_type",
+				"discharge_date", "gate_out_date", "empty_return_date",
+				"booked_on_date", "loaded_on_date", "offloaded_on_date",
+				"returned_on_date", "completed_on_date",
+			],
+			order_by="parent, idx",
+		)
+		for r in cargo_rows:
+			cargo_by_job.setdefault(r.parent, []).append(r)
+
+		for table in section_to_table.values():
+			rows = frappe.get_all(
+				"Job Milestone Progress",
+				filters={"parenttype": "Forwarding Job", "parentfield": table, "parent": ["in", job_names]},
+				fields=["parent", "milestone_code", "is_completed", "completed_on"],
+				order_by="parent, idx",
+			)
+			for r in rows:
+				milestone_rows_by_job[table].setdefault(r.parent, []).append(r)
+
+	report_rows = []
+	for job in jobs:
+		containers = cargo_by_job.get(job.name, [])
+
+		job_fields = {
+			"job_id": job.name,
+			"consignee": customer_name_map.get(job.consignee, job.consignee),
+			"customer_reference": job.customer_reference,
+			"bl_number": job.bl_number,
+			"atd": job.atd,
+			"eta_ata": job.ata or job.eta,
+			"discharge_date": job.discharge_date,
+			"job_completed_on": job.completed_on,
+			"status_comment": job.current_comment,
+		}
+		sea_air_job_applicable = ["atd", "eta_ata", "discharge_date"]
+
+		# Per-job milestone maps: {milestone_code: completed_on}, plus counts
+		# for % Complete. A service not required (ticked) on this job at all
+		# gets TRACKING_NOT_APPLICABLE on every one of its milestone columns
+		# (rendered as "-") and contributes nothing to applicable/completed -
+		# explicitly gated on the job's own requires_* flag, not inferred
+		# from row presence (populate_mode_milestones() never removes rows
+		# if a requires_* flag is later unticked).
+		section_counts = {}  # title -> (applicable, completed)
+		for title, table in section_to_table.items():
+			required = bool(job.get(section_requires_field[title]))
+			rows = milestone_rows_by_job[table].get(job.name, []) if required else []
+			value_map = {r.milestone_code: r.completed_on for r in rows if r.is_completed}
+			for fieldname in dynamic_milestone_fields[title]:
+				job_fields[fieldname] = value_map.get(fieldname) if required else TRACKING_NOT_APPLICABLE
+			section_counts[title] = (len(rows), sum(1 for r in rows if r.is_completed))
+
+		if not containers:
+			containers = [None]
+
+		for c in containers:
+			row = dict(job_fields)
+			if c is None:
+				row.update({
+					"container_number": None, "container_type": None,
+					"container_discharge_date": None, "gate_out_date": None, "empty_return_date": None,
+					"booked_on_date": None, "loaded_on_date": None, "offloaded_on_date": None,
+					"returned_on_date": None, "trucking_completed_on_date": None,
+				})
+			else:
+				row.update({
+					"container_number": c.container_number,
+					"container_type": c.container_type,
+					"container_discharge_date": c.discharge_date,
+					"gate_out_date": c.gate_out_date,
+					"empty_return_date": c.empty_return_date,
+					"booked_on_date": c.booked_on_date,
+					"loaded_on_date": c.loaded_on_date,
+					"offloaded_on_date": c.offloaded_on_date,
+					"returned_on_date": c.returned_on_date,
+					"trucking_completed_on_date": c.completed_on_date,
+				})
+
+			road_transport_fields = [
+				"booked_on_date", "loaded_on_date", "offloaded_on_date",
+				"returned_on_date", "trucking_completed_on_date",
+			]
+			sea_air_container_fields = ["container_discharge_date", "gate_out_date", "empty_return_date"]
+
+			applicable = len(sea_air_job_applicable) + len(sea_air_container_fields) + len(road_transport_fields) + 1
+			completed = (
+				sum(1 for f in sea_air_job_applicable if row.get(f))
+				+ sum(1 for f in sea_air_container_fields if row.get(f))
+				+ sum(1 for f in road_transport_fields if row.get(f))
+				+ (1 if row.get("job_completed_on") else 0)
+			)
+			for title in section_to_table:
+				a, done = section_counts[title]
+				applicable += a
+				completed += done
+
+			row["percent_complete"] = (completed / applicable) if applicable else 0
+			report_rows.append(row)
+
+	wb = _build_tracking_workbook(sections, report_rows)
+	_send_workbook(wb, _timestamped("Tracking_Report"))

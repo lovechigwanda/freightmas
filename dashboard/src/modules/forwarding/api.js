@@ -11,6 +11,7 @@ export const api = {
 	getJobDetail: (jobName) => client.call("get_job_detail", { job_name: jobName }),
 	getFinanceSummary: (params) => client.call("get_finance_summary", params),
 	getDndOverview: () => client.call("get_dnd_overview"),
+	getCustomers: () => client.call("get_customers"),
 };
 
 // Export endpoints stream a binary xlsx response directly - navigating to the
@@ -22,6 +23,7 @@ export function exportUrl(kind, params = {}) {
 		shipments: "export_jobs",
 		finance: "export_finance",
 		dnd: "export_dnd",
+		trackingReport: "export_tracking_report",
 	};
 	return client.buildUrl(methodMap[kind], params);
 }

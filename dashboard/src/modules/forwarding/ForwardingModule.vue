@@ -16,6 +16,7 @@
 		<main class="sd-body" style="padding: 0;">
 			<OverviewView v-if="activeTab === 'overview'" @open-job="openJob" />
 			<ShipmentsView v-else-if="activeTab === 'shipments'" @open-job="openJob" />
+			<TrackingView v-else-if="activeTab === 'tracking'" />
 			<FinanceView v-else-if="activeTab === 'finance'" @open-job="openJob" />
 			<DndView v-else-if="activeTab === 'dnd'" @open-job="openJob" />
 		</main>
@@ -27,9 +28,10 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { LayoutDashboard, Ship, Wallet, AlertTriangle } from "@lucide/vue";
+import { LayoutDashboard, Ship, Wallet, AlertTriangle, MapPin } from "@lucide/vue";
 import OverviewView from "./OverviewView.vue";
 import ShipmentsView from "./ShipmentsView.vue";
+import TrackingView from "./TrackingView.vue";
 import FinanceView from "./FinanceView.vue";
 import DndView from "./DndView.vue";
 import JobDetailModal from "./JobDetailModal.vue";
@@ -37,6 +39,7 @@ import JobDetailModal from "./JobDetailModal.vue";
 const tabs = [
 	{ key: "overview", label: "Overview", icon: LayoutDashboard },
 	{ key: "shipments", label: "Shipments", icon: Ship },
+	{ key: "tracking", label: "Tracking", icon: MapPin },
 	{ key: "finance", label: "Finance", icon: Wallet },
 	{ key: "dnd", label: "DND & Additional Costs", icon: AlertTriangle },
 ];
