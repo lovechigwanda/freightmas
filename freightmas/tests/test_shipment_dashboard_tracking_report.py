@@ -225,3 +225,18 @@ class TestShipmentDashboardTrackingReport(IntegrationTestCase):
 		# into this column) - neither Port nor Border Clearance is required,
 		# so those columns aren't counted in the denominator at all.
 		self.assertAlmostEqual(job_rows[0][percent_col], 2 / 12, places=4)
+
+	def test_excludes_submitted_jobs(self):
+		customer_a = _make_customer("E7")
+		staff = _make_staff_user("E7")
+		job_a = _make_forwarding_job(customer_a, "E7")
+
+		_header, data_rows = self._export_as(staff)
+		self.assertIn(job_a.name, {r[0] for r in data_rows})  # still Draft (docstatus 0)
+
+		# Force submitted at the DB level, bypassing the controller's full
+		# submit-time validation - not the point of this scoping test.
+		frappe.db.set_value("Forwarding Job", job_a.name, "docstatus", 1)
+
+		_header, data_rows = self._export_as(staff)
+		self.assertNotIn(job_a.name, {r[0] for r in data_rows})

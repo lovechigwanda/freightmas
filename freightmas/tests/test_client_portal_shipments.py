@@ -380,3 +380,17 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 		_header, data_rows = self._export_as_user(user_a, status="Completed")
 		job_ids = {r[0] for r in data_rows}
 		self.assertNotIn(job_a.name, job_ids)  # job_a is "In Progress", filtered out
+
+	def test_export_tracking_report_excludes_submitted_jobs(self):
+		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E14")
+
+		_header, data_rows = self._export_as_user(user_a)
+		self.assertIn(job_a.name, {r[0] for r in data_rows})  # still Draft (docstatus 0)
+
+		# Force submitted at the DB level - same bypass technique already used
+		# for `status` in _make_forwarding_job, avoids triggering the
+		# controller's full submit-time validation just for this scoping test.
+		frappe.db.set_value("Forwarding Job", job_a.name, "docstatus", 1)
+
+		_header, data_rows = self._export_as_user(user_a)
+		self.assertNotIn(job_a.name, {r[0] for r in data_rows})

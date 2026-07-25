@@ -450,13 +450,25 @@ def _build_tracking_workbook(sections, rows):
 
 	ws.freeze_panes = f"A{data_start}"  # pins the 3 header rows only, no column freeze
 
-	for col_idx in range(1, ncols + 1):
+	# Milestone (date) and percent columns get a fixed, compact width
+	# regardless of their (often long) header label - "01-Jul-26"/"-"/blank
+	# never need more than this, and the header wraps (center_wrap, set
+	# above) to fit instead of forcing the column wide. Percent needs the
+	# same fixed treatment for a different reason: auto-fit measures each
+	# cell's raw (unformatted) value, and a raw float like
+	# 0.037037037037037035 is far longer than what "0%" actually displays.
+	# Other columns still auto-fit, but sized off the data rows only, not
+	# the header label.
+	for col_idx, (label, fieldname, kind) in enumerate(columns, 1):
+		if kind in ("milestone", "percent"):
+			ws.column_dimensions[get_column_letter(col_idx)].width = 11
+			continue
 		max_length = 0
-		for row in ws.iter_rows(min_row=1, max_row=ws.max_row, min_col=col_idx, max_col=col_idx):
+		for row in ws.iter_rows(min_row=data_start, max_row=ws.max_row, min_col=col_idx, max_col=col_idx):
 			for cell in row:
 				length = len(str(cell.value)) if cell.value else 0
 				max_length = max(max_length, length)
-		ws.column_dimensions[get_column_letter(col_idx)].width = max(10, min(max_length + 2, 40))
+		ws.column_dimensions[get_column_letter(col_idx)].width = max(10, min(max_length + 2, 30))
 
 	ws.sheet_view.showGridLines = False
 
@@ -472,6 +484,11 @@ def export_tracking_report(status=None, direction=None, search=None):
 	customers = _caller_customer_filter()
 
 	filters, or_filters = _job_list_filters(customers, status, direction, search)
+	# Tracking is for jobs still being worked - once a job is submitted it's
+	# considered finalized and drops out of this report (unlike the on-screen
+	# Shipments list, which _job_list_filters also backs and still shows
+	# submitted jobs).
+	filters["docstatus"] = 0
 
 	jobs = frappe.get_all(
 		"Forwarding Job",
