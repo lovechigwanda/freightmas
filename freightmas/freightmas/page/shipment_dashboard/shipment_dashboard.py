@@ -1572,12 +1572,6 @@ MASTER_DETAIL_BAND_COLORS = {
 MASTER_AT_PORT_DAYS_THRESHOLD = 14
 MASTER_ARRIVING_SOON_DAYS = 14
 
-MASTER_LATER_STAGE_FIELDS = [
-	"booked_on_date", "loaded_on_date", "offloaded_on_date",
-	"returned_on_date", "trucking_completed_on_date", "empty_return_date",
-	"job_completed_on",
-]
-
 
 def _build_stage_ladder(sections):
 	"""Builds the ordered "stage ladder" _annotate_stage_fields() walks to
@@ -1721,63 +1715,11 @@ def _annotate_stage_fields(report_rows, ladder):
 			row["_days_at_port"] = None
 
 
-def _row_exceptions(row, today, ladder):
-	"""Data-quality checks for one report row. Returns a list of exception
-	message strings - a row can trigger more than one, each becomes its own
-	line on the Exceptions sheet."""
-	msgs = []
-
-	actual_date_fields = [
-		"atd", "discharge_date", "container_discharge_date", "gate_out_date",
-		"empty_return_date", "booked_on_date", "loaded_on_date",
-		"offloaded_on_date", "returned_on_date", "trucking_completed_on_date",
-		"job_completed_on",
-	] + [r["field"] for r in ladder["rungs"] if r["field"] and r["field"].startswith(("PC_", "BC_"))]
-	if any(
-		row.get(f) not in (None, "", TRACKING_NOT_APPLICABLE) and getdate(row[f]) > today
-		for f in actual_date_fields
-	):
-		msgs.append("Future date held in an actual-discharge field")
-
-	eta = row.get("eta_ata")
-	disch = row.get("discharge_date")
-	cdisch = row.get("container_discharge_date")
-
-	if _pred_eta_passed_no_discharge(row, today):
-		msgs.append("ETA has passed with no discharge recorded")
-
-	if eta and getdate(eta) > today and (disch or cdisch):
-		msgs.append("ETA still shows a future date although discharge has taken place - ETA not updated to ATA")
-
-	if (disch or cdisch) and not row.get("atd"):
-		msgs.append("Discharge recorded but no departure date")
-
-	if row.get("gate_out_date") and (disch or cdisch):
-		latest_disch = max(getdate(d) for d in (disch, cdisch) if d)
-		if getdate(row["gate_out_date"]) < latest_disch:
-			msgs.append("Gate-out date precedes discharge date")
-
-	if not row.get("gate_out_date") and any(row.get(f) for f in MASTER_LATER_STAGE_FIELDS):
-		msgs.append("Gate-out date never captured, yet the job has moved on or closed")
-
-	if _pred_at_port_over_threshold(row):
-		msgs.append(
-			f"At port {row['_days_at_port']} days with no gate-out recorded - demurrage / storage risk"
-		)
-
-	if row.get("job_completed_on") and row.get("is_trucking_required") and not row.get("trucking_completed_on_date"):
-		msgs.append("Job closed without a delivery date")
-
-	if row.get("container_type") and not row.get("container_number"):
-		msgs.append("Container type recorded without container number")
-
-	return msgs
-
-
 def _master_sheet_banner(ws, ncols, subtitle):
-	"""Company name + subtitle banner, reused across all 5 Master Tracking
-	Report sheets. Returns the first free row index for the sheet's own
-	content (banner occupies rows 1-2, row 3 left blank)."""
+	"""Company name + subtitle banner, reused by the At a Glance and Detailed
+	Tracking sheets (the Summary sheet has its own richer title block).
+	Returns the first free row index for the sheet's own content (banner
+	occupies rows 1-2, row 3 left blank)."""
 	company = frappe.defaults.get_global_default("company") or frappe.defaults.get_user_default("Company") or "FreightMas"
 	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
 	ws.cell(row=1, column=1, value=company).font = _TITLE_FONT
@@ -1793,59 +1735,132 @@ def _apply_stage_fill(cell, row):
 	cell.alignment = Alignment(horizontal="left", vertical="center")
 
 
+_SUMMARY_CARD_BORDER = Border(
+	left=Side(style="thin", color="D9D9D9"), right=Side(style="thin", color="D9D9D9"),
+	top=Side(style="thin", color="D9D9D9"), bottom=Side(style="thin", color="D9D9D9"),
+)
+
+
+def _write_summary_section_banner(ws, row_idx, title, ncols):
+	cell = ws.cell(row=row_idx, column=1, value=title)
+	ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=ncols)
+	cell.font = Font(bold=True, color="FFFFFF", size=11)
+	cell.fill = _HEADER_FILL
+	cell.alignment = Alignment(horizontal="left", vertical="center", indent=1)
+	ws.row_dimensions[row_idx].height = 20
+	return row_idx + 1
+
+
+def _write_summary_table_header(ws, row_idx, label_text, ncols):
+	header_fill = PatternFill("solid", fgColor="F2F2F2")
+	bottom_border = Border(bottom=Side(style="thin", color="BFBFBF"))
+	ws.cell(row=row_idx, column=1, value=label_text).font = Font(bold=True, color="404040")
+	lines_cell = ws.cell(row=row_idx, column=4, value="Lines")
+	lines_cell.font = Font(bold=True, color="404040")
+	lines_cell.alignment = _RIGHT
+	share_cell = ws.cell(row=row_idx, column=5, value="Share")
+	share_cell.font = Font(bold=True, color="404040")
+	share_cell.alignment = Alignment(horizontal="center")
+	for c in range(1, ncols + 1):
+		cell = ws.cell(row=row_idx, column=c)
+		cell.fill = header_fill
+		cell.border = bottom_border
+	return row_idx + 1
+
+
+def _write_summary_data_row(ws, row_idx, label, count, total, zebra, alert=False):
+	"""Writes label (column A, left to overflow visually across the blank
+	B/C spacer columns if long - no merge needed) + Lines (D) + Share (E).
+	`alert=True` colors the count/share red when >0, green when 0 - used for
+	the Requiring Attention table."""
+	ws.cell(row=row_idx, column=1, value=label)
+	count_cell = ws.cell(row=row_idx, column=4, value=count)
+	count_cell.alignment = _RIGHT
+	share_cell = ws.cell(row=row_idx, column=5, value=(count / total) if total else 0)
+	share_cell.number_format = "0%"
+	share_cell.alignment = Alignment(horizontal="center")
+	if alert:
+		alert_fill = PatternFill("solid", fgColor="FBE7E7" if count else "EAF3E6")
+		count_cell.fill = alert_fill
+		count_cell.font = Font(bold=True, color="9C0006" if count else "3D6B29")
+		share_cell.fill = alert_fill
+	elif zebra:
+		for c in (1, 4, 5):
+			ws.cell(row=row_idx, column=c).fill = _ZEBRA_FILL
+	return row_idx + 1
+
+
 def _write_master_summary_sheet(ws, report_rows, ladder, total_jobs):
+	"""Cover-page style summary: big title block, 5 colored KPI "cards" (one
+	per stage bucket - count + share, bordered like tiles), then two banded
+	tables (Consignments by Stage, Requiring Attention) with zebra striping
+	and traffic-light coloring on the attention counts."""
 	ws.title = "Summary"
-	ncols = 6
+	ncols = 5
 	today = getdate(nowdate())
-	subtitle = (
-		f"Master Tracking Report — Position as at {formatdate(today, 'dd-MMM-yyyy')} "
-		f"| {len(report_rows)} consignment lines across {total_jobs} forwarding jobs"
-	)
-	row_idx = _master_sheet_banner(ws, ncols, subtitle)
+	ws.sheet_view.showGridLines = False
+
+	company = frappe.defaults.get_global_default("company") or frappe.defaults.get_user_default("Company") or "FreightMas"
+	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+	ws.cell(row=1, column=1, value=company).font = Font(bold=True, size=18, color="17406B")
+	ws.row_dimensions[1].height = 26
+
+	ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncols)
+	ws.cell(row=2, column=1, value="Master Tracking Report").font = Font(bold=True, size=13, color="178A8A")
+	ws.row_dimensions[2].height = 20
+
+	ws.merge_cells(start_row=3, start_column=1, end_row=3, end_column=ncols)
+	ws.cell(
+		row=3, column=1,
+		value=(
+			f"Position as at {formatdate(today, 'dd MMMM yyyy')}  |  "
+			f"{len(report_rows)} consignment lines across {total_jobs} forwarding jobs"
+		),
+	).font = Font(size=10, italic=True, color="7F7F7F")
 
 	bounds = _stage_bucket_bounds(ladder)
 	bucket_counts = Counter(r["_bucket_name"] for r in report_rows)
-
-	header_row = row_idx
-	for col_idx, (name, _fill, _font, _s, _e) in enumerate(bounds, start=1):
-		cell = ws.cell(row=header_row, column=col_idx, value=name)
-		cell.fill = _HEADER_FILL
-		cell.font = Font(bold=True, color="FFFFFF")
-		cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-	value_row = header_row + 1
-	for col_idx, (name, _fill, _font, _s, _e) in enumerate(bounds, start=1):
-		cell = ws.cell(row=value_row, column=col_idx, value=bucket_counts.get(name, 0))
-		cell.font = Font(bold=True, size=14)
-		cell.alignment = Alignment(horizontal="center")
-	row_idx = value_row + 2
-
-	ws.cell(row=row_idx, column=1, value="CONSIGNMENTS BY STAGE").font = _HEADER_FONT
-	ws.cell(row=row_idx, column=1).fill = _HEADER_FILL
-	ws.cell(row=row_idx, column=3, value="Lines").font = _HEADER_FONT
-	ws.cell(row=row_idx, column=3).fill = _HEADER_FILL
-	ws.cell(row=row_idx, column=4, value="Share").font = _HEADER_FONT
-	ws.cell(row=row_idx, column=4).fill = _HEADER_FILL
-	row_idx += 1
-
-	stage_counts = Counter(r["_stage_label"] for r in report_rows)
 	total = len(report_rows) or 1
+
+	label_row, value_row, share_row = 5, 6, 7
+	ws.row_dimensions[label_row].height = 28
+	ws.row_dimensions[value_row].height = 34
+	for col_idx, (name, fill, font_color, _start, _end) in enumerate(bounds, start=1):
+		count = bucket_counts.get(name, 0)
+		for r, value, size, bold in (
+			(label_row, name, 9, True),
+			(value_row, count, 20, True),
+			(share_row, count / total, 9, False),
+		):
+			cell = ws.cell(row=r, column=col_idx, value=value)
+			cell.fill = PatternFill("solid", fgColor=fill)
+			cell.font = Font(bold=bold, size=size, color=font_color)
+			cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=(r == label_row))
+			cell.border = _SUMMARY_CARD_BORDER
+		ws.cell(row=share_row, column=col_idx).number_format = "0%"
+
+	row_idx = share_row + 2
+
+	row_idx = _write_summary_section_banner(ws, row_idx, "CONSIGNMENTS BY STAGE", ncols)
+	row_idx = _write_summary_table_header(ws, row_idx, "Stage", ncols)
+	stage_counts = Counter(r["_stage_label"] for r in report_rows)
+	zebra = False
 	for rung in ladder["rungs"]:
 		count = stage_counts.get(rung["label"], 0)
 		if not count:
 			continue
-		ws.cell(row=row_idx, column=1, value=rung["label"])
-		ws.cell(row=row_idx, column=3, value=count).alignment = _RIGHT
-		share_cell = ws.cell(row=row_idx, column=4, value=count / total)
-		share_cell.number_format = "0%"
-		row_idx += 1
+		row_idx = _write_summary_data_row(ws, row_idx, rung["label"], count, total, zebra)
+		zebra = not zebra
+	total_row = row_idx
+	row_idx = _write_summary_data_row(ws, row_idx, "Total", len(report_rows), total, False)
+	for c in (1, 4, 5):
+		cell = ws.cell(row=total_row, column=c)
+		cell.font = Font(bold=True)
+		cell.border = Border(top=Side(style="thin", color="808080"))
 	row_idx += 1
 
-	ws.cell(row=row_idx, column=1, value="REQUIRING ATTENTION").font = _HEADER_FONT
-	ws.cell(row=row_idx, column=1).fill = _HEADER_FILL
-	ws.cell(row=row_idx, column=4, value="Lines").font = _HEADER_FONT
-	ws.cell(row=row_idx, column=4).fill = _HEADER_FILL
-	row_idx += 1
-
+	row_idx = _write_summary_section_banner(ws, row_idx, "REQUIRING ATTENTION", ncols)
+	row_idx = _write_summary_table_header(ws, row_idx, "Metric", ncols)
 	attention_rows = [
 		("Containers standing at port more than 14 days without gate-out",
 			sum(1 for r in report_rows if _pred_at_port_over_threshold(r))),
@@ -1857,14 +1872,13 @@ def _write_master_summary_sheet(ws, report_rows, ladder, total_jobs):
 			sum(1 for r in report_rows if _pred_arriving_soon(r))),
 	]
 	for label, count in attention_rows:
-		ws.cell(row=row_idx, column=1, value=label)
-		ws.cell(row=row_idx, column=4, value=count).alignment = _RIGHT
-		row_idx += 1
+		row_idx = _write_summary_data_row(ws, row_idx, label, count, total, False, alert=True)
 
-	ws.column_dimensions["A"].width = 48
-	ws.column_dimensions["B"].width = 18
-	for col in ("C", "D", "E", "F"):
-		ws.column_dimensions[col].width = 16
+	ws.column_dimensions["A"].width = 26
+	ws.column_dimensions["B"].width = 20
+	ws.column_dimensions["C"].width = 20
+	ws.column_dimensions["D"].width = 13
+	ws.column_dimensions["E"].width = 13
 
 
 AT_A_GLANCE_HEADERS = [
@@ -2071,73 +2085,6 @@ def _write_master_detailed_sheet(ws, sections, report_rows, ladder):
 			ws.column_dimensions[get_column_letter(col_idx)].width = 12
 
 
-def _write_master_exceptions_sheet(ws, report_rows, ladder):
-	ws.title = "Exceptions"
-	today = getdate(nowdate())
-
-	flagged_rows = []
-	for row in report_rows:
-		for msg in _row_exceptions(row, today, ladder):
-			flagged_rows.append((row, msg))
-
-	flagged_lines = len({id(row) for row, _msg in flagged_rows})
-	subtitle = (
-		f"Master Tracking Report — Exceptions: {flagged_lines} of {len(report_rows)} lines carry at least "
-		"one exception. Internal use - clear these in FreightMas before a client report is issued."
-	)
-	row_idx = _master_sheet_banner(ws, 5, subtitle)
-
-	headers = ["Job ID", "Consignee", "BL / AWB", "Container", "Exception"]
-	for col_idx, label in enumerate(headers, start=1):
-		cell = ws.cell(row=row_idx, column=col_idx, value=label)
-		cell.font = _HEADER_FONT
-		cell.fill = _HEADER_FILL
-	row_idx += 1
-
-	for row, msg in flagged_rows:
-		ws.cell(row=row_idx, column=1, value=row["job_id"])
-		ws.cell(row=row_idx, column=2, value=row["consignee"])
-		ws.cell(row=row_idx, column=3, value=row["bl_number"])
-		ws.cell(row=row_idx, column=4, value=row.get("container_number") or "")
-		ws.cell(row=row_idx, column=5, value=msg)
-		row_idx += 1
-
-	widths = [14, 26, 20, 16, 60]
-	for col_idx, width in enumerate(widths, start=1):
-		ws.column_dimensions[get_column_letter(col_idx)].width = width
-
-
-def _write_master_config_sheet(ws, ladder):
-	ws.title = "Config"
-	row_idx = _master_sheet_banner(ws, 4, "Master Tracking Report — Stage Ladder Reference")
-
-	headers = ["Block", "Export Header", "Seq", "Stage Label"]
-	for col_idx, label in enumerate(headers, start=1):
-		cell = ws.cell(row=row_idx, column=col_idx, value=label)
-		cell.font = _HEADER_FONT
-		cell.fill = _HEADER_FILL
-	row_idx += 1
-
-	for rung in ladder["rungs"]:
-		ws.cell(row=row_idx, column=1, value=rung["block"])
-		ws.cell(row=row_idx, column=2, value=rung["field"] or "(baseline)")
-		ws.cell(row=row_idx, column=3, value=rung["seq"])
-		ws.cell(row=row_idx, column=4, value=rung["label"])
-		row_idx += 1
-
-	row_idx += 1
-	note = ws.cell(
-		row=row_idx, column=1,
-		value="Reference only — this report computes these values as a static snapshot at export time, not live formulas.",
-	)
-	note.font = Font(italic=True, color="7F7F7F")
-	ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=4)
-
-	widths = [24, 30, 8, 34]
-	for col_idx, width in enumerate(widths, start=1):
-		ws.column_dimensions[get_column_letter(col_idx)].width = width
-
-
 def _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder):
 	wb = openpyxl.Workbook()
 
@@ -2146,8 +2093,6 @@ def _build_master_tracking_workbook(sections, report_rows, containers_by_job, la
 
 	_write_at_a_glance_sheet(wb.create_sheet("At a Glance"), report_rows, containers_by_job, ladder)
 	_write_master_detailed_sheet(wb.create_sheet("Detailed Tracking"), sections, report_rows, ladder)
-	_write_master_exceptions_sheet(wb.create_sheet("Exceptions"), report_rows, ladder)
-	_write_master_config_sheet(wb.create_sheet("Config"), ladder)
 
 	return wb
 
