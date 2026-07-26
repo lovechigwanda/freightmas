@@ -19,6 +19,18 @@
 				</div>
 
 				<div class="tr-row">
+					<div class="tr-name">Master Tracking Report</div>
+					<div class="tr-filter">
+						<CustomerFilterDropdown v-model="selectedMasterCustomers" />
+					</div>
+					<div class="tr-action">
+						<a class="sd-btn sd-btn-primary" :href="masterTrackingReportHref" target="_blank" rel="noopener">
+							<Download :size="14" stroke-width="2" /> Download Tracking Report
+						</a>
+					</div>
+				</div>
+
+				<div class="tr-row">
 					<div class="tr-name">
 						Simplified Tracking Report <span class="tr-soon">Soon</span>
 					</div>
@@ -57,9 +69,13 @@ import { exportUrl } from "./api";
 import CustomerFilterDropdown from "../../components/CustomerFilterDropdown.vue";
 
 const selectedCustomers = ref([]);
+const selectedMasterCustomers = ref([]);
 
 const trackingReportHref = computed(() =>
 	exportUrl("trackingReport", { customers: selectedCustomers.value })
+);
+const masterTrackingReportHref = computed(() =>
+	exportUrl("masterTrackingReport", { customers: selectedMasterCustomers.value })
 );
 </script>
 

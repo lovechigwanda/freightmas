@@ -9,6 +9,7 @@ separate from the Forwarding Job controller so it can evolve independently
 of the form's own whitelisted methods.
 """
 
+from collections import Counter
 from io import BytesIO
 
 import frappe
@@ -1269,14 +1270,8 @@ def _build_tracking_workbook(sections, rows):
 			cell = ws.cell(row=row_idx, column=col_idx)
 
 			if kind == "milestone":
-				if value is TRACKING_NOT_APPLICABLE:
-					cell.value = "-"
-					cell.fill = PatternFill("solid", fgColor=TRACKING_NA_FILL)
-				else:
-					cell.value = formatdate(value, "dd-MMM-yy") if value else ""
-					cell.fill = PatternFill(
-						"solid", fgColor=TRACKING_GREEN_FILL if value else TRACKING_AMBER_FILL
-					)
+				cell.value = "-" if value is TRACKING_NOT_APPLICABLE else (formatdate(value, "dd-MMM-yy") if value else "")
+				cell.fill = _milestone_cell_fill(value)
 				cell.alignment = percent_align
 			elif kind == "percent":
 				cell.value = value or 0
@@ -1337,10 +1332,17 @@ def get_customers():
 	)
 
 
-@frappe.whitelist()
-def export_tracking_report(customers=None, status=None, direction=None, search=None):
-	check_freightmas_role()
-
+def _gather_tracking_report_rows(customers=None, status=None, direction=None, search=None):
+	"""Shared data layer for the Full Tracking Report and the Master Tracking
+	Report. Returns (sections, report_rows, containers_by_job):
+	  - sections: output of _build_tracking_report_sections().
+	  - report_rows: flat {fieldname: value} dicts, one per (job, container) -
+	    always at least one row per job (a containerless job gets a single
+	    synthetic placeholder row, same as before).
+	  - containers_by_job: {job_id: [row, ...]}, the same row dicts grouped by
+	    job - lets a caller aggregate per-job (e.g. the Master report's "At a
+	    Glance" sheet) without re-scanning report_rows.
+	"""
 	if customers and isinstance(customers, str):
 		customers = frappe.parse_json(customers)
 
@@ -1370,7 +1372,7 @@ def export_tracking_report(customers=None, status=None, direction=None, search=N
 		fields=[
 			"name", "consignee", "customer_reference", "bl_number", "current_comment",
 			"atd", "eta", "ata", "discharge_date", "completed_on",
-			"requires_port_clearance", "requires_border_clearance",
+			"requires_port_clearance", "requires_border_clearance", "is_trucking_required",
 		],
 		order_by="modified desc",
 	)
@@ -1430,8 +1432,9 @@ def export_tracking_report(customers=None, status=None, direction=None, search=N
 				milestone_rows_by_job[table].setdefault(r.parent, []).append(r)
 
 	report_rows = []
+	containers_by_job = {}
 	for job in jobs:
-		containers = cargo_by_job.get(job.name, [])
+		real_containers = cargo_by_job.get(job.name, [])
 
 		job_fields = {
 			"job_id": job.name,
@@ -1443,6 +1446,8 @@ def export_tracking_report(customers=None, status=None, direction=None, search=N
 			"discharge_date": job.discharge_date,
 			"job_completed_on": job.completed_on,
 			"status_comment": job.current_comment,
+			"is_trucking_required": bool(job.is_trucking_required),
+			"parcel_count": len(real_containers),
 		}
 		sea_air_job_applicable = ["atd", "eta_ata", "discharge_date"]
 
@@ -1462,8 +1467,7 @@ def export_tracking_report(customers=None, status=None, direction=None, search=N
 				job_fields[fieldname] = value_map.get(fieldname) if required else TRACKING_NOT_APPLICABLE
 			section_counts[title] = (len(rows), sum(1 for r in rows if r.is_completed))
 
-		if not containers:
-			containers = [None]
+		containers = real_containers or [None]
 
 		for c in containers:
 			row = dict(job_fields)
@@ -1508,6 +1512,653 @@ def export_tracking_report(customers=None, status=None, direction=None, search=N
 
 			row["percent_complete"] = (completed / applicable) if applicable else 0
 			report_rows.append(row)
+			containers_by_job.setdefault(job.name, []).append(row)
 
+	return sections, report_rows, containers_by_job
+
+
+@frappe.whitelist()
+def export_tracking_report(customers=None, status=None, direction=None, search=None):
+	check_freightmas_role()
+	sections, report_rows, _containers_by_job = _gather_tracking_report_rows(
+		customers=customers, status=status, direction=direction, search=search
+	)
 	wb = _build_tracking_workbook(sections, report_rows)
 	_send_workbook(wb, _timestamped("Tracking_Report"))
+
+
+def _milestone_cell_fill(value):
+	"""Shared by the Full Tracking Report's flat grid and the Master Tracking
+	Report's Detailed Tracking sheet: green = achieved, amber = outstanding,
+	grey "-" = not applicable (service not required on this job)."""
+	if value is TRACKING_NOT_APPLICABLE:
+		return PatternFill("solid", fgColor=TRACKING_NA_FILL)
+	return PatternFill("solid", fgColor=TRACKING_GREEN_FILL if value else TRACKING_AMBER_FILL)
+
+
+# ============================================================
+# MASTER TRACKING REPORT (stage ladder + Summary / At a Glance /
+# Detailed Tracking / Exceptions / Config workbook)
+# ============================================================
+# Adds one unifying concept on top of _gather_tracking_report_rows()'s
+# existing flat rows: a single ordered "stage ladder" walking every
+# milestone/date field in sequence (mirrors a client-supplied reference
+# workbook's "Config" sheet), so each row reduces to one "Current Stage",
+# an ageing/exception layer, and 5 stage-buckets. Everything below is
+# computed once in Python at export time and written as static values/
+# fills - there are no live Excel formulas.
+
+MASTER_STAGE_BUCKETS = [
+	# (bucket_name, fill_color, font_color) - pastel per-row "status pill"
+	# used on Current Stage/Stage No. cells. Distinct from the bold
+	# section-header band colors in MASTER_DETAIL_BAND_COLORS below.
+	("NOT YET DEPARTED", "F2F2F2", "595959"),
+	("ON WATER / AIR", "E8EFF8", "1F3864"),
+	("AT PORT / IN CLEARANCE", "FFF4E0", "8A5200"),
+	("ON ROAD / AT BORDER", "E9F2F2", "0F5C5C"),
+	("DELIVERED / COMPLETED", "EAF3E6", "3D6B29"),
+]
+
+MASTER_DETAIL_BAND_COLORS = {
+	"Shipment Details": "17406B",
+	"Sea / Air Freight": "178A8A",
+	"Port Clearance": "4A2D7F",
+	"Road Transport & Delivery": "F58220",
+	"Border Clearance": "0F5C5C",
+	"Overview": "17406B",
+	"Progress & Status": "17406B",
+}
+
+MASTER_AT_PORT_DAYS_THRESHOLD = 14
+MASTER_ARRIVING_SOON_DAYS = 14
+
+MASTER_LATER_STAGE_FIELDS = [
+	"booked_on_date", "loaded_on_date", "offloaded_on_date",
+	"returned_on_date", "trucking_completed_on_date", "empty_return_date",
+	"job_completed_on",
+]
+
+
+def _build_stage_ladder(sections):
+	"""Builds the ordered "stage ladder" _annotate_stage_fields() walks to
+	derive each row's Current Stage. Dynamic: the Port/Border Clearance
+	rungs are pulled straight from `sections` (itself built live from active
+	Milestone Definition rows), so the ladder stays correct if those change.
+	Returns {"rungs": [...], "by_field": {field: rung}, "by_seq": {seq: rung}}.
+	"""
+	section_cols = {title: cols for title, _color, cols in sections}
+
+	def dynamic_rungs(section_title, block):
+		return [
+			{"label": label, "field": fieldname, "block": block}
+			for label, fieldname, _kind in section_cols.get(section_title, [])
+		]
+
+	rungs = [{"seq": 0, "label": "Booked - awaiting departure", "field": None, "block": "Overview"}]
+	fixed_rungs = (
+		[
+			{"label": "Departed origin", "field": "atd", "block": "Sea / Air Freight"},
+			{"label": "Vessel discharged", "field": "discharge_date", "block": "Sea / Air Freight"},
+			{"label": "Container discharged at port", "field": "container_discharge_date", "block": "Sea / Air Freight"},
+		]
+		+ dynamic_rungs("Port Clearance", "Port Clearance")
+		+ [
+			{"label": "Gated out of port", "field": "gate_out_date", "block": "Sea / Air Freight"},
+			{"label": "Transport booked", "field": "booked_on_date", "block": "Road Transport & Delivery"},
+			{"label": "Loaded for road transport", "field": "loaded_on_date", "block": "Road Transport & Delivery"},
+		]
+		+ dynamic_rungs("Border Clearance", "Border Clearance")
+		+ [
+			{"label": "Offloaded at destination", "field": "offloaded_on_date", "block": "Road Transport & Delivery"},
+			{"label": "Truck returned", "field": "returned_on_date", "block": "Road Transport & Delivery"},
+			{"label": "Road leg completed", "field": "trucking_completed_on_date", "block": "Road Transport & Delivery"},
+			{"label": "Empty container returned", "field": "empty_return_date", "block": "Sea / Air Freight"},
+			{"label": "Job completed", "field": "job_completed_on", "block": "Overview"},
+		]
+	)
+	for i, rung in enumerate(fixed_rungs, start=1):
+		rung["seq"] = i
+		rungs.append(rung)
+
+	by_field = {r["field"]: r for r in rungs if r["field"]}
+	by_seq = {r["seq"]: r for r in rungs}
+	return {"rungs": rungs, "by_field": by_field, "by_seq": by_seq}
+
+
+def _stage_bucket_bounds(ladder):
+	"""Resolves the 5 bucket boundaries by looking up known rungs by field
+	name rather than counting, so it stays correct however many Port/Border
+	Clearance milestones exist. Returns [(name, fill, font, start_seq, end_seq)]."""
+	by_field = ladder["by_field"]
+	last_seq = ladder["rungs"][-1]["seq"]
+
+	vessel_discharged_seq = by_field["discharge_date"]["seq"]
+	gate_out_seq = by_field["gate_out_date"]["seq"]
+	loaded_seq = by_field["loaded_on_date"]["seq"]
+	border_seqs = [r["seq"] for r in ladder["rungs"] if r["field"] and r["field"].startswith("BC_")]
+	border_end_seq = max(border_seqs) if border_seqs else loaded_seq
+
+	seq_bounds = [
+		(0, 0),
+		(1, vessel_discharged_seq),
+		(vessel_discharged_seq + 1, gate_out_seq),
+		(gate_out_seq + 1, border_end_seq),
+		(border_end_seq + 1, last_seq),
+	]
+	return [
+		(name, fill, font, start, end)
+		for (name, fill, font), (start, end) in zip(MASTER_STAGE_BUCKETS, seq_bounds)
+	]
+
+
+def _bucket_for_seq(seq, bounds):
+	for name, fill, font, start, end in bounds:
+		if start <= seq <= end:
+			return name, fill, font
+	return bounds[-1][0], bounds[-1][1], bounds[-1][2]
+
+
+def _pred_at_port_over_threshold(row):
+	days = row.get("_days_at_port")
+	return bool(days and days > MASTER_AT_PORT_DAYS_THRESHOLD)
+
+
+def _pred_eta_passed_no_discharge(row, today):
+	eta = row.get("eta_ata")
+	return bool(
+		eta and getdate(eta) < today
+		and not row.get("discharge_date") and not row.get("container_discharge_date")
+	)
+
+
+def _pred_awaiting_departure(row):
+	return row.get("_stage_seq") == 0
+
+
+def _pred_arriving_soon(row, days_ahead=MASTER_ARRIVING_SOON_DAYS):
+	days = row.get("_days_to_eta")
+	return days is not None and 0 <= days <= days_ahead
+
+
+def _annotate_stage_fields(report_rows, ladder):
+	"""Mutates each row in report_rows, adding the fields the Master Tracking
+	Report needs on top of what _gather_tracking_report_rows already
+	produces: _stage_seq/_stage_label/_bucket_name/_bucket_fill/_bucket_font,
+	_days_to_eta, _days_at_port. `percent_complete` (already on every row) is
+	reused as-is, not recomputed."""
+	today = getdate(nowdate())
+	bounds = _stage_bucket_bounds(ladder)
+	rungs = ladder["rungs"][1:]  # skip the seq-0 baseline, it has no field
+	discharge_seq = ladder["by_field"]["discharge_date"]["seq"]
+
+	for row in report_rows:
+		achieved_seq = 0
+		for rung in rungs:
+			value = row.get(rung["field"])
+			if value in (None, "", TRACKING_NOT_APPLICABLE):
+				continue
+			if getdate(value) <= today:
+				achieved_seq = rung["seq"]  # ascending order - last match wins (highest)
+		row["_stage_seq"] = achieved_seq
+		row["_stage_label"] = ladder["by_seq"][achieved_seq]["label"]
+
+		bucket_name, bucket_fill, bucket_font = _bucket_for_seq(achieved_seq, bounds)
+		row["_bucket_name"] = bucket_name
+		row["_bucket_fill"] = bucket_fill
+		row["_bucket_font"] = bucket_font
+
+		eta = row.get("eta_ata")
+		row["_days_to_eta"] = (
+			(getdate(eta) - today).days if eta and achieved_seq < discharge_seq else None
+		)
+
+		if bucket_name == "AT PORT / IN CLEARANCE":
+			disch_dates = [
+				getdate(d) for d in (row.get("discharge_date"), row.get("container_discharge_date")) if d
+			]
+			row["_days_at_port"] = (today - max(disch_dates)).days if disch_dates else None
+		else:
+			row["_days_at_port"] = None
+
+
+def _row_exceptions(row, today, ladder):
+	"""Data-quality checks for one report row. Returns a list of exception
+	message strings - a row can trigger more than one, each becomes its own
+	line on the Exceptions sheet."""
+	msgs = []
+
+	actual_date_fields = [
+		"atd", "discharge_date", "container_discharge_date", "gate_out_date",
+		"empty_return_date", "booked_on_date", "loaded_on_date",
+		"offloaded_on_date", "returned_on_date", "trucking_completed_on_date",
+		"job_completed_on",
+	] + [r["field"] for r in ladder["rungs"] if r["field"] and r["field"].startswith(("PC_", "BC_"))]
+	if any(
+		row.get(f) not in (None, "", TRACKING_NOT_APPLICABLE) and getdate(row[f]) > today
+		for f in actual_date_fields
+	):
+		msgs.append("Future date held in an actual-discharge field")
+
+	eta = row.get("eta_ata")
+	disch = row.get("discharge_date")
+	cdisch = row.get("container_discharge_date")
+
+	if _pred_eta_passed_no_discharge(row, today):
+		msgs.append("ETA has passed with no discharge recorded")
+
+	if eta and getdate(eta) > today and (disch or cdisch):
+		msgs.append("ETA still shows a future date although discharge has taken place - ETA not updated to ATA")
+
+	if (disch or cdisch) and not row.get("atd"):
+		msgs.append("Discharge recorded but no departure date")
+
+	if row.get("gate_out_date") and (disch or cdisch):
+		latest_disch = max(getdate(d) for d in (disch, cdisch) if d)
+		if getdate(row["gate_out_date"]) < latest_disch:
+			msgs.append("Gate-out date precedes discharge date")
+
+	if not row.get("gate_out_date") and any(row.get(f) for f in MASTER_LATER_STAGE_FIELDS):
+		msgs.append("Gate-out date never captured, yet the job has moved on or closed")
+
+	if _pred_at_port_over_threshold(row):
+		msgs.append(
+			f"At port {row['_days_at_port']} days with no gate-out recorded - demurrage / storage risk"
+		)
+
+	if row.get("job_completed_on") and row.get("is_trucking_required") and not row.get("trucking_completed_on_date"):
+		msgs.append("Job closed without a delivery date")
+
+	if row.get("container_type") and not row.get("container_number"):
+		msgs.append("Container type recorded without container number")
+
+	return msgs
+
+
+def _master_sheet_banner(ws, ncols, subtitle):
+	"""Company name + subtitle banner, reused across all 5 Master Tracking
+	Report sheets. Returns the first free row index for the sheet's own
+	content (banner occupies rows 1-2, row 3 left blank)."""
+	company = frappe.defaults.get_global_default("company") or frappe.defaults.get_user_default("Company") or "FreightMas"
+	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+	ws.cell(row=1, column=1, value=company).font = _TITLE_FONT
+	ws.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncols)
+	ws.cell(row=2, column=1, value=subtitle).font = _SUBTITLE_FONT
+	ws.sheet_view.showGridLines = False
+	return 4
+
+
+def _apply_stage_fill(cell, row):
+	cell.fill = PatternFill("solid", fgColor=row["_bucket_fill"])
+	cell.font = Font(color=row["_bucket_font"], bold=True)
+	cell.alignment = Alignment(horizontal="left", vertical="center")
+
+
+def _write_master_summary_sheet(ws, report_rows, ladder, total_jobs):
+	ws.title = "Summary"
+	ncols = 6
+	today = getdate(nowdate())
+	subtitle = (
+		f"Master Tracking Report — Position as at {formatdate(today, 'dd-MMM-yyyy')} "
+		f"| {len(report_rows)} consignment lines across {total_jobs} forwarding jobs"
+	)
+	row_idx = _master_sheet_banner(ws, ncols, subtitle)
+
+	bounds = _stage_bucket_bounds(ladder)
+	bucket_counts = Counter(r["_bucket_name"] for r in report_rows)
+
+	header_row = row_idx
+	for col_idx, (name, _fill, _font, _s, _e) in enumerate(bounds, start=1):
+		cell = ws.cell(row=header_row, column=col_idx, value=name)
+		cell.fill = _HEADER_FILL
+		cell.font = Font(bold=True, color="FFFFFF")
+		cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+	value_row = header_row + 1
+	for col_idx, (name, _fill, _font, _s, _e) in enumerate(bounds, start=1):
+		cell = ws.cell(row=value_row, column=col_idx, value=bucket_counts.get(name, 0))
+		cell.font = Font(bold=True, size=14)
+		cell.alignment = Alignment(horizontal="center")
+	row_idx = value_row + 2
+
+	ws.cell(row=row_idx, column=1, value="CONSIGNMENTS BY STAGE").font = _HEADER_FONT
+	ws.cell(row=row_idx, column=1).fill = _HEADER_FILL
+	ws.cell(row=row_idx, column=3, value="Lines").font = _HEADER_FONT
+	ws.cell(row=row_idx, column=3).fill = _HEADER_FILL
+	ws.cell(row=row_idx, column=4, value="Share").font = _HEADER_FONT
+	ws.cell(row=row_idx, column=4).fill = _HEADER_FILL
+	row_idx += 1
+
+	stage_counts = Counter(r["_stage_label"] for r in report_rows)
+	total = len(report_rows) or 1
+	for rung in ladder["rungs"]:
+		count = stage_counts.get(rung["label"], 0)
+		if not count:
+			continue
+		ws.cell(row=row_idx, column=1, value=rung["label"])
+		ws.cell(row=row_idx, column=3, value=count).alignment = _RIGHT
+		share_cell = ws.cell(row=row_idx, column=4, value=count / total)
+		share_cell.number_format = "0%"
+		row_idx += 1
+	row_idx += 1
+
+	ws.cell(row=row_idx, column=1, value="REQUIRING ATTENTION").font = _HEADER_FONT
+	ws.cell(row=row_idx, column=1).fill = _HEADER_FILL
+	ws.cell(row=row_idx, column=4, value="Lines").font = _HEADER_FONT
+	ws.cell(row=row_idx, column=4).fill = _HEADER_FILL
+	row_idx += 1
+
+	attention_rows = [
+		("Containers standing at port more than 14 days without gate-out",
+			sum(1 for r in report_rows if _pred_at_port_over_threshold(r))),
+		("Consignments where the ETA has passed with no discharge recorded",
+			sum(1 for r in report_rows if _pred_eta_passed_no_discharge(r, today))),
+		("Consignments still awaiting departure from origin",
+			sum(1 for r in report_rows if _pred_awaiting_departure(r))),
+		("Consignments arriving within the next 14 days",
+			sum(1 for r in report_rows if _pred_arriving_soon(r))),
+	]
+	for label, count in attention_rows:
+		ws.cell(row=row_idx, column=1, value=label)
+		ws.cell(row=row_idx, column=4, value=count).alignment = _RIGHT
+		row_idx += 1
+
+	ws.column_dimensions["A"].width = 48
+	ws.column_dimensions["B"].width = 18
+	for col in ("C", "D", "E", "F"):
+		ws.column_dimensions[col].width = 16
+
+
+AT_A_GLANCE_HEADERS = [
+	"Job ID", "Consignee", "Reference", "BL / AWB", "Container", "Parcels", "Type",
+	"ETA / ATA", "Current Stage", "Progress", "Days to ETA", "Days at Port",
+	"Next Step", "Remark",
+]
+
+
+def _write_at_a_glance_row(ws, row_idx, values, source_row, is_parent):
+	for col_idx, value in enumerate(values, start=1):
+		cell = ws.cell(row=row_idx, column=col_idx)
+		if col_idx == 8:  # ETA / ATA
+			cell.value = formatdate(value, "dd-MMM-yy") if value else ""
+		elif col_idx == 10:  # Progress
+			cell.value = value or 0
+			cell.number_format = "0%"
+			cell.alignment = Alignment(horizontal="center")
+		else:
+			cell.value = value if value not in (None,) else ""
+		if is_parent:
+			cell.font = Font(bold=True)
+
+	_apply_stage_fill(ws.cell(row=row_idx, column=9), source_row)
+
+	if _pred_at_port_over_threshold(source_row):
+		port_cell = ws.cell(row=row_idx, column=12)
+		port_cell.fill = PatternFill("solid", fgColor="FFF4E0")
+		port_cell.font = Font(color="8A5200", bold=True)
+
+	days_to_eta = source_row.get("_days_to_eta")
+	if days_to_eta is not None and days_to_eta < 0:
+		eta_cell = ws.cell(row=row_idx, column=11)
+		eta_cell.fill = PatternFill("solid", fgColor="FBE7E7")
+		eta_cell.font = Font(color="9C0006", bold=True)
+
+
+def _write_at_a_glance_sheet(ws, report_rows, containers_by_job, ladder):
+	ws.title = "At a Glance"
+	ncols = len(AT_A_GLANCE_HEADERS)
+	subtitle = "Master Tracking Report — At a Glance (one line per BL / AWB - expand for containers)"
+	row_idx = _master_sheet_banner(ws, ncols, subtitle)
+
+	header_row = row_idx
+	for col_idx, label in enumerate(AT_A_GLANCE_HEADERS, start=1):
+		cell = ws.cell(row=header_row, column=col_idx, value=label)
+		cell.font = _HEADER_FONT
+		cell.fill = _HEADER_FILL
+		cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+	row_idx = header_row + 1
+	ws.freeze_panes = f"A{row_idx}"
+
+	max_seq = ladder["rungs"][-1]["seq"]
+
+	def next_step_label(seq):
+		if seq >= max_seq:
+			return "Completed"
+		return "Next: " + ladder["by_seq"][seq + 1]["label"]
+
+	seen_jobs = set()
+	for row in report_rows:
+		job_id = row["job_id"]
+		if job_id in seen_jobs:
+			continue
+		seen_jobs.add(job_id)
+		group = containers_by_job[job_id]
+
+		lead = min(group, key=lambda r: r["_stage_seq"])
+		avg_progress = sum(r["percent_complete"] for r in group) / len(group)
+
+		parent_values = [
+			job_id, row["consignee"], row["customer_reference"], row["bl_number"],
+			"", row["parcel_count"], "",
+			lead.get("eta_ata"), lead["_stage_label"], avg_progress,
+			lead.get("_days_to_eta"), lead.get("_days_at_port"),
+			next_step_label(lead["_stage_seq"]), lead.get("status_comment") or "",
+		]
+		_write_at_a_glance_row(ws, row_idx, parent_values, lead, is_parent=True)
+		row_idx += 1
+
+		for container_row in group:
+			child_values = [
+				"", "", "", "",
+				container_row.get("container_number") or "(no container)", "",
+				container_row.get("container_type") or "",
+				container_row.get("eta_ata"), container_row["_stage_label"], container_row["percent_complete"],
+				container_row.get("_days_to_eta"), container_row.get("_days_at_port"),
+				next_step_label(container_row["_stage_seq"]), container_row.get("status_comment") or "",
+			]
+			_write_at_a_glance_row(ws, row_idx, child_values, container_row, is_parent=False)
+			ws.row_dimensions[row_idx].outlineLevel = 1
+			ws.row_dimensions[row_idx].hidden = True
+			row_idx += 1
+
+	ws.sheet_properties.outlinePr.summaryBelow = False
+
+	widths = [14, 26, 18, 20, 16, 9, 8, 12, 24, 10, 10, 10, 26, 30]
+	for col_idx, width in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+
+def _write_master_detailed_sheet(ws, sections, report_rows, ladder):
+	ws.title = "Detailed Tracking"
+	section_by_title = {title: cols for title, _color, cols in sections}
+
+	blocks = [
+		("Shipment Details", [
+			("Job ID", "job_id", "text"), ("Consignee", "consignee", "text"),
+			("Reference", "customer_reference", "text"), ("BL / AWB", "bl_number", "text"),
+			("Container", "container_number", "text"), ("Type", "container_type", "text"),
+		]),
+		("Sea / Air Freight", [
+			("Departed Origin (ATD)", "atd", "date"), ("ETA / ATA", "eta_ata", "date"),
+			("Discharged (Shipment)", "discharge_date", "date"),
+			("Container Discharged", "container_discharge_date", "date"),
+			("Gate Out", "gate_out_date", "date"), ("Empty Returned", "empty_return_date", "date"),
+		]),
+		("Port Clearance", [
+			(label, fieldname, "date") for label, fieldname, _kind in section_by_title.get("Port Clearance", [])
+		]),
+		("Road Transport & Delivery", [
+			("Booked", "booked_on_date", "date"), ("Loaded", "loaded_on_date", "date"),
+			("Offloaded", "offloaded_on_date", "date"), ("Returned", "returned_on_date", "date"),
+			("Completed", "trucking_completed_on_date", "date"),
+		]),
+		("Border Clearance", [
+			(label, fieldname, "date") for label, fieldname, _kind in section_by_title.get("Border Clearance", [])
+		]),
+		("Overview", [("Completed", "job_completed_on", "date")]),
+		("Progress & Status", [
+			("Milestones", "_milestones_achieved", "int"), ("Progress", "percent_complete", "percent"),
+			("Days to ETA", "_days_to_eta", "int"), ("Days at Port", "_days_at_port", "int"),
+			("Current Stage", "_stage_label", "stage"), ("Remark", "status_comment", "text"),
+			("Stage No.", "_stage_seq", "stageno"),
+		]),
+	]
+
+	ncols = sum(len(cols) for _title, cols in blocks)
+	subtitle = f"Master Tracking Report — Detailed Tracking ({len(report_rows)} lines)"
+	band_row = _master_sheet_banner(ws, ncols, subtitle)
+	header_row = band_row + 1
+
+	col = 1
+	columns = []  # flattened (label, fieldname, kind)
+	for title, cols in blocks:
+		start = col
+		for label, fieldname, kind in cols:
+			columns.append((label, fieldname, kind))
+			col += 1
+		end = col - 1
+		band_cell = ws.cell(row=band_row, column=start, value=title.upper())
+		band_cell.fill = PatternFill("solid", fgColor=MASTER_DETAIL_BAND_COLORS.get(title, "17406B"))
+		band_cell.font = Font(bold=True, color="FFFFFF")
+		band_cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+		if end > start:
+			ws.merge_cells(start_row=band_row, start_column=start, end_row=band_row, end_column=end)
+
+	for col_idx, (label, _fieldname, _kind) in enumerate(columns, start=1):
+		cell = ws.cell(row=header_row, column=col_idx, value=label)
+		cell.font = _HEADER_FONT
+		cell.fill = _HEADER_FILL
+		cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+	data_start = header_row + 1
+	for offset, row in enumerate(report_rows):
+		row_idx = data_start + offset
+		row["_milestones_achieved"] = sum(
+			1 for r in ladder["rungs"][1:]
+			if row.get(r["field"]) not in (None, "", TRACKING_NOT_APPLICABLE)
+		)
+		for col_idx, (_label, fieldname, kind) in enumerate(columns, start=1):
+			value = row.get(fieldname)
+			cell = ws.cell(row=row_idx, column=col_idx)
+			if kind == "date":
+				if value is TRACKING_NOT_APPLICABLE:
+					cell.value = "-"
+				else:
+					cell.value = formatdate(value, "dd-MMM-yy") if value else ""
+				cell.fill = _milestone_cell_fill(value)
+				cell.alignment = Alignment(horizontal="center")
+			elif kind == "percent":
+				cell.value = value or 0
+				cell.number_format = "0%"
+				cell.alignment = Alignment(horizontal="center")
+			elif kind in ("int", "stageno"):
+				cell.value = value if value is not None else ""
+				cell.alignment = Alignment(horizontal="center")
+				if kind == "stageno":
+					_apply_stage_fill(cell, row)
+			elif kind == "stage":
+				cell.value = value or ""
+				_apply_stage_fill(cell, row)
+			else:  # text
+				cell.value = value or ""
+				cell.alignment = Alignment(horizontal="left")
+
+	ws.freeze_panes = f"A{data_start}"
+	for col_idx, (_label, _fieldname, kind) in enumerate(columns, start=1):
+		if kind == "stage":
+			ws.column_dimensions[get_column_letter(col_idx)].width = 26
+		elif kind == "text":
+			ws.column_dimensions[get_column_letter(col_idx)].width = 20
+		else:
+			ws.column_dimensions[get_column_letter(col_idx)].width = 12
+
+
+def _write_master_exceptions_sheet(ws, report_rows, ladder):
+	ws.title = "Exceptions"
+	today = getdate(nowdate())
+
+	flagged_rows = []
+	for row in report_rows:
+		for msg in _row_exceptions(row, today, ladder):
+			flagged_rows.append((row, msg))
+
+	flagged_lines = len({id(row) for row, _msg in flagged_rows})
+	subtitle = (
+		f"Master Tracking Report — Exceptions: {flagged_lines} of {len(report_rows)} lines carry at least "
+		"one exception. Internal use - clear these in FreightMas before a client report is issued."
+	)
+	row_idx = _master_sheet_banner(ws, 5, subtitle)
+
+	headers = ["Job ID", "Consignee", "BL / AWB", "Container", "Exception"]
+	for col_idx, label in enumerate(headers, start=1):
+		cell = ws.cell(row=row_idx, column=col_idx, value=label)
+		cell.font = _HEADER_FONT
+		cell.fill = _HEADER_FILL
+	row_idx += 1
+
+	for row, msg in flagged_rows:
+		ws.cell(row=row_idx, column=1, value=row["job_id"])
+		ws.cell(row=row_idx, column=2, value=row["consignee"])
+		ws.cell(row=row_idx, column=3, value=row["bl_number"])
+		ws.cell(row=row_idx, column=4, value=row.get("container_number") or "")
+		ws.cell(row=row_idx, column=5, value=msg)
+		row_idx += 1
+
+	widths = [14, 26, 20, 16, 60]
+	for col_idx, width in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+
+def _write_master_config_sheet(ws, ladder):
+	ws.title = "Config"
+	row_idx = _master_sheet_banner(ws, 4, "Master Tracking Report — Stage Ladder Reference")
+
+	headers = ["Block", "Export Header", "Seq", "Stage Label"]
+	for col_idx, label in enumerate(headers, start=1):
+		cell = ws.cell(row=row_idx, column=col_idx, value=label)
+		cell.font = _HEADER_FONT
+		cell.fill = _HEADER_FILL
+	row_idx += 1
+
+	for rung in ladder["rungs"]:
+		ws.cell(row=row_idx, column=1, value=rung["block"])
+		ws.cell(row=row_idx, column=2, value=rung["field"] or "(baseline)")
+		ws.cell(row=row_idx, column=3, value=rung["seq"])
+		ws.cell(row=row_idx, column=4, value=rung["label"])
+		row_idx += 1
+
+	row_idx += 1
+	note = ws.cell(
+		row=row_idx, column=1,
+		value="Reference only — this report computes these values as a static snapshot at export time, not live formulas.",
+	)
+	note.font = Font(italic=True, color="7F7F7F")
+	ws.merge_cells(start_row=row_idx, start_column=1, end_row=row_idx, end_column=4)
+
+	widths = [24, 30, 8, 34]
+	for col_idx, width in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+
+def _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder):
+	wb = openpyxl.Workbook()
+
+	ws_summary = wb.active
+	_write_master_summary_sheet(ws_summary, report_rows, ladder, len(containers_by_job))
+
+	_write_at_a_glance_sheet(wb.create_sheet("At a Glance"), report_rows, containers_by_job, ladder)
+	_write_master_detailed_sheet(wb.create_sheet("Detailed Tracking"), sections, report_rows, ladder)
+	_write_master_exceptions_sheet(wb.create_sheet("Exceptions"), report_rows, ladder)
+	_write_master_config_sheet(wb.create_sheet("Config"), ladder)
+
+	return wb
+
+
+@frappe.whitelist()
+def export_master_tracking_report(customers=None, status=None, direction=None, search=None):
+	check_freightmas_role()
+	sections, report_rows, containers_by_job = _gather_tracking_report_rows(
+		customers=customers, status=status, direction=direction, search=search
+	)
+	ladder = _build_stage_ladder(sections)
+	_annotate_stage_fields(report_rows, ladder)
+	wb = _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder)
+	_send_workbook(wb, _timestamped("Master_Tracking_Report"))

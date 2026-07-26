@@ -24,6 +24,7 @@ export function exportUrl(kind, params = {}) {
 		finance: "export_finance",
 		dnd: "export_dnd",
 		trackingReport: "export_tracking_report",
+		masterTrackingReport: "export_master_tracking_report",
 	};
 	return client.buildUrl(methodMap[kind], params);
 }
