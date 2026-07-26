@@ -112,6 +112,44 @@
 		margin-bottom: 6px;
 	}
 
+	/* ---- Shipments at a Glance ---- */
+	.glance-wrap { margin-top: 20px; margin-bottom: 6px; }
+	.glance-title {
+		font: 700 12px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .03em;
+		text-transform: uppercase;
+		color: #2c2560;
+		margin-bottom: 8px;
+	}
+	table.sum { width: 100%; border-collapse: collapse; }
+	table.sum th {
+		font: 700 8.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .05em;
+		text-transform: uppercase;
+		color: #8b95a1;
+		text-align: left;
+		padding: 0 6px 7px 0;
+		border-bottom: 1.5px solid #2c2560;
+		white-space: nowrap;
+	}
+	table.sum td {
+		padding: 8px 6px 8px 0;
+		border-bottom: 1px solid #e7eaee;
+		font-size: 11.5px;
+		color: #26333f;
+		vertical-align: middle;
+		white-space: nowrap;
+	}
+	table.sum tr:last-child td { border-bottom: none; }
+	.sum-num { color: #8b95a1; }
+	.sum-ref { font-weight: 700; color: #2c2560; }
+	.sum-dot {
+		width: 7px; height: 7px;
+		border-radius: 50%;
+		display: inline-block;
+		margin-right: 6px;
+	}
+
 	/* ---- Per-job block ---- */
 	.job-block {
 		page-break-inside: avoid;
@@ -120,6 +158,10 @@
 		border-top: 3px solid #dd6b20;
 	}
 	.job-head { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+	.job-num {
+		font: 700 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #8b95a1;
+	}
 	.job-ref {
 		font: 800 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
 		color: #16212c;
@@ -271,12 +313,42 @@
 		<div class="doc-empty">No active shipments on file for {{ customer }}.</div>
 	{% endif %}
 
+	<!-- SHIPMENTS AT A GLANCE -->
+	{% if jobs %}
+	<div class="glance-wrap">
+		<div class="glance-title">Shipments at a Glance</div>
+		<table class="sum">
+			<colgroup>
+				<col style="width:4%;"/><col style="width:13%;"/><col style="width:12%;"/>
+				<col style="width:8%;"/><col style="width:43%;"/><col style="width:20%;"/>
+			</colgroup>
+			<thead><tr>
+				<th>#</th><th>Job Ref</th><th>BL No.</th><th>Cargo</th><th>Latest Update</th><th>Status</th>
+			</tr></thead>
+			<tbody>
+				{% for job in jobs %}
+				<tr>
+					<td class="sum-num">{{ job.num }}</td>
+					<td class="sum-ref">{{ job.glance.ref }}</td>
+					<td>{{ job.glance.bl_no }}</td>
+					<td>{{ job.glance.cargo_units }}</td>
+					<td>{{ job.glance.latest_update }}</td>
+					<td>
+						<span class="sum-dot" style="background:{{ job.glance.status_color }};"></span>{{ job.glance.status_label }} &middot; {{ job.glance.status_pct }}%
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% endif %}
+
 	<!-- ONE BLOCK PER JOB -->
 	{% for job in jobs %}
 	<div class="job-block" style="border-top-color:{{ job.status_color }};">
 		<table class="job-head">
 			<tr>
-				<td><span class="job-ref">{{ job.ref }}</span></td>
+				<td><span class="job-num">{{ job.num }}.</span> <span class="job-ref">{{ job.ref }}</span></td>
 				<td class="job-latest" style="color:{{ job.status_color }};">
 					LATEST: {{ job.latest_line }}
 				</td>
@@ -285,9 +357,10 @@
 
 		<table class="fields-bar">
 			<tr>
-				<td style="width:18%;"><div class="dk-label">Ref / BL</div><div class="dk-val">{{ job.fields.ref_bl }}</div></td>
-				<td style="width:46%;"><div class="dk-label">Cargo</div><div class="dk-val">{{ job.fields.cargo }}</div></td>
-				<td style="width:18%;"><div class="dk-label">Mode</div><div class="dk-val">{{ job.fields.mode }}</div></td>
+				<td style="width:16%;"><div class="dk-label">BL Number</div><div class="dk-val">{{ job.fields.bl_number }}</div></td>
+				<td style="width:20%;"><div class="dk-label">Reference</div><div class="dk-val">{{ job.fields.reference }}</div></td>
+				<td style="width:30%;"><div class="dk-label">Cargo</div><div class="dk-val">{{ job.fields.cargo }}</div></td>
+				<td style="width:16%;"><div class="dk-label">Mode</div><div class="dk-val">{{ job.fields.mode }}</div></td>
 				<td style="width:18%;"><div class="dk-label">Last Update</div><div class="dk-val">{{ job.fields.last_update }}</div></td>
 			</tr>
 		</table>

@@ -2199,9 +2199,19 @@ def _dossier_latest_line(doc, status_key):
 	return f"In transit · ETA {eta}" if eta else "In progress"
 
 
+# status_key -> the label shown in the "Shipments at a Glance" status cell.
+DOSSIER_STATUS_LABELS = {
+	"orange": "In Progress",
+	"green": "Completed",
+	"red": "Delayed",
+	"gray": "In Progress",
+}
+
+
 def _build_job_dossier_context(job_name):
 	"""Reshapes one Forwarding Job into the dossier block the PDF template
-	renders: ref, status color/line, a 4-field summary bar, and 4 section
+	renders: ref, status color/line, an at-a-glance summary row, a 5-field
+	info bar (BL Number, Reference, Cargo, Mode, Last Update) and 4 section
 	cards (Sea/Air Freight + Road Transport on the left, Port Clearance +
 	Completion on the right)."""
 	doc = frappe.get_doc("Forwarding Job", job_name)
@@ -2211,13 +2221,10 @@ def _build_job_dossier_context(job_name):
 	milestones_by_group = {s["group"]: s["milestones"] for s in _build_job_milestone_stages(doc)}
 	status_key = _dossier_status_key(doc, today)
 
-	# --- Summary bar (Ref/BL, Cargo, Mode, Last Update) ---
+	# Container-count summary (e.g. "3×40HC") for the at-a-glance Cargo column -
+	# distinct from the info bar's Cargo field, which is the description only.
 	type_counts = Counter(c["container_type"] for c in cargo if c.get("container_type"))
-	cargo_units = " + ".join(f"{n}×{t}" for t, n in type_counts.items())
-	route = " → ".join(
-		p for p in [doc.port_of_loading, doc.port_of_discharge, doc.destination] if p
-	)
-	cargo_line = " · ".join(b for b in [cargo_units, doc.cargo_description, route] if b) or "—"
+	cargo_units = " + ".join(f"{n}×{t}" for t, n in type_counts.items()) or "—"
 	mode_line = " · ".join(p for p in [doc.direction, doc.shipment_mode] if p) or "—"
 
 	# --- Sea / Air Freight card (container milestone dates) ---
@@ -2295,14 +2302,35 @@ def _build_job_dossier_context(job_name):
 		}],
 	}
 
+	# Overall completion across every section - drives the at-a-glance
+	# Status cell's percentage (the same done/total roll-up the job 3 mock
+	# uses: 6+2 of 12+15+15+2 = 18%).
+	overall_done = sea_done + road_done + pc_done + (1 if completed else 0)
+	overall_total = sea_total + road_total + len(pc_milestones) + 1
+	overall = _dossier_fraction(overall_done, overall_total)
+
+	latest_line = _dossier_latest_line(doc, status_key)
+
 	return {
 		"ref": doc.name,
 		"status_key": status_key,
 		"status_color": DOSSIER_STATUS_COLORS[status_key],
-		"latest_line": _dossier_latest_line(doc, status_key),
+		"latest_line": latest_line,
+		# One row of the "Shipments at a Glance" table.
+		"glance": {
+			"ref": doc.name,
+			"bl_no": doc.bl_number or "—",
+			"cargo_units": cargo_units,
+			"latest_update": latest_line,
+			"status_label": DOSSIER_STATUS_LABELS[status_key],
+			"status_pct": overall["pct"],
+			"status_color": DOSSIER_STATUS_COLORS[status_key],
+		},
+		# The 5-column info bar on the detail block.
 		"fields": {
-			"ref_bl": doc.bl_number or doc.customer_reference or "—",
-			"cargo": cargo_line,
+			"bl_number": doc.bl_number or "—",
+			"reference": doc.customer_reference or "—",
+			"cargo": doc.cargo_description or "—",
 			"mode": mode_line,
 			"last_update": _dossier_date(doc.last_updated_on) or "—",
 		},
@@ -2379,7 +2407,11 @@ def export_shipment_tracking_report(customer):
 		fields=["name"],
 		order_by="status asc, eta asc",
 	)
-	dossier_jobs = [_build_job_dossier_context(j.name) for j in jobs]
+	dossier_jobs = []
+	for i, j in enumerate(jobs, start=1):
+		ctx = _build_job_dossier_context(j.name)
+		ctx["num"] = i  # cross-references the at-a-glance table's "#" column
+		dossier_jobs.append(ctx)
 
 	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
@@ -2399,15 +2431,22 @@ def export_shipment_tracking_report(customer):
 
 	from frappe.utils.pdf import get_pdf
 
+	# footer-left / footer-right are wkhtmltopdf running-footer options;
+	# [page]/[topage] are its built-in per-page counters (CSS can't compute
+	# real page totals), giving genuine "Page X of Y" numbering.
 	pdf = get_pdf(
 		html,
 		options={
 			"orientation": "Portrait",
 			"page-size": "A4",
 			"margin-top": "12mm",
-			"margin-bottom": "14mm",
+			"margin-bottom": "16mm",
 			"margin-left": "10mm",
 			"margin-right": "10mm",
+			"footer-left": f"Prepared for {customer_name} — Confidential",
+			"footer-right": "Page [page] of [topage]",
+			"footer-font-size": "8",
+			"footer-spacing": "4",
 		},
 	)
 
