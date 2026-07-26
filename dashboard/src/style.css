@@ -602,6 +602,13 @@ h1, h2, h3, h4 {
 	color: #fff;
 }
 
+/* Anchor "disabled until a required selection is made" - a link can't use the
+   [disabled] attribute, so this class neutralizes clicks and dims it. */
+.sd-btn-disabled {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
 .sd-toolbar {
 	display: flex;
 	justify-content: space-between;

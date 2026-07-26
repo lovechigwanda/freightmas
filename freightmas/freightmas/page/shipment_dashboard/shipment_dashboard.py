@@ -432,6 +432,74 @@ def _milestone_progress_map(job_names):
 	}
 
 
+def _build_job_milestone_stages(doc):
+	"""Milestone groups (Road Freight / Port Clearance / Border Clearance /
+	Warehouse) for a Forwarding Job - only services actually required on the
+	job, and only groups that carry milestone rows. Shared by get_job_detail
+	(the Vue job drawer) and _build_job_dossier_context (the PDF dossier), so
+	both render the exact same milestone shape without re-deriving it."""
+	section_labels = {
+		"road_freight_milestones": "Road Freight",
+		"port_clearance_milestones": "Port Clearance",
+		"border_clearance_milestones": "Border Clearance",
+		"warehouse_milestones": "Warehouse",
+	}
+	requires_map = {
+		"road_freight_milestones": True,
+		"port_clearance_milestones": doc.requires_port_clearance,
+		"border_clearance_milestones": doc.requires_border_clearance,
+		"warehouse_milestones": doc.requires_warehousing,
+	}
+	stages = []
+	for fieldname, label in section_labels.items():
+		if not requires_map.get(fieldname):
+			continue
+		rows = doc.get(fieldname) or []
+		if not rows:
+			continue
+		stages.append({
+			"group": label,
+			"milestones": [
+				{
+					"label": r.milestone_label,
+					"is_completed": bool(r.is_completed),
+					"completed_on": r.completed_on,
+					"remarks": r.remarks,
+				}
+				for r in rows
+			],
+		})
+	return stages
+
+
+def _build_job_cargo_list(doc):
+	"""Cargo/container rows for a Forwarding Job, shaped for the dashboard.
+	Shared by get_job_detail (Vue drawer) and _build_job_dossier_context."""
+	return [
+		{
+			"name": r.name,
+			"container_number": r.container_number or r.cargo_item_description,
+			"container_type": r.container_type,
+			"cargo_type": r.cargo_type,
+			"to_be_returned": bool(r.to_be_returned),
+			"return_by_date": r.return_by_date,
+			"is_truck_required": bool(r.is_truck_required),
+			"is_booked": bool(r.is_booked),
+			"is_loaded": bool(r.is_loaded),
+			"is_offloaded": bool(r.is_offloaded),
+			"is_returned": bool(r.is_returned),
+			"is_completed": bool(r.is_completed),
+			"discharge_date": r.discharge_date,
+			"gate_out_date": r.gate_out_date,
+			"empty_return_date": r.empty_return_date,
+			"api_container_status": r.api_container_status,
+			"api_last_event": r.api_last_event,
+			"api_last_event_date": r.api_last_event_date,
+		}
+		for r in (doc.cargo_parcel_details or [])
+	]
+
+
 @frappe.whitelist()
 def get_job_detail(job_name):
 	check_freightmas_role()
@@ -479,61 +547,9 @@ def get_job_detail(job_name):
 		"revenue_recognised_on": doc.revenue_recognised_on,
 	}
 
-	milestone_stages = []
-	section_labels = {
-		"road_freight_milestones": "Road Freight",
-		"port_clearance_milestones": "Port Clearance",
-		"border_clearance_milestones": "Border Clearance",
-		"warehouse_milestones": "Warehouse",
-	}
-	requires_map = {
-		"road_freight_milestones": True,
-		"port_clearance_milestones": doc.requires_port_clearance,
-		"border_clearance_milestones": doc.requires_border_clearance,
-		"warehouse_milestones": doc.requires_warehousing,
-	}
-	for fieldname, label in section_labels.items():
-		if not requires_map.get(fieldname):
-			continue
-		rows = doc.get(fieldname) or []
-		if not rows:
-			continue
-		milestone_stages.append({
-			"group": label,
-			"milestones": [
-				{
-					"label": r.milestone_label,
-					"is_completed": bool(r.is_completed),
-					"completed_on": r.completed_on,
-					"remarks": r.remarks,
-				}
-				for r in rows
-			],
-		})
+	milestone_stages = _build_job_milestone_stages(doc)
 
-	cargo = [
-		{
-			"name": r.name,
-			"container_number": r.container_number or r.cargo_item_description,
-			"container_type": r.container_type,
-			"cargo_type": r.cargo_type,
-			"to_be_returned": bool(r.to_be_returned),
-			"return_by_date": r.return_by_date,
-			"is_truck_required": bool(r.is_truck_required),
-			"is_booked": bool(r.is_booked),
-			"is_loaded": bool(r.is_loaded),
-			"is_offloaded": bool(r.is_offloaded),
-			"is_returned": bool(r.is_returned),
-			"is_completed": bool(r.is_completed),
-			"discharge_date": r.discharge_date,
-			"gate_out_date": r.gate_out_date,
-			"empty_return_date": r.empty_return_date,
-			"api_container_status": r.api_container_status,
-			"api_last_event": r.api_last_event,
-			"api_last_event_date": r.api_last_event_date,
-		}
-		for r in (doc.cargo_parcel_details or [])
-	]
+	cargo = _build_job_cargo_list(doc)
 
 	dnd_rows = [
 		{
@@ -2107,3 +2123,294 @@ def export_master_tracking_report(customers=None, status=None, direction=None, s
 	_annotate_stage_fields(report_rows, ladder)
 	wb = _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder)
 	_send_workbook(wb, _timestamped("Master_Tracking_Report"))
+
+
+# ============================================================
+# SHIPMENT TRACKING REPORT (per-customer PDF dossier)
+# ============================================================
+# A single-customer PDF export of the same compact, color-coded dossier
+# layout used for the per-job tracking view, covering all of one customer's
+# shipments in one document. Renders a Jinja template to PDF via
+# frappe.utils.pdf.get_pdf (the report_pdf_template.html pattern), reusing
+# the milestone/cargo assembly get_job_detail already produces
+# (_build_job_milestone_stages / _build_job_cargo_list) rather than
+# re-deriving it. Each job reduces to one color-coded block:
+#   orange = in progress, green = completed/delivered, red = delayed
+# (overdue - ETA/ETD passed with no actual arrival/departure recorded).
+
+# status_key -> the exact hex values the dossier template paints with, from
+# the approved mock (Shipment Tracking Report.dc.html).
+DOSSIER_STATUS_COLORS = {
+	"orange": "#dd6b20",
+	"green": "#1f8a4a",
+	"red": "#c0392b",
+	"gray": "#98a1ac",
+}
+
+
+def _dossier_status_key(doc, today):
+	"""One of orange/green/red for a job's color band. Completed/Closed/
+	Delivered are green; an import past its ETA with no ATA (or an export past
+	its ETD with no ATD) is a red 'delayed'; everything else in progress is
+	orange."""
+	if doc.status in ("Completed", "Closed", "Delivered"):
+		return "green"
+	is_overdue = (
+		(doc.direction == "Import" and doc.eta and getdate(doc.eta) < today and not doc.ata)
+		or (doc.direction == "Export" and doc.etd and getdate(doc.etd) < today and not doc.atd)
+	)
+	return "red" if is_overdue else "orange"
+
+
+def _dossier_date(value, fmt="MMM d, yyyy"):
+	return formatdate(value, fmt) if value else None
+
+
+def _dossier_fraction(done, total):
+	"""A '{done}/{total} · {pct}%' progress chip plus the color it prints
+	in: green when complete, orange when partial, gray when nothing's done."""
+	pct = round(done / total * 100) if total else 0
+	if total and done >= total:
+		color = "green"
+	elif done > 0:
+		color = "orange"
+	else:
+		color = "gray"
+	return {
+		"done": done,
+		"total": total,
+		"pct": pct,
+		"color": DOSSIER_STATUS_COLORS[color],
+		"text": f"{done}/{total} · {pct}%",
+	}
+
+
+def _dossier_latest_line(doc, status_key):
+	"""The 'LATEST: ...' status line on a job block. Prefers the job's own
+	current_comment (the same free-text note the Command Centre shows); falls
+	back to a status/ETA-derived line when there isn't one."""
+	if doc.current_comment:
+		return doc.current_comment
+	if status_key == "green":
+		return "Delivered · Job closed" if doc.status in ("Completed", "Closed") else "Delivered"
+	eta = _dossier_date(doc.eta, "dd-MMM-yy")
+	if status_key == "red":
+		return f"Delayed · Revised ETA {eta}" if eta else "Delayed"
+	return f"In transit · ETA {eta}" if eta else "In progress"
+
+
+def _build_job_dossier_context(job_name):
+	"""Reshapes one Forwarding Job into the dossier block the PDF template
+	renders: ref, status color/line, a 4-field summary bar, and 4 section
+	cards (Sea/Air Freight + Road Transport on the left, Port Clearance +
+	Completion on the right)."""
+	doc = frappe.get_doc("Forwarding Job", job_name)
+	today = getdate(nowdate())
+
+	cargo = _build_job_cargo_list(doc)
+	milestones_by_group = {s["group"]: s["milestones"] for s in _build_job_milestone_stages(doc)}
+	status_key = _dossier_status_key(doc, today)
+
+	# --- Summary bar (Ref/BL, Cargo, Mode, Last Update) ---
+	type_counts = Counter(c["container_type"] for c in cargo if c.get("container_type"))
+	cargo_units = " + ".join(f"{n}×{t}" for t, n in type_counts.items())
+	route = " → ".join(
+		p for p in [doc.port_of_loading, doc.port_of_discharge, doc.destination] if p
+	)
+	cargo_line = " · ".join(b for b in [cargo_units, doc.cargo_description, route] if b) or "—"
+	mode_line = " · ".join(p for p in [doc.direction, doc.shipment_mode] if p) or "—"
+
+	# --- Sea / Air Freight card (container milestone dates) ---
+	sea_rows = []
+	sea_done = sea_total = 0
+	for c in cargo:
+		checks = [c.get("discharge_date"), c.get("gate_out_date"), c.get("empty_return_date")]
+		sea_total += 3
+		sea_done += sum(1 for v in checks if v)
+		sea_rows.append({
+			"container": c.get("container_number") or "—",
+			"type": c.get("container_type") or "—",
+			"discharge": _dossier_date(c.get("discharge_date"), "MMM d") or "×",
+			"gate_out": _dossier_date(c.get("gate_out_date"), "MMM d") or "×",
+			"ret": _dossier_date(c.get("empty_return_date"), "MMM d") or "×",
+			"status": c.get("api_container_status")
+				or ("Delivered" if c.get("is_completed") else "In Transit"),
+		})
+	sea_section = {
+		"kind": "containers", "column": "left", "title": "Sea / Air Freight",
+		"frac": _dossier_fraction(sea_done, sea_total),
+		"atd": _dossier_date(doc.atd), "ata": _dossier_date(doc.ata),
+		"headers": ["Container", "Type", "Disch.", "Gate Out", "Ret.", "Status"],
+		"rows": [
+			[r["container"], r["type"], r["discharge"], r["gate_out"], r["ret"], r["status"]]
+			for r in sea_rows
+		],
+	}
+
+	# --- Road Transport card (per-container trucking checkboxes) ---
+	road_rows = []
+	road_done = road_total = 0
+	for c in cargo:
+		flags = [c.get("is_booked"), c.get("is_loaded"), c.get("is_offloaded"),
+				 c.get("is_returned"), c.get("is_completed")]
+		road_total += 5
+		road_done += sum(1 for v in flags if v)
+		road_rows.append([
+			c.get("container_number") or "—",
+			*["✓" if f else "×" for f in flags],
+		])
+	road_section = {
+		"kind": "containers", "column": "left", "title": "Road Transport",
+		"frac": _dossier_fraction(road_done, road_total),
+		"headers": ["Container", "Booked", "Loaded", "Offloaded", "Returned", "Comp."],
+		"rows": road_rows,
+	}
+
+	# --- Port Clearance card (milestone checklist) ---
+	pc_milestones = milestones_by_group.get("Port Clearance", [])
+	pc_done = sum(1 for m in pc_milestones if m["is_completed"])
+	port_section = {
+		"kind": "checklist", "column": "right", "title": "Port Clearance",
+		"frac": _dossier_fraction(pc_done, len(pc_milestones)),
+		"entries": [
+			{
+				"label": m["label"],
+				"done": m["is_completed"],
+				"value": (_dossier_date(m["completed_on"], "MMM d") or "Done")
+					if m["is_completed"] else "Pend",
+			}
+			for m in pc_milestones
+		],
+	}
+
+	# --- Completion card (single "Completed" row - no Rev. Recognised) ---
+	completed = doc.status in ("Completed", "Closed") or bool(doc.completed_on)
+	completion_section = {
+		"kind": "checklist", "column": "right", "title": "Completion",
+		"frac": _dossier_fraction(1 if completed else 0, 1),
+		"entries": [{
+			"label": "Completed",
+			"done": completed,
+			"value": (_dossier_date(doc.completed_on) or "Done") if completed else "Pending",
+		}],
+	}
+
+	return {
+		"ref": doc.name,
+		"status_key": status_key,
+		"status_color": DOSSIER_STATUS_COLORS[status_key],
+		"latest_line": _dossier_latest_line(doc, status_key),
+		"fields": {
+			"ref_bl": doc.bl_number or doc.customer_reference or "—",
+			"cargo": cargo_line,
+			"mode": mode_line,
+			"last_update": _dossier_date(doc.last_updated_on) or "—",
+		},
+		"sections": [sea_section, road_section, port_section, completion_section],
+	}
+
+
+def _summarize_statuses(dossier_jobs):
+	"""Counts for the banner strip: total shipments and how many are in
+	transit / completed / delayed, plus a ready-to-print summary line."""
+	counts = Counter(j["status_key"] for j in dossier_jobs)
+	total = len(dossier_jobs)
+	parts = [f"{total} SHIPMENT" + ("S" if total != 1 else "")]
+	if counts.get("orange"):
+		parts.append(f"{counts['orange']} IN TRANSIT")
+	if counts.get("green"):
+		parts.append(f"{counts['green']} COMPLETED")
+	if counts.get("red"):
+		parts.append(f"{counts['red']} DELAYED")
+	return {
+		"total": total,
+		"in_transit": counts.get("orange", 0),
+		"completed": counts.get("green", 0),
+		"delayed": counts.get("red", 0),
+		"line": " · ".join(parts),
+	}
+
+
+def _company_logo_data_uri(company):
+	"""Best-effort base64 data URI for the Company's logo, embedded inline so
+	the PDF renderer never has to fetch it over the network (which is flaky
+	during server-side PDF generation). Returns None if there's no logo or it
+	can't be read - the template then falls back to a text monogram."""
+	logo = frappe.db.get_value("Company", company, "company_logo")
+	if not logo or not isinstance(logo, str) or not logo.startswith("/"):
+		return None
+	try:
+		import base64
+		import os
+
+		is_private = "/private/" in logo
+		relative = logo.split("/files/", 1)[-1]
+		file_path = frappe.utils.get_files_path(relative, is_private=is_private)
+		if not os.path.exists(file_path):
+			return None
+		with open(file_path, "rb") as fh:
+			encoded = base64.b64encode(fh.read()).decode()
+		ext = logo.rsplit(".", 1)[-1].lower()
+		mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+				"gif": "image/gif", "svg": "image/svg+xml"}.get(ext, "image/png")
+		return f"data:{mime};base64,{encoded}"
+	except Exception:
+		return None
+
+
+@frappe.whitelist()
+def export_shipment_tracking_report(customer):
+	"""Renders the compact, color-coded Shipment Tracking dossier (one block
+	per Forwarding Job) as a PDF, scoped to a single customer."""
+	check_freightmas_role()
+
+	if not customer:
+		frappe.throw(_("Select a customer to generate this report."))
+
+	company = (
+		frappe.defaults.get_user_default("Company")
+		or frappe.defaults.get_global_default("company")
+		or "FreightMas"
+	)
+
+	jobs = frappe.get_all(
+		"Forwarding Job",
+		filters={"customer": customer, "docstatus": ["<", 2]},
+		fields=["name"],
+		order_by="status asc, eta asc",
+	)
+	dossier_jobs = [_build_job_dossier_context(j.name) for j in jobs]
+
+	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
+	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
+	company_name = frappe.db.get_value("Company", company, "company_name") or company
+
+	html = frappe.render_template(
+		"freightmas/templates/shipment_tracking_report.html",
+		{
+			"company": company_name,
+			"customer": customer_name,
+			"logo": _company_logo_data_uri(company),
+			"jobs": dossier_jobs,
+			"generated_on": generated_on,
+			"summary": _summarize_statuses(dossier_jobs),
+		},
+	)
+
+	from frappe.utils.pdf import get_pdf
+
+	pdf = get_pdf(
+		html,
+		options={
+			"orientation": "Portrait",
+			"page-size": "A4",
+			"margin-top": "12mm",
+			"margin-bottom": "14mm",
+			"margin-left": "10mm",
+			"margin-right": "10mm",
+		},
+	)
+
+	frappe.local.response.filename = f"Shipment-Tracking-{frappe.scrub(customer)}.pdf"
+	frappe.local.response.filecontent = pdf
+	frappe.local.response.type = "download"

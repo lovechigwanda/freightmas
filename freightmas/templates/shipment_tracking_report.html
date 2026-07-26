@@ -1,0 +1,313 @@
+{%- macro render_card(sec) -%}
+<div class="sec-card">
+	<table class="sec-head"><tr>
+		<td><span class="sec-title">{{ sec.title }}</span></td>
+		{% if sec.frac and sec.frac.total %}
+			<td class="sec-frac" style="color:{{ sec.frac.color }};">{{ sec.frac.text }}</td>
+		{% endif %}
+	</tr></table>
+	<div class="sec-body">
+		{% if sec.kind == 'containers' %}
+			{% if sec.atd or sec.ata %}
+				<div class="atd-ata">
+					<strong>ATD:</strong> {{ sec.atd or '—' }}&nbsp;&nbsp;&nbsp;<strong>ATA:</strong> {{ sec.ata or '—' }}
+				</div>
+			{% endif %}
+			{% if sec.rows %}
+				<table class="ct">
+					<thead><tr>{% for h in sec.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+					<tbody>
+						{% for row in sec.rows %}
+							<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<div class="sec-empty">No containers recorded.</div>
+			{% endif %}
+		{% elif sec.kind == 'checklist' %}
+			{% if sec.entries %}
+				<table class="chk">
+					{% for row in sec.entries | batch(2) %}
+						<tr>
+							{% for item in row %}
+								<td>
+									<span class="chk-k">{{ item.label }}</span>
+									<span class="chk-v {{ 'chk-v-done' if item.done else '' }}">{{ item.value }}</span>
+								</td>
+							{% endfor %}
+							{% if row | length == 1 %}<td></td>{% endif %}
+						</tr>
+					{% endfor %}
+				</table>
+			{% else %}
+				<div class="sec-empty">Not required for this shipment.</div>
+			{% endif %}
+		{% endif %}
+	</div>
+</div>
+{%- endmacro -%}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+	@page {
+		size: A4 portrait;
+	}
+
+	body {
+		margin: 0;
+		font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+		color: #26333f;
+		font-size: 11px;
+	}
+
+	h1, h2, h3 { margin: 0; }
+
+	/* ---- Banner ---- */
+	.banner {
+		width: 100%;
+		border-collapse: collapse;
+		background: #2c2560;
+		border-radius: 8px 8px 0 0;
+	}
+	.banner td { padding: 14px 26px; vertical-align: middle; }
+	.banner-logo {
+		width: 44px; height: 44px;
+		border-radius: 6px;
+		object-fit: contain;
+		background: #fff;
+	}
+	.banner-logo-fallback {
+		width: 44px; height: 44px;
+		border-radius: 6px;
+		background: #fff;
+		color: #2c2560;
+		font: 800 18px/44px 'Work Sans', Helvetica, Arial, sans-serif;
+		text-align: center;
+	}
+	.banner-title {
+		font: 800 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .01em;
+		color: #fff;
+	}
+	.banner-customer {
+		font: 800 13px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .02em;
+		color: #F4901E;
+		padding-top: 5px;
+	}
+	.banner-meta {
+		text-align: right;
+		font: 600 9.5px/1.6 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .03em;
+		color: #c7c2e6;
+		white-space: nowrap;
+	}
+	.banner-rule {
+		height: 4px;
+		background: #F4901E;
+		border-radius: 0 0 8px 8px;
+		margin-bottom: 6px;
+	}
+
+	/* ---- Per-job block ---- */
+	.job-block {
+		page-break-inside: avoid;
+		margin-top: 22px;
+		padding-top: 12px;
+		border-top: 3px solid #dd6b20;
+	}
+	.job-head { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+	.job-ref {
+		font: 800 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #16212c;
+	}
+	.job-latest {
+		text-align: right;
+		font: 700 11.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .02em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	/* ---- Fields bar ---- */
+	.fields-bar {
+		width: 100%;
+		border-collapse: collapse;
+		background: #4B3F8F;
+		border-radius: 6px;
+		margin-bottom: 11px;
+	}
+	.fields-bar td { padding: 9px 16px; vertical-align: top; }
+	.dk-label {
+		font: 700 8.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		color: #8996a5;
+		margin-bottom: 3px;
+	}
+	.dk-val {
+		font: 600 11px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #fff;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	/* ---- Card grid ---- */
+	.card-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
+	.card-col { width: 50%; vertical-align: top; }
+	.card-col-left { padding-right: 6px; }
+	.card-col-right { padding-left: 6px; }
+
+	.sec-card {
+		border: 1px solid #dde2e8;
+		border-radius: 7px;
+		overflow: hidden;
+		background: #fff;
+		margin-bottom: 12px;
+		page-break-inside: avoid;
+	}
+	.sec-head {
+		width: 100%;
+		border-collapse: collapse;
+		background: #eef1f4;
+	}
+	.sec-head td { padding: 7px 12px; vertical-align: middle; }
+	.sec-title {
+		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .03em;
+		text-transform: uppercase;
+		color: #1c2b3a;
+	}
+	.sec-frac {
+		text-align: right;
+		font: 700 10.5px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		white-space: nowrap;
+	}
+	.sec-body { padding: 9px 12px 11px; }
+
+	.atd-ata { margin-bottom: 7px; font-size: 11px; color: #26333f; }
+	.atd-ata strong { color: #16212c; }
+
+	/* ---- Container tables ---- */
+	table.ct { width: 100%; border-collapse: collapse; }
+	table.ct th {
+		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .03em;
+		text-transform: uppercase;
+		color: #98a1ac;
+		text-align: left;
+		padding: 0 4px 4px;
+		border-bottom: 1px solid #e7eaee;
+	}
+	table.ct td {
+		padding: 4.5px 4px;
+		border-bottom: 1px solid #f0f2f5;
+		font-size: 11px;
+		color: #26333f;
+	}
+	table.ct tr:last-child td { border-bottom: none; }
+
+	/* ---- Checklist grids ---- */
+	table.chk { width: 100%; border-collapse: collapse; }
+	table.chk td {
+		width: 50%;
+		padding: 2.5px 8px 2.5px 0;
+		font-size: 11px;
+		vertical-align: middle;
+	}
+	.chk-k { color: #26333f; }
+	.chk-v {
+		float: right;
+		color: #a7afb9;
+		font-style: italic;
+		font-size: 10px;
+	}
+	.chk-v-done { color: #1f8a4a; font-style: normal; }
+
+	.sec-empty { font-size: 11px; color: #98a1ac; font-style: italic; }
+
+	.doc-empty {
+		margin-top: 40px;
+		text-align: center;
+		font-size: 13px;
+		color: #98a1ac;
+		font-style: italic;
+	}
+</style>
+</head>
+<body>
+
+	<!-- BANNER -->
+	<table class="banner">
+		<tr>
+			<td>
+				<table style="border-collapse:collapse;"><tr>
+					<td style="padding:0 14px 0 0;">
+						{% if logo %}
+							<img src="{{ logo }}" class="banner-logo" alt="logo"/>
+						{% else %}
+							<div class="banner-logo-fallback">{{ company[:1] | upper }}</div>
+						{% endif %}
+					</td>
+					<td style="padding:0;">
+						<div class="banner-title">SHIPMENT TRACKING</div>
+						<div class="banner-customer">{{ customer | upper }}</div>
+					</td>
+				</tr></table>
+			</td>
+			<td class="banner-meta">
+				<div>GENERATED: {{ generated_on | upper }}</div>
+				<div>{{ summary.line }}</div>
+			</td>
+		</tr>
+	</table>
+	<div class="banner-rule"></div>
+
+	{% if not jobs %}
+		<div class="doc-empty">No active shipments on file for {{ customer }}.</div>
+	{% endif %}
+
+	<!-- ONE BLOCK PER JOB -->
+	{% for job in jobs %}
+	<div class="job-block" style="border-top-color:{{ job.status_color }};">
+		<table class="job-head">
+			<tr>
+				<td><span class="job-ref">{{ job.ref }}</span></td>
+				<td class="job-latest" style="color:{{ job.status_color }};">
+					LATEST: {{ job.latest_line }}
+				</td>
+			</tr>
+		</table>
+
+		<table class="fields-bar">
+			<tr>
+				<td style="width:18%;"><div class="dk-label">Ref / BL</div><div class="dk-val">{{ job.fields.ref_bl }}</div></td>
+				<td style="width:46%;"><div class="dk-label">Cargo</div><div class="dk-val">{{ job.fields.cargo }}</div></td>
+				<td style="width:18%;"><div class="dk-label">Mode</div><div class="dk-val">{{ job.fields.mode }}</div></td>
+				<td style="width:18%;"><div class="dk-label">Last Update</div><div class="dk-val">{{ job.fields.last_update }}</div></td>
+			</tr>
+		</table>
+
+		<table class="card-grid">
+			<tr>
+				<td class="card-col card-col-left">
+					{% for sec in job.sections if sec.column == 'left' %}
+						{{ render_card(sec) }}
+					{% endfor %}
+				</td>
+				<td class="card-col card-col-right">
+					{% for sec in job.sections if sec.column == 'right' %}
+						{{ render_card(sec) }}
+					{% endfor %}
+				</td>
+			</tr>
+		</table>
+	</div>
+	{% endfor %}
+
+</body>
+</html>
