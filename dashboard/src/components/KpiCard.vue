@@ -16,6 +16,9 @@
 import { computed } from "vue";
 import { Activity } from "@lucide/vue";
 import Sparkline from "./Sparkline.vue";
+import { useThemeStore } from "../stores/theme";
+
+const theme = useThemeStore();
 
 const props = defineProps({
 	label: { type: String, required: true },
@@ -27,9 +30,7 @@ const props = defineProps({
 });
 
 const sparkColor = computed(() => {
-	if (props.tone === "danger") return "#dc2626";
-	if (props.tone === "warn") return "#d97706";
-	if (props.tone === "good") return "#16a34a";
-	return "#4f46e5";
+	const spark = theme.palette.spark;
+	return spark[props.tone] || spark.default;
 });
 </script>

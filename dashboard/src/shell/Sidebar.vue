@@ -26,13 +26,16 @@
 			</router-link>
 		</nav>
 
-		<a class="cc-sidebar-foot" href="/app" title="Back to Frappe Desk">
-			<div class="cc-sidebar-foot-avatar">{{ userInitials }}</div>
-			<div class="cc-sidebar-foot-text">
-				<div class="cc-sidebar-foot-name">{{ userName }}</div>
-				<div class="cc-sidebar-foot-role">Back to Desk</div>
-			</div>
-		</a>
+		<div class="cc-sidebar-foot">
+			<a class="cc-sidebar-foot-user" href="/app" title="Back to Frappe Desk">
+				<div class="cc-sidebar-foot-avatar">{{ userInitials }}</div>
+				<div class="cc-sidebar-foot-text">
+					<div class="cc-sidebar-foot-name">{{ userName }}</div>
+					<div class="cc-sidebar-foot-role">Back to Desk</div>
+				</div>
+			</a>
+			<ThemeMenu />
+		</div>
 	</aside>
 </template>
 
@@ -40,6 +43,7 @@
 import { computed } from "vue";
 import { initials } from "../format";
 import { NAV_ICONS } from "../icons";
+import ThemeMenu from "./ThemeMenu.vue";
 
 const props = defineProps({
 	items: { type: Array, required: true },

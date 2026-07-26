@@ -7,6 +7,7 @@
 
 <script setup>
 import { ref, shallowRef, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
+import { useThemeStore } from "../stores/theme";
 
 // Thin adapter over ECharts. Views never import ECharts directly - they pass a
 // plain `option` object and this component lazy-loads the library, applies the
@@ -21,7 +22,7 @@ const props = defineProps({
 	palette: { type: Array, default: null },
 });
 
-const PALETTE = ["#4f46e5", "#0d9488", "#d97706", "#16a34a", "#dc2626", "#7c3aed", "#0891b2", "#94a3b8"];
+const theme = useThemeStore();
 
 const el = ref(null);
 const ready = ref(false);
@@ -40,10 +41,10 @@ function themedOption(option) {
 	const border = cssVar("--sd-border", "#e2e8f0");
 	const surface = cssVar("--sd-surface", "#ffffff");
 	const text = cssVar("--sd-text", "#0f172a");
-	const fontFamily = "'Inter Variable', Inter, system-ui, sans-serif";
+	const fontFamily = cssVar("--cc-font-sans", "'Inter Variable', Inter, system-ui, sans-serif");
 
 	return {
-		color: props.palette || PALETTE,
+		color: props.palette || theme.palette.ramp,
 		textStyle: { fontFamily, color: textMuted },
 		grid: { left: 8, right: 12, top: 24, bottom: 8, containLabel: true, ...(option.grid || {}) },
 		tooltip: {
@@ -82,6 +83,11 @@ async function render() {
 onMounted(render);
 
 watch(() => props.option, render, { deep: true });
+
+// Canvas doesn't follow the CSS cascade and cssVar() is read only at render
+// time, so a theme switch needs an explicit repaint to pick up the new chrome
+// (axis/tooltip/text) and series ramp.
+watch(() => theme.themeId, render);
 
 onBeforeUnmount(() => {
 	if (ro && el.value) ro.unobserve(el.value);
