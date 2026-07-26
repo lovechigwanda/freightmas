@@ -73,7 +73,7 @@
 							<span class="sd-card-title-icon"><TrendingUp /></span>
 							Revenue &amp; Margin (last 6 months)
 						</span>
-						<Sparkline :values="revenueTrend" color="#4f46e5" :width="90" :height="28" />
+						<Sparkline :values="revenueTrend" :color="theme.palette.spark.default" :width="90" :height="28" />
 					</div>
 					<table class="sd-table">
 						<thead>
@@ -157,6 +157,7 @@ import {
 	PieChart, TrendingUp, Building2, Route, AlertCircle, CheckCircle2, Timer,
 } from "@lucide/vue";
 import { api } from "./api";
+import { useThemeStore } from "../../stores/theme";
 import { formatMoney, formatDate, statusColor } from "../../format";
 import KpiCard from "../../components/KpiCard.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -166,11 +167,13 @@ import EmptyState from "../../components/EmptyState.vue";
 
 defineEmits(["open-job"]);
 
+const theme = useThemeStore();
 const loading = ref(true);
 const error = ref("");
 const data = ref(null);
 
 const statusData = computed(() => {
+	void theme.themeId; // re-evaluate segment colours when the theme changes
 	if (!data.value) return [];
 	return data.value.jobs_by_status.map((row, idx) => ({
 		label: row.status,

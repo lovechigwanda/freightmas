@@ -139,6 +139,7 @@ import {
 	LineChart as LineChartIcon, Building2,
 } from "@lucide/vue";
 import { useOverviewStore } from "../../stores/overview";
+import { useThemeStore } from "../../stores/theme";
 import { formatMoney, formatNumber } from "../../format";
 import KpiCard from "../../components/KpiCard.vue";
 import Chart from "../../components/Chart.vue";
@@ -147,18 +148,15 @@ import DeskLink from "../../components/DeskLink.vue";
 
 const store = useOverviewStore();
 const { data, loading, error } = storeToRefs(store);
-
-// CVD-validated series colours (indigo / amber / teal) - see dataviz validator.
-const SERIES = {
-	revenue: "#4f46e5",
-	cost: "#d97706",
-	margin: "#0d9488",
-};
+const theme = useThemeStore();
 
 const trendOption = computed(() => {
 	const t = (data.value && data.value.trend) || [];
 	const periods = t.map((r) => r.period);
 	const mk = (key) => t.map((r) => r[key]);
+	// Read from the active theme so the chart recolours on a theme switch.
+	const SERIES = theme.palette.series;
+	const chart = theme.palette.chart;
 	return {
 		legend: { data: ["Revenue", "Cost", "Margin"], bottom: 0, icon: "roundRect", itemWidth: 12, itemHeight: 4 },
 		grid: { left: 8, right: 48, top: 16, bottom: 32, containLabel: true },
@@ -169,14 +167,14 @@ const trendOption = computed(() => {
 		xAxis: {
 			type: "category",
 			data: periods,
-			axisLine: { lineStyle: { color: "#e2e8f0" } },
+			axisLine: { lineStyle: { color: chart.axisLine } },
 			axisTick: { show: false },
-			axisLabel: { color: "#64748b" },
+			axisLabel: { color: chart.axisLabel },
 		},
 		yAxis: {
 			type: "value",
-			splitLine: { lineStyle: { color: "#eef0f5" } },
-			axisLabel: { color: "#94a3b8", formatter: (v) => compact(v) },
+			splitLine: { lineStyle: { color: chart.splitLine } },
+			axisLabel: { color: chart.axisLabelFaint, formatter: (v) => compact(v) },
 		},
 		series: [
 			line("Revenue", mk("revenue"), SERIES.revenue),

@@ -65,6 +65,7 @@ import {
 	AlertCircle, CheckCircle2, PieChart, Building2,
 } from "@lucide/vue";
 import { api } from "./api";
+import { useThemeStore } from "../../stores/theme";
 import { statusColor } from "../../format";
 import KpiCard from "../../components/KpiCard.vue";
 import StatusBadge from "../../components/StatusBadge.vue";
@@ -74,11 +75,13 @@ import DeskLink from "../../components/DeskLink.vue";
 
 defineEmits(["open-job"]);
 
+const theme = useThemeStore();
 const loading = ref(true);
 const error = ref("");
 const data = ref(null);
 
 const statusData = computed(() => {
+	void theme.themeId; // re-evaluate segment colours when the theme changes
 	if (!data.value) return [];
 	return data.value.jobs_by_status.map((row, idx) => ({
 		label: row.status, value: row.count, color: statusColor(row.status, idx),

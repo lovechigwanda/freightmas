@@ -1,9 +1,30 @@
 @import "@fontsource-variable/inter";
+/* Theme fonts (self-hosted via fontsource, no external CDN). Each theme selects
+   its pairing through the --cc-font-* tokens; see themes.css. */
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/sora";
+@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
+
+/* Per-theme token overrides ([data-cc-theme="..."] on <html>). */
+@import "./themes.css";
 
 /* ============================================================
    Design tokens
    ============================================================ */
 :root {
+	/* Typography (per-theme via --cc-font-*; Light keeps the original Inter) */
+	--cc-font-sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--cc-font-display: var(--cc-font-sans);
+	--cc-font-mono: var(--cc-font-sans);
+
 	/* Sidebar (dark) */
 	--cc-sidebar-bg: #0b1120;
 	--cc-sidebar-bg-elevated: #111a2e;
@@ -13,6 +34,12 @@
 	--cc-sidebar-text-active: #eef2ff;
 	--cc-sidebar-hover: rgba(255, 255, 255, 0.05);
 	--cc-sidebar-active-bg: rgba(99, 102, 241, 0.16);
+	--cc-nav-accent: #818cf8;
+	--cc-live-dot: #22c55e;
+	--cc-brand-grad-a: #4f46e5;
+	--cc-brand-grad-b: #7c74f0;
+	--cc-avatar-grad-a: #6366f1;
+	--cc-avatar-grad-b: #a855f7;
 
 	/* Surfaces */
 	--sd-bg: #f6f7fb;
@@ -30,6 +57,7 @@
 	--sd-primary: #4338ca;
 	--sd-primary-light: #4f46e5;
 	--sd-accent: #4f46e5;
+	--sd-accent-2: #818cf8;
 	--sd-accent-soft: #eef2ff;
 	--sd-accent-soft-text: #4338ca;
 
@@ -43,6 +71,13 @@
 	--sd-blue: #4f46e5;
 	--sd-blue-soft: #eef2ff;
 
+	/* Neutral / utility (tokenized so themes can flip them) */
+	--sd-gray: #475467;
+	--sd-gray-soft: #f1f2f6;
+	--sd-track: #e9ecf3;
+	--sd-backdrop: rgba(11, 17, 32, 0.55);
+	--sd-scrollbar: #cbd5e1;
+
 	/* Shape */
 	--sd-radius-sm: 6px;
 	--sd-radius: 10px;
@@ -54,7 +89,7 @@
 	--sd-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.06);
 	--sd-shadow-modal: -12px 0 32px rgba(15, 23, 42, 0.14);
 
-	font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	font-family: var(--cc-font-sans);
 	font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 	-webkit-font-smoothing: antialiased;
 }
@@ -85,7 +120,7 @@ body {
 /* Scrollbars - unobtrusive */
 * {
 	scrollbar-width: thin;
-	scrollbar-color: #cbd5e1 transparent;
+	scrollbar-color: var(--sd-scrollbar) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -94,7 +129,7 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-	background: #cbd5e1;
+	background: var(--sd-scrollbar);
 	border-radius: 999px;
 }
 
@@ -105,7 +140,7 @@ body {
 }
 
 h1, h2, h3, h4 {
-	font-family: inherit;
+	font-family: var(--cc-font-display);
 	letter-spacing: -0.01em;
 }
 
@@ -343,6 +378,7 @@ h1, h2, h3, h4 {
 }
 
 .sd-kpi-value {
+	font-family: var(--cc-font-mono);
 	font-size: 18px;
 	font-weight: 700;
 	color: var(--sd-text);
@@ -484,8 +520,8 @@ h1, h2, h3, h4 {
 }
 
 .sd-badge-gray {
-	background: #f1f2f6;
-	color: #475467;
+	background: var(--sd-gray-soft);
+	color: var(--sd-gray);
 }
 
 .sd-badge-blue {
@@ -515,7 +551,7 @@ h1, h2, h3, h4 {
 .sd-progress {
 	width: 72px;
 	height: 6px;
-	background: #e9ecf3;
+	background: var(--sd-track);
 	border-radius: 4px;
 	overflow: hidden;
 	display: inline-block;
@@ -744,7 +780,7 @@ h1, h2, h3, h4 {
 .sd-modal-backdrop {
 	position: fixed;
 	inset: 0;
-	background: rgba(11, 17, 32, 0.55);
+	background: var(--sd-backdrop);
 	backdrop-filter: blur(2px);
 	display: flex;
 	justify-content: flex-end;
@@ -877,7 +913,7 @@ h1, h2, h3, h4 {
 }
 
 .sd-stage-dot.pending {
-	background: #d7dbe4;
+	background: var(--sd-track);
 }
 
 .sd-stage-label {
@@ -967,7 +1003,7 @@ h1, h2, h3, h4 {
 }
 
 .sd-brand-fallback {
-	background: linear-gradient(135deg, var(--sd-accent), #7c74f0);
+	background: linear-gradient(135deg, var(--cc-brand-grad-a), var(--cc-brand-grad-b));
 }
 
 .cc-sidebar-brand-fallback {
@@ -981,7 +1017,7 @@ h1, h2, h3, h4 {
 	color: #fff;
 	font-weight: 700;
 	flex-shrink: 0;
-	background: linear-gradient(135deg, var(--sd-accent), #7c74f0);
+	background: linear-gradient(135deg, var(--cc-brand-grad-a), var(--cc-brand-grad-b));
 }
 
 .cc-sidebar-brand-text {
@@ -989,10 +1025,11 @@ h1, h2, h3, h4 {
 }
 
 .cc-sidebar-brand-name {
+	font-family: var(--cc-font-display);
 	font-size: 14px;
 	font-weight: 700;
 	line-height: 1.2;
-	color: #f8fafc;
+	color: var(--cc-sidebar-text-active);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1012,8 +1049,8 @@ h1, h2, h3, h4 {
 	width: 6px;
 	height: 6px;
 	border-radius: 999px;
-	background: #22c55e;
-	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+	background: var(--cc-live-dot);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc-live-dot) 20%, transparent);
 }
 
 .cc-nav {
@@ -1050,7 +1087,7 @@ h1, h2, h3, h4 {
 
 .cc-nav-item:hover {
 	background: var(--cc-sidebar-hover);
-	color: #f1f5f9;
+	color: var(--cc-sidebar-text-active);
 }
 
 .cc-nav-item.active {
@@ -1067,7 +1104,7 @@ h1, h2, h3, h4 {
 	bottom: 8px;
 	width: 3px;
 	border-radius: 999px;
-	background: #818cf8;
+	background: var(--cc-nav-accent);
 }
 
 .cc-nav-icon {
@@ -1105,6 +1142,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-sidebar-foot {
+	position: relative;
 	padding: 14px 18px;
 	border-top: 1px solid var(--cc-sidebar-border);
 	display: flex;
@@ -1112,11 +1150,27 @@ h1, h2, h3, h4 {
 	gap: 10px;
 }
 
+.cc-sidebar-foot-user {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+	text-decoration: none;
+	color: inherit;
+	border-radius: 8px;
+	transition: opacity 0.12s ease;
+}
+
+.cc-sidebar-foot-user:hover {
+	opacity: 0.85;
+}
+
 .cc-sidebar-foot-avatar {
 	width: 30px;
 	height: 30px;
 	border-radius: 999px;
-	background: linear-gradient(135deg, #6366f1, #a855f7);
+	background: linear-gradient(135deg, var(--cc-avatar-grad-a), var(--cc-avatar-grad-b));
 	color: #fff;
 	display: flex;
 	align-items: center;
@@ -1133,7 +1187,7 @@ h1, h2, h3, h4 {
 .cc-sidebar-foot-name {
 	font-size: 12px;
 	font-weight: 600;
-	color: #e2e8f0;
+	color: var(--cc-sidebar-text-active);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1173,6 +1227,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-topbar-title {
+	font-family: var(--cc-font-display);
 	font-size: 16px;
 	font-weight: 700;
 	letter-spacing: -0.01em;
@@ -1182,6 +1237,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-topbar-sub {
+	font-family: var(--cc-font-mono);
 	font-size: 12px;
 	color: var(--sd-text-muted);
 	white-space: nowrap;
@@ -1265,7 +1321,7 @@ h1, h2, h3, h4 {
 	gap: 10px;
 	background: var(--sd-accent-soft);
 	color: var(--sd-accent-soft-text);
-	border: 1px solid #dfe2fb;
+	border: 1px solid var(--sd-border);
 	border-radius: var(--sd-radius);
 	padding: 11px 16px;
 	font-size: 13px;
@@ -1415,7 +1471,7 @@ h1, h2, h3, h4 {
 .cc-bar-fill {
 	height: 100%;
 	border-radius: 5px;
-	background: linear-gradient(90deg, var(--sd-accent), #818cf8);
+	background: linear-gradient(90deg, var(--sd-accent), var(--sd-accent-2));
 	transition: width 0.4s ease;
 }
 
@@ -1458,7 +1514,7 @@ h1, h2, h3, h4 {
 .cc-status-fill {
 	height: 100%;
 	border-radius: 4px;
-	background: linear-gradient(90deg, var(--sd-accent), #818cf8);
+	background: linear-gradient(90deg, var(--sd-accent), var(--sd-accent-2));
 	transition: width 0.4s ease;
 }
 
@@ -1487,7 +1543,7 @@ h1, h2, h3, h4 {
 	margin-top: 12px;
 	padding: 11px 14px;
 	background: var(--sd-amber-soft);
-	color: #7c4a03;
+	color: var(--sd-amber);
 	border-radius: var(--sd-radius-sm);
 	font-size: 13px;
 	display: flex;
@@ -1551,6 +1607,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-scorecard-active {
+	font-family: var(--cc-font-mono);
 	font-size: 22px;
 	font-weight: 700;
 	color: var(--sd-text);
@@ -1576,6 +1633,7 @@ h1, h2, h3, h4 {
 }
 
 .cc-scorecard-metric-value {
+	font-family: var(--cc-font-mono);
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--sd-text);
