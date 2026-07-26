@@ -2199,9 +2199,19 @@ def _dossier_latest_line(doc, status_key):
 	return f"In transit · ETA {eta}" if eta else "In progress"
 
 
+# status_key -> the label shown in the "Shipments at a Glance" status cell.
+DOSSIER_STATUS_LABELS = {
+	"orange": "In Progress",
+	"green": "Completed",
+	"red": "Delayed",
+	"gray": "In Progress",
+}
+
+
 def _build_job_dossier_context(job_name):
 	"""Reshapes one Forwarding Job into the dossier block the PDF template
-	renders: ref, status color/line, a 4-field summary bar, and 4 section
+	renders: ref, status color/line, an at-a-glance summary row, a 5-field
+	info bar (BL Number, Reference, Cargo, Mode, Last Update) and 4 section
 	cards (Sea/Air Freight + Road Transport on the left, Port Clearance +
 	Completion on the right)."""
 	doc = frappe.get_doc("Forwarding Job", job_name)
@@ -2211,13 +2221,10 @@ def _build_job_dossier_context(job_name):
 	milestones_by_group = {s["group"]: s["milestones"] for s in _build_job_milestone_stages(doc)}
 	status_key = _dossier_status_key(doc, today)
 
-	# --- Summary bar (Ref/BL, Cargo, Mode, Last Update) ---
+	# Container-count summary (e.g. "3×40HC") for the at-a-glance Cargo column -
+	# distinct from the info bar's Cargo field, which is the description only.
 	type_counts = Counter(c["container_type"] for c in cargo if c.get("container_type"))
-	cargo_units = " + ".join(f"{n}×{t}" for t, n in type_counts.items())
-	route = " → ".join(
-		p for p in [doc.port_of_loading, doc.port_of_discharge, doc.destination] if p
-	)
-	cargo_line = " · ".join(b for b in [cargo_units, doc.cargo_description, route] if b) or "—"
+	cargo_units = " + ".join(f"{n}×{t}" for t, n in type_counts.items()) or "—"
 	mode_line = " · ".join(p for p in [doc.direction, doc.shipment_mode] if p) or "—"
 
 	# --- Sea / Air Freight card (container milestone dates) ---
@@ -2295,18 +2302,61 @@ def _build_job_dossier_context(job_name):
 		}],
 	}
 
+	# Overall completion across every section - drives the at-a-glance
+	# Status cell's percentage (the same done/total roll-up the job 3 mock
+	# uses: 6+2 of 12+15+15+2 = 18%).
+	overall_done = sea_done + road_done + pc_done + (1 if completed else 0)
+	overall_total = sea_total + road_total + len(pc_milestones) + 1
+	overall = _dossier_fraction(overall_done, overall_total)
+
+	latest_line = _dossier_latest_line(doc, status_key)
+
+	# Flat per-container rows for the Excel Container Detail sheet - the same
+	# cargo the PDF's per-container tables draw from, unpivoted for filtering.
+	containers = [
+		{
+			"container": c.get("container_number") or "—",
+			"type": c.get("container_type") or "",
+			"booked": bool(c.get("is_booked")),
+			"loaded": bool(c.get("is_loaded")),
+			"discharged": bool(c.get("discharge_date")),
+			"offloaded": bool(c.get("is_offloaded")),
+			"returned": bool(c.get("is_returned")),
+			"completed": bool(c.get("is_completed")),
+			"api_status": c.get("api_container_status") or "",
+		}
+		for c in cargo
+	]
+
 	return {
 		"ref": doc.name,
 		"status_key": status_key,
 		"status_color": DOSSIER_STATUS_COLORS[status_key],
-		"latest_line": _dossier_latest_line(doc, status_key),
+		"status_label": DOSSIER_STATUS_LABELS[status_key],
+		"progress_percent": overall["pct"],
+		"latest_line": latest_line,
+		"eta": doc.eta,
+		"cargo_count": doc.cargo_count,
+		# One row of the "Shipments at a Glance" table.
+		"glance": {
+			"ref": doc.name,
+			"bl_no": doc.bl_number or "—",
+			"cargo_units": cargo_units,
+			"latest_update": latest_line,
+			"status_label": DOSSIER_STATUS_LABELS[status_key],
+			"status_pct": overall["pct"],
+			"status_color": DOSSIER_STATUS_COLORS[status_key],
+		},
+		# The 5-column info bar on the detail block.
 		"fields": {
-			"ref_bl": doc.bl_number or doc.customer_reference or "—",
-			"cargo": cargo_line,
+			"bl_number": doc.bl_number or "—",
+			"reference": doc.customer_reference or "—",
+			"cargo": doc.cargo_description or "—",
 			"mode": mode_line,
 			"last_update": _dossier_date(doc.last_updated_on) or "—",
 		},
 		"sections": [sea_section, road_section, port_section, completion_section],
+		"containers": containers,
 	}
 
 
@@ -2379,7 +2429,11 @@ def export_shipment_tracking_report(customer):
 		fields=["name"],
 		order_by="status asc, eta asc",
 	)
-	dossier_jobs = [_build_job_dossier_context(j.name) for j in jobs]
+	dossier_jobs = []
+	for i, j in enumerate(jobs, start=1):
+		ctx = _build_job_dossier_context(j.name)
+		ctx["num"] = i  # cross-references the at-a-glance table's "#" column
+		dossier_jobs.append(ctx)
 
 	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
@@ -2399,18 +2453,227 @@ def export_shipment_tracking_report(customer):
 
 	from frappe.utils.pdf import get_pdf
 
+	# footer-left / footer-right are wkhtmltopdf running-footer options;
+	# [page]/[topage] are its built-in per-page counters (CSS can't compute
+	# real page totals), giving genuine "Page X of Y" numbering.
 	pdf = get_pdf(
 		html,
 		options={
 			"orientation": "Portrait",
 			"page-size": "A4",
 			"margin-top": "12mm",
-			"margin-bottom": "14mm",
+			"margin-bottom": "16mm",
 			"margin-left": "10mm",
 			"margin-right": "10mm",
+			"footer-left": f"Prepared for {customer_name} — Confidential",
+			"footer-right": "Page [page] of [topage]",
+			"footer-font-size": "8",
+			"footer-spacing": "4",
 		},
 	)
 
 	frappe.local.response.filename = f"Shipment-Tracking-{frappe.scrub(customer)}.pdf"
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "download"
+
+
+# ============================================================
+# SHIPMENT TRACKING REPORT (per-customer Excel workbook)
+# ============================================================
+# Companion to the PDF dossier: the same single-customer data, reshaped into
+# a filterable/pivotable 3-sheet workbook (Summary, Milestone Detail,
+# Container Detail). Reuses _build_job_dossier_context() as the single source
+# of per-job data - no milestone/container logic is re-derived here.
+
+DOSSIER_XL_PURPLE = "2C2560"
+DOSSIER_XL_PURPLE_LIGHT = "4B3F8F"
+DOSSIER_XL_STATUS_FILLS = {
+	"In Progress": ("FDEEE0", "9A4A10"),
+	"Completed": ("E5F3EA", "186429"),
+	"Delayed": ("FCE9E8", "A3241F"),
+}
+
+
+def _xl_style_header_row(ws, row, ncols):
+	"""Purple header row (light purple fill, white bold text) used on all
+	three sheets."""
+	for col in range(1, ncols + 1):
+		cell = ws.cell(row=row, column=col)
+		cell.font = Font(bold=True, color="FFFFFF", size=10.5)
+		cell.fill = PatternFill("solid", fgColor=DOSSIER_XL_PURPLE_LIGHT)
+		cell.alignment = Alignment(horizontal="left", vertical="center")
+
+
+def _build_shipment_tracking_workbook(customer, jobs):
+	from openpyxl.formatting.rule import DataBarRule
+
+	wb = openpyxl.Workbook()
+
+	# ---- Sheet 1: Summary ----
+	ws = wb.active
+	ws.title = "Summary"
+	ws.sheet_properties.tabColor = DOSSIER_XL_PURPLE
+
+	ncols = 11
+	ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncols)
+	title_cell = ws.cell(row=1, column=1, value=f"SHIPMENT TRACKING REPORT — {customer.upper()}")
+	title_cell.font = Font(bold=True, size=13, color="FFFFFF")
+	title_cell.fill = PatternFill("solid", fgColor=DOSSIER_XL_PURPLE)
+	title_cell.alignment = Alignment(vertical="center", indent=1)
+	ws.row_dimensions[1].height = 26
+
+	headers = ["#", "Job Ref", "BL Number", "Reference", "Cargo", "Qty",
+			   "Mode", "ETA", "Status", "Progress %", "Latest Update"]
+	for col, label in enumerate(headers, start=1):
+		ws.cell(row=2, column=col, value=label)
+	_xl_style_header_row(ws, 2, ncols)
+	for col, label in enumerate(headers, start=1):
+		if label in ("#", "Progress %"):
+			ws.cell(row=2, column=col).alignment = Alignment(horizontal="center", vertical="center")
+
+	for i, job in enumerate(jobs, start=1):
+		row = 2 + i
+		values = [
+			i, job["ref"], job["fields"]["bl_number"], job["fields"]["reference"],
+			job["fields"]["cargo"], job.get("cargo_count"), job["fields"]["mode"],
+			job.get("eta"), job["status_label"], job["progress_percent"],
+			job["glance"]["latest_update"],
+		]
+		for col, val in enumerate(values, start=1):
+			ws.cell(row=row, column=col, value=val)
+
+		ws.cell(row=row, column=1).alignment = Alignment(horizontal="center")
+		eta_cell = ws.cell(row=row, column=8)
+		if job.get("eta"):
+			eta_cell.number_format = "DD-MMM-YY"
+		progress_cell = ws.cell(row=row, column=10)
+		progress_cell.alignment = Alignment(horizontal="center")
+
+		status_cell = ws.cell(row=row, column=9)
+		fill, text = DOSSIER_XL_STATUS_FILLS.get(job["status_label"], ("F3F4F6", "5F6368"))
+		status_cell.fill = PatternFill("solid", fgColor=fill)
+		status_cell.font = Font(bold=True, color=text)
+		status_cell.alignment = Alignment(horizontal="center")
+
+		# Job Ref as a real hyperlink back into Desk.
+		ref_cell = ws.cell(row=row, column=2)
+		ref_cell.hyperlink = frappe.utils.get_url(f"/app/forwarding-job/{job['ref']}")
+		ref_cell.font = Font(color="1155CC", underline="single")
+
+	last_row = 2 + len(jobs)
+
+	if jobs:
+		# Native Excel data bar on the raw 0-100 progress number.
+		ws.conditional_formatting.add(
+			f"J3:J{last_row}",
+			DataBarRule(
+				start_type="num", start_value=0, end_type="num", end_value=100,
+				color="F6C199", showValue=True,
+			),
+		)
+
+	widths = [4, 16, 15, 15, 20, 9, 13, 12, 13, 11, 34]
+	for col, w in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col)].width = w
+
+	ws.freeze_panes = "C3"
+	ws.auto_filter.ref = f"A2:K{max(last_row, 2)}"
+
+	ws.page_setup.orientation = "landscape"
+	ws.page_setup.fitToWidth = 1
+	ws.page_setup.fitToHeight = 0
+	ws.sheet_properties.pageSetUpPr = openpyxl.worksheet.properties.PageSetupProperties(fitToPage=True)
+	ws.print_title_rows = "1:2"
+	ws.print_area = f"A1:K{max(last_row, 2)}"
+
+	# ---- Sheet 2: Milestone Detail ----
+	_fill_milestone_sheet(wb.create_sheet("Milestone Detail"), jobs)
+
+	# ---- Sheet 3: Container Detail ----
+	_fill_container_sheet(wb.create_sheet("Container Detail"), jobs)
+
+	return wb
+
+
+def _fill_milestone_sheet(ws, jobs):
+	"""One row per (job, section) - Job Ref, Milestone Group, Completed, Total,
+	Percent - the same fractions the PDF section heads show, unpivoted."""
+	ws.sheet_properties.tabColor = DOSSIER_XL_PURPLE_LIGHT
+	headers = ["Job Ref", "Milestone Group", "Completed", "Total", "Percent"]
+	for col, label in enumerate(headers, start=1):
+		ws.cell(row=1, column=col, value=label)
+	_xl_style_header_row(ws, 1, len(headers))
+
+	row = 2
+	for job in jobs:
+		for sec in job["sections"]:
+			frac = sec["frac"]
+			ws.cell(row=row, column=1, value=job["ref"])
+			ws.cell(row=row, column=2, value=sec["title"])
+			ws.cell(row=row, column=3, value=frac["done"])
+			ws.cell(row=row, column=4, value=frac["total"])
+			pct_cell = ws.cell(row=row, column=5, value=(frac["pct"] or 0) / 100)
+			pct_cell.number_format = "0%"
+			row += 1
+
+	last_row = max(row - 1, 1)
+	widths = [16, 22, 12, 10, 10]
+	for col, w in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col)].width = w
+	ws.freeze_panes = "A2"
+	ws.auto_filter.ref = f"A1:E{last_row}"
+
+
+def _fill_container_sheet(ws, jobs):
+	"""One row per (job, container) - the per-container milestone booleans the
+	PDF's Sea/Air + Road tables render, as filterable TRUE/FALSE columns."""
+	ws.sheet_properties.tabColor = DOSSIER_XL_PURPLE_LIGHT
+	headers = ["Job Ref", "Container / Item", "Type", "Booked", "Loaded",
+			   "Discharged", "Offloaded", "Returned", "Completed", "API Status"]
+	for col, label in enumerate(headers, start=1):
+		ws.cell(row=1, column=col, value=label)
+	_xl_style_header_row(ws, 1, len(headers))
+
+	row = 2
+	for job in jobs:
+		for c in job["containers"]:
+			ws.cell(row=row, column=1, value=job["ref"])
+			ws.cell(row=row, column=2, value=c["container"])
+			ws.cell(row=row, column=3, value=c["type"])
+			ws.cell(row=row, column=4, value=c["booked"])
+			ws.cell(row=row, column=5, value=c["loaded"])
+			ws.cell(row=row, column=6, value=c["discharged"])
+			ws.cell(row=row, column=7, value=c["offloaded"])
+			ws.cell(row=row, column=8, value=c["returned"])
+			ws.cell(row=row, column=9, value=c["completed"])
+			ws.cell(row=row, column=10, value=c["api_status"])
+			row += 1
+
+	last_row = max(row - 1, 1)
+	widths = [16, 20, 10, 9, 9, 11, 11, 10, 11, 18]
+	for col, w in enumerate(widths, start=1):
+		ws.column_dimensions[get_column_letter(col)].width = w
+	ws.freeze_panes = "C2"
+	ws.auto_filter.ref = f"A1:J{last_row}"
+
+
+@frappe.whitelist()
+def export_shipment_tracking_report_excel(customer):
+	"""Renders the Shipment Tracking data for a single customer as a 3-sheet
+	Excel workbook (Summary, Milestone Detail, Container Detail)."""
+	check_freightmas_role()
+
+	if not customer:
+		frappe.throw(_("Select a customer to generate this report."))
+
+	jobs = frappe.get_all(
+		"Forwarding Job",
+		filters={"customer": customer, "docstatus": ["<", 2]},
+		fields=["name"],
+		order_by="status asc, eta asc",
+	)
+	dossier_jobs = [_build_job_dossier_context(j.name) for j in jobs]
+
+	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
+	wb = _build_shipment_tracking_workbook(customer_name, dossier_jobs)
+	_send_workbook(wb, f"Shipment-Tracking-{frappe.scrub(customer)}.xlsx")
