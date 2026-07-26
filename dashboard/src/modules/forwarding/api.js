@@ -26,6 +26,7 @@ export function exportUrl(kind, params = {}) {
 		trackingReport: "export_tracking_report",
 		masterTrackingReport: "export_master_tracking_report",
 		shipmentTrackingReport: "export_shipment_tracking_report",
+		shipmentTrackingReportExcel: "export_shipment_tracking_report_excel",
 	};
 	return client.buildUrl(methodMap[kind], params);
 }

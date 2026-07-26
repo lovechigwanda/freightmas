@@ -52,6 +52,26 @@
 
 				<div class="tr-row">
 					<div class="tr-name">
+						Shipment Tracking Report
+						<span class="tr-badge-xlsx">XLSX</span>
+					</div>
+					<div class="tr-filter">
+						<CustomerSingleSelect v-model="selectedTrackingCustomerXlsx" />
+					</div>
+					<div class="tr-action">
+						<a
+							class="sd-btn sd-btn-primary"
+							:class="{ 'sd-btn-disabled': !selectedTrackingCustomerXlsx }"
+							:href="shipmentTrackingReportExcelHref"
+							target="_blank" rel="noopener"
+						>
+							<Download :size="14" stroke-width="2" /> Download Excel Report
+						</a>
+					</div>
+				</div>
+
+				<div class="tr-row">
+					<div class="tr-name">
 						Simplified Tracking Report <span class="tr-soon">Soon</span>
 					</div>
 					<div class="tr-filter">
@@ -92,8 +112,10 @@ import CustomerSingleSelect from "../../components/CustomerSingleSelect.vue";
 const selectedCustomers = ref([]);
 const selectedMasterCustomers = ref([]);
 // Single customer name (or null) - this report only ever targets one customer,
-// so the param below is `customer` (singular), not `customers` (array).
+// so the param below is `customer` (singular), not `customers` (array). The PDF
+// and XLSX rows each keep their own independent selection (not shared state).
 const selectedTrackingCustomer = ref(null);
+const selectedTrackingCustomerXlsx = ref(null);
 
 const trackingReportHref = computed(() =>
 	exportUrl("trackingReport", { customers: selectedCustomers.value })
@@ -103,6 +125,9 @@ const masterTrackingReportHref = computed(() =>
 );
 const shipmentTrackingReportHref = computed(() =>
 	exportUrl("shipmentTrackingReport", { customer: selectedTrackingCustomer.value })
+);
+const shipmentTrackingReportExcelHref = computed(() =>
+	exportUrl("shipmentTrackingReportExcel", { customer: selectedTrackingCustomerXlsx.value })
 );
 </script>
 
@@ -155,6 +180,19 @@ const shipmentTrackingReportHref = computed(() =>
 	color: var(--sd-accent-soft-text);
 	background: var(--sd-accent-soft);
 	border: 1px solid #dfe2fb;
+	padding: 2px 6px;
+	border-radius: 999px;
+}
+
+/* Same pill, green-tinted for the Excel row. */
+.tr-badge-xlsx {
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #186429;
+	background: #e5f3ea;
+	border: 1px solid #cdeada;
 	padding: 2px 6px;
 	border-radius: 999px;
 }
