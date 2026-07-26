@@ -65,7 +65,9 @@
   "closure_settings_section",
   "sla_job_closure_days",
   "column_break_inv3",
-  "margin_variance_threshold_pct"
+  "margin_variance_threshold_pct",
+  "home_page_tab",
+  "enable_command_center_home_page"
  ],
  "fields": [
   {
@@ -455,6 +457,18 @@
    "fieldtype": "Float",
    "label": "Margin Variance Threshold (%)",
    "precision": "1"
+  },
+  {
+   "fieldname": "home_page_tab",
+   "fieldtype": "Tab Break",
+   "label": "Home Page"
+  },
+  {
+   "default": "1",
+   "description": "When enabled, users with the FreightMas User, FreightMas Manager, or FreightMas Accounts role are taken directly to the Command Center dashboard after logging in, instead of the default Desk home.",
+   "fieldname": "enable_command_center_home_page",
+   "fieldtype": "Check",
+   "label": "Set Command Center as Home Page"
   }
  ],
  "index_web_pages_for_search": 1,

@@ -16,3 +16,12 @@ def boot_session(bootinfo):
 		version = frappe.utils.now_datetime().strftime("%Y%m%d%H%M%S")
 
 	bootinfo["freightmas_dashboard_asset_version"] = version
+
+
+def get_command_center_home_page(user):
+	roles = frappe.get_roles(user)
+	if not any(role in roles for role in ("FreightMas User", "FreightMas Manager", "FreightMas Accounts")):
+		return None
+	if not frappe.db.get_single_value("FreightMas Settings", "enable_command_center_home_page"):
+		return None
+	return "shipment-dashboard"

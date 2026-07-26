@@ -67,6 +67,11 @@ role_home_page = {
 	"Supplier Portal User": "supplier-portal",
 }
 
+# Command Center as home page for internal FreightMas roles, gated by the
+# "Set Command Center as Home Page" toggle in FreightMas Settings so it can
+# be switched off without a code change.
+get_website_user_home_page = "freightmas.boot.get_command_center_home_page"
+
 # Generators
 # ----------
 
