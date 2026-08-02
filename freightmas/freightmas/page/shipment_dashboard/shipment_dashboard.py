@@ -432,12 +432,84 @@ def _milestone_progress_map(job_names):
 	}
 
 
+def milestone_stage_rollup(milestones):
+	"""Roll a service's milestone list up into its named stages, in order, for
+	the summarized (stage-level) client report view. Each milestone dict must
+	carry `stage` and `stage_sequence` (snapshotted on Job Milestone Progress).
+
+	Returns [{name, done, total, pct, is_current}] where the *current stage* is
+	the first stage (by stage_sequence) that isn't fully complete; if every
+	stage is complete none is flagged current. Milestones with no stage are
+	collected into a trailing "Other" bucket so nothing is silently dropped.
+	Callers should first check `has_milestone_stages()` and only use this when
+	stages are actually configured for the service."""
+	buckets = {}
+	order = {}
+	for m in milestones:
+		key = m.get("stage") or None
+		seq = m.get("stage_sequence") or 0
+		bucket = buckets.setdefault(key, {"done": 0, "total": 0})
+		bucket["total"] += 1
+		if m.get("is_completed"):
+			bucket["done"] += 1
+		order[key] = min(order[key], seq) if key in order else seq
+
+	# Order by stage_sequence; the unstaged "Other" bucket always sorts last.
+	ordered = sorted(
+		buckets.items(),
+		key=lambda item: (1, 0) if item[0] is None else (0, order.get(item[0], 0)),
+	)
+
+	stages = []
+	current_taken = False
+	for key, bucket in ordered:
+		pct = round(bucket["done"] / bucket["total"] * 100) if bucket["total"] else 0
+		is_current = (not current_taken) and bucket["done"] < bucket["total"]
+		if is_current:
+			current_taken = True
+		stages.append({
+			"name": key or "Other",
+			"done": bucket["done"],
+			"total": bucket["total"],
+			"pct": pct,
+			"is_current": is_current,
+		})
+	return stages
+
+
+def has_milestone_stages(milestones):
+	"""True when at least one milestone in the list carries a stage - i.e. the
+	service can be summarized by stage. When False, callers fall back to the
+	full milestone checklist even in summary mode."""
+	return any(m.get("stage") for m in milestones)
+
+
+def resolve_milestone_report_mode(customer=None):
+	"""Effective milestone detail mode for a client-facing report: either
+	'Stage Summary' or 'Full Milestones'. The per-Customer override wins unless
+	it's blank/'Use Default', in which case the FreightMas Settings global
+	default applies (itself defaulting to 'Full Milestones')."""
+	if customer:
+		override = frappe.db.get_value(
+			"Customer", customer, "custom_client_report_milestone_detail"
+		)
+		if override and override != "Use Default":
+			return override
+	return (
+		frappe.db.get_single_value("FreightMas Settings", "client_report_milestone_detail")
+		or "Full Milestones"
+	)
+
+
 def _build_job_milestone_stages(doc):
 	"""Milestone groups (Road Freight / Port Clearance / Border Clearance /
 	Warehouse) for a Forwarding Job - only services actually required on the
 	job, and only groups that carry milestone rows. Shared by get_job_detail
 	(the Vue job drawer) and _build_job_dossier_context (the PDF dossier), so
-	both render the exact same milestone shape without re-deriving it."""
+	both render the exact same milestone shape without re-deriving it.
+
+	Each group also carries a stage rollup (`stages` + `has_stages`) for the
+	summarized client-report view - see milestone_stage_rollup()."""
 	section_labels = {
 		"road_freight_milestones": "Road Freight",
 		"port_clearance_milestones": "Port Clearance",
@@ -457,17 +529,22 @@ def _build_job_milestone_stages(doc):
 		rows = doc.get(fieldname) or []
 		if not rows:
 			continue
+		milestones = [
+			{
+				"label": r.milestone_label,
+				"is_completed": bool(r.is_completed),
+				"completed_on": r.completed_on,
+				"remarks": r.remarks,
+				"stage": r.get("stage"),
+				"stage_sequence": r.get("stage_sequence") or 0,
+			}
+			for r in rows
+		]
 		stages.append({
 			"group": label,
-			"milestones": [
-				{
-					"label": r.milestone_label,
-					"is_completed": bool(r.is_completed),
-					"completed_on": r.completed_on,
-					"remarks": r.remarks,
-				}
-				for r in rows
-			],
+			"milestones": milestones,
+			"has_stages": has_milestone_stages(milestones),
+			"stages": milestone_stage_rollup(milestones),
 		})
 	return stages
 
@@ -2185,6 +2262,19 @@ def _dossier_fraction(done, total):
 	}
 
 
+def _dossier_stage_row(stage):
+	"""One row of a Port/Border Clearance stage-summary card: the stage name,
+	its '{done}/{total} · {pct}%' chip (colored like _dossier_fraction) and
+	whether it's the stage currently in progress (rendered emphasized)."""
+	frac = _dossier_fraction(stage["done"], stage["total"])
+	return {
+		"name": stage["name"],
+		"text": frac["text"],
+		"color": frac["color"],
+		"is_current": stage["is_current"],
+	}
+
+
 def _dossier_latest_line(doc, status_key):
 	"""The 'LATEST: ...' status line on a job block. Prefers the job's own
 	current_comment (the same free-text note the Command Centre shows); falls
@@ -2218,7 +2308,8 @@ def _build_job_dossier_context(job_name):
 	today = getdate(nowdate())
 
 	cargo = _build_job_cargo_list(doc)
-	milestones_by_group = {s["group"]: s["milestones"] for s in _build_job_milestone_stages(doc)}
+	groups_by_name = {s["group"]: s for s in _build_job_milestone_stages(doc)}
+	report_mode = resolve_milestone_report_mode(doc.customer)
 	status_key = _dossier_status_key(doc, today)
 
 	# Container-count summary (e.g. "3×40HC") for the at-a-glance Cargo column -
@@ -2273,22 +2364,34 @@ def _build_job_dossier_context(job_name):
 		"rows": road_rows,
 	}
 
-	# --- Port Clearance card (milestone checklist) ---
-	pc_milestones = milestones_by_group.get("Port Clearance", [])
+	# --- Port Clearance card ---
+	# Full checklist by default; a compact stage rollup (current stage
+	# highlighted) when the client is set to the "Stage Summary" mode and the
+	# Port Clearance milestones actually carry stages.
+	pc_group = groups_by_name.get("Port Clearance", {})
+	pc_milestones = pc_group.get("milestones", [])
 	pc_done = sum(1 for m in pc_milestones if m["is_completed"])
-	port_section = {
-		"kind": "checklist", "column": "right", "title": "Port Clearance",
-		"frac": _dossier_fraction(pc_done, len(pc_milestones)),
-		"entries": [
-			{
-				"label": m["label"],
-				"done": m["is_completed"],
-				"value": (_dossier_date(m["completed_on"], "MMM d") or "Done")
-					if m["is_completed"] else "Pend",
-			}
-			for m in pc_milestones
-		],
-	}
+	pc_frac = _dossier_fraction(pc_done, len(pc_milestones))
+	if report_mode == "Stage Summary" and pc_group.get("has_stages"):
+		port_section = {
+			"kind": "stages", "column": "right", "title": "Port Clearance",
+			"frac": pc_frac,
+			"stages": [_dossier_stage_row(s) for s in pc_group.get("stages", [])],
+		}
+	else:
+		port_section = {
+			"kind": "checklist", "column": "right", "title": "Port Clearance",
+			"frac": pc_frac,
+			"entries": [
+				{
+					"label": m["label"],
+					"done": m["is_completed"],
+					"value": (_dossier_date(m["completed_on"], "MMM d") or "Done")
+						if m["is_completed"] else "Pend",
+				}
+				for m in pc_milestones
+			],
+		}
 
 	# --- Completion card (single "Completed" row - no Rev. Recognised) ---
 	completed = doc.status in ("Completed", "Closed") or bool(doc.completed_on)

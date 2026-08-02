@@ -397,7 +397,8 @@ fixtures = [
                 "Customer-custom_enable_tracking_emails",
                 "Customer-custom_cc_recipients",
                 "Customer-custom_primary_tracking_email",
-                "Customer-custom_tracking_email_settings"
+                "Customer-custom_tracking_email_settings",
+                "Customer-custom_client_report_milestone_detail"
             ]]
         ]
     },

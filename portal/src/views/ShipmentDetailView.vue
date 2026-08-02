@@ -48,6 +48,22 @@
 			</div>
 
 			<template v-else>
+				<div v-if="stageSummary.length" class="sd-card" style="margin-bottom: 14px;">
+					<div class="sd-card-title"><span class="sd-card-title-main">Progress</span></div>
+					<div v-for="group in stageSummary" :key="group.group" class="sd-stage-group">
+						<div class="sd-stage-group-title">{{ group.group }}</div>
+						<ul class="sd-list sd-stage-list">
+							<li v-for="st in group.stages" :key="st.name" :class="{ 'sd-stage-current': st.is_current }">
+								<span>
+									{{ st.name }}
+									<span v-if="st.is_current" class="sd-stage-badge">Current</span>
+								</span>
+								<span class="sd-muted">{{ st.done }}/{{ st.total }} &middot; {{ st.pct }}%</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+
 				<div class="sd-card" style="margin-bottom: 14px;">
 					<div class="sd-card-title"><span class="sd-card-title-main">Journey</span></div>
 					<Timeline v-if="timeline.length" :items="timeline" />
@@ -96,15 +112,31 @@ const loading = ref(true);
 const error = ref("");
 const tab = ref("overview");
 
+// When the client is set to "Stage Summary", services with stages configured
+// are shown as a compact stage rollup (see stageSummary) instead of listing
+// every milestone.
+const summaryMode = computed(() => detail.value?.milestone_report_mode === "Stage Summary");
+
+// Per-service stage rollup for the summary card - only services that actually
+// have stages configured; the current stage is flagged by the backend.
+const stageSummary = computed(() => {
+	if (!detail.value || !summaryMode.value) return [];
+	return (detail.value.milestone_stages || []).filter((g) => g.has_stages && g.stages?.length);
+});
+
 // Merges the structured milestone checklist and the free-text tracking log
 // into one chronological journey: completed milestones + logged events,
-// newest first, followed by not-yet-completed milestones (no date yet).
+// newest first, followed by not-yet-completed milestones (no date yet). In
+// summary mode, milestones from staged services are omitted here (they're
+// represented by the stage summary card) so the journey isn't flooded with
+// every step.
 const timeline = computed(() => {
 	if (!detail.value) return [];
 
 	const dated = [];
 	const pending = [];
 	for (const group of detail.value.milestone_stages || []) {
+		if (summaryMode.value && group.has_stages) continue;
 		for (const m of group.milestones) {
 			if (m.is_completed && m.completed_on) {
 				dated.push({ label: m.label, sub: group.group, date: m.completed_on, done: true });

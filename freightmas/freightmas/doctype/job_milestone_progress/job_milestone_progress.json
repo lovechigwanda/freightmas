@@ -9,6 +9,8 @@
   "milestone_code",
   "milestone_label",
   "service_module",
+  "stage",
+  "stage_sequence",
   "column_break_jmp1",
   "is_completed",
   "completed_on",
@@ -42,6 +44,21 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Service Module",
+   "read_only": 1
+  },
+  {
+   "description": "Snapshot of the milestone's stage at the time this checklist was created (frozen for stable reporting).",
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Stage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stage_sequence",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Stage Sequence",
    "read_only": 1
   },
   {

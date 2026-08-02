@@ -43,6 +43,21 @@
 			{% else %}
 				<div class="sec-empty">Not required for this shipment.</div>
 			{% endif %}
+		{% elif sec.kind == 'stages' %}
+			{% if sec.stages %}
+				<table class="stg">
+					{% for st in sec.stages %}
+						<tr class="{{ 'stg-current' if st.is_current else '' }}">
+							<td class="stg-k">
+								{{ st.name }}{% if st.is_current %} <span class="stg-now">CURRENT</span>{% endif %}
+							</td>
+							<td class="stg-v" style="color:{{ st.color }};">{{ st.text }}</td>
+						</tr>
+					{% endfor %}
+				</table>
+			{% else %}
+				<div class="sec-empty">Not required for this shipment.</div>
+			{% endif %}
 		{% endif %}
 	</div>
 </div>
@@ -269,6 +284,29 @@
 		font-size: 10px;
 	}
 	.chk-v-done { color: #1f8a4a; font-style: normal; }
+
+	/* ---- Stage summary rows ---- */
+	table.stg { width: 100%; border-collapse: collapse; }
+	table.stg td {
+		padding: 4px 8px 4px 0;
+		font-size: 11px;
+		vertical-align: middle;
+		border-bottom: 1px solid #eef0f3;
+	}
+	tr.stg-current td { background: #fbf4ea; }
+	.stg-k { color: #26333f; font-weight: 600; }
+	.stg-v { float: right; font-size: 10px; font-weight: 600; }
+	.stg-now {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 0 5px;
+		border-radius: 3px;
+		background: #F4901E;
+		color: #fff;
+		font: 700 8px/14px 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .04em;
+		vertical-align: middle;
+	}
 
 	.sec-empty { font-size: 11px; color: #98a1ac; font-style: italic; }
 

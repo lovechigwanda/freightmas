@@ -180,16 +180,32 @@ class ForwardingJob(Document):
                     "direction": ["in", ["Both", self.direction or "Both"]],
                     "customer": ["in", ["", self.customer or ""]],
                 },
-                fields=["name", "milestone_code", "milestone_label"],
+                fields=["name", "milestone_code", "milestone_label", "stage"],
                 order_by="sequence asc",
             )
 
+            # Snapshot the stage name + its ordering alongside the milestone, so
+            # summarized reports group/order from these frozen rows rather than
+            # re-querying (possibly later-edited) Milestone Stage records. One
+            # lookup for all stages this module references.
+            stage_map = {
+                s.name: s
+                for s in frappe.get_all(
+                    "Milestone Stage",
+                    filters={"name": ["in", list({d.stage for d in definitions if d.stage}) or [""]]},
+                    fields=["name", "stage_name", "stage_sequence"],
+                )
+            }
+
             for definition in definitions:
+                stage = stage_map.get(definition.stage)
                 self.append(fieldname, {
                     "milestone": definition.name,
                     "milestone_code": definition.milestone_code,
                     "milestone_label": definition.milestone_label,
                     "service_module": service_module,
+                    "stage": stage.stage_name if stage else None,
+                    "stage_sequence": stage.stage_sequence if stage else 0,
                 })
 
     def set_base_currency(self):

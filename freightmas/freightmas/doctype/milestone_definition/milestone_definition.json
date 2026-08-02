@@ -11,6 +11,7 @@
   "column_break_mdcb1",
   "service_module",
   "direction",
+  "stage",
   "column_break_mdcb2",
   "sequence",
   "is_active",
@@ -59,6 +60,14 @@
    "in_standard_filter": 1,
    "label": "Direction",
    "options": "Both\nImport\nExport"
+  },
+  {
+   "description": "Optional stage this milestone rolls up into for summarized client reports. Milestones without a stage still appear in full (detailed) reports.",
+   "fieldname": "stage",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Stage",
+   "options": "Milestone Stage"
   },
   {
    "fieldname": "column_break_mdcb2",

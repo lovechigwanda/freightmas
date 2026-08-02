@@ -66,6 +66,8 @@
   "sla_job_closure_days",
   "column_break_inv3",
   "margin_variance_threshold_pct",
+  "client_reports_tab",
+  "client_report_milestone_detail",
   "home_page_tab",
   "enable_command_center_home_page"
  ],
@@ -457,6 +459,19 @@
    "fieldtype": "Float",
    "label": "Margin Variance Threshold (%)",
    "precision": "1"
+  },
+  {
+   "fieldname": "client_reports_tab",
+   "fieldtype": "Tab Break",
+   "label": "Client Reports"
+  },
+  {
+   "default": "Full Milestones",
+   "description": "Default level of milestone detail shown on client-facing tracking reports (PDF dossier and client portal). 'Stage Summary' rolls each service's milestones up into named stages and shows the current stage plus overall progress. Can be overridden per Customer.",
+   "fieldname": "client_report_milestone_detail",
+   "fieldtype": "Select",
+   "label": "Client Report Milestone Detail",
+   "options": "Full Milestones\nStage Summary"
   },
   {
    "fieldname": "home_page_tab",
