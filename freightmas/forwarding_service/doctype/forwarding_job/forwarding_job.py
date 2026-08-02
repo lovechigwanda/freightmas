@@ -1794,6 +1794,16 @@ def fetch_containers_from_bl(docname):
     # --- Sync summary fields from the last timeline row ---
     _sync_tracking_summary(doc)
 
+    # --- Keep DND & Storage in sync with the freshly-updated container dates ---
+    # Rebuild the DND rows from the current containerised cargo and recalculate, so DND &
+    # Storage figures stay up to date on every API sync. Guarded so a calc failure can
+    # never break the tracking fetch — the tracking data is still saved below.
+    try:
+        from freightmas.utils.forwarding_dnd_calculator import refresh_and_calculate_dnd
+        refresh_and_calculate_dnd(doc)
+    except Exception:
+        frappe.log_error(title=f"DND auto-recalc during tracking fetch failed: {doc.name}")
+
     doc.save()
 
     return {
@@ -1890,44 +1900,18 @@ def calculate_dnd_storage(job_name):
 	Clear DND rows, repopulate fresh from current cargo, then calculate DND & Storage.
 	Returns updated totals and container count.
 	"""
-	from freightmas.utils.forwarding_dnd_calculator import calculate_dnd_storage_for_job
+	from freightmas.utils.forwarding_dnd_calculator import refresh_and_calculate_dnd
 
 	doc = frappe.get_doc("Forwarding Job", job_name)
 
-	# Step 1 — collect cargo data FIRST before touching any child tables
-	job_discharge_date = doc.discharge_date or None
-	new_rows = []
-	for row in (doc.cargo_parcel_details or []):
-		if row.cargo_type != "Containerised":
-			continue
-		new_rows.append({
-			"container_number": row.container_number or "",
-			"container_type": row.container_type,
-			"cargo_parcel_reference": row.name,
-			"discharge_date": row.discharge_date or job_discharge_date,
-			"gate_out_date": row.gate_out_date,
-			"empty_return_date": row.empty_return_date,
-			"to_be_returned": row.to_be_returned,
-			"is_hazardous": int(row.is_hazardous or 0),
-		})
-
-	if not new_rows:
+	# Guard: this manual action requires containerised cargo to work on.
+	if not any(row.cargo_type == "Containerised" for row in (doc.cargo_parcel_details or [])):
 		frappe.throw(
 			_("No containerised cargo found on this job. "
 			  "Please add containers in the Parcel tab before calculating DND.")
 		)
 
-	# Step 2 — safely wipe and repopulate DND rows
-	doc.set("forwarding_dnd_storage_details", [])
-	for row_data in new_rows:
-		doc.append("forwarding_dnd_storage_details", row_data)
-
-	# Step 3 — calculate costs from the fresh rows
-	total_dnd, total_storage, total_combined = calculate_dnd_storage_for_job(doc)
-
-	doc.total_est_dnd_cost = total_dnd
-	doc.total_est_storage_cost = total_storage
-	doc.total_est_dnd_storage_cost = total_combined
+	total_dnd, total_storage, total_combined, rows_count = refresh_and_calculate_dnd(doc)
 
 	doc.save(ignore_permissions=True)
 
@@ -1935,7 +1919,7 @@ def calculate_dnd_storage(job_name):
 		"total_est_dnd_cost": total_dnd,
 		"total_est_storage_cost": total_storage,
 		"total_est_dnd_storage_cost": total_combined,
-		"rows_count": len(new_rows),
+		"rows_count": rows_count,
 	}
 
 

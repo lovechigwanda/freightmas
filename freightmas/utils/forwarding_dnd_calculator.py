@@ -129,6 +129,51 @@ def days_remaining_to_lfd(discharge_date, free_days):
 	return (last_free_day - getdate(nowdate())).days
 
 
+def refresh_and_calculate_dnd(doc):
+	"""Rebuild the DND & Storage rows on a Forwarding Job from its current containerised
+	cargo, recalculate every row, and set the three job-level totals — all in memory.
+
+	This keeps the DND rows' dates in sync with the (possibly freshly-updated) cargo
+	parcel dates, which the calculation engine reads from the DND rows themselves.
+
+	Does NOT save the document and does NOT raise when there is no containerised cargo
+	(in that case the DND rows are cleared and totals are set to 0). Callers that want a
+	hard error on empty cargo should check for containers themselves before calling.
+
+	Returns (total_dnd, total_storage, total_combined, rows_count).
+	"""
+	# Collect cargo data FIRST, before touching any child tables.
+	job_discharge_date = doc.discharge_date or None
+	new_rows = []
+	for row in (doc.cargo_parcel_details or []):
+		if row.cargo_type != "Containerised":
+			continue
+		new_rows.append({
+			"container_number": row.container_number or "",
+			"container_type": row.container_type,
+			"cargo_parcel_reference": row.name,
+			"discharge_date": row.discharge_date or job_discharge_date,
+			"gate_out_date": row.gate_out_date,
+			"empty_return_date": row.empty_return_date,
+			"to_be_returned": row.to_be_returned,
+			"is_hazardous": int(row.is_hazardous or 0),
+		})
+
+	# Safely wipe and repopulate the DND rows.
+	doc.set("forwarding_dnd_storage_details", [])
+	for row_data in new_rows:
+		doc.append("forwarding_dnd_storage_details", row_data)
+
+	# Calculate costs from the fresh rows.
+	total_dnd, total_storage, total_combined = calculate_dnd_storage_for_job(doc)
+
+	doc.total_est_dnd_cost = total_dnd
+	doc.total_est_storage_cost = total_storage
+	doc.total_est_dnd_storage_cost = total_combined
+
+	return total_dnd, total_storage, total_combined, len(new_rows)
+
+
 def calculate_dnd_storage_for_job(forwarding_job_doc):
 	"""
 	Recalculates all DND & Storage rows for a Forwarding Job document.
