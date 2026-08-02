@@ -702,6 +702,34 @@ h1, h2, h3, h4 {
 	padding-bottom: 0;
 }
 
+/* Stage summary card (client "Stage Summary" report mode) */
+.sd-stage-group + .sd-stage-group {
+	margin-top: 16px;
+}
+.sd-stage-group-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--sd-text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	margin-bottom: 8px;
+}
+.sd-stage-list li.sd-stage-current {
+	font-weight: 600;
+}
+.sd-stage-badge {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--sd-accent, #F4901E);
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	vertical-align: middle;
+}
+
 /* Rank badge used in "Top Customers" / "Top Corridors" lists */
 .cc-rank {
 	display: inline-flex;

@@ -202,6 +202,74 @@ def _milestone_progress_map(job_names):
 	}
 
 
+# --- Milestone stage summary --------------------------------------------------
+# These mirror the stage rollup / mode resolution in
+# freightmas/page/shipment_dashboard/shipment_dashboard.py. The portal
+# deliberately re-implements shared logic locally (see module docstring) rather
+# than importing from the internal dashboard, so the two are kept in sync by
+# matching comments - the same way the done/total counting rule already is.
+
+
+def _has_milestone_stages(milestones):
+	"""True when at least one milestone carries a stage - i.e. the service can
+	be summarized by stage. When False the front-end shows the full list."""
+	return any(m.get("stage") for m in milestones)
+
+
+def _milestone_stage_rollup(milestones):
+	"""Roll a service's milestone list up into its named stages, in order. The
+	*current stage* is the first stage (by stage_sequence) not fully complete;
+	if all are complete none is flagged. Unstaged milestones fall into a
+	trailing "Other" bucket. Returns [{name, done, total, pct, is_current}]."""
+	buckets = {}
+	order = {}
+	for m in milestones:
+		key = m.get("stage") or None
+		seq = m.get("stage_sequence") or 0
+		bucket = buckets.setdefault(key, {"done": 0, "total": 0})
+		bucket["total"] += 1
+		if m.get("is_completed"):
+			bucket["done"] += 1
+		order[key] = min(order[key], seq) if key in order else seq
+
+	ordered = sorted(
+		buckets.items(),
+		key=lambda item: (1, 0) if item[0] is None else (0, order.get(item[0], 0)),
+	)
+
+	stages = []
+	current_taken = False
+	for key, bucket in ordered:
+		pct = round(bucket["done"] / bucket["total"] * 100) if bucket["total"] else 0
+		is_current = (not current_taken) and bucket["done"] < bucket["total"]
+		if is_current:
+			current_taken = True
+		stages.append({
+			"name": key or "Other",
+			"done": bucket["done"],
+			"total": bucket["total"],
+			"pct": pct,
+			"is_current": is_current,
+		})
+	return stages
+
+
+def _resolve_milestone_report_mode(customer=None):
+	"""Effective client-report milestone detail mode ('Stage Summary' or 'Full
+	Milestones'): the per-Customer override wins unless blank/'Use Default',
+	otherwise the FreightMas Settings default (default 'Full Milestones')."""
+	if customer:
+		override = frappe.db.get_value(
+			"Customer", customer, "custom_client_report_milestone_detail"
+		)
+		if override and override != "Use Default":
+			return override
+	return (
+		frappe.db.get_single_value("FreightMas Settings", "client_report_milestone_detail")
+		or "Full Milestones"
+	)
+
+
 @frappe.whitelist()
 def get_jobs(status=None, direction=None, search=None, limit_start=0, limit_page_length=20):
 	check_portal_access()
@@ -280,6 +348,7 @@ def get_job_detail(job_name):
 	}
 
 	milestone_stages = []
+	report_mode = _resolve_milestone_report_mode(doc.customer)
 	section_labels = {
 		"road_freight_milestones": "Road Freight",
 		"port_clearance_milestones": "Port Clearance",
@@ -298,17 +367,25 @@ def get_job_detail(job_name):
 		rows = doc.get(fieldname) or []
 		if not rows:
 			continue
+		milestones = [
+			{
+				"label": r.milestone_label,
+				"is_completed": bool(r.is_completed),
+				"completed_on": r.completed_on,
+				"stage": r.get("stage"),
+				"stage_sequence": r.get("stage_sequence") or 0,
+			}
+			for r in rows
+		]
 		milestone_stages.append(
 			{
 				"group": label,
-				"milestones": [
-					{
-						"label": r.milestone_label,
-						"is_completed": bool(r.is_completed),
-						"completed_on": r.completed_on,
-					}
-					for r in rows
-				],
+				"milestones": milestones,
+				# Stage rollup for the summarized view - the front-end shows it
+				# instead of the milestone list when report_mode is "Stage
+				# Summary" and the service actually has stages configured.
+				"has_stages": _has_milestone_stages(milestones),
+				"stages": _milestone_stage_rollup(milestones),
 			}
 		)
 
@@ -348,6 +425,7 @@ def get_job_detail(job_name):
 		"header": header,
 		"shipment_dates": shipment_dates,
 		"milestone_stages": milestone_stages,
+		"milestone_report_mode": report_mode,
 		"cargo": cargo,
 		"tracking": tracking,
 	}
