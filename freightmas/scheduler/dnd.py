@@ -1,5 +1,5 @@
 import frappe
-from freightmas.utils.forwarding_dnd_calculator import calculate_dnd_storage_for_job
+from freightmas.utils.forwarding_dnd_calculator import refresh_and_calculate_dnd
 
 
 def recalculate_open_job_dnd():
@@ -23,10 +23,9 @@ def recalculate_open_job_dnd():
 			if not doc.forwarding_dnd_storage_details:
 				skipped += 1
 				continue
-			total_dnd, total_storage, total_combined = calculate_dnd_storage_for_job(doc)
-			doc.total_est_dnd_cost = total_dnd
-			doc.total_est_storage_cost = total_storage
-			doc.total_est_dnd_storage_cost = total_combined
+			# Rebuild rows from current cargo before recalculating, so any container date
+			# changes (e.g. from an API sync) are reflected in the DND figures.
+			refresh_and_calculate_dnd(doc)
 			doc.save(ignore_permissions=True)
 			frappe.db.commit()
 			success += 1
