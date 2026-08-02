@@ -24,4 +24,4 @@ def get_command_center_home_page(user):
 		return None
 	if not frappe.db.get_single_value("FreightMas Settings", "enable_command_center_home_page"):
 		return None
-	return "freightmas-command-center"
+	return "/app/freightmas-command-center"
