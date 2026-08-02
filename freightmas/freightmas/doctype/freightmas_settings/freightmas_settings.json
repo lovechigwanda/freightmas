@@ -464,8 +464,8 @@
    "label": "Home Page"
   },
   {
-   "default": "1",
-   "description": "When enabled, users with the FreightMas User, FreightMas Manager, or FreightMas Accounts role are taken directly to the Command Center dashboard after logging in, instead of the default Desk home.",
+   "default": "0",
+   "description": "When enabled, users with the FreightMas User, FreightMas Manager, or FreightMas Accounts role are taken directly to the Command Center dashboard after logging in, instead of the default Desk home. Takes effect on the user's next login.",
    "fieldname": "enable_command_center_home_page",
    "fieldtype": "Check",
    "label": "Set Command Center as Home Page"
