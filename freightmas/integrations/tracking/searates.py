@@ -101,6 +101,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 		containers_raw = [data["container"]]
 
 	# Parse containers and compute mappings
+	today = frappe.utils.nowdate()
 	containers = []
 	last_voyage = ""
 	for container in containers_raw:
@@ -135,6 +136,13 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 		# ──────────────────────────────────────────────────────────────────────
 		def _apply_event_date(code, evt_date):
 			nonlocal discharge_date, gate_out_date, empty_return_date
+			# Never record a date for something that hasn't actually happened yet.
+			# Carriers (PIL in particular) include forward-looking projected events
+			# in the same events[] array — an "actual" flag alone isn't a reliable
+			# enough signal (estimated events are the whole point of pass 2 below),
+			# so a date-in-the-future check is the real guard here.
+			if evt_date > today:
+				return
 			if code == "DISC" and (not discharge_date or evt_date > discharge_date):
 				discharge_date = evt_date
 			elif code in ("GOUT", "AVPU", "DLVR", "GTOT") and (not gate_out_date or evt_date > gate_out_date):
@@ -178,7 +186,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 		if not gate_out_date or not empty_return_date:
 			for event in sorted(events, key=lambda e: e.get("order_id", 0), reverse=True):
 				evt_date = _extract_date(event.get("date"))
-				if not evt_date:
+				if not evt_date or evt_date > today:
 					continue
 				desc = (event.get("description") or "").lower()
 				if not gate_out_date and any(kw in desc for kw in _GATE_OUT_KEYWORDS):
