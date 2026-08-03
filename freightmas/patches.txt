@@ -22,3 +22,4 @@ freightmas.patches.backfill_portal_access_log_party
 freightmas.patches.replace_port_clearance_milestone_definitions
 freightmas.patches.seed_milestone_stages
 freightmas.patches.clear_future_discharge_dates
+freightmas.patches.clear_mislocated_tracking_dates

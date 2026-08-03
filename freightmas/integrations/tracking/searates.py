@@ -84,6 +84,12 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 	route = data.get("route") or {}
 	route_data = _parse_route(route, locations)
 
+	# Location ids of the Port of Loading / Port of Discharge — used below to make sure
+	# discharge/gate-out/empty-return events are only taken from the right end of the
+	# voyage (see _apply_event_date).
+	pol_location_id = (route.get("pol") or {}).get("location")
+	pod_location_id = (route.get("pod") or {}).get("location")
+
 	# Parse first vessel
 	vessel_list = data.get("vessels") or []
 	vessel_data = {}
@@ -134,7 +140,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 		#   Cycle" ARRI events (inland depot empty return) are caught by the
 		#   _EMPTY_RETURN_KEYWORDS fallback in pass 3 below.
 		# ──────────────────────────────────────────────────────────────────────
-		def _apply_event_date(code, evt_date):
+		def _apply_event_date(code, evt_date, evt_location):
 			nonlocal discharge_date, gate_out_date, empty_return_date
 			# Never record a date for something that hasn't actually happened yet.
 			# Carriers (PIL in particular) include forward-looking projected events
@@ -143,12 +149,29 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 			# so a date-in-the-future check is the real guard here.
 			if evt_date > today:
 				return
-			if code == "DISC" and (not discharge_date or evt_date > discharge_date):
-				discharge_date = evt_date
-			elif code in ("GOUT", "AVPU", "DLVR", "GTOT") and (not gate_out_date or evt_date > gate_out_date):
-				gate_out_date = evt_date
-			elif code in ("IRTN", "EMRT", "RTRN") and (not empty_return_date or evt_date > empty_return_date):
-				empty_return_date = evt_date
+			if code == "DISC":
+				# A DISC event is only a real "discharged" event if it happened at the
+				# container's actual Port of Discharge — the same code fires for a
+				# transshipment discharge at an intermediate hub, which is a normal
+				# part of the voyage, not the container being ready for delivery.
+				if pod_location_id is not None and evt_location != pod_location_id:
+					return
+				if not discharge_date or evt_date > discharge_date:
+					discharge_date = evt_date
+			elif code in ("GOUT", "AVPU", "DLVR", "GTOT"):
+				# GTOT in particular is reused by carriers for the export-side "empty
+				# container gated out to shipper" event at the Port of Loading — only
+				# exclude POL, don't require POD exactly, so a legitimate inland-depot
+				# gate-out (a different location id to the port itself) still counts.
+				if pol_location_id is not None and evt_location == pol_location_id:
+					return
+				if not gate_out_date or evt_date > gate_out_date:
+					gate_out_date = evt_date
+			elif code in ("IRTN", "EMRT", "RTRN"):
+				if pol_location_id is not None and evt_location == pol_location_id:
+					return
+				if not empty_return_date or evt_date > empty_return_date:
+					empty_return_date = evt_date
 
 		# Pass 1 — confirmed actual events (preferred)
 		for event in events:
@@ -156,7 +179,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 				continue
 			evt_date = _extract_date(event.get("date"))
 			if evt_date:
-				_apply_event_date(event.get("event_code"), evt_date)
+				_apply_event_date(event.get("event_code"), evt_date, event.get("location"))
 
 		# Pass 2 — fall back to estimated events for any date still missing
 		if not (discharge_date and gate_out_date and empty_return_date):
@@ -165,7 +188,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 					continue  # already handled in pass 1
 				evt_date = _extract_date(event.get("date"))
 				if evt_date:
-					_apply_event_date(event.get("event_code"), evt_date)
+					_apply_event_date(event.get("event_code"), evt_date, event.get("location"))
 
 		# Pass 3 — description keyword fallback for carriers that use non-standard
 		# event codes.  Scans events in reverse order_id (most recent first) for
@@ -187,6 +210,8 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 			for event in sorted(events, key=lambda e: e.get("order_id", 0), reverse=True):
 				evt_date = _extract_date(event.get("date"))
 				if not evt_date or evt_date > today:
+					continue
+				if pol_location_id is not None and event.get("location") == pol_location_id:
 					continue
 				desc = (event.get("description") or "").lower()
 				if not gate_out_date and any(kw in desc for kw in _GATE_OUT_KEYWORDS):
