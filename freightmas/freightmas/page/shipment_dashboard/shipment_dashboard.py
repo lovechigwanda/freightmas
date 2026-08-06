@@ -2257,13 +2257,14 @@ def _dossier_fraction(done, total):
 
 def _dossier_stage_row(stage, is_first=False):
 	"""One row of a Port/Border Clearance stage-summary card: the stage name,
-	its '{done}/{total} · {pct}%' chip (colored like _dossier_fraction), whether
-	it's the stage currently in progress (rendered emphasized), and - only for
-	the first stage by sequence - the labels of its outstanding milestones."""
+	its '· {pct}%' chip (colored like _dossier_fraction, but percentage-only -
+	stage rows don't show raw done/total counts), whether it's the stage
+	currently in progress (rendered emphasized), and - only for the first
+	stage by sequence - the labels of its outstanding milestones."""
 	frac = _dossier_fraction(stage["done"], stage["total"])
 	return {
 		"name": stage["name"],
-		"text": frac["text"],
+		"text": f"· {frac['pct']}%",
 		"color": frac["color"],
 		"is_current": stage["is_current"],
 		"is_first": is_first,
@@ -2372,10 +2373,14 @@ def _build_job_dossier_context(job_name):
 	pc_milestones = pc_group.get("milestones", [])
 	pc_done = sum(1 for m in pc_milestones if m["is_completed"])
 	pc_frac = _dossier_fraction(pc_done, len(pc_milestones))
+	# Percentage-only display for the Port Clearance card - raw done/total
+	# counts are dropped here (unlike Sea/Air Freight, Road Transport and
+	# Completion, which keep the "X/Y · Z%" format).
+	pc_frac_pct = dict(pc_frac, text=f"· {pc_frac['pct']}%")
 	if pc_group.get("has_stages"):
 		port_section = {
 			"kind": "stages", "column": "right", "title": "Port Clearance",
-			"frac": pc_frac,
+			"frac": pc_frac_pct,
 			"stages": [
 				_dossier_stage_row(s, is_first=(i == 0))
 				for i, s in enumerate(pc_group.get("stages", []))
@@ -2384,7 +2389,7 @@ def _build_job_dossier_context(job_name):
 	else:
 		port_section = {
 			"kind": "checklist", "column": "right", "title": "Port Clearance",
-			"frac": pc_frac,
+			"frac": pc_frac_pct,
 			"entries": [
 				{
 					"label": m["label"],
