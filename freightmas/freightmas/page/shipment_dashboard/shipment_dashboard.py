@@ -554,6 +554,11 @@ def _build_job_cargo_list(doc):
 			"is_offloaded": bool(r.is_offloaded),
 			"is_returned": bool(r.is_returned),
 			"is_completed": bool(r.is_completed),
+			"booked_on_date": r.booked_on_date,
+			"loaded_on_date": r.loaded_on_date,
+			"offloaded_on_date": r.offloaded_on_date,
+			"returned_on_date": r.returned_on_date,
+			"completed_on_date": r.completed_on_date,
 			"discharge_date": r.discharge_date,
 			"gate_out_date": r.gate_out_date,
 			"empty_return_date": r.empty_return_date,
@@ -2335,17 +2340,19 @@ def _build_job_dossier_context(job_name):
 		],
 	}
 
-	# --- Road Transport card (per-container trucking checkboxes) ---
+	# --- Road Transport card (per-container trucking dates) ---
 	road_rows = []
 	road_done = road_total = 0
 	for c in cargo:
 		flags = [c.get("is_booked"), c.get("is_loaded"), c.get("is_offloaded"),
 				 c.get("is_returned"), c.get("is_completed")]
+		dates = [c.get("booked_on_date"), c.get("loaded_on_date"), c.get("offloaded_on_date"),
+				 c.get("returned_on_date"), c.get("completed_on_date")]
 		road_total += 5
 		road_done += sum(1 for v in flags if v)
 		road_rows.append([
 			c.get("container_number") or "—",
-			*["✓" if f else "×" for f in flags],
+			*[_dossier_date(d, "MMM d") or "×" for d in dates],
 		])
 	road_section = {
 		"kind": "containers", "column": "left", "title": "Road Transport",
