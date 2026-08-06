@@ -64,6 +64,23 @@ class TestMilestoneStageRollup(unittest.TestCase):
 		self.assertFalse(has_milestone_stages([_m("a", None, 0, False)]))
 		self.assertFalse(has_milestone_stages([]))
 
+	def test_missing_lists_incomplete_labels_per_stage(self):
+		milestones = [
+			_m("Bill of Lading", "Documentation", 1, False),
+			_m("Endorsement Letter", "Documentation", 1, False),
+			_m("Pre-Alert", "Documentation", 1, True),
+			_m("SL BL Released", "Shipping Line", 2, False),
+		]
+		stages = milestone_stage_rollup(milestones)
+		docs, shipping_line = stages[0], stages[1]
+		self.assertEqual(docs["missing"], ["Bill of Lading", "Endorsement Letter"])
+		self.assertEqual(shipping_line["missing"], ["SL BL Released"])
+
+	def test_missing_empty_when_stage_fully_complete(self):
+		milestones = [_m("Pre-Alert", "Documentation", 1, True)]
+		stages = milestone_stage_rollup(milestones)
+		self.assertEqual(stages[0]["missing"], [])
+
 
 if __name__ == "__main__":
 	unittest.main()

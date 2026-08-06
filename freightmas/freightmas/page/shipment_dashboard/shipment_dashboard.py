@@ -437,21 +437,25 @@ def milestone_stage_rollup(milestones):
 	the summarized (stage-level) client report view. Each milestone dict must
 	carry `stage` and `stage_sequence` (snapshotted on Job Milestone Progress).
 
-	Returns [{name, done, total, pct, is_current}] where the *current stage* is
-	the first stage (by stage_sequence) that isn't fully complete; if every
-	stage is complete none is flagged current. Milestones with no stage are
-	collected into a trailing "Other" bucket so nothing is silently dropped.
-	Callers should first check `has_milestone_stages()` and only use this when
-	stages are actually configured for the service."""
+	Returns [{name, done, total, pct, is_current, missing}] where the *current
+	stage* is the first stage (by stage_sequence) that isn't fully complete; if
+	every stage is complete none is flagged current. `missing` is the labels of
+	that stage's incomplete milestones, in original order - callers decide
+	whether to display it (e.g. only for the first stage). Milestones with no
+	stage are collected into a trailing "Other" bucket so nothing is silently
+	dropped. Callers should first check `has_milestone_stages()` and only use
+	this when stages are actually configured for the service."""
 	buckets = {}
 	order = {}
 	for m in milestones:
 		key = m.get("stage") or None
 		seq = m.get("stage_sequence") or 0
-		bucket = buckets.setdefault(key, {"done": 0, "total": 0})
+		bucket = buckets.setdefault(key, {"done": 0, "total": 0, "missing": []})
 		bucket["total"] += 1
 		if m.get("is_completed"):
 			bucket["done"] += 1
+		else:
+			bucket["missing"].append(m.get("label"))
 		order[key] = min(order[key], seq) if key in order else seq
 
 	# Order by stage_sequence; the unstaged "Other" bucket always sorts last.
@@ -473,6 +477,7 @@ def milestone_stage_rollup(milestones):
 			"total": bucket["total"],
 			"pct": pct,
 			"is_current": is_current,
+			"missing": bucket["missing"],
 		})
 	return stages
 
@@ -482,23 +487,6 @@ def has_milestone_stages(milestones):
 	service can be summarized by stage. When False, callers fall back to the
 	full milestone checklist even in summary mode."""
 	return any(m.get("stage") for m in milestones)
-
-
-def resolve_milestone_report_mode(customer=None):
-	"""Effective milestone detail mode for a client-facing report: either
-	'Stage Summary' or 'Full Milestones'. The per-Customer override wins unless
-	it's blank/'Use Default', in which case the FreightMas Settings global
-	default applies (itself defaulting to 'Full Milestones')."""
-	if customer:
-		override = frappe.db.get_value(
-			"Customer", customer, "custom_client_report_milestone_detail"
-		)
-		if override and override != "Use Default":
-			return override
-	return (
-		frappe.db.get_single_value("FreightMas Settings", "client_report_milestone_detail")
-		or "Full Milestones"
-	)
 
 
 def _build_job_milestone_stages(doc):
@@ -2262,16 +2250,19 @@ def _dossier_fraction(done, total):
 	}
 
 
-def _dossier_stage_row(stage):
+def _dossier_stage_row(stage, is_first=False):
 	"""One row of a Port/Border Clearance stage-summary card: the stage name,
-	its '{done}/{total} · {pct}%' chip (colored like _dossier_fraction) and
-	whether it's the stage currently in progress (rendered emphasized)."""
+	its '{done}/{total} · {pct}%' chip (colored like _dossier_fraction), whether
+	it's the stage currently in progress (rendered emphasized), and - only for
+	the first stage by sequence - the labels of its outstanding milestones."""
 	frac = _dossier_fraction(stage["done"], stage["total"])
 	return {
 		"name": stage["name"],
 		"text": frac["text"],
 		"color": frac["color"],
 		"is_current": stage["is_current"],
+		"is_first": is_first,
+		"missing": stage.get("missing") or [] if is_first else [],
 	}
 
 
@@ -2309,7 +2300,6 @@ def _build_job_dossier_context(job_name):
 
 	cargo = _build_job_cargo_list(doc)
 	groups_by_name = {s["group"]: s for s in _build_job_milestone_stages(doc)}
-	report_mode = resolve_milestone_report_mode(doc.customer)
 	status_key = _dossier_status_key(doc, today)
 
 	# Container-count summary (e.g. "3×40HC") for the at-a-glance Cargo column -
@@ -2365,18 +2355,24 @@ def _build_job_dossier_context(job_name):
 	}
 
 	# --- Port Clearance card ---
-	# Full checklist by default; a compact stage rollup (current stage
-	# highlighted) when the client is set to the "Stage Summary" mode and the
-	# Port Clearance milestones actually carry stages.
+	# Always a compact stage rollup (Documentation / Shipping Line / Customs /
+	# Port Release) with the first stage's outstanding items called out, plus
+	# an overall progress row - clearer for clients than the full 16-item
+	# checklist. Falls back to the full checklist only if the milestones
+	# somehow carry no stage data (shouldn't happen; Milestone Definition
+	# assigns a stage to every Port Clearance item).
 	pc_group = groups_by_name.get("Port Clearance", {})
 	pc_milestones = pc_group.get("milestones", [])
 	pc_done = sum(1 for m in pc_milestones if m["is_completed"])
 	pc_frac = _dossier_fraction(pc_done, len(pc_milestones))
-	if report_mode == "Stage Summary" and pc_group.get("has_stages"):
+	if pc_group.get("has_stages"):
 		port_section = {
 			"kind": "stages", "column": "right", "title": "Port Clearance",
 			"frac": pc_frac,
-			"stages": [_dossier_stage_row(s) for s in pc_group.get("stages", [])],
+			"stages": [
+				_dossier_stage_row(s, is_first=(i == 0))
+				for i, s in enumerate(pc_group.get("stages", []))
+			],
 		}
 	else:
 		port_section = {
