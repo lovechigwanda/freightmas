@@ -143,7 +143,7 @@
 		color: #2c2560;
 		margin-bottom: 8px;
 	}
-	table.sum { width: 100%; border-collapse: collapse; }
+	table.sum { width: 100%; border-collapse: collapse; table-layout: fixed; }
 	table.sum th {
 		font: 700 8.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .05em;
@@ -165,6 +165,11 @@
 	table.sum tr:last-child td { border-bottom: none; }
 	.sum-num { color: #8b95a1; }
 	.sum-ref { font-weight: 700; color: #2c2560; }
+	.sum-bl, .sum-cargo {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.sum-update { white-space: normal; }
 	.sum-dot {
 		width: 7px; height: 7px;
 		border-radius: 50%;
@@ -389,9 +394,9 @@
 				<tr>
 					<td class="sum-num">{{ job.num }}</td>
 					<td class="sum-ref">{{ job.glance.ref }}</td>
-					<td>{{ job.glance.bl_no }}</td>
-					<td>{{ job.glance.cargo_units }}</td>
-					<td>{{ job.glance.latest_update }}</td>
+					<td class="sum-bl">{{ job.glance.bl_no }}</td>
+					<td class="sum-cargo">{{ job.glance.cargo_units }}</td>
+					<td class="sum-update">{{ job.glance.latest_update }}</td>
 					<td>
 						<span class="sum-dot" style="background:{{ job.glance.status_color }};"></span>{{ job.glance.status_label }} &middot; {{ job.glance.status_pct }}%
 					</td>
