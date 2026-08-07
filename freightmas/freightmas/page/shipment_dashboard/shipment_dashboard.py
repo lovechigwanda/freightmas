@@ -2536,7 +2536,11 @@ def export_shipment_tracking_report(customer):
 
 	jobs = frappe.get_all(
 		"Forwarding Job",
-		filters={"customer": customer, "docstatus": ["<", 2]},
+		filters={
+			"customer": customer,
+			"docstatus": ["in", [0, 1]],
+			"status": ["in", ["Draft", "In Progress", "Delivered"]],
+		},
 		fields=["name"],
 		order_by="status asc, eta asc",
 	)
@@ -2779,7 +2783,11 @@ def export_shipment_tracking_report_excel(customer):
 
 	jobs = frappe.get_all(
 		"Forwarding Job",
-		filters={"customer": customer, "docstatus": ["<", 2]},
+		filters={
+			"customer": customer,
+			"docstatus": ["in", [0, 1]],
+			"status": ["in", ["Draft", "In Progress", "Delivered"]],
+		},
 		fields=["name"],
 		order_by="status asc, eta asc",
 	)
