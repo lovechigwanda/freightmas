@@ -1656,6 +1656,10 @@ def fetch_containers_from_bl(docname):
     from frappe.utils import now_datetime
 
     from freightmas.integrations.tracking.searates import fetch_tracking
+    from freightmas.integrations.tracking.status_labels import (
+        build_tracking_comment,
+        standardized_event_label,
+    )
     from freightmas.utils.master_data_sync import (
         match_container_type,
         match_or_create_port,
@@ -1739,12 +1743,13 @@ def fetch_containers_from_bl(docname):
         matched_ct = match_container_type(ct.get("iso_code"))
         ct_status = ct.get("status", "")
         ct_status = ct_status.replace("_", " ").title() if ct_status else ""
-        ct_event = ct.get("latest_event_description", "")
+        ct_code = ct.get("latest_event_code", "")
+        ct_raw_event = ct.get("latest_event_description", "")
+        ct_event = standardized_event_label(ct_code, ct_raw_event)
         ct_event_date = _extract_date(ct.get("latest_event_date"))
         ct_location = ct.get("latest_event_port", "")
-        # Build tracking comment: "In Transit - Vessel arrival at final POD"
-        comment_parts = [p for p in [ct_status, ct_event] if p]
-        ct_comment = " - ".join(comment_parts) if comment_parts else ""
+        # Build tracking comment: "In Transit - Vessel Discharged: 30-Jul-26"
+        ct_comment = build_tracking_comment(ct_status, ct_code, ct_raw_event, ct_event_date)
 
         if ct_number in existing_rows:
             # Update existing row
@@ -1783,14 +1788,18 @@ def fetch_containers_from_bl(docname):
             })
 
     # --- Find the latest event across all containers for the BL-level summary ---
-    latest_event = ""
+    latest_event_code = ""
+    latest_event_raw = ""
     latest_event_date = None
     for ct in containers:
+        evt_code = ct.get("latest_event_code", "")
         evt_desc = ct.get("latest_event_description", "")
         evt_date = _extract_date(ct.get("latest_event_date"))
         if evt_date and (not latest_event_date or evt_date > latest_event_date):
-            latest_event = evt_desc
+            latest_event_code = evt_code
+            latest_event_raw = evt_desc
             latest_event_date = evt_date
+    latest_event = standardized_event_label(latest_event_code, latest_event_raw)
 
     new_status = metadata.get("status", "")
     # Format status: IN_TRANSIT -> In Transit, DELIVERED -> Delivered
@@ -1805,7 +1814,7 @@ def fetch_containers_from_bl(docname):
     doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # --- Update unified tracking timeline (dedup at BL level) ---
-    _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, now)
+    _update_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now)
 
     # --- Sync summary fields from the last timeline row ---
     _sync_tracking_summary(doc)
@@ -1828,7 +1837,7 @@ def fetch_containers_from_bl(docname):
     }
 
 
-def _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, now):
+def _update_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now):
     """Append or update the tracking timeline based on BL-level API data.
 
     Dedup logic:
@@ -1836,9 +1845,11 @@ def _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, 
     - If event text is the same → update last_verified
     - If different → append a new API row
 
-    The API status, event description, and event date are folded into a single
-    event string (e.g. "DELIVERED - I/B Empty Container Returned: 18-Apr-26").
+    The API status, standardized milestone label, and event date are folded
+    into a single event string (e.g. "Delivered - Empty container returned: 18-Apr-26").
     """
+    from freightmas.integrations.tracking.status_labels import build_tracking_comment
+
     # Format the event date as DD-Mon-YY
     date_str = ""
     if latest_event_date:
@@ -1848,15 +1859,7 @@ def _update_tracking_timeline(doc, new_status, latest_event, latest_event_date, 
         except Exception:
             date_str = str(latest_event_date)
 
-    # Build combined event text: "STATUS - event description: DD-Mon-YY"
-    parts = []
-    if new_status:
-        parts.append(new_status)
-    if latest_event:
-        parts.append(latest_event)
-    combined_event = " - ".join(parts)
-    if date_str:
-        combined_event = f"{combined_event}: {date_str}"
+    combined_event = build_tracking_comment(new_status, latest_event_code, latest_event_raw, date_str)
 
     # Find the last API row in the timeline
     last_api_row = None

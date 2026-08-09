@@ -1153,6 +1153,10 @@ def _link_invoice_register_entries_to_purchase_invoice(source_references, purcha
 def fetch_containers_from_bl(docname):
     """Fetch container tracking data from Searates API and populate the Clearing Job."""
     from freightmas.integrations.tracking.searates import fetch_tracking
+    from freightmas.integrations.tracking.status_labels import (
+        build_tracking_comment,
+        standardized_event_label,
+    )
     from freightmas.utils.master_data_sync import (
         match_container_type,
         match_or_create_port,
@@ -1215,7 +1219,8 @@ def fetch_containers_from_bl(docname):
         matched_ct = match_container_type(ct.get("iso_code"))
         ct_status = ct.get("status", "")
         ct_status = ct_status.replace("_", " ").title() if ct_status else ""
-        ct_event = ct.get("latest_event_description", "")
+        ct_code = ct.get("latest_event_code", "")
+        ct_event = standardized_event_label(ct_code, ct.get("latest_event_description", ""))
         ct_event_date = _extract_date(ct.get("latest_event_date"))
 
         if ct_number in existing_rows:
@@ -1236,14 +1241,18 @@ def fetch_containers_from_bl(docname):
             })
 
     # Find latest event across all containers for the BL-level summary
-    latest_event = ""
+    latest_event_code = ""
+    latest_event_raw = ""
     latest_event_date = None
     for ct in containers:
+        evt_code = ct.get("latest_event_code", "")
         evt_desc = ct.get("latest_event_description", "")
         evt_date = _extract_date(ct.get("latest_event_date"))
         if evt_date and (not latest_event_date or evt_date > latest_event_date):
-            latest_event = evt_desc
+            latest_event_code = evt_code
+            latest_event_raw = evt_desc
             latest_event_date = evt_date
+    latest_event = standardized_event_label(latest_event_code, latest_event_raw)
 
     new_status = metadata.get("status", "")
     new_status = new_status.replace("_", " ").title() if new_status else ""
@@ -1257,7 +1266,7 @@ def fetch_containers_from_bl(docname):
     doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # Append to tracking timeline (dedup)
-    _update_clearing_tracking_timeline(doc, new_status, latest_event, latest_event_date, now)
+    _update_clearing_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now)
 
     # Sync summary fields from last timeline row
     _sync_clearing_tracking_summary(doc)
@@ -1270,12 +1279,14 @@ def fetch_containers_from_bl(docname):
     }
 
 
-def _update_clearing_tracking_timeline(doc, new_status, latest_event, latest_event_date, now):
+def _update_clearing_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now):
     """Append or update the clearing tracking table based on BL-level API data.
 
     Dedup: if the last API row has the same comment text, only update last_verified.
     Otherwise append a new row.
     """
+    from freightmas.integrations.tracking.status_labels import build_tracking_comment
+
     date_str = ""
     if latest_event_date:
         try:
@@ -1284,14 +1295,7 @@ def _update_clearing_tracking_timeline(doc, new_status, latest_event, latest_eve
         except Exception:
             date_str = str(latest_event_date)
 
-    parts = []
-    if new_status:
-        parts.append(new_status)
-    if latest_event:
-        parts.append(latest_event)
-    combined_comment = " - ".join(parts)
-    if date_str:
-        combined_comment = f"{combined_comment}: {date_str}"
+    combined_comment = build_tracking_comment(new_status, latest_event_code, latest_event_raw, date_str)
 
     last_api_row = None
     for row in reversed(doc.get("clearing_tracking") or []):
