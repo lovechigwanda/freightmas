@@ -227,6 +227,7 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 			"size_type": container.get("size_type", ""),
 			"status": container.get("status", ""),
 			"latest_event_code": latest_event.get("event_code", ""),
+			"latest_event_actual": bool(latest_event.get("actual")),
 			"latest_event_description": latest_event.get("description", ""),
 			"latest_event_date": latest_event.get("date", ""),
 			"latest_event_port": latest_loc.get("name", ""),

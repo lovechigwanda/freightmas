@@ -1220,7 +1220,8 @@ def fetch_containers_from_bl(docname):
         ct_status = ct.get("status", "")
         ct_status = ct_status.replace("_", " ").title() if ct_status else ""
         ct_code = ct.get("latest_event_code", "")
-        ct_event = standardized_event_label(ct_code, ct.get("latest_event_description", ""))
+        ct_actual = ct.get("latest_event_actual", False)
+        ct_event = standardized_event_label(ct_code, ct.get("latest_event_description", ""), ct_actual)
         ct_event_date = _extract_date(ct.get("latest_event_date"))
 
         if ct_number in existing_rows:
@@ -1242,17 +1243,20 @@ def fetch_containers_from_bl(docname):
 
     # Find latest event across all containers for the BL-level summary
     latest_event_code = ""
+    latest_event_actual = False
     latest_event_raw = ""
     latest_event_date = None
     for ct in containers:
         evt_code = ct.get("latest_event_code", "")
+        evt_actual = ct.get("latest_event_actual", False)
         evt_desc = ct.get("latest_event_description", "")
         evt_date = _extract_date(ct.get("latest_event_date"))
         if evt_date and (not latest_event_date or evt_date > latest_event_date):
             latest_event_code = evt_code
+            latest_event_actual = evt_actual
             latest_event_raw = evt_desc
             latest_event_date = evt_date
-    latest_event = standardized_event_label(latest_event_code, latest_event_raw)
+    latest_event = standardized_event_label(latest_event_code, latest_event_raw, latest_event_actual)
 
     new_status = metadata.get("status", "")
     new_status = new_status.replace("_", " ").title() if new_status else ""
@@ -1266,7 +1270,9 @@ def fetch_containers_from_bl(docname):
     doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # Append to tracking timeline (dedup)
-    _update_clearing_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now)
+    _update_clearing_tracking_timeline(
+        doc, new_status, latest_event_code, latest_event_raw, latest_event_actual, latest_event_date, now
+    )
 
     # Sync summary fields from last timeline row
     _sync_clearing_tracking_summary(doc)
@@ -1279,7 +1285,9 @@ def fetch_containers_from_bl(docname):
     }
 
 
-def _update_clearing_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now):
+def _update_clearing_tracking_timeline(
+    doc, new_status, latest_event_code, latest_event_raw, latest_event_actual, latest_event_date, now
+):
     """Append or update the clearing tracking table based on BL-level API data.
 
     Dedup: if the last API row has the same comment text, only update last_verified.
@@ -1295,7 +1303,9 @@ def _update_clearing_tracking_timeline(doc, new_status, latest_event_code, lates
         except Exception:
             date_str = str(latest_event_date)
 
-    combined_comment = build_tracking_comment(new_status, latest_event_code, latest_event_raw, date_str)
+    combined_comment = build_tracking_comment(
+        new_status, latest_event_code, latest_event_raw, date_str, latest_event_actual
+    )
 
     last_api_row = None
     for row in reversed(doc.get("clearing_tracking") or []):

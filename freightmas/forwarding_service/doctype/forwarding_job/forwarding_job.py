@@ -1744,12 +1744,13 @@ def fetch_containers_from_bl(docname):
         ct_status = ct.get("status", "")
         ct_status = ct_status.replace("_", " ").title() if ct_status else ""
         ct_code = ct.get("latest_event_code", "")
+        ct_actual = ct.get("latest_event_actual", False)
         ct_raw_event = ct.get("latest_event_description", "")
-        ct_event = standardized_event_label(ct_code, ct_raw_event)
+        ct_event = standardized_event_label(ct_code, ct_raw_event, ct_actual)
         ct_event_date = _extract_date(ct.get("latest_event_date"))
         ct_location = ct.get("latest_event_port", "")
         # Build tracking comment: "In Transit - Vessel Discharged: 30-Jul-26"
-        ct_comment = build_tracking_comment(ct_status, ct_code, ct_raw_event, ct_event_date)
+        ct_comment = build_tracking_comment(ct_status, ct_code, ct_raw_event, ct_event_date, ct_actual)
 
         if ct_number in existing_rows:
             # Update existing row
@@ -1789,17 +1790,20 @@ def fetch_containers_from_bl(docname):
 
     # --- Find the latest event across all containers for the BL-level summary ---
     latest_event_code = ""
+    latest_event_actual = False
     latest_event_raw = ""
     latest_event_date = None
     for ct in containers:
         evt_code = ct.get("latest_event_code", "")
+        evt_actual = ct.get("latest_event_actual", False)
         evt_desc = ct.get("latest_event_description", "")
         evt_date = _extract_date(ct.get("latest_event_date"))
         if evt_date and (not latest_event_date or evt_date > latest_event_date):
             latest_event_code = evt_code
+            latest_event_actual = evt_actual
             latest_event_raw = evt_desc
             latest_event_date = evt_date
-    latest_event = standardized_event_label(latest_event_code, latest_event_raw)
+    latest_event = standardized_event_label(latest_event_code, latest_event_raw, latest_event_actual)
 
     new_status = metadata.get("status", "")
     # Format status: IN_TRANSIT -> In Transit, DELIVERED -> Delivered
@@ -1814,7 +1818,9 @@ def fetch_containers_from_bl(docname):
     doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # --- Update unified tracking timeline (dedup at BL level) ---
-    _update_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now)
+    _update_tracking_timeline(
+        doc, new_status, latest_event_code, latest_event_raw, latest_event_actual, latest_event_date, now
+    )
 
     # --- Sync summary fields from the last timeline row ---
     _sync_tracking_summary(doc)
@@ -1837,7 +1843,9 @@ def fetch_containers_from_bl(docname):
     }
 
 
-def _update_tracking_timeline(doc, new_status, latest_event_code, latest_event_raw, latest_event_date, now):
+def _update_tracking_timeline(
+    doc, new_status, latest_event_code, latest_event_raw, latest_event_actual, latest_event_date, now
+):
     """Append or update the tracking timeline based on BL-level API data.
 
     Dedup logic:
@@ -1859,7 +1867,9 @@ def _update_tracking_timeline(doc, new_status, latest_event_code, latest_event_r
         except Exception:
             date_str = str(latest_event_date)
 
-    combined_event = build_tracking_comment(new_status, latest_event_code, latest_event_raw, date_str)
+    combined_event = build_tracking_comment(
+        new_status, latest_event_code, latest_event_raw, date_str, latest_event_actual
+    )
 
     # Find the last API row in the timeline
     last_api_row = None
