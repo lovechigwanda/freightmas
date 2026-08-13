@@ -984,22 +984,26 @@
    "label": "Revenue Recognition"
   },
   {
-   "depends_on": "eval:doc.docstatus == 1",
+   "depends_on": "eval:doc.docstatus==0",
    "fieldname": "set_rr_date",
    "fieldtype": "Button",
-   "label": "Set Revenue Recognition Date"
+   "label": "Set Revenue Recognition Date",
+   "no_copy": 1,
+   "set_only_once": 1
   },
   {
    "default": "0",
    "fieldname": "revenue_recognised",
    "fieldtype": "Check",
    "label": "Revenue Recognised",
+   "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "revenue_recognised_on",
    "fieldtype": "Date",
    "label": "Revenue Recognised On",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -1010,6 +1014,7 @@
    "fieldname": "revenue_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Revenue Recognition JE",
+   "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
   },
@@ -1017,6 +1022,7 @@
    "fieldname": "total_recognised_revenue",
    "fieldtype": "Currency",
    "label": "Total Recognised Revenue",
+   "no_copy": 1,
    "options": "currency",
    "precision": "2",
    "read_only": 1
@@ -1032,6 +1038,7 @@
    "fieldname": "cost_recognised",
    "fieldtype": "Check",
    "label": "Cost Recognised",
+   "no_copy": 1,
    "read_only": 1
   },
   {
@@ -1042,6 +1049,7 @@
    "fieldname": "cost_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Cost Recognition JE",
+   "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
   },
@@ -1049,6 +1057,7 @@
    "fieldname": "total_recognised_cost",
    "fieldtype": "Currency",
    "label": "Total Recognised Cost",
+   "no_copy": 1,
    "options": "currency",
    "precision": "2",
    "read_only": 1
