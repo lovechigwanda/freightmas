@@ -21,6 +21,9 @@ Accounting Flow:
    - Cr each item's snapshotted income account
      (fallback: the service-level revenue account from FreightMas Settings)
 
+   Job controllers must run recognition in ``before_submit`` (not ``on_submit``),
+   because Frappe persists the document before ``on_submit`` runs.
+
 Purchase Invoices mirror this with actual_expense_account / WIP Cost.
 
 Supports:

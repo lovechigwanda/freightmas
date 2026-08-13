@@ -133,21 +133,26 @@ class ForwardingJob(Document):
             row.empty_return_date = cargo.empty_return_date
             row.to_be_returned = cargo.to_be_returned
 
-    def on_submit(self):
-        """Handle job submission - trigger revenue and cost recognition"""
+    def before_submit(self):
+        """Run revenue/cost recognition before docstatus is persisted (on_submit runs after db_update)."""
         if self.skip_validations:
             return
 
-        # P1 FIX #1: Validate Revenue Recognition Date before proceeding
-        from freightmas.utils.revenue_recognition import validate_revenue_recognition_before_submit, recognize_revenue_for_job, recognize_cost_for_job
+        from freightmas.utils.revenue_recognition import (
+            validate_revenue_recognition_before_submit,
+            recognize_revenue_for_job,
+            recognize_cost_for_job,
+        )
         validate_revenue_recognition_before_submit(self)
-
         recognize_revenue_for_job(self, "forwarding")
         recognize_cost_for_job(self, "forwarding")
 
-    def on_cancel(self):
-        """Handle job cancellation - reverse revenue and cost recognition"""
-        from freightmas.utils.revenue_recognition import reverse_revenue_recognition, reverse_cost_recognition
+    def before_cancel(self):
+        """Reverse revenue/cost recognition before cancel is persisted."""
+        from freightmas.utils.revenue_recognition import (
+            reverse_revenue_recognition,
+            reverse_cost_recognition,
+        )
         reverse_revenue_recognition(self)
         reverse_cost_recognition(self)
 

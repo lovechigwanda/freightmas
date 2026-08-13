@@ -1165,6 +1165,7 @@
    "fieldname": "revenue_recognised",
    "fieldtype": "Check",
    "label": "Revenue Recognised",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
@@ -1172,6 +1173,7 @@
    "fieldname": "revenue_recognised_on",
    "fieldtype": "Date",
    "label": "Revenue Recognised On",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
@@ -1183,6 +1185,7 @@
    "fieldname": "revenue_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Revenue Recognition Journal Entry",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
@@ -1191,6 +1194,7 @@
    "fieldname": "total_recognised_revenue",
    "fieldtype": "Currency",
    "label": "Total Recognised Revenue",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "base_currency",
    "read_only": 1
@@ -1206,6 +1210,7 @@
    "fieldname": "cost_recognised",
    "fieldtype": "Check",
    "label": "Cost Recognised",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
@@ -1217,6 +1222,7 @@
    "fieldname": "cost_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Cost Recognition Journal Entry",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
@@ -1225,6 +1231,7 @@
    "fieldname": "total_recognised_cost",
    "fieldtype": "Currency",
    "label": "Total Recognised Cost",
+   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "base_currency",
    "read_only": 1
