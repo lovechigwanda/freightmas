@@ -12,6 +12,7 @@ export const api = {
 	getFinanceSummary: (params) => client.call("get_finance_summary", params),
 	getDndOverview: () => client.call("get_dnd_overview"),
 	getCustomers: () => client.call("get_customers"),
+	getCustomerTrackingInfo: (customer) => client.call("get_customer_tracking_info", { customer }),
 };
 
 // Export endpoints stream a binary xlsx response directly - navigating to the
@@ -29,5 +30,21 @@ export function exportUrl(kind, params = {}) {
 		shipmentTrackingReportExcel: "export_shipment_tracking_report_excel",
 	};
 	return client.buildUrl(methodMap[kind], params);
+}
+
+// Mirrors exportUrl's methodMap - one whitelisted "email_*" function per
+// report row - but goes through client.call (JSON success/error result)
+// instead of buildUrl (raw browser navigation), since sending needs a
+// response to react to. Note client.call is still GET-based under the hood
+// (see core.js), so keep params - especially the Message field - reasonably
+// short to stay clear of URL-length limits.
+const emailMethodMap = {
+	trackingReport: "email_tracking_report",
+	masterTrackingReport: "email_master_tracking_report",
+	shipmentTrackingReport: "email_shipment_tracking_report",
+	shipmentTrackingReportExcel: "email_shipment_tracking_report_excel",
+};
+export function sendReportEmail(kind, params = {}) {
+	return client.call(emailMethodMap[kind], params);
 }
 

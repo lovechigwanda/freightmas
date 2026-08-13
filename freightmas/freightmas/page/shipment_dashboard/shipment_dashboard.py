@@ -1,14 +1,17 @@
 # Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
 # For license information, please see license.txt
 
-"""Read-only API layer backing the Shipment Dashboard (Vue SPA).
+"""API layer backing the Shipment Dashboard (Vue SPA).
 
-No new doctypes/schema - every endpoint here reads from Forwarding Job and
-its existing child tables / linked Sales & Purchase Invoices. Kept entirely
-separate from the Forwarding Job controller so it can evolve independently
-of the form's own whitelisted methods.
+Mostly read-only - every endpoint here reads from Forwarding Job and its
+existing child tables / linked Sales & Purchase Invoices - plus a handful of
+tracking-report "email this to a recipient" actions that send mail via
+frappe.sendmail without writing to any doctype. Kept entirely separate from
+the Forwarding Job controller so it can evolve independently of the form's
+own whitelisted methods.
 """
 
+import re
 from collections import Counter
 from io import BytesIO
 
@@ -1082,12 +1085,16 @@ def _write_sheet(ws, sheet_title, columns, rows):
 	ws.sheet_view.showGridLines = False
 
 
-def _send_workbook(wb, filename):
+def _workbook_bytes(wb):
 	output = BytesIO()
 	wb.save(output)
 	output.seek(0)
+	return output.read()
+
+
+def _send_workbook(wb, filename):
 	frappe.local.response.filename = filename
-	frappe.local.response.filecontent = output.read()
+	frappe.local.response.filecontent = _workbook_bytes(wb)
 	frappe.local.response.type = "binary"
 
 
@@ -2519,21 +2526,11 @@ def _company_logo_data_uri(company):
 		return None
 
 
-@frappe.whitelist()
-def export_shipment_tracking_report(customer):
-	"""Renders the compact, color-coded Shipment Tracking dossier (one block
-	per Forwarding Job) as a PDF, scoped to a single customer."""
-	check_freightmas_role()
-
-	if not customer:
-		frappe.throw(_("Select a customer to generate this report."))
-
-	company = (
-		frappe.defaults.get_user_default("Company")
-		or frappe.defaults.get_global_default("company")
-		or "FreightMas"
-	)
-
+def _dossier_jobs_for_customer(customer, numbered=False):
+	"""Shared by export_shipment_tracking_report(_excel) and their email
+	counterparts: fetches this customer's open Forwarding Jobs and builds
+	each one's dossier context. numbered=True stamps ctx["num"] for the
+	PDF's at-a-glance table (not needed by the Excel workbook)."""
 	jobs = frappe.get_all(
 		"Forwarding Job",
 		filters={
@@ -2547,8 +2544,27 @@ def export_shipment_tracking_report(customer):
 	dossier_jobs = []
 	for i, j in enumerate(jobs, start=1):
 		ctx = _build_job_dossier_context(j.name)
-		ctx["num"] = i  # cross-references the at-a-glance table's "#" column
+		if numbered:
+			ctx["num"] = i  # cross-references the at-a-glance table's "#" column
 		dossier_jobs.append(ctx)
+	return dossier_jobs
+
+
+def _build_shipment_tracking_pdf(customer):
+	"""Builds the compact, color-coded Shipment Tracking dossier (one block
+	per Forwarding Job) as PDF bytes, scoped to a single customer. Shared by
+	export_shipment_tracking_report (download) and email_shipment_tracking_report
+	(email attachment) - identical output either way."""
+	if not customer:
+		frappe.throw(_("Select a customer to generate this report."))
+
+	company = (
+		frappe.defaults.get_user_default("Company")
+		or frappe.defaults.get_global_default("company")
+		or "FreightMas"
+	)
+
+	dossier_jobs = _dossier_jobs_for_customer(customer, numbered=True)
 
 	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
@@ -2586,6 +2602,17 @@ def export_shipment_tracking_report(customer):
 			"footer-spacing": "4",
 		},
 	)
+
+	return pdf, customer_name
+
+
+@frappe.whitelist()
+def export_shipment_tracking_report(customer):
+	"""Renders the compact, color-coded Shipment Tracking dossier (one block
+	per Forwarding Job) as a PDF, scoped to a single customer."""
+	check_freightmas_role()
+
+	pdf, _customer_name = _build_shipment_tracking_pdf(customer)
 
 	frappe.local.response.filename = f"Shipment-Tracking-{frappe.scrub(customer)}.pdf"
 	frappe.local.response.filecontent = pdf
@@ -2781,18 +2808,157 @@ def export_shipment_tracking_report_excel(customer):
 	if not customer:
 		frappe.throw(_("Select a customer to generate this report."))
 
-	jobs = frappe.get_all(
-		"Forwarding Job",
-		filters={
-			"customer": customer,
-			"docstatus": ["in", [0, 1]],
-			"status": ["in", ["Draft", "In Progress", "Delivered"]],
-		},
-		fields=["name"],
-		order_by="status asc, eta asc",
-	)
-	dossier_jobs = [_build_job_dossier_context(j.name) for j in jobs]
+	dossier_jobs = _dossier_jobs_for_customer(customer)
 
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
 	wb = _build_shipment_tracking_workbook(customer_name, dossier_jobs)
 	_send_workbook(wb, f"Shipment-Tracking-{frappe.scrub(customer)}.xlsx")
+
+
+# --- Tracking report email actions ------------------------------------------------
+#
+# Mirror the export_* download endpoints above 1:1 (same param shapes, same
+# report-building helpers) but send the generated file as an email
+# attachment via frappe.sendmail instead of writing to frappe.local.response.
+
+_EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+def _validate_email_address(email):
+	if not email or not _EMAIL_RE.match(email):
+		frappe.throw(_("Enter a valid recipient email address."))
+
+
+def _parse_cc_emails(cc_emails):
+	if not cc_emails:
+		return []
+	parts = cc_emails.split(",") if isinstance(cc_emails, str) else list(cc_emails)
+	parts = [e.strip() for e in parts if e and e.strip()]
+	for e in parts:
+		if not _EMAIL_RE.match(e):
+			frappe.throw(_("Invalid CC email address: {0}").format(e))
+	return parts
+
+
+def _single_customer_reference(customers):
+	"""Best-effort Communication linkage - only meaningful when the report
+	was scoped to exactly one customer (Full/Master allow 0..N)."""
+	if customers and isinstance(customers, str):
+		customers = frappe.parse_json(customers)
+	if customers and len(customers) == 1:
+		return {"reference_doctype": "Customer", "reference_name": customers[0]}
+	return {}
+
+
+@frappe.whitelist()
+def get_customer_tracking_info(customer):
+	"""Lightweight lookup for the Command Center's Email modal To/CC prefill.
+	Bypasses standard Customer doctype permissions the same way get_customers()
+	does above, since Command Center users are gated by check_freightmas_role()
+	alone and may not hold standard Customer read permission."""
+	check_freightmas_role()
+	if not customer:
+		return {}
+	return (
+		frappe.db.get_value(
+			"Customer",
+			customer,
+			["customer_name", "tracking_email", "tracking_cc_emails", "tracking_email_enabled", "email_id"],
+			as_dict=True,
+		)
+		or {}
+	)
+
+
+@frappe.whitelist()
+def email_tracking_report(to_email, subject, message, customers=None, status=None, direction=None, search=None, cc_emails=None):
+	check_freightmas_role()
+	_validate_email_address(to_email)
+	cc = _parse_cc_emails(cc_emails)
+
+	sections, report_rows, _containers_by_job = _gather_tracking_report_rows(
+		customers=customers, status=status, direction=direction, search=search
+	)
+	wb = _build_tracking_workbook(sections, report_rows)
+	attachment = {"fname": _timestamped("Tracking_Report"), "fcontent": _workbook_bytes(wb)}
+
+	frappe.sendmail(
+		recipients=[to_email],
+		cc=cc,
+		subject=subject,
+		message=message,
+		attachments=[attachment],
+		**_single_customer_reference(customers),
+	)
+	return {"success": True, "message": f"Email sent to {to_email}"}
+
+
+@frappe.whitelist()
+def email_master_tracking_report(to_email, subject, message, customers=None, status=None, direction=None, search=None, cc_emails=None):
+	check_freightmas_role()
+	_validate_email_address(to_email)
+	cc = _parse_cc_emails(cc_emails)
+
+	sections, report_rows, containers_by_job = _gather_tracking_report_rows(
+		customers=customers, status=status, direction=direction, search=search
+	)
+	ladder = _build_stage_ladder(sections)
+	_annotate_stage_fields(report_rows, ladder)
+	wb = _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder)
+	attachment = {"fname": _timestamped("Master_Tracking_Report"), "fcontent": _workbook_bytes(wb)}
+
+	frappe.sendmail(
+		recipients=[to_email],
+		cc=cc,
+		subject=subject,
+		message=message,
+		attachments=[attachment],
+		**_single_customer_reference(customers),
+	)
+	return {"success": True, "message": f"Email sent to {to_email}"}
+
+
+@frappe.whitelist()
+def email_shipment_tracking_report(to_email, subject, message, customer, cc_emails=None):
+	check_freightmas_role()
+	_validate_email_address(to_email)
+	cc = _parse_cc_emails(cc_emails)
+
+	pdf, _customer_name = _build_shipment_tracking_pdf(customer)
+	attachment = {"fname": f"Shipment-Tracking-{frappe.scrub(customer)}.pdf", "fcontent": pdf}
+
+	frappe.sendmail(
+		recipients=[to_email],
+		cc=cc,
+		subject=subject,
+		message=message,
+		attachments=[attachment],
+		reference_doctype="Customer",
+		reference_name=customer,
+	)
+	return {"success": True, "message": f"Email sent to {to_email}"}
+
+
+@frappe.whitelist()
+def email_shipment_tracking_report_excel(to_email, subject, message, customer, cc_emails=None):
+	check_freightmas_role()
+	if not customer:
+		frappe.throw(_("Select a customer to generate this report."))
+	_validate_email_address(to_email)
+	cc = _parse_cc_emails(cc_emails)
+
+	dossier_jobs = _dossier_jobs_for_customer(customer)
+	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
+	wb = _build_shipment_tracking_workbook(customer_name, dossier_jobs)
+	attachment = {"fname": f"Shipment-Tracking-{frappe.scrub(customer)}.xlsx", "fcontent": _workbook_bytes(wb)}
+
+	frappe.sendmail(
+		recipients=[to_email],
+		cc=cc,
+		subject=subject,
+		message=message,
+		attachments=[attachment],
+		reference_doctype="Customer",
+		reference_name=customer,
+	)
+	return {"success": True, "message": f"Email sent to {to_email}"}

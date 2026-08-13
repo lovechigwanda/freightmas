@@ -15,6 +15,9 @@
 						<a class="sd-btn sd-btn-primary" :href="trackingReportHref" target="_blank" rel="noopener">
 							<Download :size="14" stroke-width="2" /> Download Tracking Report
 						</a>
+						<button type="button" class="sd-btn" @click="openEmailModal('trackingReport')">
+							<Mail :size="14" stroke-width="2" /> Email
+						</button>
 					</div>
 				</div>
 
@@ -27,6 +30,9 @@
 						<a class="sd-btn sd-btn-primary" :href="masterTrackingReportHref" target="_blank" rel="noopener">
 							<Download :size="14" stroke-width="2" /> Download Tracking Report
 						</a>
+						<button type="button" class="sd-btn" @click="openEmailModal('masterTrackingReport')">
+							<Mail :size="14" stroke-width="2" /> Email
+						</button>
 					</div>
 				</div>
 
@@ -47,6 +53,14 @@
 						>
 							<Download :size="14" stroke-width="2" /> Download PDF Report
 						</a>
+						<button
+							type="button"
+							class="sd-btn"
+							:disabled="!selectedTrackingCustomer"
+							@click="openEmailModal('shipmentTrackingReport')"
+						>
+							<Mail :size="14" stroke-width="2" /> Email
+						</button>
 					</div>
 				</div>
 
@@ -67,6 +81,14 @@
 						>
 							<Download :size="14" stroke-width="2" /> Download Excel Report
 						</a>
+						<button
+							type="button"
+							class="sd-btn"
+							:disabled="!selectedTrackingCustomerXlsx"
+							@click="openEmailModal('shipmentTrackingReportExcel')"
+						>
+							<Mail :size="14" stroke-width="2" /> Email
+						</button>
 					</div>
 				</div>
 
@@ -99,15 +121,26 @@
 				</div>
 			</div>
 		</div>
+
+		<EmailReportModal
+			v-if="emailModal"
+			:key="emailModal.kind"
+			:kind="emailModal.kind"
+			:report-label="emailModal.reportLabel"
+			:customers="emailModal.customers"
+			:customer="emailModal.customer"
+			@close="emailModal = null"
+		/>
 	</div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
-import { Download } from "@lucide/vue";
+import { Download, Mail } from "@lucide/vue";
 import { exportUrl } from "./api";
 import CustomerFilterDropdown from "../../components/CustomerFilterDropdown.vue";
 import CustomerSingleSelect from "../../components/CustomerSingleSelect.vue";
+import EmailReportModal from "./EmailReportModal.vue";
 
 const selectedCustomers = ref([]);
 const selectedMasterCustomers = ref([]);
@@ -116,6 +149,22 @@ const selectedMasterCustomers = ref([]);
 // and XLSX rows each keep their own independent selection (not shared state).
 const selectedTrackingCustomer = ref(null);
 const selectedTrackingCustomerXlsx = ref(null);
+
+const emailModal = ref(null);
+const rowMeta = {
+	trackingReport: { reportLabel: "Full Tracking Report" },
+	masterTrackingReport: { reportLabel: "Master Tracking Report" },
+	shipmentTrackingReport: { reportLabel: "Shipment Tracking Report (PDF)" },
+	shipmentTrackingReportExcel: { reportLabel: "Shipment Tracking Report (Excel)" },
+};
+
+function openEmailModal(kind) {
+	const base = { kind, reportLabel: rowMeta[kind].reportLabel };
+	if (kind === "trackingReport") emailModal.value = { ...base, customers: [...selectedCustomers.value] };
+	else if (kind === "masterTrackingReport") emailModal.value = { ...base, customers: [...selectedMasterCustomers.value] };
+	else if (kind === "shipmentTrackingReport") emailModal.value = { ...base, customer: selectedTrackingCustomer.value };
+	else if (kind === "shipmentTrackingReportExcel") emailModal.value = { ...base, customer: selectedTrackingCustomerXlsx.value };
+}
 
 const trackingReportHref = computed(() =>
 	exportUrl("trackingReport", { customers: selectedCustomers.value })
@@ -154,6 +203,12 @@ const shipmentTrackingReportExcelHref = computed(() =>
 	font-size: 14px;
 	font-weight: 600;
 	color: var(--sd-text);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.tr-action {
 	display: flex;
 	align-items: center;
 	gap: 8px;
