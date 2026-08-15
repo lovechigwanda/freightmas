@@ -1580,19 +1580,19 @@ def validate_revenue_recognition_before_submit(job_doc):
                 )
             )
     
-    # P1 FIX #3: Validate GL period is open
+    # P1 FIX #3: Validate recognition date falls in an active fiscal year
+    from erpnext.accounts.utils import FiscalYearError, get_fiscal_year
+
     try:
-        fiscal_year = frappe.get_doc("Fiscal Year", {"company": job_doc.company, "disabled": 0})
-        if fiscal_year and rr_date < getdate(fiscal_year.year_start_date):
-            frappe.throw(
-                _("Revenue Recognition Date ({0}) is before the fiscal year start ({1})").format(
-                    frappe.format_value(rr_date, {"fieldtype": "Date"}),
-                    frappe.format_value(fiscal_year.year_start_date, {"fieldtype": "Date"})
-                )
+        get_fiscal_year(date=rr_date, company=job_doc.company)
+    except FiscalYearError:
+        frappe.throw(
+            _("Revenue Recognition Date ({0}) is not in any active Fiscal Year for {1}. "
+              "Please create or enable the fiscal year in ERPNext.").format(
+                frappe.format_value(rr_date, {"fieldtype": "Date"}),
+                job_doc.company,
             )
-    except Exception as e:
-        frappe.log_error(f"Failed to check fiscal year: {e}", "Revenue Recognition Validation")
-        # Don't block if fiscal year check fails
+        )
 
 
 # P1 FIX #2: Handle Credit Notes (Negative Invoices)

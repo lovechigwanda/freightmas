@@ -38,14 +38,28 @@ frappe.ui.form.on('Border Clearing Job', {
     },
 
     // Milestone checkbox triggers
-    is_documents_received: toggle_milestone_dates,
-    is_entry_lodged: toggle_milestone_dates,
-    is_duty_assessed: toggle_milestone_dates,
-    is_duty_paid: toggle_milestone_dates,
+    is_documents_received: function(frm) {
+        on_milestone_checkbox_change(frm, "is_documents_received");
+    },
+    is_entry_lodged: function(frm) {
+        on_milestone_checkbox_change(frm, "is_entry_lodged");
+    },
+    is_duty_assessed: function(frm) {
+        on_milestone_checkbox_change(frm, "is_duty_assessed");
+    },
+    is_duty_paid: function(frm) {
+        on_milestone_checkbox_change(frm, "is_duty_paid");
+    },
     is_examination_required: toggle_milestone_dates,
-    is_examination_done: toggle_milestone_dates,
-    is_release_obtained: toggle_milestone_dates,
-    is_cleared: toggle_milestone_dates,
+    is_examination_done: function(frm) {
+        on_milestone_checkbox_change(frm, "is_examination_done");
+    },
+    is_release_obtained: function(frm) {
+        on_milestone_checkbox_change(frm, "is_release_obtained");
+    },
+    is_cleared: function(frm) {
+        on_milestone_checkbox_change(frm, "is_cleared");
+    },
 
     validate: function(frm) {
         let missing_fields = [];
@@ -577,18 +591,32 @@ function update_currency_labels(frm) {
 // Milestone Toggle & Progress Tracker
 // ==========================================================
 
-function toggle_milestone_dates(frm) {
-    const pairs = {
-        "is_documents_received": "documents_received_date",
-        "is_entry_lodged": "entry_lodged_date",
-        "is_duty_assessed": "duty_assessed_date",
-        "is_duty_paid": "duty_paid_date",
-        "is_examination_done": "examination_date",
-        "is_release_obtained": "release_date",
-        "is_cleared": "cleared_date"
-    };
+const MILESTONE_DATE_PAIRS = {
+    "is_documents_received": "documents_received_date",
+    "is_entry_lodged": "entry_lodged_date",
+    "is_duty_assessed": "duty_assessed_date",
+    "is_duty_paid": "duty_paid_date",
+    "is_examination_done": "examination_date",
+    "is_release_obtained": "release_date",
+    "is_cleared": "cleared_date"
+};
 
-    Object.entries(pairs).forEach(([checkbox, date_field]) => {
+function on_milestone_checkbox_change(frm, checkbox_field) {
+    const date_field = MILESTONE_DATE_PAIRS[checkbox_field];
+    if (date_field) {
+        if (frm.doc[checkbox_field]) {
+            if (!frm.doc[date_field]) {
+                frm.set_value(date_field, frappe.datetime.get_today());
+            }
+        } else {
+            frm.set_value(date_field, null);
+        }
+    }
+    toggle_milestone_dates(frm);
+}
+
+function toggle_milestone_dates(frm) {
+    Object.entries(MILESTONE_DATE_PAIRS).forEach(([checkbox, date_field]) => {
         const show = frm.doc[checkbox] === 1;
         frm.set_df_property(date_field, "hidden", !show);
         frm.refresh_field(date_field);

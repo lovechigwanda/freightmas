@@ -5,8 +5,10 @@ Tests cover all critical security and accounting scenarios
 
 import frappe
 import unittest
+from unittest.mock import patch
 from frappe.utils import flt, nowdate, getdate, add_days
 from frappe import _
+from erpnext.accounts.utils import FiscalYearError
 from freightmas.utils.revenue_recognition import (
     validate_revenue_recognition_before_submit,
     validate_wip_account_type,
@@ -111,6 +113,51 @@ class TestRevenueRecognition(unittest.TestCase):
         # Should throw validation error
         with self.assertRaises(frappe.ValidationError):
             validate_revenue_recognition_before_submit(job_doc)
+
+    def test_fiscal_year_validation_uses_date_and_company(self):
+        """Validate RR date resolves fiscal year by date+company, not a filter dict."""
+        job_doc = frappe.get_doc({
+            "doctype": "Clearing Job",
+            "job_reference": "TEST-FY-001",
+            "company": "Gleinna Investments",
+            "customer_reference": "CUST-001",
+            "revenue_recognised_on": nowdate(),
+        })
+
+        with patch("freightmas.utils.revenue_recognition.is_revenue_recognition_enabled", return_value=True), \
+             patch("freightmas.utils.revenue_recognition.get_linked_sales_invoices", return_value=[]), \
+             patch("freightmas.utils.revenue_recognition.get_linked_purchase_invoices", return_value=[]), \
+             patch("erpnext.accounts.utils.get_fiscal_year") as mock_get_fiscal_year:
+            mock_get_fiscal_year.return_value = ("2025-2026", "2025-04-01", "2026-03-31")
+
+            validate_revenue_recognition_before_submit(job_doc)
+
+            mock_get_fiscal_year.assert_called_once_with(
+                date=getdate(job_doc.revenue_recognised_on),
+                company=job_doc.company,
+            )
+
+    def test_fiscal_year_missing_shows_clear_error(self):
+        """Missing fiscal year should raise a clear message, not a dict-name lookup error."""
+        job_doc = frappe.get_doc({
+            "doctype": "Clearing Job",
+            "job_reference": "TEST-FY-002",
+            "company": "Gleinna Investments",
+            "customer_reference": "CUST-001",
+            "revenue_recognised_on": nowdate(),
+        })
+
+        with patch("freightmas.utils.revenue_recognition.is_revenue_recognition_enabled", return_value=True), \
+             patch("freightmas.utils.revenue_recognition.get_linked_sales_invoices", return_value=[]), \
+             patch("freightmas.utils.revenue_recognition.get_linked_purchase_invoices", return_value=[]), \
+             patch("erpnext.accounts.utils.get_fiscal_year", side_effect=FiscalYearError("Date not in fiscal year")):
+            with self.assertRaises(frappe.ValidationError) as context:
+                validate_revenue_recognition_before_submit(job_doc)
+
+            message = str(context.exception)
+            self.assertIn("not in any active Fiscal Year", message)
+            self.assertIn("Gleinna Investments", message)
+            self.assertNotIn("{'company':", message)
     
     def test_settings_validation_on_disabled_account(self):
         """P1.4: Settings validation - reject disabled accounts"""

@@ -40,7 +40,7 @@ def ensure_snapshot_fields():
             "hidden": 1,
             "read_only": 1,
             "print_hide": 1,
-            "no_copy": 0,
+            "no_copy": 1,
         }]
         for dt, spec in SNAPSHOT_FIELDS.items()
     }, ignore_validate=True)
