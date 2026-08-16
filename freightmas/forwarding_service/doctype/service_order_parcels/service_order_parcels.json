@@ -1,0 +1,230 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-16 19:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "cargo_parcel_reference",
+  "cargo_label",
+  "cargo_type",
+  "container_number",
+  "container_type",
+  "cargo_item_description",
+  "column_break_cargo",
+  "loading_address",
+  "offloading_address",
+  "drop_off_place",
+  "section_break_dates",
+  "load_by_date",
+  "to_be_returned",
+  "return_by_date",
+  "column_break_route",
+  "road_freight_route",
+  "section_break_truck",
+  "truck_reg_no",
+  "trailer_reg_no",
+  "driver_name",
+  "section_break_rates",
+  "service_charge",
+  "transporter_rate",
+  "section_break_tracking_flags",
+  "border_tracking",
+  "border_2_tracking",
+  "offloading_point"
+ ],
+ "fields": [
+  {
+   "fieldname": "cargo_parcel_reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cargo Parcel Reference",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "cargo_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cargo / Container",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cargo_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cargo Type",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "container_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Container Number",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
+   "fieldname": "container_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Container Type",
+   "options": "Container Type",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.cargo_type==\"General Cargo\"",
+   "fieldname": "cargo_item_description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Cargo Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_cargo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "loading_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Loading Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "offloading_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Offloading Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "drop_off_place",
+   "fieldtype": "Link",
+   "label": "Drop Off Place",
+   "options": "Port",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_dates",
+   "fieldtype": "Section Break",
+   "label": "Dates"
+  },
+  {
+   "fieldname": "load_by_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Load By Date",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "to_be_returned",
+   "fieldtype": "Check",
+   "label": "To Be Returned",
+   "read_only": 1
+  },
+  {
+   "fieldname": "return_by_date",
+   "fieldtype": "Date",
+   "label": "Return By Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_route",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "road_freight_route",
+   "fieldtype": "Data",
+   "label": "Road Freight Route",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_truck",
+   "fieldtype": "Section Break",
+   "label": "Truck Details"
+  },
+  {
+   "fieldname": "truck_reg_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Truck Reg No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "trailer_reg_no",
+   "fieldtype": "Data",
+   "label": "Trailer Reg No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "label": "Driver Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_rates",
+   "fieldtype": "Section Break",
+   "label": "Rates"
+  },
+  {
+   "fieldname": "service_charge",
+   "fieldtype": "Link",
+   "label": "Service Charge",
+   "options": "Item",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transporter_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Transporter Rate",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_tracking_flags",
+   "fieldtype": "Section Break",
+   "label": "Tracking Flags"
+  },
+  {
+   "default": "0",
+   "fieldname": "border_tracking",
+   "fieldtype": "Check",
+   "label": "Border Tracking",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "border_2_tracking",
+   "fieldtype": "Check",
+   "label": "Border 2 Tracking",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "offloading_point",
+   "fieldtype": "Check",
+   "label": "Offloading Point",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-16 19:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Service Order Parcels",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

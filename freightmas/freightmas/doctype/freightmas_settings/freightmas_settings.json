@@ -53,6 +53,9 @@
   "milestone_import_column_map",
   "invoicing_tab",
   "enable_invoice_register",
+  "enable_service_orders",
+  "require_service_order_before_pi",
+  "default_service_order_terms",
   "column_break_inv1",
   "default_bookkeeper",
   "backup_bookkeeper",
@@ -372,6 +375,27 @@
    "fieldname": "enable_invoice_register",
    "fieldtype": "Check",
    "label": "Enable Invoice Register"
+  },
+  {
+   "default": "0",
+   "description": "Enable Service Orders for formal supplier instructions on Forwarding Jobs.",
+   "fieldname": "enable_service_orders",
+   "fieldtype": "Check",
+   "label": "Enable Service Orders"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.enable_service_orders",
+   "description": "When enabled, a submitted Service Order is required before creating a Purchase Invoice from job cost charges.",
+   "fieldname": "require_service_order_before_pi",
+   "fieldtype": "Check",
+   "label": "Require Service Order Before Purchase Invoice"
+  },
+  {
+   "depends_on": "eval:doc.enable_service_orders",
+   "fieldname": "default_service_order_terms",
+   "fieldtype": "Text Editor",
+   "label": "Default Service Order Terms and Conditions"
   },
   {
    "fieldname": "column_break_inv1",

@@ -146,6 +146,10 @@ def bulk_update_milestone(job, cargo_indices, milestone, date=None, comment=None
                 flag_field, date_field = milestone_map[milestone]
                 setattr(cargo, flag_field, 1)
                 setattr(cargo, date_field, milestone_date)
+                if milestone == "loaded":
+                    cargo.loaded_milestone_source = "Portal"
+                elif milestone == "returned":
+                    cargo.return_milestone_source = "Portal"
             
             # Border 1 Arrived
             elif milestone == "border1_arrived":
@@ -250,6 +254,10 @@ def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_
             flag_field, date_field = milestone_map[milestone]
             setattr(cargo, flag_field, 1)
             setattr(cargo, date_field, milestone_date)
+            if milestone == "loaded":
+                cargo.loaded_milestone_source = "Portal"
+            elif milestone == "returned":
+                cargo.return_milestone_source = "Portal"
         
         # Border 1 Arrived
         elif milestone == "border1_arrived":

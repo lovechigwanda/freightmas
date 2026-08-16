@@ -50,6 +50,14 @@ frappe.ui.form.on('Forwarding Job', {
                 create_purchase_invoice_from_charges(frm);
             }, __('Create'));
 
+            frappe.db.get_single_value('FreightMas Settings', 'enable_service_orders').then(enabled => {
+                if (enabled) {
+                    frm.add_custom_button(__('Service Order'), function() {
+                        create_service_order_from_job(frm);
+                    }, __('Create'));
+                }
+            });
+
             // --- Add View > Cost Sheet button ---
             frm.add_custom_button(__('Cost Sheet'), function() {
                 window.open(
@@ -393,6 +401,7 @@ function update_cargo_count_forwarding(frm) {
 
 frappe.ui.form.on('Cargo Parcel Details', {
     cargo_parcel_details_add(frm, cdt, cdn) {
+        populate_parcel_row_defaults(frm, cdt, cdn);
         update_cargo_count_forwarding(frm);
     },
     cargo_type: update_cargo_count_forwarding,
@@ -562,13 +571,29 @@ function open_sales_invoice_fresh(invoice_name) {
 }
 
 function create_purchase_invoice_from_charges(frm) {
+    Promise.all([
+        frappe.db.get_single_value('FreightMas Settings', 'enable_service_orders'),
+        frappe.db.get_single_value('FreightMas Settings', 'require_service_order_before_pi'),
+    ]).then(([enabled, required]) => {
+        _open_purchase_invoice_dialog(frm, enabled && required);
+    });
+}
+
+function _open_purchase_invoice_dialog(frm, require_service_order) {
     const all_rows = frm.doc.forwarding_cost_charges || [];
-    const eligible_rows = all_rows.filter(row => 
+    let eligible_rows = all_rows.filter(row =>
         row.buy_rate && row.supplier && !row.purchase_invoice_reference
     );
 
+    if (require_service_order) {
+        eligible_rows = eligible_rows.filter(row => row.service_order_reference);
+    }
+
     if (!eligible_rows.length) {
-        frappe.msgprint(__("No eligible cost charges found for purchase invoicing."));
+        const message = require_service_order
+            ? __("No eligible cost charges with a submitted Service Order were found.")
+            : __("No eligible cost charges found for purchase invoicing.");
+        frappe.msgprint(message);
         return;
     }
 
@@ -699,6 +724,322 @@ function create_purchase_invoice_from_charges(frm) {
 
     dialog.show();
     render_dialog_ui(dialog, selected_supplier);
+}
+
+function create_service_order_from_job(frm) {
+    frappe.call({
+        method: 'freightmas.forwarding_service.doctype.service_order.service_order.get_service_order_creation_context',
+        args: { docname: frm.doc.name },
+        callback(r) {
+            if (!r.message) return;
+
+            const modules = r.message.service_modules || [];
+            if (!modules.length) {
+                frappe.msgprint(__('No services are enabled on this Forwarding Job.'));
+                return;
+            }
+
+            const dialog = new frappe.ui.Dialog({
+                title: __('Create Service Order'),
+                size: 'large',
+                fields: [
+                    {
+                        fieldtype: 'Select',
+                        fieldname: 'service_module',
+                        label: __('Service Module'),
+                        options: modules.join('\n'),
+                        reqd: 1,
+                        onchange() {
+                            _toggle_service_order_dialog_mode(dialog);
+                            _load_service_order_dialog_context(dialog, frm);
+                        },
+                    },
+                    {
+                        fieldtype: 'Link',
+                        fieldname: 'supplier',
+                        label: __('Supplier'),
+                        options: 'Supplier',
+                        reqd: 1,
+                        onchange() {
+                            _load_service_order_dialog_context(dialog, frm);
+                        },
+                    },
+                    {
+                        fieldtype: 'Select',
+                        fieldname: 'road_transporter',
+                        label: __('Transporter'),
+                        hidden: 1,
+                        onchange() {
+                            _load_service_order_dialog_context(dialog, frm);
+                        },
+                    },
+                    {
+                        fieldtype: 'Date',
+                        fieldname: 'required_by_date',
+                        label: __('Required By Date'),
+                    },
+                    {
+                        fieldtype: 'Small Text',
+                        fieldname: 'special_instructions',
+                        label: __('Special Instructions'),
+                    },
+                    {
+                        fieldtype: 'HTML',
+                        fieldname: 'charge_rows_html',
+                    },
+                ],
+                primary_action_label: __('Create Service Order'),
+                primary_action() {
+                    _submit_service_order_dialog(dialog, frm);
+                },
+            });
+
+            dialog.show();
+            if (modules.length === 1) {
+                dialog.set_value('service_module', modules[0]);
+            }
+            _toggle_service_order_dialog_mode(dialog);
+            _load_service_order_dialog_context(dialog, frm);
+        },
+    });
+}
+
+function _toggle_service_order_dialog_mode(dialog) {
+    const isRoadTransport = dialog.get_value('service_module') === 'Road Transport';
+    dialog.set_df_property('supplier', 'hidden', isRoadTransport ? 1 : 0);
+    dialog.set_df_property('supplier', 'reqd', isRoadTransport ? 0 : 1);
+    dialog.set_df_property('road_transporter', 'hidden', isRoadTransport ? 0 : 1);
+    dialog.set_df_property('road_transporter', 'reqd', isRoadTransport ? 1 : 0);
+}
+
+function _submit_service_order_dialog(dialog, frm) {
+    const values = dialog.get_values();
+    if (!values) return;
+
+    const isRoadTransport = values.service_module === 'Road Transport';
+    const supplier = isRoadTransport ? values.road_transporter : values.supplier;
+
+    if (!supplier) {
+        frappe.msgprint(isRoadTransport
+            ? __('Please select a transporter.')
+            : __('Please select a supplier.'));
+        return;
+    }
+
+    let args = {
+        docname: frm.doc.name,
+        service_module: values.service_module,
+        supplier,
+        required_by_date: values.required_by_date,
+        special_instructions: values.special_instructions,
+    };
+
+    if (isRoadTransport) {
+        const selected_parcels = [];
+        dialog.$wrapper.find('.so-parcel-row-check:checked').each(function() {
+            const parcelName = $(this).data('parcel-name');
+            if (parcelName) selected_parcels.push(parcelName);
+        });
+
+        const parcelSection = dialog.fields_dict.charge_rows_html.$wrapper.find('.so-parcel-row-check');
+        if (!parcelSection.length) {
+            frappe.msgprint(__('No cargo parcels found for this transporter.'));
+            return;
+        }
+        if (!selected_parcels.length) {
+            frappe.msgprint(__('Please select at least one cargo parcel.'));
+            return;
+        }
+        args.parcel_names = selected_parcels;
+    } else {
+        const selected_rows = [];
+        dialog.$wrapper.find('.so-charge-row-check:checked').each(function() {
+            const rowName = $(this).data('row-name');
+            if (rowName) selected_rows.push(rowName);
+        });
+
+        const chargeSection = dialog.fields_dict.charge_rows_html.$wrapper.find('.so-charge-row-check');
+        if (chargeSection.length && !selected_rows.length) {
+            frappe.msgprint(__('Please select at least one charge.'));
+            return;
+        }
+        args.row_names = chargeSection.length ? selected_rows : null;
+    }
+
+    frappe.call({
+        method: 'freightmas.forwarding_service.doctype.service_order.service_order.create_service_order_from_job',
+        args,
+        callback(res) {
+            if (res.message) {
+                dialog.hide();
+                frappe.set_route('Form', 'Service Order', res.message);
+            }
+        },
+    });
+}
+
+function _load_service_order_dialog_context(dialog, frm) {
+    const service_module = dialog.get_value('service_module');
+    if (!service_module) return;
+
+    _toggle_service_order_dialog_mode(dialog);
+
+    const isRoadTransport = service_module === 'Road Transport';
+    const supplier = isRoadTransport
+        ? dialog.get_value('road_transporter')
+        : dialog.get_value('supplier');
+
+    if (isRoadTransport) {
+        frappe.call({
+            method: 'freightmas.forwarding_service.doctype.service_order.service_order.get_road_transport_service_order_context',
+            args: {
+                docname: frm.doc.name,
+                transporter: supplier,
+            },
+            callback(r) {
+                if (!r.message) return;
+
+                const transporters = r.message.transporters || [];
+                dialog.set_df_property('road_transporter', 'options', transporters.join('\n'));
+
+                if (!supplier && r.message.default_transporter) {
+                    dialog.set_value('road_transporter', r.message.default_transporter).then(() => {
+                        _load_service_order_dialog_context(dialog, frm);
+                    });
+                    return;
+                }
+
+                _render_road_transport_parcel_table(dialog, r.message.parcels || []);
+            },
+        });
+        return;
+    }
+
+    frappe.call({
+        method: 'freightmas.forwarding_service.doctype.service_order.service_order.get_service_order_creation_context',
+        args: {
+            docname: frm.doc.name,
+            service_module,
+            supplier,
+        },
+        callback(r) {
+            if (!r.message) return;
+
+            if (!supplier && r.message.default_supplier) {
+                dialog.set_value('supplier', r.message.default_supplier).then(() => {
+                    _load_service_order_dialog_context(dialog, frm);
+                });
+                return;
+            }
+
+            _render_standard_charge_table(dialog, r.message);
+        },
+    });
+}
+
+function _render_standard_charge_table(dialog, context) {
+    const rows = [
+        ...(context.cost_charge_rows || []),
+        ...(context.costing_charge_rows || []),
+    ];
+
+    const table = rows.length ? `
+        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;">
+            <table class="table table-bordered table-sm" style="margin: 0;">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>${__('Charge')}</th>
+                        <th>${__('Description')}</th>
+                        <th style="text-align: right;">${__('Qty')}</th>
+                        <th style="text-align: right;">${__('Buy Rate')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map(row => `
+                        <tr>
+                            <td style="text-align: center;">
+                                <input type="checkbox" class="so-charge-row-check" data-row-name="${frappe.utils.escape_html(row.name || '')}" checked ${!row.name ? 'disabled' : ''}>
+                            </td>
+                            <td>${frappe.utils.escape_html(row.charge || '')}</td>
+                            <td>${frappe.utils.escape_html(row.description || '')}</td>
+                            <td style="text-align: right;">${row.qty || 1}</td>
+                            <td style="text-align: right;">${row.buy_rate || 0}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    ` : `<p style="color: #888; margin-top: 10px;">${__('No charge rows found for this supplier. The Service Order can still be created with scope only.')}</p>`;
+
+    dialog.fields_dict.charge_rows_html.$wrapper.html(
+        `<p style="font-weight: bold; margin-top: 10px;">${__('Select Charges')}</p>${table}`
+    );
+}
+
+function _render_road_transport_parcel_table(dialog, parcels) {
+    if (!parcels.length) {
+        dialog.fields_dict.charge_rows_html.$wrapper.html(
+            `<p style="color: #888; margin-top: 10px;">${__('No trucking parcels found for this transporter. Set Transporter on Cargo Parcel Details first.')}</p>`
+        );
+        return;
+    }
+
+    const formatDate = (value) => value ? frappe.datetime.str_to_user(value) : '';
+
+    const table = `
+        <div style="max-height: 360px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; margin-top: 10px;">
+            <table class="table table-bordered table-sm" style="margin: 0; font-size: 12px;">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th style="width: 36px;"></th>
+                        <th>${__('Cargo / Container')}</th>
+                        <th>${__('Loading')}</th>
+                        <th>${__('Offloading')}</th>
+                        <th>${__('Load By')}</th>
+                        <th>${__('Return')}</th>
+                        <th>${__('Truck')}</th>
+                        <th>${__('Trailer')}</th>
+                        <th>${__('Driver')}</th>
+                        <th>${__('Charge')}</th>
+                        <th style="text-align: right;">${__('Rate')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${parcels.map(parcel => {
+                        const disabled = parcel.already_ordered ? 'disabled' : '';
+                        const checked = parcel.already_ordered ? '' : 'checked';
+                        const returnLabel = parcel.to_be_returned
+                            ? `${__('Yes')}${parcel.return_by_date ? ` (${formatDate(parcel.return_by_date)})` : ''}`
+                            : __('No');
+                        const errorNote = (parcel.validation_errors || []).length
+                            ? `<br><span style="color:#b00;">${frappe.utils.escape_html(parcel.validation_errors.join(', '))}</span>`
+                            : '';
+                        return `
+                        <tr>
+                            <td style="text-align: center;">
+                                <input type="checkbox" class="so-parcel-row-check" data-parcel-name="${frappe.utils.escape_html(parcel.name || '')}" ${checked} ${disabled}>
+                            </td>
+                            <td>${frappe.utils.escape_html(parcel.cargo_label || '')}${errorNote}</td>
+                            <td>${frappe.utils.escape_html(parcel.loading_address || '')}</td>
+                            <td>${frappe.utils.escape_html(parcel.offloading_address || '')}</td>
+                            <td>${formatDate(parcel.load_by_date)}</td>
+                            <td>${returnLabel}</td>
+                            <td>${frappe.utils.escape_html(parcel.truck_reg_no || '')}</td>
+                            <td>${frappe.utils.escape_html(parcel.trailer_reg_no || '')}</td>
+                            <td>${frappe.utils.escape_html(parcel.driver_name || '')}</td>
+                            <td>${frappe.utils.escape_html(parcel.service_charge || '')}</td>
+                            <td style="text-align: right;">${parcel.transporter_rate || 0}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    dialog.fields_dict.charge_rows_html.$wrapper.html(
+        `<p style="font-weight: bold; margin-top: 10px;">${__('Select Cargo Parcels')}</p>${table}`
+    );
 }
 
 // ==========================================================
@@ -1228,7 +1569,7 @@ function get_road_transport_progress_counts(frm) {
     rows.forEach(r => {
         const is_returnable = r.cargo_type === 'Containerised' && r.to_be_returned;
         const checks = [r.is_booked, r.is_loaded, r.is_offloaded, r.is_completed];
-        if (is_returnable) checks.push(r.is_returned);
+        if (is_returnable) checks.push(r.is_returned || r.empty_return_date);
 
         total += checks.length;
         completed += checks.filter(Boolean).length;
@@ -1250,6 +1591,7 @@ function render_road_transport_progress_summary(frm) {
 
     const returnable_rows = rows.filter(r => r.cargo_type === 'Containerised' && r.to_be_returned);
     summary_field.$wrapper.html(build_road_transport_container_table_html(rows, returnable_rows));
+    bind_parcel_progress_row_clicks(frm);
 }
 
 // Per-container/parcel breakdown - shown for every job with at least one
@@ -1267,20 +1609,26 @@ function build_road_transport_container_table_html(rows, returnable_rows) {
     const body_rows = rows.map(r => {
         const label = r.container_number || r.cargo_item_description || __('Parcel');
         const is_returnable = returnable_names.has(r.name);
+        const return_done = r.is_returned || r.empty_return_date;
+        const return_cell = is_returnable
+            ? (return_done
+                ? `${cell(true)}${r.empty_return_date && !r.is_returned ? ' <span class="text-muted" style="font-size:10px;">(API)</span>' : ''}`
+                : cell(false))
+            : cell(false, false);
         return `
-            <tr>
+            <tr class="parcel-progress-row" data-parcel-row="${frappe.utils.escape_html(r.name)}" style="cursor: pointer;" title="${__('Click to open parcel progress')}">
                 <td style="padding: 4px 8px; font-size: 12px;">${frappe.utils.escape_html(label)}</td>
                 <td style="text-align: center;">${cell(r.is_booked)}</td>
                 <td style="text-align: center;">${cell(r.is_loaded)}</td>
                 <td style="text-align: center;">${cell(r.is_offloaded)}</td>
-                <td style="text-align: center;">${cell(r.is_returned, is_returnable)}</td>
+                <td style="text-align: center;">${return_cell}</td>
                 <td style="text-align: center;">${cell(r.is_completed)}</td>
             </tr>
         `;
     }).join('');
 
-    return `
-        <table class="table table-bordered" style="margin-top: 4px; font-size: 12px;">
+    const table_html = `
+        <table class="table table-bordered parcel-progress-table" style="margin-top: 4px; font-size: 12px;">
             <thead>
                 <tr style="background: #f8f9fa;">
                     <th style="padding: 4px 8px;">${__('Container / Parcel')}</th>
@@ -1294,6 +1642,20 @@ function build_road_transport_container_table_html(rows, returnable_rows) {
             <tbody>${body_rows}</tbody>
         </table>
     `;
+
+    return table_html;
+}
+
+function bind_parcel_progress_row_clicks(frm) {
+    const summary_field = frm.fields_dict['road_transport_progress_summary'];
+    if (!summary_field?.$wrapper) return;
+
+    summary_field.$wrapper.off('click.parcel_progress').on('click.parcel_progress', '.parcel-progress-row', function() {
+        const row_name = $(this).data('parcel-row');
+        if (row_name) {
+        open_parcel_row_on_tab(frm, row_name, 'tab_progress');
+        }
+    });
 }
 
 // Badge on the "Road Transport Progress" section header, matching the style
@@ -1530,27 +1892,48 @@ frappe.ui.form.on('Cargo Parcel Details', {
             // Clear all milestone checkboxes and dates when trucking not required
             clear_all_milestones(row);
             frm.refresh_field('cargo_parcel_details');
+        } else {
+            if (!frm.doc.is_trucking_required) {
+                prompt_enable_trucking_service(frm);
+            }
+            setTimeout(() => add_fetch_truck_button(frm, cdt, cdn), 100);
         }
         render_road_transport_progress_summary(frm);
     },
 
     is_booked: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
         validate_milestone_checkbox(frm, cdt, cdn, 'is_booked', 'booked_on_date');
+        if (row.is_booked && !row.loaded_milestone_source) {
+            row.loaded_milestone_source = 'Manual';
+        }
+        sync_cargo_milestones_from_port_dates_client(frm, cdt, cdn);
+        show_milestone_bridge_hints(frm, cdt, cdn);
         render_road_transport_progress_summary(frm);
     },
 
     is_loaded: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
         validate_milestone_checkbox(frm, cdt, cdn, 'is_loaded', 'loaded_on_date');
+        if (row.is_loaded && !row.loaded_milestone_source) {
+            row.loaded_milestone_source = 'Manual';
+        }
         render_road_transport_progress_summary(frm);
     },
 
     is_offloaded: function(frm, cdt, cdn) {
         validate_milestone_checkbox(frm, cdt, cdn, 'is_offloaded', 'offloaded_on_date');
+        sync_cargo_milestones_from_port_dates_client(frm, cdt, cdn);
+        show_milestone_bridge_hints(frm, cdt, cdn);
         render_road_transport_progress_summary(frm);
     },
 
     is_returned: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
         validate_milestone_checkbox(frm, cdt, cdn, 'is_returned', 'returned_on_date');
+        if (row.is_returned && !row.return_milestone_source) {
+            row.return_milestone_source = 'Manual';
+        }
         render_road_transport_progress_summary(frm);
     },
 
@@ -1584,13 +1967,17 @@ frappe.ui.form.on('Cargo Parcel Details', {
         render_milestone_summary(frm);
     },
 
-    gate_out_date: function(frm) {
+    gate_out_date: function(frm, cdt, cdn) {
+        sync_cargo_milestones_from_port_dates_client(frm, cdt, cdn);
+        show_milestone_bridge_hints(frm, cdt, cdn);
         render_sea_air_progress_summary(frm);
         render_sea_air_section_badge(frm);
         render_milestone_summary(frm);
     },
 
-    empty_return_date: function(frm) {
+    empty_return_date: function(frm, cdt, cdn) {
+        sync_cargo_milestones_from_port_dates_client(frm, cdt, cdn);
+        show_milestone_bridge_hints(frm, cdt, cdn);
         render_sea_air_progress_summary(frm);
         render_sea_air_section_badge(frm);
         render_milestone_summary(frm);
@@ -1812,45 +2199,15 @@ function clear_all_milestones(row) {
     milestone_fields.forEach(field => {
         row[field] = field.includes('_on_date') ? null : 0;
     });
+    row.loaded_milestone_source = '';
+    row.return_milestone_source = '';
 }
 
 // ==========================================================
-// AUTO-POPULATE CARGO PARCEL DETAILS FROM PARENT (ENHANCED)
-// ==========================================================
-
-frappe.ui.form.on('Cargo Parcel Details', {
-    cargo_parcel_details_add: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        
-        // Auto-populate default values from parent Loading Master section
-        if (frm.doc.is_trucking_required !== undefined) {
-            frappe.model.set_value(cdt, cdn, 'is_truck_required', frm.doc.is_trucking_required);
-        }
-        
-        if (frm.doc.road_freight_route) {
-            frappe.model.set_value(cdt, cdn, 'road_freight_route', frm.doc.road_freight_route);
-        }
-        
-        if (frm.doc.offloadiing_address) {
-            frappe.model.set_value(cdt, cdn, 'cargo_offloading_address', frm.doc.offloadiing_address);
-        }
-        
-        // Mark as auto-populated (temporary flag for this session)
-        row._auto_populated = true;
-        
-        update_cargo_count_forwarding(frm);
-    }
-});
-
-// ==========================================================
-// ENHANCED PARENT VALUE CHANGE HANDLERS
+// PARENT VALUE CHANGE HANDLERS (route / address)
 // ==========================================================
 
 frappe.ui.form.on('Forwarding Job', {
-    is_trucking_required: function(frm) {
-        update_all_cargo_trucking_requirement_enhanced(frm);
-    },
-
     road_freight_route: function(frm) {
         show_route_update_dialog(frm);
     },
@@ -1859,26 +2216,6 @@ frappe.ui.form.on('Forwarding Job', {
         show_address_update_dialog(frm);
     }
 });
-
-// Enhanced trucking requirement update (always applies to all)
-function update_all_cargo_trucking_requirement_enhanced(frm) {
-    if (!frm.doc.cargo_parcel_details) return;
-    
-    let updated = false;
-    frm.doc.cargo_parcel_details.forEach(function(row) {
-        if (row.is_truck_required !== frm.doc.is_trucking_required) {
-            frappe.model.set_value(row.doctype, row.name, 'is_truck_required', frm.doc.is_trucking_required);
-            updated = true;
-        }
-    });
-    
-    if (updated) {
-        frappe.show_alert({
-            message: __('Trucking requirement updated for all cargo items'),
-            indicator: 'blue'
-        }, 3);
-    }
-}
 
 // Smart route update with user choice
 function show_route_update_dialog(frm) {
@@ -2077,60 +2414,46 @@ function update_cargo_addresses_silently(frm, rows_to_update) {
 // FETCH TRUCK DETAILS FROM INTERNAL TRUCK
 // ==========================================================
 
-frappe.ui.form.on('Cargo Parcel Details', {
-    form_render: function(frm, cdt, cdn) {
-        // Add "Fetch from Truck" button when the child row form is rendered
-        let row = locals[cdt][cdn];
-        
-        // Only show if trucking is required
-        if (row.is_truck_required) {
-            // Add button after a short delay to ensure form is rendered
-            setTimeout(() => {
-                add_fetch_truck_button(frm, cdt, cdn);
-            }, 100);
-        }
-    },
-    
-    is_truck_required: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (row.is_truck_required) {
-            setTimeout(() => {
-                add_fetch_truck_button(frm, cdt, cdn);
-            }, 100);
+function add_fetch_truck_button(frm, cdt, cdn) {
+    let row = locals[cdt]?.[cdn];
+    if (!row?.is_truck_required) return;
+
+    let grid_row = frm.fields_dict.cargo_parcel_details?.grid?.grid_rows_by_docname?.[cdn];
+    if (!grid_row || !grid_row.grid_form) return;
+
+    let form_wrapper = $(grid_row.grid_form.wrapper);
+
+    // Re-attach when switching tabs (section may have been hidden on first attempt)
+    form_wrapper.find('.btn-fetch-truck').remove();
+
+    let section = form_wrapper.find('.form-section[data-fieldname="loading_details_section"]');
+    if (!section.length) {
+        section = form_wrapper.find('[data-fieldname="loading_details_section"]').filter('.form-section, .form-section .section-head').first().closest('.form-section');
+    }
+    if (!section.length) {
+        section = form_wrapper.find('[data-fieldname="loading_details_section"]').first();
+    }
+    if (!section.length) {
+        const truck_field = form_wrapper.find('[data-fieldname="truck_reg_no"]');
+        if (truck_field.length) {
+            section = truck_field.closest('.form-section');
         }
     }
-});
+    if (!section.length) return;
 
-function add_fetch_truck_button(frm, cdt, cdn) {
-    // Find the child row's form wrapper
-    let grid_row = frm.fields_dict.cargo_parcel_details.grid.grid_rows_by_docname[cdn];
-    if (!grid_row || !grid_row.grid_form) return;
-    
-    let form_wrapper = grid_row.grid_form.wrapper;
-    
-    // Check if button already exists
-    if ($(form_wrapper).find('.btn-fetch-truck').length > 0) return;
-    
-    // Find the "Truck Details" section (loading_details_section)
-    let section = $(form_wrapper).find('[data-fieldname="loading_details_section"]');
-    if (section.length === 0) return;
-    
-    // Create the button
     let btn = $(`
-        <button class="btn btn-xs btn-primary btn-fetch-truck" style="margin-left: 10px;">
-            <i class="fa fa-truck"></i> Fetch from Truck
+        <button type="button" class="btn btn-xs btn-primary btn-fetch-truck" style="margin-left: 10px;">
+            <i class="fa fa-truck"></i> ${__('Fetch from Truck')}
         </button>
     `);
-    
-    // Insert button next to section label
-    let section_head = section.find('.section-head, .head');
-    if (section_head.length > 0) {
+
+    let section_head = section.find('.section-head, .head').first();
+    if (section_head.length) {
         section_head.append(btn);
     } else {
         section.prepend(btn);
     }
-    
-    // Button click handler
+
     btn.on('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -2485,3 +2808,5 @@ function update_dnd_totals(frm) {
     frm.refresh_field('total_est_storage_cost');
     frm.refresh_field('total_est_dnd_storage_cost');
 }
+
+{% include "freightmas/forwarding_service/doctype/forwarding_job/cargo_parcel_ui.js" %}

@@ -44,6 +44,7 @@ class ForwardingJob(Document):
             self.ensure_planned_charges_before_status_change()
             self.prevent_editing_costing_charges()
             self.validate_cargo_milestones()
+            self.validate_trucking_service_consistency()
             self.validate_completion_requirements()
             self.lock_services_required_once_set()
             self.prevent_milestone_row_deletion()
@@ -615,6 +616,71 @@ class ForwardingJob(Document):
         frappe.msgprint(_("{0} truck cost charge(s) added").format(added))
         return added
 
+    @frappe.whitelist()
+    def fetch_revenue_from_truck_loading(self):
+        """
+        Copy truck-related revenue from cargo_parcel_details to forwarding_revenue_charges.
+
+        Rules:
+        - Only process rows where is_truck_required = 1
+        - Row must have both truck_selling_rate (> 0) and service_charge
+        - Skip if cargo row was already copied (tracked via source_reference)
+        - Customer is taken from the parent Forwarding Job
+        """
+        if not self.customer:
+            frappe.throw(_("Customer is required on the Forwarding Job to fetch truck revenue."))
+
+        added = 0
+        copied_references = set()
+        for row in self.get("forwarding_revenue_charges", []):
+            if row.source_reference:
+                copied_references.add(row.source_reference)
+
+        for cargo_row in self.get("cargo_parcel_details", []):
+            if not cargo_row.get("is_truck_required"):
+                continue
+            if not cargo_row.service_charge:
+                continue
+            if not flt(cargo_row.truck_selling_rate):
+                continue
+            if cargo_row.name in copied_references:
+                continue
+
+            qty = 1.0
+            sell_rate = flt(cargo_row.truck_selling_rate)
+            revenue_amount = qty * sell_rate
+            label = cargo_row.container_number or cargo_row.cargo_item_description or cargo_row.name
+
+            self.append("forwarding_revenue_charges", {
+                "charge": cargo_row.service_charge,
+                "description": _("Truck Loading Service - {0}").format(label),
+                "qty": qty,
+                "sell_rate": sell_rate,
+                "customer": self.customer,
+                "revenue_amount": revenue_amount,
+                "source_reference": cargo_row.name,
+            })
+            copied_references.add(cargo_row.name)
+            added += 1
+
+        if added:
+            self.save()
+
+        frappe.msgprint(_("{0} truck revenue charge(s) added").format(added))
+        return added
+
+    def validate_trucking_service_consistency(self):
+        """Parcel-level trucking must not be enabled when the job service is off."""
+        if self.is_trucking_required:
+            return
+        for idx, cargo in enumerate(self.get("cargo_parcel_details", []), 1):
+            if cargo.get("is_truck_required"):
+                label = cargo.get("container_number") or cargo.get("cargo_item_description") or idx
+                frappe.throw(
+                    _("{0}: Trucking is enabled on this cargo parcel but Trucking Service is not enabled on the job.")
+                    .format(label)
+                )
+
     def validate_cargo_milestones(self):
         """Validate cargo milestone checkboxes and dates"""
         for idx, cargo in enumerate(self.get("cargo_parcel_details", []), 1):
@@ -636,11 +702,15 @@ class ForwardingJob(Document):
         """Clear all milestone checkboxes and dates when trucking not required"""
         milestone_fields = [
             'is_booked', 'is_loaded', 'is_offloaded', 'is_returned', 'is_completed',
-            'booked_on_date', 'loaded_on_date', 'offloaded_on_date', 'returned_on_date', 'completed_on_date'
+            'booked_on_date', 'loaded_on_date', 'offloaded_on_date', 'returned_on_date', 'completed_on_date',
+            'loaded_milestone_source', 'return_milestone_source',
         ]
         for field in milestone_fields:
             if hasattr(cargo, field):
-                setattr(cargo, field, None if '_on_date' in field else 0)
+                if field.endswith('_source'):
+                    setattr(cargo, field, None)
+                else:
+                    setattr(cargo, field, None if '_on_date' in field else 0)
 
     def validate_milestone_sequence(self, cargo, row_idx):
         """Ensure milestones are in proper sequence"""
@@ -725,14 +795,15 @@ class ForwardingJob(Document):
 
     def validate_milestone_requirements(self, cargo, row_idx):
         """Validate required fields for specific milestones"""
-        # Required for loading
+        # Required for loading (skip when milestone was auto-set from API gate-out)
         if getattr(cargo, 'is_loaded', 0):
-            if not getattr(cargo, 'driver_name', ''):
-                frappe.throw(_("Row {0}: Driver name is required for loaded cargo").format(row_idx))
-            if not getattr(cargo, 'driver_contact_no', ''):
-                frappe.throw(_("Row {0}: Driver contact is required for loaded cargo").format(row_idx))
-            if not getattr(cargo, 'truck_reg_no', ''):
-                frappe.throw(_("Row {0}: Truck registration is required for loaded cargo").format(row_idx))
+            if getattr(cargo, 'loaded_milestone_source', '') != 'API':
+                if not getattr(cargo, 'driver_name', ''):
+                    frappe.throw(_("Row {0}: Driver name is required for loaded cargo").format(row_idx))
+                if not getattr(cargo, 'driver_contact_no', ''):
+                    frappe.throw(_("Row {0}: Driver contact is required for loaded cargo").format(row_idx))
+                if not getattr(cargo, 'truck_reg_no', ''):
+                    frappe.throw(_("Row {0}: Truck registration is required for loaded cargo").format(row_idx))
         
         # Required for completion
         if getattr(cargo, 'is_completed', 0):
@@ -830,6 +901,7 @@ class ForwardingJob(Document):
             return errors
         
         missing_return_date = []
+        missing_return_milestone = []
         missing_route = []
         incomplete_trucking = []
         
@@ -846,6 +918,10 @@ class ForwardingJob(Document):
                     missing_route.append(row_identifier)
                 if not getattr(cargo, "is_completed", 0):
                     incomplete_trucking.append(row_identifier)
+                if getattr(cargo, "to_be_returned", 0) and not (
+                    getattr(cargo, "is_returned", 0) or getattr(cargo, "empty_return_date", None)
+                ):
+                    missing_return_milestone.append(row_identifier)
         
         # Format error messages
         if missing_return_date:
@@ -853,6 +929,12 @@ class ForwardingJob(Document):
                 errors.append(_("Return By Date not set for returnable containers: {0}").format(", ".join(missing_return_date)))
             else:
                 errors.append(_("{0} returnable containers are missing Return By Date").format(len(missing_return_date)))
+
+        if missing_return_milestone:
+            if len(missing_return_milestone) <= 3:
+                errors.append(_("Container return not completed for: {0}").format(", ".join(missing_return_milestone)))
+            else:
+                errors.append(_("{0} returnable containers have not been returned").format(len(missing_return_milestone)))
         
         if missing_route:
             if len(missing_route) <= 3:
@@ -1528,6 +1610,9 @@ def create_purchase_invoice_with_rows(docname, row_names):
     if not selected_rows:
         frappe.throw(_("No valid cost charge rows were selected."))
 
+    from freightmas.forwarding_service.utils.service_order import validate_cost_rows_have_submitted_service_order
+    validate_cost_rows_have_submitted_service_order(selected_rows)
+
     suppliers = {r.supplier for r in selected_rows if r.supplier}
     if len(suppliers) != 1:
         frappe.throw(_("Please select rows for a single Supplier."))
@@ -1541,6 +1626,16 @@ def create_purchase_invoice_with_rows(docname, row_names):
     try:
         if pi.meta.get_field("forwarding_job_reference"):
             pi.forwarding_job_reference = job.name
+    except Exception:
+        pass
+
+    service_order_ref = next(
+        (row.service_order_reference for row in selected_rows if row.get("service_order_reference")),
+        None,
+    )
+    try:
+        if service_order_ref and pi.meta.get_field("service_order_reference"):
+            pi.service_order_reference = service_order_ref
     except Exception:
         pass
     
@@ -1671,6 +1766,11 @@ def fetch_containers_from_bl(docname):
         match_shipping_line,
     )
 
+    from freightmas.forwarding_service.utils.cargo_milestone_sync import (
+        apply_parcel_loading_master_defaults,
+        sync_cargo_milestones_from_port_dates,
+    )
+
     doc = frappe.get_doc("Forwarding Job", docname)
 
     if not doc.bl_number:
@@ -1775,9 +1875,10 @@ def fetch_containers_from_bl(docname):
                 row.gate_out_date = ct["gate_out_date"]
             if ct.get("empty_return_date"):
                 row.empty_return_date = ct["empty_return_date"]
+            sync_cargo_milestones_from_port_dates(row)
         else:
             # Append new row
-            doc.append("cargo_parcel_details", {
+            new_row_data = {
                 "cargo_type": "Containerised",
                 "container_number": ct_number,
                 "container_type": matched_ct,
@@ -1791,7 +1892,21 @@ def fetch_containers_from_bl(docname):
                 "discharge_date": ct.get("discharge_date"),
                 "gate_out_date": ct.get("gate_out_date"),
                 "empty_return_date": ct.get("empty_return_date"),
-            })
+                "is_truck_required": doc.is_trucking_required or 0,
+            }
+            if doc.road_freight_route:
+                new_row_data["road_freight_route"] = doc.road_freight_route
+            if doc.offloadiing_address:
+                new_row_data["cargo_offloading_address"] = doc.offloadiing_address
+            if doc.loading_address:
+                new_row_data["cargo_loading_address"] = doc.loading_address
+            new_row = doc.append("cargo_parcel_details", new_row_data)
+            apply_parcel_loading_master_defaults(doc, new_row)
+            sync_cargo_milestones_from_port_dates(new_row)
+
+    # Sync milestones on all existing rows (including those not in this API response)
+    for row in doc.cargo_parcel_details or []:
+        sync_cargo_milestones_from_port_dates(row)
 
     # --- Find the latest event across all containers for the BL-level summary ---
     latest_event_code = ""

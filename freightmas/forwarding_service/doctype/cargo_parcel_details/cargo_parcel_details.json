@@ -6,33 +6,45 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "tab_cargo",
   "cargo_package_section",
   "cargo_type",
   "to_be_returned",
-  "length",
-  "height",
+  "is_hazardous",
   "column_break_lnrj",
   "container_number",
   "cargo_item_description",
-  "width",
-  "chargeable_weight",
   "drop_off_place",
   "column_break_aoni",
   "container_type",
-  "is_hazardous",
   "cargo_quantity",
+  "column_break_fcrr",
   "cargo_uom",
   "return_by_date",
-  "column_break_fcrr",
+  "section_break_kgit",
+  "length",
   "weight",
+  "column_break_wcra",
+  "height",
+  "chargeable_weight",
+  "column_break_zkzv",
+  "width",
+  "column_break_wblx",
   "volume",
+  "tab_trucking",
   "trucking_details_section",
   "is_truck_required",
   "column_break_blto",
-  "road_freight_route",
+  "return_milestone_source",
   "column_break_fowj",
+  "loaded_milestone_source",
+  "service_order_reference",
+  "section_break_eeon",
+  "road_freight_route",
   "load_by_date",
-  "column_break_mzjq",
+  "column_break_cxtx",
+  "cargo_loading_address",
+  "column_break_smyl",
   "cargo_offloading_address",
   "truck_rates_section",
   "column_break_mfxq",
@@ -54,12 +66,7 @@
   "driver_contact_no_2",
   "column_break_ybic",
   "driver_passport_no",
-  "section_break_pfvm",
-  "tracking_comment",
-  "updated_on",
-  "column_break_gfjd",
-  "truck_location",
-  "updated_by",
+  "tab_progress",
   "section_break_qomc",
   "is_booked",
   "booked_on_date",
@@ -75,6 +82,12 @@
   "column_break_lkoi",
   "is_completed",
   "completed_on_date",
+  "section_break_pfvm",
+  "tracking_comment",
+  "updated_on",
+  "column_break_gfjd",
+  "truck_location",
+  "updated_by",
   "extended_tracking_section",
   "border_tracking",
   "border_name",
@@ -89,10 +102,6 @@
   "offloading_point",
   "offloading_arrived_on",
   "column_break_nulm",
-  "attachments_section",
-  "proof_of_delivery",
-  "column_break_qsgx",
-  "other_attachment",
   "port_dates_section",
   "discharge_date",
   "column_break_pd1",
@@ -105,13 +114,37 @@
   "column_break_acs1",
   "api_last_event",
   "column_break_acs2",
-  "api_last_event_date"
+  "api_last_event_date",
+  "tab_documents",
+  "attachments_section",
+  "proof_of_delivery",
+  "column_break_qsgx",
+  "other_attachment"
  ],
  "fields": [
   {
+   "fieldname": "tab_cargo",
+   "fieldtype": "Tab Break",
+   "label": "Cargo"
+  },
+  {
+   "fieldname": "tab_trucking",
+   "fieldtype": "Tab Break",
+   "label": "Trucking"
+  },
+  {
+   "fieldname": "tab_progress",
+   "fieldtype": "Tab Break",
+   "label": "Progress"
+  },
+  {
+   "fieldname": "tab_documents",
+   "fieldtype": "Tab Break",
+   "label": "Documents"
+  },
+  {
    "fieldname": "cargo_package_section",
-   "fieldtype": "Section Break",
-   "label": "Cargo Package"
+   "fieldtype": "Section Break"
   },
   {
    "columns": 2,
@@ -273,6 +306,7 @@
    "label": "Driver Licence No"
   },
   {
+   "depends_on": "eval:doc.cargo_type!==\"Containerised\"",
    "fieldname": "weight",
    "fieldtype": "Float",
    "label": "Weight (Kg)",
@@ -346,11 +380,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "1",
-   "description": "Tick if trucking service is required.",
+   "default": "0",
    "fieldname": "is_truck_required",
    "fieldtype": "Check",
-   "label": "Is Trucking Required?"
+   "label": "Trucking Required",
+   "read_only_depends_on": "eval:!parent.is_trucking_required"
   },
   {
    "fieldname": "column_break_ybic",
@@ -439,10 +473,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_mzjq",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_kulk",
    "fieldtype": "Column Break"
   },
@@ -508,9 +538,38 @@
   },
   {
    "depends_on": "eval:doc.is_truck_required",
+   "fieldname": "cargo_loading_address",
+   "fieldtype": "Small Text",
+   "label": "Loading Address"
+  },
+  {
+   "depends_on": "eval:doc.is_truck_required",
    "fieldname": "cargo_offloading_address",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Offloading Address"
+  },
+  {
+   "fieldname": "loaded_milestone_source",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Loaded Milestone Source",
+   "options": "\nManual\nAPI\nPortal"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "service_order_reference",
+   "fieldtype": "Link",
+   "label": "Service Order Reference",
+   "no_copy": 1,
+   "options": "Service Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "return_milestone_source",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Return Milestone Source",
+   "options": "\nManual\nAPI\nPortal"
   },
   {
    "fieldname": "attachments_section",
@@ -538,6 +597,7 @@
    "options": "Road Freight Route"
   },
   {
+   "depends_on": "eval:doc.cargo_type==\"Containerised\"",
    "fieldname": "return_by_date",
    "fieldtype": "Date",
    "label": "Return By Date"
@@ -698,12 +758,41 @@
    "fieldtype": "Date",
    "label": "Last Event Date (API)",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_eeon",
+   "fieldtype": "Section Break",
+   "label": "Route & Addresses"
+  },
+  {
+   "fieldname": "column_break_cxtx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_smyl",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_kgit",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wcra",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_zkzv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wblx",
+   "fieldtype": "Column Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-05-21 13:37:37.407208",
+ "modified": "2026-08-16 09:25:22.119056",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Cargo Parcel Details",

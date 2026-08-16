@@ -103,7 +103,9 @@ def calculate_loading_overdue_days(container, today):
 
 def calculate_return_overdue_days(container, today):
     """Calculate return overdue days - only for containers that need to be returned but haven't been."""
-    if not container.get("to_be_returned") or container.get("is_returned"):
+    if not container.get("to_be_returned"):
+        return None
+    if container.get("is_returned") or container.get("empty_return_date"):
         return None
         
     return_by = container.get("return_by_date")

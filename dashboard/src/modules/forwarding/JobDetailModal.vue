@@ -117,7 +117,7 @@
 									<td><TickCross :value="!!row.is_booked" /></td>
 									<td><TickCross :value="!!row.is_loaded" /></td>
 									<td><TickCross :value="!!row.is_offloaded" /></td>
-									<td><TickCross v-if="row.cargo_type === 'Containerised' && row.to_be_returned" :value="!!row.is_returned" /><span v-else class="sd-muted">\u2013</span></td>
+									<td><TickCross v-if="row.cargo_type === 'Containerised' && row.to_be_returned" :value="!!(row.is_returned || row.empty_return_date)" /><span v-else class="sd-muted">\u2013</span></td>
 									<td><TickCross :value="!!row.is_completed" /></td>
 								</tr>
 							</tbody>
@@ -368,7 +368,7 @@ const roadTransportProgress = computed(() => {
 	truckRequiredCargo.value.forEach((r) => {
 		const isReturnable = r.cargo_type === "Containerised" && r.to_be_returned;
 		const checks = [r.is_booked, r.is_loaded, r.is_offloaded, r.is_completed];
-		if (isReturnable) checks.push(r.is_returned);
+		if (isReturnable) checks.push(r.is_returned || r.empty_return_date);
 		total += checks.length;
 		completed += checks.filter(Boolean).length;
 	});

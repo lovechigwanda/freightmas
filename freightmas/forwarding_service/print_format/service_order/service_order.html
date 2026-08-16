@@ -1,0 +1,463 @@
+{%- set no_default_print_heading = 1 -%}
+{%- from "templates/print_formats/standard_macros.html" import add_header -%}
+
+<div class="main-container">
+  {{ add_header(0, 1, doc, letter_head, no_letterhead, print_settings) }}
+
+  {%- set heading_label = (
+      "Draft Service Order" if doc.docstatus == 0 else
+      "Cancelled Service Order" if doc.docstatus == 2 else
+      "Service Order"
+  ) -%}
+  {%- set prepared_by_name = frappe.db.get_value("User", doc.prepared_by, "full_name") if doc.prepared_by else "" -%}
+  {%- set currency_code = doc.currency or "" -%}
+
+  <style>
+  {%- set border_inset = 0 -%}
+  {%- set content_inner_padding = 3 -%}
+
+  html, body { margin:0; padding:0; height:100%; font-family: Arial, sans-serif; font-size: 13px; }
+
+  .letter-head img,
+  .letter-head .logo,
+  .letter-head .logo img,
+  .header-logo img,
+  .company-logo img {
+    max-width: 160px !important;
+    max-height: 90px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    display: inline-block !important;
+  }
+
+  .print-format {
+    position:relative;
+    background:transparent !important;
+    margin:0 !important;
+    padding:0;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+  }
+
+  .page-border {
+    position:fixed;
+    top:{{ border_inset }}mm;
+    left:{{ border_inset }}mm;
+    right:{{ border_inset }}mm;
+    bottom:{{ border_inset }}mm;
+    border:1px solid #000;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .main-container {
+    position:relative;
+    z-index:1;
+    padding:{{ content_inner_padding }}mm;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+  }
+
+  .print-heading,
+  .print-heading + div { display:none !important; }
+
+  .heading-label {
+    font-size:18px;
+    font-weight:600;
+    text-align:center;
+    color:#222;
+    margin-bottom:1px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-family: Arial, sans-serif;
+  }
+
+  .section { margin-bottom:2px; }
+
+  .section-title {
+    font-size:13px;
+    font-weight:600;
+    border-bottom:1px solid #000;
+    color:#000;
+    margin-bottom:2px;
+    padding-bottom:1px;
+    font-family: Arial, sans-serif;
+  }
+
+  .letter-head { margin-bottom:2mm !important; }
+
+  .info-table, .items-table, .summary-table, .milestone-table { width:100%; border-collapse:collapse; }
+  .info-table td {
+    padding:1px 0;
+    vertical-align:top;
+    font-size:13px;
+    line-height:1.2;
+    font-family: Arial, sans-serif;
+  }
+
+  .scope-inline-col {
+    display:inline-block;
+    width:33%;
+    vertical-align:top;
+    line-height:1.2;
+    margin:0;
+    padding:0;
+  }
+
+  .scope-inline-col-last {
+    width:34%;
+  }
+
+  .parcel-two-col {
+    display:inline-block;
+    width:50%;
+    vertical-align:top;
+    line-height:1.2;
+    margin:0;
+    padding:0;
+  }
+
+  .items-table th {
+    background:#fff;
+    color:#000;
+    border-top:1px solid #000;
+    border-bottom:1px solid #000;
+    padding:3px 4px;
+    font-weight:700;
+    font-size:13px;
+    font-family: Arial, sans-serif;
+  }
+
+  .items-table td {
+    padding:3px 4px;
+    border-bottom:none;
+    vertical-align:top;
+    line-height:1.15;
+    font-size:13px;
+    font-family: Arial, sans-serif;
+  }
+
+  .summary-table td {
+    padding:3px 4px;
+    line-height:1.1;
+    font-size:13px;
+    font-family: Arial, sans-serif;
+  }
+
+  .milestone-table td {
+    width:33.33%;
+    vertical-align:top;
+    padding:0 8px 0 0;
+    font-size:12px;
+    line-height:1.35;
+    font-family: Arial, sans-serif;
+  }
+
+  .rt { text-align:right; }
+  .cn { text-align:center; }
+
+  .grand-total td {
+    border-top:2px solid #000;
+    border-bottom:2px solid #000;
+    font-weight:700;
+  }
+
+  .body-text {
+    font-size:12px;
+    line-height:1.2;
+    text-align:justify;
+    margin:2px 0 4px 0;
+  }
+
+  .info-table td.body-text,
+  .terms-text {
+    font-size:12px;
+    line-height:1.35;
+  }
+
+  .section-note {
+    font-size:12px;
+    color:#555;
+    margin:0 0 4px 0;
+    line-height:1.3;
+  }
+
+  .item-name { color:#000; font-weight:500; }
+
+  .signature-table td {
+    padding-top:20px;
+    font-size:12px;
+    vertical-align:top;
+  }
+
+  .signature-line {
+    border-top:1px solid #000;
+    padding-top:4px;
+    margin-top:24px;
+  }
+
+  .footer-note {
+    font-size:12px;
+    color:#555;
+    text-align:center;
+    margin-top:8px;
+    line-height:1.35;
+    font-family: Arial, sans-serif;
+  }
+  </style>
+
+  <div class="page-border"></div>
+
+  <div class="heading-label">{{ heading_label }}</div>
+
+  <!-- Supplier and order dates -->
+  <div class="section">
+    <table class="info-table">
+      <tr>
+        <td style="width: 50%;">
+          <strong>To:</strong><br>
+          <strong>{{ doc.supplier }}</strong>
+        </td>
+        <td class="rt" style="width: 50%;">
+          Service Order No.: <strong>{{ doc.name }}</strong><br>
+          Order Date: {{ frappe.utils.formatdate(doc.order_date, "dd-MMM-yy") }}<br>
+          {% if doc.required_by_date %}Required By: {{ frappe.utils.formatdate(doc.required_by_date, "dd-MMM-yy") }}<br>{% endif %}
+          Currency: {{ currency_code or "—" }}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Scope of Work -->
+  {% if doc.forwarding_job_reference and doc.service_module %}
+  {% set job = frappe.get_doc("Forwarding Job", doc.forwarding_job_reference) %}
+  {% if doc.service_module == "Port Clearance" %}
+    {% set milestone_rows = job.port_clearance_milestones or [] %}
+  {% elif doc.service_module == "Border Clearance" %}
+    {% set milestone_rows = job.border_clearance_milestones or [] %}
+  {% elif doc.service_module == "Warehouse" %}
+    {% set milestone_rows = job.warehouse_milestones or [] %}
+  {% elif doc.service_module == "Road Freight" %}
+    {% set milestone_rows = job.road_freight_milestones or [] %}
+  {% elif doc.service_module == "Road Transport" %}
+    {% set milestone_rows = [] %}
+    {% set rt_parcels = doc.service_order_parcels or [] %}
+    {% set ns = namespace(labels=['Is Loaded']) %}
+    {% if rt_parcels | selectattr('border_tracking') | list | length > 0 %}
+      {% set _ = ns.labels.extend(['Border Arrived', 'Border Departed']) %}
+    {% endif %}
+    {% if rt_parcels | selectattr('border_2_tracking') | list | length > 0 %}
+      {% set _ = ns.labels.extend(['Border 2 Arrived', 'Border 2 Departed']) %}
+    {% endif %}
+    {% if rt_parcels | selectattr('offloading_point') | list | length > 0 %}
+      {% set _ = ns.labels.append('Offloading Point Arrived') %}
+    {% endif %}
+    {% set _ = ns.labels.append('Is Offloaded') %}
+    {% if rt_parcels | selectattr('to_be_returned') | list | length > 0 %}
+      {% set _ = ns.labels.append('Is Returned') %}
+    {% endif %}
+    {% set _ = ns.labels.append('Is Completed') %}
+    {% set road_transport_milestone_labels = ns.labels %}
+  {% else %}
+    {% set milestone_rows = [] %}
+  {% endif %}
+
+  <div class="section">
+    <div class="section-title">Scope of Work — {{ doc.service_module }}</div>
+    <table class="info-table">
+      {% if doc.service_module == "Port Clearance" %}
+      <tr>
+        <td colspan="3">
+          <span class="scope-inline-col">Reference No.: <strong>{{ doc.forwarding_job_reference }}</strong><br>Direction: {{ doc.direction or job.direction or "—" }}</span><span class="scope-inline-col">BL Number: {{ doc.bl_number or job.bl_number or "—" }}<br>Port of Discharge: {{ doc.port_of_discharge or job.port_of_discharge or "—" }}</span><span class="scope-inline-col scope-inline-col-last">Shipping Line: {{ doc.shipping_line or job.shipping_line or "—" }}<br>Destination: {{ doc.destination or job.destination or "—" }}</span><br>Container/Cargo Count: {{ doc.cargo_count or job.cargo_count or "—" }}
+        </td>
+      </tr>
+
+      {% elif doc.service_module == "Road Transport" %}
+      <tr>
+        <td colspan="3">
+          <span class="scope-inline-col">Reference No.: <strong>{{ doc.forwarding_job_reference }}</strong></span><span class="scope-inline-col">BL Number: {{ doc.bl_number or job.bl_number or "—" }}</span><span class="scope-inline-col scope-inline-col-last">Direction: {{ doc.direction or job.direction or "—" }}</span>
+        </td>
+      </tr>
+      {% for parcel in doc.service_order_parcels or [] %}
+      <tr>
+        <td colspan="3" style="padding-top: 4px; border-top: 1px solid #ddd;">
+          <strong>Parcel {{ loop.index }}: {{ parcel.cargo_label or "—" }}</strong><br>
+          <span class="parcel-two-col">
+            Loading: {{ parcel.loading_address or "—" }}<br>
+            Offloading: {{ parcel.offloading_address or "—" }}<br>
+            Drop Off Place: {{ parcel.drop_off_place or "—" }}<br>
+            Load By: {{ frappe.utils.formatdate(parcel.load_by_date, "dd-MMM-yy") if parcel.load_by_date else "—" }}
+            {% if parcel.to_be_returned %} | Return By: {{ frappe.utils.formatdate(parcel.return_by_date, "dd-MMM-yy") if parcel.return_by_date else "—" }}{% endif %}
+          </span><span class="parcel-two-col">
+            Truck: {{ parcel.truck_reg_no or "—" }} | Trailer: {{ parcel.trailer_reg_no or "—" }}<br>
+            Driver: {{ parcel.driver_name or "—" }}<br>
+            Rate: <strong>{{ "{:,.2f}".format(parcel.transporter_rate or 0) }}</strong>
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+
+      {% elif doc.service_module == "Sea/Air Freight" %}
+      <tr>
+        <td style="width: 33%;">
+          Reference No.: <strong>{{ doc.forwarding_job_reference }}</strong><br>
+          Direction: {{ doc.direction or job.direction or "—" }}
+        </td>
+        <td style="width: 33%;">
+          BL Number: {{ doc.bl_number or job.bl_number or "—" }}<br>
+          Port of Discharge: {{ doc.port_of_discharge or job.port_of_discharge or "—" }}<br>
+          Vessel/Flight: {{ job.vessel_flight_no or "—" }}
+        </td>
+        <td style="width: 34%;">
+          Shipping Line: {{ doc.shipping_line or job.shipping_line or "—" }}<br>
+          Destination: {{ doc.destination or job.destination or "—" }}<br>
+          ETD / ETA: {{ frappe.utils.formatdate(job.etd, "dd-MMM-yy") if job.etd else "—" }} / {{ frappe.utils.formatdate(job.eta, "dd-MMM-yy") if job.eta else "—" }}
+        </td>
+      </tr>
+
+      {% else %}
+      <tr>
+        <td style="width: 33%;">
+          Reference No.: <strong>{{ doc.forwarding_job_reference }}</strong><br>
+          Cargo: {{ job.cargo_description or doc.cargo_description or "—" }}
+        </td>
+        <td style="width: 33%;">
+          Direction: {{ job.direction or doc.direction or "—" }}<br>
+          Port of Discharge: {{ job.port_of_discharge or doc.port_of_discharge or "—" }}
+        </td>
+        <td style="width: 34%;">
+          Destination: {{ job.destination or doc.destination or "—" }}<br>
+          Incoterms: {{ job.incoterms or doc.incoterms or "—" }}
+        </td>
+      </tr>
+      {% endif %}
+    </table>
+    {% if doc.service_instruction %}
+    <p class="body-text">{{ doc.service_instruction }}</p>
+    {% endif %}
+  </div>
+
+  {% if milestone_rows %}
+  <div class="section">
+    <div class="section-title">Tracking Milestones</div>
+    <p class="section-note">Please provide tracking updates as each milestone below is reached.</p>
+    {% set milestone_count = milestone_rows|length %}
+    {% set per_col = ((milestone_count + 2) // 3) %}
+    <table class="milestone-table">
+      <tr>
+        {% for col in range(3) %}
+        <td>
+          {% for i in range(col * per_col, (col + 1) * per_col) %}
+          {% if i < milestone_count %}
+          {% set row = milestone_rows[i] %}
+          {{ i + 1 }}. {{ row.milestone_label or row.milestone or row.milestone_code }}<br>
+          {% endif %}
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+    </table>
+  </div>
+  {% elif doc.service_module == "Road Transport" and road_transport_milestone_labels %}
+  <div class="section">
+    <div class="section-title">Tracking Milestones</div>
+    <p class="section-note">Please provide tracking updates as each milestone below is reached.</p>
+    {% set milestone_count = road_transport_milestone_labels|length %}
+    {% set per_col = ((milestone_count + 2) // 3) %}
+    <table class="milestone-table">
+      <tr>
+        {% for col in range(3) %}
+        <td>
+          {% for i in range(col * per_col, (col + 1) * per_col) %}
+          {% if i < milestone_count %}
+          {{ i + 1 }}. {{ road_transport_milestone_labels[i] }}<br>
+          {% endif %}
+          {% endfor %}
+        </td>
+        {% endfor %}
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if doc.special_instructions %}
+  <div class="section">
+    <div class="section-title">Special Instructions</div>
+    <table class="info-table">
+      <tr>
+        <td class="body-text">{{ doc.special_instructions }}</td>
+      </tr>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Ordered Charges -->
+  <div class="section">
+    <div class="section-title">Ordered Charges</div>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th class="cn" style="width:5%">#</th>
+          <th style="width:45%">Charge</th>
+          <th class="cn" style="width:10%">Qty</th>
+          <th class="rt" style="width:20%">Rate ({{ currency_code }})</th>
+          <th class="rt" style="width:20%">Amount ({{ currency_code }})</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in doc.service_order_charges %}
+        <tr>
+          <td class="cn">{{ loop.index }}</td>
+          <td><span class="item-name">{{ row.charge }}</span></td>
+          <td class="cn">{{ row.qty or 1 }}</td>
+          <td class="rt">{{ "{:,.2f}".format(row.buy_rate or 0) }}</td>
+          <td class="rt">{{ "{:,.2f}".format(row.amount or 0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Summary -->
+  <div class="section">
+    <table class="summary-table">
+      <tr class="grand-total">
+        <td style="width: 65%; border-top: 2px solid #000; border-bottom: 2px solid #000; padding-top: 4px; padding-bottom: 4px;"></td>
+        <td style="width: 20%; border-top: 2px solid #000; border-bottom: 2px solid #000; padding-top: 4px; padding-bottom: 4px;"><strong>Total Amount</strong></td>
+        <td class="rt" style="width: 15%; white-space: nowrap; border-top: 2px solid #000; border-bottom: 2px solid #000; padding-top: 4px; padding-bottom: 4px;"><strong>{{ currency_code }} {{ "{:,.2f}".format(doc.total_amount or 0) }}</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  {% if doc.terms_and_conditions %}
+  <div class="section">
+    <div class="section-title">Terms &amp; Conditions</div>
+    <table class="info-table">
+      <tr>
+        <td class="body-text terms-text">{{ doc.terms_and_conditions|striptags|replace('\n', ' ')|replace('\r', ' ') }}</td>
+      </tr>
+    </table>
+    <hr style="border: none; border-top: 1px solid #000; margin-top: 6px; margin-bottom: 6px;">
+  </div>
+  {% endif %}
+
+  <!-- Signatures -->
+  <div class="section">
+    <table class="info-table signature-table">
+      <tr>
+        <td style="width: 50%;">
+          <div class="signature-line">Prepared By: {{ prepared_by_name or doc.prepared_by or "________________" }}</div>
+        </td>
+        <td style="width: 50%;">
+          <div class="signature-line">Authorized Signature</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer-note">
+    Please quote Service Order No. <strong>{{ doc.name }}</strong> on your invoice. Invoice exactly the total amount shown above; any additional charges must be submitted on a separate invoice.
+  </div>
+</div>

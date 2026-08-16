@@ -216,6 +216,7 @@ def get_overview():
 		INNER JOIN `tabForwarding Job` fj ON fj.name = cpd.parent
 		WHERE cpd.parenttype = 'Forwarding Job' AND cpd.cargo_type = 'Containerised'
 		  AND IFNULL(cpd.to_be_returned, 0) = 1 AND IFNULL(cpd.is_returned, 0) = 0
+		  AND cpd.empty_return_date IS NULL
 		  AND cpd.return_by_date IS NOT NULL AND cpd.return_by_date < %(today)s
 		  AND fj.status NOT IN %(statuses)s
 		""",
@@ -982,6 +983,7 @@ def get_dnd_overview():
 		INNER JOIN `tabForwarding Job` fj ON fj.name = cpd.parent
 		WHERE cpd.parenttype = 'Forwarding Job' AND cpd.cargo_type = 'Containerised'
 		  AND IFNULL(cpd.to_be_returned, 0) = 1 AND IFNULL(cpd.is_returned, 0) = 0
+		  AND cpd.empty_return_date IS NULL
 		  AND cpd.return_by_date IS NOT NULL AND cpd.return_by_date < %(today)s
 		  AND fj.status NOT IN %(statuses)s
 		ORDER BY cpd.return_by_date ASC
@@ -2352,8 +2354,9 @@ def _build_job_dossier_context(job_name):
 	road_rows = []
 	road_done = road_total = 0
 	for c in cargo:
+		returned = c.get("is_returned") or (c.get("to_be_returned") and c.get("empty_return_date"))
 		flags = [c.get("is_booked"), c.get("is_loaded"), c.get("is_offloaded"),
-				 c.get("is_returned"), c.get("is_completed")]
+				 returned, c.get("is_completed")]
 		dates = [c.get("booked_on_date"), c.get("loaded_on_date"), c.get("offloaded_on_date"),
 				 c.get("returned_on_date"), c.get("completed_on_date")]
 		road_total += 5
@@ -2439,7 +2442,7 @@ def _build_job_dossier_context(job_name):
 			"loaded": bool(c.get("is_loaded")),
 			"discharged": bool(c.get("discharge_date")),
 			"offloaded": bool(c.get("is_offloaded")),
-			"returned": bool(c.get("is_returned")),
+			"returned": bool(c.get("is_returned") or (c.get("to_be_returned") and c.get("empty_return_date"))),
 			"completed": bool(c.get("is_completed")),
 			"api_status": c.get("api_container_status") or "",
 		}

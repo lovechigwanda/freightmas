@@ -19,6 +19,8 @@
   "attachment",
   "is_purchased",
   "purchase_invoice_reference",
+  "is_ordered",
+  "service_order_reference",
   "column_break_bywa",
   "cost_amount",
   "supplier_invoice_no",
@@ -117,6 +119,22 @@
    "label": "Purchase Invoice",
    "no_copy": 1,
    "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_ordered",
+   "fieldtype": "Check",
+   "label": "Is Ordered",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_order_reference",
+   "fieldtype": "Link",
+   "label": "Service Order",
+   "no_copy": 1,
+   "options": "Service Order",
    "read_only": 1
   },
   {

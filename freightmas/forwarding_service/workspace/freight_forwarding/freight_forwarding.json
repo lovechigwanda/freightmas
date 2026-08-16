@@ -57,6 +57,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Service Order",
+   "link_count": 0,
+   "link_to": "Service Order",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Forwarding Job",
    "link_count": 0,
    "link_to": "Forwarding Job",

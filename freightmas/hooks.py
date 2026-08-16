@@ -82,10 +82,11 @@ get_website_user_home_page = "freightmas.boot.get_command_center_home_page"
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-# 	"methods": "freightmas.utils.jinja_methods",
-# 	"filters": "freightmas.utils.jinja_filters"
-# }
+jinja = {
+	"methods": [
+		"freightmas.forwarding_service.utils.service_order",
+	],
+}
 
 # Installation
 # ------------

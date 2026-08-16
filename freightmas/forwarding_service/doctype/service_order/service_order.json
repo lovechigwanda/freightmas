@@ -1,0 +1,431 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-08-16 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_information_section",
+  "naming_series",
+  "order_date",
+  "required_by_date",
+  "column_break_basic",
+  "forwarding_job_reference",
+  "bl_number",
+  "service_module",
+  "supplier",
+  "column_break_status",
+  "company",
+  "status",
+  "currency",
+  "job_context_section",
+  "column_break_job1",
+  "cargo_description",
+  "column_break_job2",
+  "direction",
+  "shipment_mode",
+  "incoterms",
+  "shipping_line",
+  "cargo_count",
+  "routing_section",
+  "port_of_loading",
+  "column_break_route1",
+  "port_of_discharge",
+  "column_break_route2",
+  "destination",
+  "scope_section",
+  "scope_of_work",
+  "service_instruction",
+  "special_instructions",
+  "parcels_section",
+  "service_order_parcels",
+  "tracking_milestones",
+  "terms_and_conditions",
+  "charges_section",
+  "service_order_charges",
+  "total_amount",
+  "tracking_section",
+  "prepared_by",
+  "submitted_on",
+  "column_break_tracking",
+  "purchase_invoice_reference",
+  "amended_from",
+  "connections_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_information_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Information"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "FWSO-.#####.-.YY",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "fieldname": "order_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Order Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "required_by_date",
+   "fieldtype": "Date",
+   "label": "Required By Date"
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "forwarding_job_reference",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Forwarding Job",
+   "options": "Forwarding Job",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fetch_from": "forwarding_job_reference.bl_number",
+   "fieldname": "bl_number",
+   "fieldtype": "Data",
+   "label": "BL Number",
+   "read_only_depends_on": "eval:doc.docstatus > 0"
+  },
+  {
+   "fieldname": "service_module",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Service Module",
+   "options": "Sea/Air Freight\nRoad Freight\nPort Clearance\nRoad Transport\nBorder Clearance\nWarehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "supplier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "forwarding_job_reference.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "Draft\nSubmitted\nCompleted\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "forwarding_job_reference.currency",
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "job_context_section",
+   "fieldtype": "Section Break",
+   "label": "Job Context"
+  },
+  {
+   "fieldname": "column_break_job1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cargo_description",
+   "fieldtype": "Small Text",
+   "label": "Cargo Description",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_job2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Data",
+   "label": "Direction",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shipment_mode",
+   "fieldtype": "Data",
+   "label": "Shipment Mode",
+   "read_only": 1
+  },
+  {
+   "fieldname": "incoterms",
+   "fieldtype": "Data",
+   "label": "Incoterms",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "forwarding_job_reference.shipping_line",
+   "fieldname": "shipping_line",
+   "fieldtype": "Data",
+   "label": "Shipping Line",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "forwarding_job_reference.cargo_count",
+   "fieldname": "cargo_count",
+   "fieldtype": "Data",
+   "label": "Container/Cargo Count",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "routing_section",
+   "fieldtype": "Section Break",
+   "label": "Routing"
+  },
+  {
+   "fieldname": "port_of_loading",
+   "fieldtype": "Data",
+   "label": "Port of Loading",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_route1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port_of_discharge",
+   "fieldtype": "Data",
+   "label": "Port of Discharge",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_route2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "destination",
+   "fieldtype": "Data",
+   "label": "Destination",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scope_section",
+   "fieldtype": "Section Break",
+   "label": "Scope and Terms"
+  },
+  {
+   "fieldname": "scope_of_work",
+   "fieldtype": "Text Editor",
+   "label": "Scope of Work"
+  },
+  {
+   "fieldname": "service_instruction",
+   "fieldtype": "Small Text",
+   "label": "Service Instruction"
+  },
+  {
+   "fieldname": "special_instructions",
+   "fieldtype": "Small Text",
+   "label": "Special Instructions"
+  },
+  {
+   "depends_on": "eval:doc.service_module == 'Road Transport'",
+   "fieldname": "parcels_section",
+   "fieldtype": "Section Break",
+   "label": "Parcels"
+  },
+  {
+   "depends_on": "eval:doc.service_module == 'Road Transport'",
+   "fieldname": "service_order_parcels",
+   "fieldtype": "Table",
+   "label": "Service Order Parcels",
+   "options": "Service Order Parcels",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.service_module == 'Road Transport'",
+   "fieldname": "tracking_milestones",
+   "fieldtype": "Text Editor",
+   "label": "Tracking Milestones",
+   "read_only": 1
+  },
+  {
+   "fieldname": "terms_and_conditions",
+   "fieldtype": "Text Editor",
+   "label": "Terms and Conditions"
+  },
+  {
+   "fieldname": "charges_section",
+   "fieldtype": "Section Break",
+   "label": "Charges"
+  },
+  {
+   "fieldname": "service_order_charges",
+   "fieldtype": "Table",
+   "label": "Service Order Charges",
+   "options": "Service Order Charges",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Tracking"
+  },
+  {
+   "fieldname": "prepared_by",
+   "fieldtype": "Link",
+   "label": "Prepared By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tracking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "purchase_invoice_reference",
+   "fieldtype": "Link",
+   "label": "Purchase Invoice Reference",
+   "no_copy": 1,
+   "options": "Purchase Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Service Order",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-08-16 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Service Order",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas User",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Manager",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Admin",
+   "select": 1,
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "FreightMas Accounts",
+   "select": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

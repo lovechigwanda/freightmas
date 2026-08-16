@@ -129,6 +129,7 @@
   "fetch_cost_from_job_costing",
   "column_break_suuv",
   "fetch_cost_from_truck_loading",
+  "fetch_revenue_from_truck_loading",
   "column_break_japu",
   "section_break_johw",
   "total_working_revenue",
@@ -1356,6 +1357,12 @@
    "label": "Fetch Cost from Truck Loading"
   },
   {
+   "depends_on": "eval:doc.docstatus==0",
+   "fieldname": "fetch_revenue_from_truck_loading",
+   "fieldtype": "Button",
+   "label": "Fetch Revenue from Truck Loading"
+  },
+  {
    "fieldname": "section_break_hokg",
    "fieldtype": "Section Break"
   },
@@ -1441,6 +1448,10 @@
   },
   {
    "link_doctype": "Job Order",
+   "link_fieldname": "forwarding_job_reference"
+  },
+  {
+   "link_doctype": "Service Order",
    "link_fieldname": "forwarding_job_reference"
   }
  ],

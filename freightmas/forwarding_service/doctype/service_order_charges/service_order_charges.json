@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-16 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "charge",
+  "column_break_charge",
+  "description",
+  "section_break_qty",
+  "qty",
+  "column_break_rate",
+  "buy_rate",
+  "amount",
+  "section_break_links",
+  "cost_charge_row",
+  "cargo_parcel_reference",
+  "is_invoiced",
+  "purchase_invoice_reference"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "charge",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_preview": 1,
+   "label": "Charge",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_charge",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "charge.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_break_qty",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 1,
+   "default": "1",
+   "fieldname": "qty",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Qty",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_rate",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 2,
+   "fieldname": "buy_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Buy Rate",
+   "options": "currency",
+   "precision": "2",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "options": "currency",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_links",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cost_charge_row",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Cost Charge Row",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "cargo_parcel_reference",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Cargo Parcel Reference",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_invoiced",
+   "fieldtype": "Check",
+   "label": "Is Invoiced",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "purchase_invoice_reference",
+   "fieldtype": "Link",
+   "label": "Purchase Invoice",
+   "no_copy": 1,
+   "options": "Purchase Invoice",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-08-16 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Forwarding Service",
+ "name": "Service Order Charges",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

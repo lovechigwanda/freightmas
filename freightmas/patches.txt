@@ -24,3 +24,4 @@ freightmas.patches.seed_milestone_stages
 freightmas.patches.clear_future_discharge_dates
 freightmas.patches.clear_mislocated_tracking_dates
 freightmas.patches.set_invoice_no_copy_fields
+freightmas.patches.backfill_service_order_instructions
