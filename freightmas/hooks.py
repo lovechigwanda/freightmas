@@ -371,8 +371,6 @@ fixtures = [
                 "Purchase Invoice-custom_is_border_clearing_invoice",
                 "Sales Invoice-custom_recognition_journal_entry",
                 "Purchase Invoice-custom_recognition_journal_entry",
-                "Sales Invoice-invoice_register_entry",
-                "Purchase Invoice-invoice_register_entry",
                 "Sales Invoice Item-actual_income_account",
                 "Purchase Invoice Item-actual_expense_account",
                 "Sales Invoice-custom_banking_details",
