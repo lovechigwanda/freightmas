@@ -13,19 +13,30 @@ class FreightMasSettings(Document):
 		Prevents accounts being disabled after configuration.
 		"""
 		if not self.enable_revenue_recognition:
-			return
-		
-		# Validate all configured accounts exist and are enabled
-		from freightmas.utils.revenue_recognition import get_recognition_settings
-		
-		try:
-			settings = get_recognition_settings()
-			# If this succeeds, all accounts are valid
-		except Exception as e:
-			frappe.throw(
-				_("Revenue Recognition is enabled but settings are invalid: {0}. "
-				  "Please check that all configured accounts are active ledger accounts.").format(
-					str(e)
+			pass
+		else:
+			from freightmas.utils.revenue_recognition import get_recognition_settings
+			try:
+				get_recognition_settings()
+			except Exception as e:
+				frappe.throw(
+					_("Revenue Recognition is enabled but settings are invalid: {0}. "
+					  "Please check that all configured accounts are active ledger accounts.").format(
+						str(e)
+					)
 				)
-			)
+
+		if self.tracking_provider == "Traqo" and self.enable_shipping_tracker:
+			self.traqo_webhook_url = get_traqo_webhook_url()
+
+
+def get_traqo_webhook_url():
+	return frappe.utils.get_url(
+		"/api/method/freightmas.integrations.tracking.webhook.receive"
+	)
+
+
+@frappe.whitelist()
+def get_traqo_webhook_url_api():
+	return get_traqo_webhook_url()
 

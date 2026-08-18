@@ -119,6 +119,13 @@
   "api_last_fetched",
   "column_break_ctapi3",
   "api_call_count",
+  "traqo_shipment_id",
+  "tracking_enrichment_section",
+  "tracking_public_url",
+  "predictive_eta",
+  "column_break_ten1",
+  "is_delayed",
+  "eta_reliable",
   "fetch_containers_from_bl",
   "job_tracking_section",
   "clearing_tracking",
@@ -537,10 +544,53 @@
    "read_only": 1
   },
   {
+   "fieldname": "traqo_shipment_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Traqo Shipment ID",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.enable_api_tracking",
+   "fieldname": "tracking_enrichment_section",
+   "fieldtype": "Section Break",
+   "label": "Tracking Insights"
+  },
+  {
+   "fieldname": "tracking_public_url",
+   "fieldtype": "Data",
+   "label": "Public Tracking URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "predictive_eta",
+   "fieldtype": "Date",
+   "label": "Predictive ETA",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ten1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_delayed",
+   "fieldtype": "Check",
+   "label": "Delayed",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "eta_reliable",
+   "fieldtype": "Check",
+   "label": "ETA Reliable",
+   "read_only": 1
+  },
+  {
    "depends_on": "eval:doc.enable_api_tracking",
    "fieldname": "fetch_containers_from_bl",
    "fieldtype": "Button",
-   "label": "Fetch Tracking from Searates"
+   "label": "Fetch Tracking"
   },
   {
    "fieldname": "job_tracking_section",

@@ -6,6 +6,7 @@ def update_active_tracking():
 	"""Daily scheduler: update tracking data for all active Forwarding and Clearing Jobs
 	with API tracking enabled.
 
+	For Traqo, uses delta sync (updated_since) when available to limit re-fetches.
 	Skips jobs where tracking status is already terminal (DELIVERED, ARRIVED)
 	or where the initial fetch hasn't been done yet (api_last_fetched is NULL).
 	"""
@@ -13,11 +14,36 @@ def update_active_tracking():
 	if not settings.enable_shipping_tracker:
 		return
 
-	_run_tracking_for_doctype("Forwarding Job")
-	_run_tracking_for_doctype("Clearing Job")
+	updated_refs = _get_traqo_updated_references(settings)
+
+	_run_tracking_for_doctype("Forwarding Job", updated_refs)
+	_run_tracking_for_doctype("Clearing Job", updated_refs)
+
+	if settings.tracking_provider == "Traqo":
+		frappe.db.set_single_value("FreightMas Settings", "traqo_last_sync", now_datetime())
+		frappe.db.commit()
 
 
-def _run_tracking_for_doctype(doctype):
+def _get_traqo_updated_references(settings):
+	if settings.tracking_provider != "Traqo":
+		return None
+
+	from freightmas.integrations.tracking.dispatcher import list_updated_reference_numbers
+
+	updated_since = settings.traqo_last_sync
+	if not updated_since:
+		return None
+
+	try:
+		refs = list_updated_reference_numbers(updated_since)
+	except Exception:
+		frappe.log_error(title="Traqo delta sync failed")
+		return None
+
+	return set(refs or [])
+
+
+def _run_tracking_for_doctype(doctype, updated_refs=None):
 	"""Fetch and update active tracking jobs for a given doctype."""
 	terminal_statuses = ["Delivered", "Arrived", ""]
 
@@ -29,7 +55,7 @@ def _run_tracking_for_doctype(doctype):
 			"api_tracking_status": ["not in", terminal_statuses],
 			"docstatus": ["<", 2],
 		},
-		pluck="name",
+		fields=["name", "bl_number"],
 	)
 
 	if not jobs:
@@ -46,19 +72,25 @@ def _run_tracking_for_doctype(doctype):
 
 	success = 0
 	failed = 0
+	skipped = 0
 
-	for job_name in jobs:
+	for job in jobs:
+		if updated_refs is not None and job.bl_number not in updated_refs:
+			skipped += 1
+			continue
+
 		try:
-			fetch_containers_from_bl(job_name)
+			fetch_containers_from_bl(job.name)
 			success += 1
 			frappe.db.commit()
 		except Exception:
 			failed += 1
 			frappe.db.rollback()
 			frappe.log_error(
-				title=f"Tracking update failed [{doctype}]: {job_name}",
+				title=f"Tracking update failed [{doctype}]: {job.name}",
 			)
 
 	frappe.logger().info(
-		f"Tracking scheduler [{doctype}]: {success} updated, {failed} failed out of {len(jobs)} jobs"
+		f"Tracking scheduler [{doctype}]: {success} updated, {failed} failed, "
+		f"{skipped} skipped (unchanged), out of {len(jobs)} jobs"
 	)

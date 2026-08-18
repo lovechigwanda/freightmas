@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "revenue_recognition_tab",
+  "accounting_tab",
   "enable_revenue_recognition",
   "column_break_rrev1",
   "wip_revenue_account",
@@ -25,21 +25,23 @@
   "clearing_cost_account",
   "road_freight_cost_account",
   "border_clearing_cost_account",
-  "border_clearing_tab",
+  "pass_through_accounts_section",
   "duty_pass_through_account",
-  "trucking_service_tab",
+  "operations_tab",
+  "trucking_section",
   "driver_commission_mode",
   "driver_bonus_parent_account",
   "column_break_chsz",
   "driver_advance_parent_account",
-  "port_clearing_tab",
+  "port_clearing_dnd_section",
   "dnd_charge_item",
   "column_break_dnd1",
   "storage_charge_item",
   "dnd_storage_warning_days",
-  "quotation_tab",
-  "default_quotation_tc",
-  "shipping_tracker_tab",
+  "milestone_import_section",
+  "job_reference_column_header",
+  "milestone_import_column_map",
+  "tracking_tab",
   "enable_shipping_tracker",
   "column_break_st1",
   "tracking_provider",
@@ -47,18 +49,20 @@
   "shipping_tracker_api_key",
   "column_break_st2",
   "default_tracking_type",
-  "milestone_import_tab",
-  "job_reference_column_header",
-  "column_map_section",
-  "milestone_import_column_map",
+  "traqo_webhook_section",
+  "traqo_webhook_secret",
+  "traqo_webhook_url",
+  "traqo_last_sync",
   "invoicing_tab",
+  "invoice_register_section",
   "enable_invoice_register",
-  "enable_service_orders",
-  "require_service_order_before_pi",
-  "default_service_order_terms",
   "column_break_inv1",
   "default_bookkeeper",
   "backup_bookkeeper",
+  "service_orders_section",
+  "enable_service_orders",
+  "require_service_order_before_pi",
+  "default_service_order_terms",
   "sla_settings_section",
   "sla_supplier_invoice_routing_hours",
   "sla_supplier_approval_hours",
@@ -69,16 +73,17 @@
   "sla_job_closure_days",
   "column_break_inv3",
   "margin_variance_threshold_pct",
-  "client_reports_tab",
+  "quotation_section",
+  "default_quotation_tc",
+  "portal_tab",
   "client_report_milestone_detail",
-  "home_page_tab",
   "enable_command_center_home_page"
  ],
  "fields": [
   {
-   "fieldname": "revenue_recognition_tab",
+   "fieldname": "accounting_tab",
    "fieldtype": "Tab Break",
-   "label": "Revenue Recognition"
+   "label": "Accounting"
   },
   {
    "default": "0",
@@ -106,19 +111,19 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "forwarding_revenue_account",
    "fieldtype": "Link",
    "label": "Forwarding Revenue Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "trucking_revenue_account",
    "fieldtype": "Link",
    "label": "Trucking Revenue Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "fieldname": "column_break_rrev2",
@@ -126,27 +131,27 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "clearing_revenue_account",
    "fieldtype": "Link",
    "label": "Clearing Revenue Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "road_freight_revenue_account",
    "fieldtype": "Link",
    "label": "Road Freight Revenue Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "border_clearing_revenue_account",
    "fieldtype": "Link",
    "label": "Border Clearing Revenue Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default income account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
@@ -170,19 +175,19 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "forwarding_cost_account",
    "fieldtype": "Link",
    "label": "Forwarding Cost Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "trucking_cost_account",
    "fieldtype": "Link",
    "label": "Trucking Cost Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "fieldname": "column_break_cost1",
@@ -190,39 +195,49 @@
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "clearing_cost_account",
    "fieldtype": "Link",
    "label": "Clearing Cost Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "road_freight_cost_account",
    "fieldtype": "Link",
    "label": "Road Freight Cost Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
    "depends_on": "eval:doc.enable_revenue_recognition",
+   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)",
    "fieldname": "border_clearing_cost_account",
    "fieldtype": "Link",
    "label": "Border Clearing Cost Account",
-   "options": "Account",
-   "description": "Used when a charge Item has no default expense account (Item, Item Group and Brand defaults all empty)"
+   "options": "Account"
   },
   {
-   "fieldname": "border_clearing_tab",
-   "fieldtype": "Tab Break",
-   "label": "Border Clearing"
+   "fieldname": "pass_through_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Pass-Through Accounts"
   },
   {
+   "description": "Clearing/Liability account used for pass-through duty charges instead of income/expense accounts.",
    "fieldname": "duty_pass_through_account",
    "fieldtype": "Link",
    "label": "Duty Pass-Through Account",
-   "description": "Clearing/Liability account used for pass-through duty charges instead of income/expense accounts.",
    "options": "Account"
+  },
+  {
+   "fieldname": "operations_tab",
+   "fieldtype": "Tab Break",
+   "label": "Operations"
+  },
+  {
+   "fieldname": "trucking_section",
+   "fieldtype": "Section Break",
+   "label": "Trucking"
   },
   {
    "fieldname": "driver_commission_mode",
@@ -231,18 +246,25 @@
    "options": "Journal Entry\nPayroll Entry"
   },
   {
-   "fieldname": "trucking_service_tab",
-   "fieldtype": "Tab Break",
-   "label": "Trucking Service"
+   "fieldname": "driver_bonus_parent_account",
+   "fieldtype": "Link",
+   "label": "Driver Bonus Parent Account",
+   "options": "Account"
   },
   {
    "fieldname": "column_break_chsz",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "port_clearing_tab",
-   "fieldtype": "Tab Break",
-   "label": "Port Clearing"
+   "fieldname": "driver_advance_parent_account",
+   "fieldtype": "Link",
+   "label": "Driver Advance Parent Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "port_clearing_dnd_section",
+   "fieldtype": "Section Break",
+   "label": "Port Clearing & DND"
   },
   {
    "description": "Item used when pushing DND (Demurrage & Detention) charges to Forwarding Job working costs",
@@ -270,33 +292,28 @@
    "label": "DND/Storage Warning Window (Days)"
   },
   {
-   "fieldname": "driver_advance_parent_account",
-   "fieldtype": "Link",
-   "label": "Driver Advance Parent Account",
-   "options": "Account"
+   "fieldname": "milestone_import_section",
+   "fieldtype": "Section Break",
+   "label": "Milestone Import"
   },
   {
-   "fieldname": "driver_bonus_parent_account",
-   "fieldtype": "Link",
-   "label": "Driver Bonus Parent Account",
-   "options": "Account"
+   "default": "Job Reference",
+   "description": "The Excel column header the clearing agent uses for the Forwarding Job reference (e.g. FWJB-00008-26) in their daily tracking report.",
+   "fieldname": "job_reference_column_header",
+   "fieldtype": "Data",
+   "label": "Job Reference Column Header"
   },
   {
-   "fieldname": "quotation_tab",
+   "description": "Map each Excel column header from the clearing agent's tracking report to the Milestone Definition it should update.",
+   "fieldname": "milestone_import_column_map",
+   "fieldtype": "Table",
+   "label": "Milestone Column Mapping",
+   "options": "Milestone Import Column Map"
+  },
+  {
+   "fieldname": "tracking_tab",
    "fieldtype": "Tab Break",
-   "label": "Quotation"
-  },
-  {
-   "fieldname": "default_quotation_tc",
-   "fieldtype": "Link",
-   "label": "Default Quotation Terms & Conditions",
-   "options": "Terms and Conditions",
-   "description": "If set, this Terms and Conditions record will be automatically applied to new Quotations."
-  },
-  {
-   "fieldname": "shipping_tracker_tab",
-   "fieldtype": "Tab Break",
-   "label": "Shipping Tracker"
+   "label": "Tracking & Integration"
   },
   {
    "default": "0",
@@ -314,7 +331,7 @@
    "fieldname": "tracking_provider",
    "fieldtype": "Select",
    "label": "Tracking Provider",
-   "options": "Searates"
+   "options": "Searates\nTraqo"
   },
   {
    "depends_on": "eval:doc.enable_shipping_tracker",
@@ -342,39 +359,71 @@
    "options": "BL\nCT\nBK"
   },
   {
-   "fieldname": "milestone_import_tab",
-   "fieldtype": "Tab Break",
-   "label": "Milestone Import"
-  },
-  {
-   "default": "Job Reference",
-   "description": "The Excel column header the clearing agent uses for the Forwarding Job reference (e.g. FWJB-00008-26) in their daily tracking report.",
-   "fieldname": "job_reference_column_header",
-   "fieldtype": "Data",
-   "label": "Job Reference Column Header"
-  },
-  {
-   "fieldname": "column_map_section",
+   "collapsible": 1,
+   "depends_on": "eval:doc.enable_shipping_tracker && doc.tracking_provider=='Traqo'",
+   "fieldname": "traqo_webhook_section",
    "fieldtype": "Section Break",
-   "label": "Milestone Column Mapping"
+   "label": "Traqo Webhooks"
   },
   {
-   "description": "Map each Excel column header from the clearing agent's tracking report to the Milestone Definition it should update.",
-   "fieldname": "milestone_import_column_map",
-   "fieldtype": "Table",
-   "label": "Milestone Column Mapping",
-   "options": "Milestone Import Column Map"
+   "depends_on": "eval:doc.enable_shipping_tracker && doc.tracking_provider=='Traqo'",
+   "description": "Signing secret from your Traqo webhook endpoint (whsec_…). Used to verify incoming webhook deliveries.",
+   "fieldname": "traqo_webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Signing Secret"
+  },
+  {
+   "depends_on": "eval:doc.enable_shipping_tracker && doc.tracking_provider=='Traqo'",
+   "fieldname": "traqo_webhook_url",
+   "fieldtype": "Read Only",
+   "label": "Webhook URL",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.enable_shipping_tracker && doc.tracking_provider=='Traqo'",
+   "fieldname": "traqo_last_sync",
+   "fieldtype": "Datetime",
+   "label": "Traqo Last Delta Sync",
+   "read_only": 1
   },
   {
    "fieldname": "invoicing_tab",
    "fieldtype": "Tab Break",
-   "label": "Invoicing"
+   "label": "Invoicing & Documents"
+  },
+  {
+   "fieldname": "invoice_register_section",
+   "fieldtype": "Section Break",
+   "label": "Invoice Register"
   },
   {
    "default": "0",
    "fieldname": "enable_invoice_register",
    "fieldtype": "Check",
    "label": "Enable Invoice Register"
+  },
+  {
+   "fieldname": "column_break_inv1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "default_bookkeeper",
+   "fieldtype": "Link",
+   "label": "Default Bookkeeper",
+   "options": "User"
+  },
+  {
+   "depends_on": "eval:doc.enable_invoice_register",
+   "fieldname": "backup_bookkeeper",
+   "fieldtype": "Link",
+   "label": "Backup Bookkeeper",
+   "options": "User"
+  },
+  {
+   "fieldname": "service_orders_section",
+   "fieldtype": "Section Break",
+   "label": "Service Orders"
   },
   {
    "default": "0",
@@ -396,24 +445,6 @@
    "fieldname": "default_service_order_terms",
    "fieldtype": "Text Editor",
    "label": "Default Service Order Terms and Conditions"
-  },
-  {
-   "fieldname": "column_break_inv1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.enable_invoice_register",
-   "fieldname": "default_bookkeeper",
-   "fieldtype": "Link",
-   "label": "Default Bookkeeper",
-   "options": "User"
-  },
-  {
-   "depends_on": "eval:doc.enable_invoice_register",
-   "fieldname": "backup_bookkeeper",
-   "fieldtype": "Link",
-   "label": "Backup Bookkeeper",
-   "options": "User"
   },
   {
    "depends_on": "eval:doc.enable_invoice_register",
@@ -485,9 +516,21 @@
    "precision": "1"
   },
   {
-   "fieldname": "client_reports_tab",
+   "fieldname": "quotation_section",
+   "fieldtype": "Section Break",
+   "label": "Quotations"
+  },
+  {
+   "description": "If set, this Terms and Conditions record will be automatically applied to new Quotations.",
+   "fieldname": "default_quotation_tc",
+   "fieldtype": "Link",
+   "label": "Default Quotation Terms & Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fieldname": "portal_tab",
    "fieldtype": "Tab Break",
-   "label": "Client Reports"
+   "label": "Portal & Display"
   },
   {
    "default": "Full Milestones",
@@ -496,11 +539,6 @@
    "fieldtype": "Select",
    "label": "Client Report Milestone Detail",
    "options": "Full Milestones\nStage Summary"
-  },
-  {
-   "fieldname": "home_page_tab",
-   "fieldtype": "Tab Break",
-   "label": "Home Page"
   },
   {
    "default": "0",
@@ -513,7 +551,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-05-01 20:00:00.000000",
+ "modified": "2026-08-16 23:00:00.000000",
  "modified_by": "Administrator",
  "module": "FreightMas",
  "name": "FreightMas Settings",

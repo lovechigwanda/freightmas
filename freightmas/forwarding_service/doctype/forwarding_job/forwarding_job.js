@@ -84,7 +84,7 @@ frappe.ui.form.on('Forwarding Job', {
     },
 
     // ========================================
-    // FETCH CONTAINERS FROM BL - Searates API
+    // FETCH CONTAINERS FROM BL - External tracking API
     // ========================================
     fetch_containers_from_bl: function(frm) {
         if (!frm.doc.bl_number) {
@@ -95,27 +95,12 @@ frappe.ui.form.on('Forwarding Job', {
             frappe.msgprint(__('Please save the document before fetching tracking data.'));
             return;
         }
-        frappe.call({
-            method: 'freightmas.forwarding_service.doctype.forwarding_job.forwarding_job.fetch_containers_from_bl',
-            args: { docname: frm.doc.name },
-            freeze: true,
-            freeze_message: __('Fetching container data from Searates...'),
-            callback: function(r) {
-                if (r.message) {
-                    frm.reload_doc();
-                    frappe.show_alert({
-                        message: __('Tracking data fetched: {0} containers, status: {1}',
-                            [r.message.containers_count, r.message.status]),
-                        indicator: 'green'
-                    }, 5);
-                }
-            },
-            error: function() {
-                frappe.show_alert({
-                    message: __('Failed to fetch tracking data. Check error log for details.'),
-                    indicator: 'red'
-                }, 5);
+        frappe.db.get_single_value('FreightMas Settings', 'tracking_provider').then(provider => {
+            if (provider === 'Traqo' && !frm.doc.shipping_line) {
+                frappe.msgprint(__('Shipping Line is required for Traqo tracking. Please set it before fetching.'));
+                return;
             }
+            _fetch_forwarding_tracking(frm);
         });
     },
     
@@ -1891,7 +1876,7 @@ frappe.ui.form.on('Cargo Parcel Details', {
         if (!row.is_truck_required) {
             // Clear all milestone checkboxes and dates when trucking not required
             clear_all_milestones(row);
-            frm.refresh_field('cargo_parcel_details');
+            refresh_cargo_parcel_row(frm, cdn, PARCEL_MILESTONE_REFRESH_FIELDS);
         } else {
             if (!frm.doc.is_trucking_required) {
                 prompt_enable_trucking_service(frm);
@@ -2003,7 +1988,7 @@ function validate_milestone_checkbox(frm, cdt, cdn, checkbox_field, date_field) 
     if (!row.is_truck_required) {
         row[checkbox_field] = 0;
         frappe.msgprint(__('Trucking must be required to track milestones'));
-        frm.refresh_field('cargo_parcel_details');
+        refresh_cargo_parcel_row(frm, cdn, [checkbox_field]);
         return;
     }
 
@@ -2011,14 +1996,14 @@ function validate_milestone_checkbox(frm, cdt, cdn, checkbox_field, date_field) 
         // Checkbox being ticked - validate progression
         if (!validate_sequential_progression(row, checkbox_field)) {
             row[checkbox_field] = 0;
-            frm.refresh_field('cargo_parcel_details');
+            refresh_cargo_parcel_row(frm, cdn, [checkbox_field]);
             return;
         }
 
         // Validate prerequisites for specific milestones
         if (!validate_milestone_prerequisites(row, checkbox_field)) {
             row[checkbox_field] = 0;
-            frm.refresh_field('cargo_parcel_details');
+            refresh_cargo_parcel_row(frm, cdn, [checkbox_field]);
             return;
         }
 
@@ -2030,7 +2015,7 @@ function validate_milestone_checkbox(frm, cdt, cdn, checkbox_field, date_field) 
         // Checkbox being unticked - validate reverse sequence
         if (!validate_reverse_unticking(row, checkbox_field)) {
             row[checkbox_field] = 1;
-            frm.refresh_field('cargo_parcel_details');
+            refresh_cargo_parcel_row(frm, cdn, [checkbox_field]);
             return;
         }
 
@@ -2038,7 +2023,7 @@ function validate_milestone_checkbox(frm, cdt, cdn, checkbox_field, date_field) 
         row[date_field] = null;
     }
 
-    frm.refresh_field('cargo_parcel_details');
+    refresh_cargo_parcel_row(frm, cdn, [checkbox_field, date_field]);
 }
 
 function validate_sequential_progression(row, checkbox_field) {
@@ -2174,7 +2159,7 @@ function validate_milestone_date_sequence(frm, cdt, cdn) {
 
     // Only proceed with sequence validation if no individual date errors
     if (has_invalid_date) {
-        frm.refresh_field('cargo_parcel_details');
+        refresh_cargo_parcel_row(frm, cdn, date_fields.map(d => d.field));
         return;
     }
 
@@ -2184,7 +2169,7 @@ function validate_milestone_date_sequence(frm, cdt, cdn) {
             frappe.msgprint(__(`${dates_with_values[i].label} cannot be before ${dates_with_values[i-1].label}`));
             // Only clear the problematic date, not all dates
             row[dates_with_values[i].field] = null;
-            frm.refresh_field('cargo_parcel_details');
+            refresh_cargo_parcel_row(frm, cdn, [dates_with_values[i].field]);
             return; // Stop checking after first sequence error
         }
     }
@@ -2547,6 +2532,7 @@ function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
                 // Populate truck registration fields directly
                 frappe.model.set_value(cdt, cdn, 'truck_reg_no', truck.horse || '');
                 frappe.model.set_value(cdt, cdn, 'trailer_reg_no', truck.assigned_trailer || '');
+                refresh_cargo_parcel_row(frm, cdn, ['truck_reg_no', 'trailer_reg_no']);
                 
                 // Fetch driver details directly from Driver doctype
                 // (Truck's driver fields are fetch_from/Read Only and may not be stored)
@@ -2567,7 +2553,11 @@ function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
                                 frappe.model.set_value(cdt, cdn, 'driver_contact_no', driver.cell_number || '');
                                 frappe.model.set_value(cdt, cdn, 'driver_contact_no_2', driver.cell_number2 || '');
                                 
-                                frm.refresh_field('cargo_parcel_details');
+                                refresh_cargo_parcel_row(frm, cdn, [
+                                    'truck_reg_no', 'trailer_reg_no',
+                                    'driver_name', 'driver_passport_no', 'driver_licence_no',
+                                    'driver_contact_no', 'driver_contact_no_2',
+                                ]);
                             }
                         }
                     });
@@ -2579,7 +2569,11 @@ function fetch_and_populate_truck_details(frm, cdt, cdn, truck_name) {
                     frappe.model.set_value(cdt, cdn, 'driver_contact_no', truck.cell_number || '');
                     frappe.model.set_value(cdt, cdn, 'driver_contact_no_2', truck.cell_number2 || '');
                     
-                    frm.refresh_field('cargo_parcel_details');
+                    refresh_cargo_parcel_row(frm, cdn, [
+                        'truck_reg_no', 'trailer_reg_no',
+                        'driver_name', 'driver_passport_no', 'driver_licence_no',
+                        'driver_contact_no', 'driver_contact_no_2',
+                    ]);
                 }
                 
                 frappe.show_alert({
@@ -2807,6 +2801,31 @@ function update_dnd_totals(frm) {
     frm.refresh_field('total_est_dnd_cost');
     frm.refresh_field('total_est_storage_cost');
     frm.refresh_field('total_est_dnd_storage_cost');
+}
+
+function _fetch_forwarding_tracking(frm) {
+    frappe.call({
+        method: 'freightmas.forwarding_service.doctype.forwarding_job.forwarding_job.fetch_containers_from_bl',
+        args: { docname: frm.doc.name },
+        freeze: true,
+        freeze_message: __('Fetching tracking data...'),
+        callback: function(r) {
+            if (r.message) {
+                frm.reload_doc();
+                frappe.show_alert({
+                    message: __('Tracking data fetched: {0} containers, status: {1}',
+                        [r.message.containers_count, r.message.status]),
+                    indicator: 'green'
+                }, 5);
+            }
+        },
+        error: function() {
+            frappe.show_alert({
+                message: __('Failed to fetch tracking data. Check error log for details.'),
+                indicator: 'red'
+            }, 5);
+        }
+    });
 }
 
 {% include "freightmas/forwarding_service/doctype/forwarding_job/cargo_parcel_ui.js" %}

@@ -1151,13 +1151,14 @@ def _link_invoice_register_entries_to_purchase_invoice(source_references, purcha
 
 
 # ========================================================
-# API TRACKING - Searates Integration
+# API TRACKING - External Provider Integration
 # ========================================================
 
 @frappe.whitelist()
 def fetch_containers_from_bl(docname):
-    """Fetch container tracking data from Searates API and populate the Clearing Job."""
-    from freightmas.integrations.tracking.searates import fetch_tracking
+    """Fetch container tracking data from the configured provider and populate the Clearing Job."""
+    from freightmas.integrations.tracking.dispatcher import fetch_tracking
+    from freightmas.integrations.tracking.lifecycle import apply_provider_extras, append_clearing_eta_history
     from freightmas.integrations.tracking.status_labels import (
         build_tracking_comment,
         standardized_event_label,
@@ -1173,7 +1174,15 @@ def fetch_containers_from_bl(docname):
     if not doc.bl_number:
         frappe.throw(_("BL Number is required to fetch tracking data."))
 
-    tracking = fetch_tracking(doc.bl_number)
+    settings = frappe.get_single("FreightMas Settings")
+    tracking_type = settings.default_tracking_type or "BL"
+
+    tracking = fetch_tracking(
+        doc.bl_number,
+        tracking_type=tracking_type,
+        shipping_line=doc.shipping_line,
+        traqo_shipment_id=doc.get("traqo_shipment_id"),
+    )
 
     metadata = tracking["metadata"]
     route = tracking["route"]
@@ -1208,6 +1217,9 @@ def fetch_containers_from_bl(docname):
         doc.eta = mappings["eta"]
     if not doc.ata and mappings.get("ata"):
         doc.ata = mappings["ata"]
+
+    apply_provider_extras(doc, tracking)
+    append_clearing_eta_history(doc, (tracking.get("provider_extras") or {}).get("eta_history") or [])
 
     # Update/create cargo_package_details rows with API data
     existing_rows = {

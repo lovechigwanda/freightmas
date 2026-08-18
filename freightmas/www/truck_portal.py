@@ -387,6 +387,8 @@ def enable_trucking_for_cargo(job, cargo_idx):
             frappe.throw(_("Invalid cargo index."))
 
         cargo = doc.cargo_parcel_details[cargo_idx]
+        if not doc.is_trucking_required:
+            doc.is_trucking_required = 1
         cargo.is_truck_required = 1
         cargo.updated_on = now()
         cargo.updated_by = frappe.session.user

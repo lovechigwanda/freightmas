@@ -2,6 +2,53 @@
 // Cargo Parcel Details — milestone bridges, trucking sync, row editor helpers
 // Tabs are native Frappe Tab Break fields on the Cargo Parcel Details doctype.
 
+const PARCEL_MILESTONE_REFRESH_FIELDS = [
+	'is_booked', 'is_loaded', 'is_offloaded', 'is_returned', 'is_completed',
+	'booked_on_date', 'loaded_on_date', 'offloaded_on_date', 'returned_on_date', 'completed_on_date',
+	'loaded_milestone_source', 'return_milestone_source',
+];
+
+function get_cargo_parcel_grid_row(frm, cdn) {
+	return frm.fields_dict.cargo_parcel_details?.grid?.grid_rows_by_docname?.[cdn];
+}
+
+function get_active_parcel_tab_fieldname(grid_row) {
+	const active_tab = grid_row?.grid_form?.active_tab;
+	if (active_tab?.df?.fieldname) {
+		return active_tab.df.fieldname;
+	}
+	const tab = grid_row?.grid_form?.layout?.tabs?.find(
+		t => t.tab_link?.find('.nav-link').hasClass('active')
+	);
+	return tab?.df?.fieldname || null;
+}
+
+function restore_parcel_row_tab(grid_row, tab_fieldname) {
+	if (!grid_row?.grid_form?.layout || !tab_fieldname) return;
+	const tab = grid_row.grid_form.layout.tabs?.find(t => t.df.fieldname === tab_fieldname);
+	tab?.set_active();
+}
+
+function refresh_cargo_parcel_row(frm, cdn, fieldnames) {
+	const grid_row = get_cargo_parcel_grid_row(frm, cdn);
+	if (!grid_row) {
+		frm.refresh_field('cargo_parcel_details');
+		return;
+	}
+
+	const active_tab = get_active_parcel_tab_fieldname(grid_row);
+
+	if (fieldnames?.length) {
+		fieldnames.forEach((fieldname) => grid_row.refresh_field(fieldname));
+	} else {
+		grid_row.grid_form?.layout?.refresh(grid_row.doc);
+		restore_parcel_row_tab(grid_row, active_tab);
+	}
+
+	setup_parcel_row_helpers(frm, 'Cargo Parcel Details', cdn);
+	show_milestone_bridge_hints(frm, 'Cargo Parcel Details', cdn);
+}
+
 function populate_parcel_row_defaults(frm, cdt, cdn) {
 	if (frm.doc.is_trucking_required !== undefined) {
 		frappe.model.set_value(cdt, cdn, 'is_truck_required', frm.doc.is_trucking_required ? 1 : 0);
@@ -57,7 +104,10 @@ function sync_cargo_milestones_from_port_dates_client(frm, cdt, cdn) {
 	const returned = sync_return_milestone_from_empty_return_client(row);
 
 	if (loaded || returned) {
-		frm.refresh_field('cargo_parcel_details');
+		refresh_cargo_parcel_row(frm, cdn, [
+			'is_loaded', 'loaded_on_date', 'loaded_milestone_source',
+			'is_returned', 'returned_on_date', 'return_milestone_source',
+		]);
 		render_road_transport_progress_summary(frm);
 		render_road_transport_section_badge(frm);
 		render_milestone_summary(frm);

@@ -57,7 +57,7 @@ frappe.ui.form.on('Clearing Job', {
         });
     },
 
-    // Fetch Tracking from Searates
+    // Fetch Tracking
     fetch_containers_from_bl: function(frm) {
         if (!frm.doc.bl_number) {
             frappe.msgprint(__('Please enter a BL Number first.'));
@@ -67,27 +67,33 @@ frappe.ui.form.on('Clearing Job', {
             frappe.msgprint(__('Please save the document before fetching tracking data.'));
             return;
         }
-        frappe.call({
-            method: 'freightmas.clearing_service.doctype.clearing_job.clearing_job.fetch_containers_from_bl',
-            args: { docname: frm.doc.name },
-            freeze: true,
-            freeze_message: __('Fetching container data from Searates...'),
-            callback: function(r) {
-                if (r.message) {
-                    frm.reload_doc();
+        frappe.db.get_single_value('FreightMas Settings', 'tracking_provider').then(provider => {
+            if (provider === 'Traqo' && !frm.doc.shipping_line) {
+                frappe.msgprint(__('Shipping Line is required for Traqo tracking. Please set it before fetching.'));
+                return;
+            }
+            frappe.call({
+                method: 'freightmas.clearing_service.doctype.clearing_job.clearing_job.fetch_containers_from_bl',
+                args: { docname: frm.doc.name },
+                freeze: true,
+                freeze_message: __('Fetching tracking data...'),
+                callback: function(r) {
+                    if (r.message) {
+                        frm.reload_doc();
+                        frappe.show_alert({
+                            message: __('Tracking data fetched: {0} containers, status: {1}',
+                                [r.message.containers_count, r.message.status]),
+                            indicator: 'green'
+                        }, 5);
+                    }
+                },
+                error: function() {
                     frappe.show_alert({
-                        message: __('Tracking data fetched: {0} containers, status: {1}',
-                            [r.message.containers_count, r.message.status]),
-                        indicator: 'green'
+                        message: __('Failed to fetch tracking data. Check error log for details.'),
+                        indicator: 'red'
                     }, 5);
                 }
-            },
-            error: function() {
-                frappe.show_alert({
-                    message: __('Failed to fetch tracking data. Check error log for details.'),
-                    indicator: 'red'
-                }, 5);
-            }
+            });
         });
     },
 

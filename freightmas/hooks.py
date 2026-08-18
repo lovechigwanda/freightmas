@@ -277,12 +277,18 @@ doc_events = {
     },
     "Forwarding Job": {
         "after_insert": "freightmas.utils.forwarding_job_folder.create_job_folder_on_insert",
-        "on_update": "freightmas.utils.forwarding_job_folder.update_job_folder_on_update",
+        "on_update": [
+            "freightmas.utils.forwarding_job_folder.update_job_folder_on_update",
+            "freightmas.integrations.tracking.lifecycle.on_forwarding_job_update",
+        ],
         "before_rename": "freightmas.utils.forwarding_job_folder.before_rename_forwarding_job"
     },
     "Clearing Job": {
         "after_insert": "freightmas.utils.clearing_job_folder.create_job_folder_on_insert",
-        "on_update": "freightmas.utils.clearing_job_folder.update_job_folder_on_update",
+        "on_update": [
+            "freightmas.utils.clearing_job_folder.update_job_folder_on_update",
+            "freightmas.integrations.tracking.lifecycle.on_clearing_job_update",
+        ],
         "before_rename": "freightmas.utils.clearing_job_folder.before_rename_clearing_job"
     },
     "File": {

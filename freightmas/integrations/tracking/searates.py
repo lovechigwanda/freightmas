@@ -12,30 +12,20 @@ import json
 import frappe
 import requests
 
+from freightmas.integrations.tracking.base import (
+	compute_mappings,
+	extract_date,
+	get_tracking_settings,
+	parse_container_events,
+)
 
-def get_settings():
-	"""Return FreightMas Settings singleton, validating shipping tracker is enabled."""
-	settings = frappe.get_single("FreightMas Settings")
-	if not settings.enable_shipping_tracker:
-		frappe.throw("Shipping Tracker is not enabled. Please enable it in FreightMas Settings > Shipping Tracker.")
-	api_key = settings.get_password("shipping_tracker_api_key")
-	if not api_key:
-		frappe.throw("API Key is not configured in FreightMas Settings > Shipping Tracker.")
-	return settings, api_key
+# Backwards-compatible alias used in patch comments.
+_extract_date = extract_date
 
 
 def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
-	"""Call Searates tracking API and return parsed tracking data.
-
-	Args:
-		bl_number: The BL/container/booking number to track
-		tracking_type: "BL", "CT", or "BK"
-		sealine: Optional SCAC code for the shipping line
-
-	Returns:
-		dict with keys: metadata, route, vessel, containers, mappings
-	"""
-	_settings, api_key = get_settings()
+	"""Call Searates tracking API and return parsed tracking data."""
+	_settings, api_key = get_tracking_settings()
 
 	params = {
 		"api_key": api_key,
@@ -69,28 +59,13 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 	if not data:
 		frappe.throw("No tracking data returned from Searates API")
 
-	# Build lookup dictionaries for resolving IDs
 	locations = {loc["id"]: loc for loc in (data.get("locations") or [])}
-	facilities = {fac["id"]: fac for fac in (data.get("facilities") or [])}
-	vessels = {v["id"]: v for v in (data.get("vessels") or [])}
-
-	# Parse metadata
-	metadata = data.get("metadata") or {}
-	tracking_status = metadata.get("status", "")
-	sealine_code = metadata.get("sealine", "")
-	sealine_name = metadata.get("sealine_name", "")
-
-	# Parse route
 	route = data.get("route") or {}
 	route_data = _parse_route(route, locations)
 
-	# Location ids of the Port of Loading / Port of Discharge — used below to make sure
-	# discharge/gate-out/empty-return events are only taken from the right end of the
-	# voyage (see _apply_event_date).
 	pol_location_id = (route.get("pol") or {}).get("location")
 	pod_location_id = (route.get("pod") or {}).get("location")
 
-	# Parse first vessel
 	vessel_list = data.get("vessels") or []
 	vessel_data = {}
 	if vessel_list:
@@ -101,164 +76,53 @@ def fetch_tracking(bl_number, tracking_type="BL", sealine=None):
 			"flag": first_vessel.get("flag", ""),
 		}
 
-	# Normalize containers — BL returns data.containers[], CT returns data.container (single)
 	containers_raw = data.get("containers") or []
 	if not containers_raw and data.get("container"):
 		containers_raw = [data["container"]]
 
-	# Parse containers and compute mappings
-	today = frappe.utils.nowdate()
 	containers = []
 	last_voyage = ""
 	for container in containers_raw:
 		events = container.get("events") or []
-
-		# Find latest event (highest order_id)
-		latest_event = max(events, key=lambda e: e.get("order_id", 0)) if events else {}
-		latest_loc = locations.get(latest_event.get("location")) or {}
-
-		# Find discharge, gate-out, and empty return dates.
-		# Two-pass: prefer confirmed actual events; fall back to estimated events
-		# for any date still missing (some carriers never set actual=True).
-		discharge_date = None
-		gate_out_date = None
-		empty_return_date = None
-
-		# ── Searates / DCSA event code → field mapping ────────────────────────
-		# discharge_date    : DISC (Discharged from vessel)
-		# gate_out_date     : GTOT (Gate Out Terminal / "Import to consignee", MSC)
-		#                     GOUT (Gate Out — generic DCSA)
-		#                     AVPU (Available for pickup)
-		#                     DLVR (Delivered to consignee)
-		# empty_return_date : IRTN, EMRT, RTRN (standard DCSA empty-return codes)
-		# NOTE: GTIN (Gate In Terminal) is intentionally excluded from event-code
-		#   matching.  The same code appears on the export leg ("Export received
-		#   at CY") and produces a false early date.  GTIN-based empty returns
-		#   are caught by the description-keyword fallback in pass 3 below.
-		# NOTE: ARRI (Arrived) is intentionally excluded — too generic (applies
-		#   to vessel arrivals, transshipment arrivals, etc.).  "End Import
-		#   Cycle" ARRI events (inland depot empty return) are caught by the
-		#   _EMPTY_RETURN_KEYWORDS fallback in pass 3 below.
-		# ──────────────────────────────────────────────────────────────────────
-		def _apply_event_date(code, evt_date, evt_location):
-			nonlocal discharge_date, gate_out_date, empty_return_date
-			# Never record a date for something that hasn't actually happened yet.
-			# Carriers (PIL in particular) include forward-looking projected events
-			# in the same events[] array — an "actual" flag alone isn't a reliable
-			# enough signal (estimated events are the whole point of pass 2 below),
-			# so a date-in-the-future check is the real guard here.
-			if evt_date > today:
-				return
-			if code == "DISC":
-				# A DISC event is only a real "discharged" event if it happened at the
-				# container's actual Port of Discharge — the same code fires for a
-				# transshipment discharge at an intermediate hub, which is a normal
-				# part of the voyage, not the container being ready for delivery.
-				if pod_location_id is not None and evt_location != pod_location_id:
-					return
-				if not discharge_date or evt_date > discharge_date:
-					discharge_date = evt_date
-			elif code in ("GOUT", "AVPU", "DLVR", "GTOT"):
-				# GTOT in particular is reused by carriers for the export-side "empty
-				# container gated out to shipper" event at the Port of Loading — only
-				# exclude POL, don't require POD exactly, so a legitimate inland-depot
-				# gate-out (a different location id to the port itself) still counts.
-				if pol_location_id is not None and evt_location == pol_location_id:
-					return
-				if not gate_out_date or evt_date > gate_out_date:
-					gate_out_date = evt_date
-			elif code in ("IRTN", "EMRT", "RTRN"):
-				if pol_location_id is not None and evt_location == pol_location_id:
-					return
-				if not empty_return_date or evt_date > empty_return_date:
-					empty_return_date = evt_date
-
-		# Pass 1 — confirmed actual events (preferred)
-		for event in events:
-			if not event.get("actual"):
-				continue
-			evt_date = _extract_date(event.get("date"))
-			if evt_date:
-				_apply_event_date(event.get("event_code"), evt_date, event.get("location"))
-
-		# Pass 2 — fall back to estimated events for any date still missing
-		if not (discharge_date and gate_out_date and empty_return_date):
-			for event in events:
-				if event.get("actual"):
-					continue  # already handled in pass 1
-				evt_date = _extract_date(event.get("date"))
-				if evt_date:
-					_apply_event_date(event.get("event_code"), evt_date, event.get("location"))
-
-		# Pass 3 — description keyword fallback for carriers that use non-standard
-		# event codes.  Scans events in reverse order_id (most recent first) for
-		# any date still missing.
-		# gate-out keywords: covers GTOT descriptions and generic phrasing
-		_GATE_OUT_KEYWORDS = (
-			"gate out", "gate-out", "pickup", "picked up",
-			"delivery", "delivered", "available for pickup",
-			"to consignee", "import to consignee",
+		event_data = parse_container_events(
+			events,
+			locations=locations,
+			pol_location_id=pol_location_id,
+			pod_location_id=pod_location_id,
 		)
-		# empty-return keywords: covers GTIN "Empty received at CY",
-		# ARRI "End Import Cycle" (inland depot), and standard descriptions
-		_EMPTY_RETURN_KEYWORDS = (
-			"empty return", "empty received", "returned empty",
-			"empty gate in", "empty restitution", "empty drop",
-			"end import cycle",
-		)
-		if not gate_out_date or not empty_return_date:
-			for event in sorted(events, key=lambda e: e.get("order_id", 0), reverse=True):
-				evt_date = _extract_date(event.get("date"))
-				if not evt_date or evt_date > today:
-					continue
-				if pol_location_id is not None and event.get("location") == pol_location_id:
-					continue
-				desc = (event.get("description") or "").lower()
-				if not gate_out_date and any(kw in desc for kw in _GATE_OUT_KEYWORDS):
-					gate_out_date = evt_date
-				if not empty_return_date and any(kw in desc for kw in _EMPTY_RETURN_KEYWORDS):
-					empty_return_date = evt_date
-				if gate_out_date and empty_return_date:
-					break
+		if event_data.get("last_voyage"):
+			last_voyage = event_data["last_voyage"]
 
 		containers.append({
 			"container_number": container.get("number", ""),
 			"iso_code": container.get("iso_code", ""),
 			"size_type": container.get("size_type", ""),
 			"status": container.get("status", ""),
-			"latest_event_code": latest_event.get("event_code", ""),
-			"latest_event_actual": bool(latest_event.get("actual")),
-			"latest_event_description": latest_event.get("description", ""),
-			"latest_event_date": latest_event.get("date", ""),
-			"latest_event_port": latest_loc.get("name", ""),
-			"discharge_date": discharge_date,
-			"gate_out_date": gate_out_date,
-			"empty_return_date": empty_return_date,
+			**{k: event_data[k] for k in (
+				"latest_event_code", "latest_event_actual", "latest_event_description",
+				"latest_event_date", "latest_event_port", "discharge_date",
+				"gate_out_date", "empty_return_date",
+			)},
 		})
 
-		# Track last voyage for vessel/voyage mapping
-		for event in events:
-			if event.get("voyage"):
-				last_voyage = event["voyage"]
-
-	# Compute Forwarding Job field mappings
-	mappings = _compute_mappings(route_data, vessel_data, last_voyage)
+	metadata = data.get("metadata") or {}
+	mappings = compute_mappings(route_data, vessel_data, last_voyage)
 
 	return {
 		"metadata": {
-			"status": tracking_status,
-			"sealine_code": sealine_code,
-			"sealine_name": sealine_name,
+			"status": metadata.get("status", ""),
+			"sealine_code": metadata.get("sealine", ""),
+			"sealine_name": metadata.get("sealine_name", ""),
 		},
 		"route": route_data,
 		"vessel": vessel_data,
 		"containers": containers,
 		"mappings": mappings,
+		"provider_extras": {},
 	}
 
 
 def _parse_route(route, locations):
-	"""Parse route.pol and route.pod."""
 	pol = route.get("pol") or {}
 	pod = route.get("pod") or {}
 
@@ -283,43 +147,3 @@ def _parse_route(route, locations):
 			"actual": bool(pod.get("actual")),
 		},
 	}
-
-
-def _compute_mappings(route_data, vessel_data, last_voyage):
-	"""Compute Forwarding Job field values from tracking data."""
-	# Vessel / Voyage
-	vessel_name = vessel_data.get("name", "")
-	if vessel_name and last_voyage:
-		vessel_flight_no = f"{vessel_name} / {last_voyage}"
-	elif vessel_name:
-		vessel_flight_no = vessel_name
-	else:
-		vessel_flight_no = ""
-
-	pol = route_data.get("pol") or {}
-	pod = route_data.get("pod") or {}
-
-	# ETD / ATD from POL date
-	pol_date = _extract_date(pol.get("date"))
-	etd = pol_date
-	atd = pol_date if pol.get("actual") else None
-
-	# ETA / ATA from POD date
-	pod_date = _extract_date(pod.get("date"))
-	eta = pod_date
-	ata = pod_date if pod.get("actual") else None
-
-	return {
-		"vessel_flight_no": vessel_flight_no,
-		"etd": etd,
-		"atd": atd,
-		"eta": eta,
-		"ata": ata,
-	}
-
-
-def _extract_date(datetime_str):
-	"""Extract the date portion (YYYY-MM-DD) from a datetime string."""
-	if not datetime_str:
-		return None
-	return str(datetime_str)[:10] or None
