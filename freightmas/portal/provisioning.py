@@ -33,8 +33,15 @@ def sync_portal_user_on_contact_save(doc, method=None):
 		return
 
 	user_doc = frappe.get_doc("User", doc.user)
-	_apply_portal_constraints(user_doc, portal_roles)
-	user_doc.save(ignore_permissions=True)
+	# Only save when the constraints actually change something. An
+	# unconditional save here fires on every Contact validate, re-writes the
+	# User needlessly, and - because User.on_update enqueues background jobs -
+	# floods the job queue whenever a portal Contact/User is touched
+	# repeatedly. The dirty-check also makes this hook safe against
+	# re-entrancy: a nested save that lands back here finds nothing to change
+	# and stops instead of looping.
+	if _apply_portal_constraints(user_doc, portal_roles):
+		user_doc.save(ignore_permissions=True)
 
 
 def enforce_portal_user_type(doc, method=None):
@@ -67,6 +74,15 @@ def enforce_portal_user_type(doc, method=None):
 
 
 def _apply_portal_constraints(user_doc, portal_roles):
+	"""Force user_doc into a valid portal-login shape.
+
+	Returns True if any field was actually changed, False if user_doc was
+	already compliant. Callers that must persist the change (the Contact
+	hook, which edits a *different* document) use the return value to save
+	only when needed; the User hook edits the in-flight doc and can ignore
+	it. The security throws below always run first, so an out-of-policy user
+	is rejected whether or not anything would have changed.
+	"""
 	# user_type == "System User" is just the DocType field default for any
 	# freshly created User, so it is not by itself evidence of a real staff
 	# account. The meaningful signal is whether this user already holds a
@@ -87,8 +103,16 @@ def _apply_portal_constraints(user_doc, portal_roles):
 			).format(user_doc.name, ", ".join(held_desk_roles))
 		)
 
-	user_doc.user_type = "Website User"
+	changed = False
 
+	if user_doc.user_type != "Website User":
+		user_doc.user_type = "Website User"
+		changed = True
+
+	held_roles = {r.role for r in user_doc.roles}
 	for role in portal_roles:
-		if not any(r.role == role for r in user_doc.roles):
+		if role not in held_roles:
 			user_doc.append("roles", {"role": role})
+			changed = True
+
+	return changed

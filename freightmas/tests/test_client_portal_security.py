@@ -91,6 +91,30 @@ class TestClientPortalProvisioning(IntegrationTestCase):
 		self.assertEqual(user.user_type, "Website User")
 		self.assertIn(PORTAL_ROLE, [r.role for r in user.roles])
 
+	def test_resaving_compliant_contact_does_not_rewrite_user(self):
+		# Regression: the Contact.validate hook must be idempotent. An
+		# unconditional user_doc.save() on every Contact save re-writes the
+		# already-compliant User, and because User.on_update enqueues
+		# background jobs, repeated Contact/User saves flooded the job queue.
+		# Once the User is provisioned, re-saving the Contact must be a no-op
+		# for the User (no bumped modified timestamp = no redundant save).
+		customer = _make_customer("A1b")
+		user = _make_user("a1b")
+		contact = _make_contact(user, [customer])
+
+		user.reload()
+		user_modified_before = user.modified
+
+		contact.reload()
+		contact.save(ignore_permissions=True)
+
+		user.reload()
+		self.assertEqual(
+			user.modified,
+			user_modified_before,
+			"re-saving an already-provisioned portal Contact must not re-save the User",
+		)
+
 	def test_contact_link_without_customer_does_not_grant_portal_role(self):
 		# Core Frappe itself flips a Contact-linked User's user_type to
 		# Website User regardless of Customer links - that's expected,
