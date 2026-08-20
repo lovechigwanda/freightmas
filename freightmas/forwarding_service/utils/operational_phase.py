@@ -49,6 +49,60 @@ MILESTONE_TABLE_FIELDS = (
 	"warehouse_milestones",
 )
 
+# Dashboard overview pipeline — display buckets (subset of operational phases).
+OVERVIEW_PIPELINE_BUCKETS = (
+	{"key": "at_origin", "label": "At Origin", "phases": ("planning", "awaiting_departure")},
+	{"key": "in_transit", "label": "In Water / Air", "phases": ("in_transit",)},
+	{"key": "at_terminal", "label": "At Port of Discharge", "phases": ("at_terminal",)},
+	{"key": "under_port_clearance", "label": "Under Port Clearance", "phases": ("under_port_clearance",)},
+	{"key": "under_border_clearance", "label": "Under Border Clearance", "phases": ("under_border_clearance",)},
+	{"key": "on_road", "label": "On Road to Destination", "phases": ("on_road",)},
+	{"key": "delivered", "label": "Delivered", "phases": ("delivered",)},
+)
+
+_OVERVIEW_BUCKET_BY_KEY = {bucket["key"]: bucket for bucket in OVERVIEW_PIPELINE_BUCKETS}
+
+
+def get_overview_bucket(bucket_key):
+	"""Return overview pipeline bucket config or None."""
+	return _OVERVIEW_BUCKET_BY_KEY.get(bucket_key)
+
+
+def get_overview_bucket_phases(bucket_key):
+	"""Operational phase values included in an overview pipeline bucket."""
+	bucket = get_overview_bucket(bucket_key)
+	return list(bucket["phases"]) if bucket else []
+
+
+def build_overview_phase_pipeline():
+	"""Counts per overview pipeline bucket from persisted operational_phase."""
+	visible_phases = {phase for bucket in OVERVIEW_PIPELINE_BUCKETS for phase in bucket["phases"]}
+	if not visible_phases:
+		return []
+
+	rows = frappe.db.sql(
+		"""
+		SELECT operational_phase, COUNT(*) AS count
+		FROM `tabForwarding Job`
+		WHERE docstatus < 2 AND operational_phase IN %(phases)s
+		GROUP BY operational_phase
+		""",
+		{"phases": tuple(visible_phases)},
+		as_dict=True,
+	)
+	counts_by_phase = {row.operational_phase: row.count for row in rows}
+
+	pipeline = []
+	for bucket in OVERVIEW_PIPELINE_BUCKETS:
+		count = sum(counts_by_phase.get(phase, 0) for phase in bucket["phases"])
+		pipeline.append({
+			"key": bucket["key"],
+			"label": bucket["label"],
+			"count": count,
+			"phases": list(bucket["phases"]),
+		})
+	return pipeline
+
 
 def get_phase_label(phase):
 	return OPERATIONAL_PHASE_LABELS.get(phase, phase or "")

@@ -15,24 +15,48 @@ export function formatNumber(value) {
 	return Number(value || 0).toLocaleString();
 }
 
+const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function parseDateValue(value) {
+	if (value instanceof Date) return value;
+	if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+		const [year, month, day] = value.split("-").map(Number);
+		return new Date(year, month - 1, day);
+	}
+	return new Date(value);
+}
+
+function formatDateParts(date) {
+	const day = String(date.getDate()).padStart(2, "0");
+	const month = SHORT_MONTHS[date.getMonth()];
+	const year = String(date.getFullYear() % 100).padStart(2, "0");
+	return `${day}-${month}-${year}`;
+}
+
 export function formatDate(value) {
 	if (!value) return "\u2013";
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return value;
-	return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+	const d = parseDateValue(value);
+	if (Number.isNaN(d.getTime())) return String(value);
+	return formatDateParts(d);
+}
+
+/** Single date for list views: actual (ATA/ATD) when set, otherwise estimated (ETA/ETD). */
+export function formatEstimatedOrActualDate(job) {
+	if (!job) return "\u2013";
+	const isExport = job.direction === "Export";
+	const actual = isExport ? job.atd : job.ata;
+	const estimated = isExport ? job.etd : job.eta;
+	if (actual) return formatDate(actual);
+	if (estimated) return formatDate(estimated);
+	return "\u2013";
 }
 
 export function formatDateTime(value) {
 	if (!value) return "\u2013";
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return value;
-	return d.toLocaleString(undefined, {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
+	const d = parseDateValue(value);
+	if (Number.isNaN(d.getTime())) return String(value);
+	const timePart = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+	return `${formatDateParts(d)} ${timePart}`;
 }
 
 // Active chart palette, swapped by the theme store (stores/theme.js) whenever the

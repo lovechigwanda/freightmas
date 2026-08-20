@@ -25,6 +25,7 @@ import { useRoute } from "vue-router";
 import { RefreshCw, ExternalLink, LayoutGrid } from "@lucide/vue";
 import { NAV_ITEMS } from "../router";
 import { useOverviewStore } from "../stores/overview";
+import { formatDate } from "../format";
 
 const overview = useOverviewStore();
 
@@ -38,7 +39,11 @@ const currentTitle = computed(() => {
 	return match ? match.label : "FreightMas";
 });
 
-const today = new Date().toLocaleDateString(undefined, { weekday: "long", day: "2-digit", month: "short", year: "numeric" });
+const today = (() => {
+	const d = new Date();
+	const weekday = d.toLocaleDateString(undefined, { weekday: "long" });
+	return `${weekday}, ${formatDate(d)}`;
+})();
 
 // Map the active module route to its Desk list view; unknown routes fall back
 // to the Desk home.

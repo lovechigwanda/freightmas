@@ -2,7 +2,7 @@
 	<span class="sd-progress" :title="`${percent}%`">
 		<span :style="{ width: percent + '%', background: color }"></span>
 	</span>
-	<span class="sd-muted" style="font-size: 11px; margin-left: 6px">{{ percent }}%</span>
+	<span class="sd-muted sd-progress-label">{{ percent }}%</span>
 </template>
 
 <script setup>

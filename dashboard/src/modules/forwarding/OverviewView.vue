@@ -1,59 +1,25 @@
 <template>
 	<div>
-		<div v-if="loading" class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-			<div class="sd-card cc-kpi-skeleton cc-skeleton" v-for="i in 8" :key="i"></div>
+		<div v-if="loading" class="sd-phase-pipeline">
+			<div class="sd-card sd-phase-pipeline-skeleton cc-skeleton" v-for="i in 7" :key="i"></div>
 		</div>
 		<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 
 		<template v-else-if="data">
-			<div class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-				<KpiCard label="Active Shipments" :value="data.kpis.active_jobs" :icon="Ship" />
-				<KpiCard
-					label="Overdue Arrivals"
-					:value="data.kpis.overdue_arrivals"
-					:tone="data.kpis.overdue_arrivals ? 'danger' : 'good'"
-					:icon="ArrowDownToLine"
-					sub="Import ETA passed, no ATA"
-				/>
-				<KpiCard
-					label="Overdue Departures"
-					:value="data.kpis.overdue_departures"
-					:tone="data.kpis.overdue_departures ? 'danger' : 'good'"
-					:icon="ArrowUpFromLine"
-					sub="Export ETD passed, no ATD"
-				/>
-				<KpiCard
-					label="Missing BL Docs"
-					:value="data.kpis.missing_bl_docs"
-					:tone="data.kpis.missing_bl_docs ? 'warn' : 'good'"
-					:icon="FileWarning"
-				/>
-				<KpiCard
-					label="Uninvoiced Jobs"
-					:value="data.kpis.uninvoiced_jobs"
-					:tone="data.kpis.uninvoiced_jobs ? 'warn' : 'good'"
-					:icon="Receipt"
-				/>
-				<KpiCard
-					label="Open DND Exposure"
-					:value="formatMoney(data.kpis.dnd_exposure)"
-					:sub="`${data.kpis.dnd_jobs} job(s)`"
-					:tone="data.kpis.dnd_exposure ? 'warn' : 'good'"
-					:icon="AlertTriangle"
-				/>
-				<KpiCard
-					label="Overdue Container Returns"
-					:value="data.kpis.overdue_container_returns"
-					:tone="data.kpis.overdue_container_returns ? 'danger' : 'good'"
-					:icon="PackageX"
-				/>
-				<KpiCard
-					label="Containers At Risk"
-					:value="data.kpis.containers_at_risk"
-					:tone="data.kpis.containers_at_risk ? 'warn' : 'good'"
-					:icon="Timer"
-					sub="Approaching Last Free Day"
-				/>
+			<div style="margin-bottom: 18px;">
+				<h3 class="sd-pipeline-section-title">Shipment Pipeline</h3>
+				<div class="sd-phase-pipeline">
+					<PhasePipelineCard
+						v-for="(bucket, idx) in data.phase_pipeline"
+						:key="bucket.key"
+						:label="bucket.label"
+						:count="bucket.count"
+						:icon="pipelineMeta(bucket.key).icon"
+						:tone="pipelineMeta(bucket.key).tone"
+						:show-connector="idx < data.phase_pipeline.length - 1"
+						@click="$emit('navigate-bucket', bucket.key)"
+					/>
+				</div>
 			</div>
 
 			<div class="sd-grid sd-grid-2">
@@ -153,27 +119,32 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import {
-	Ship, ArrowDownToLine, ArrowUpFromLine, FileWarning, Receipt, AlertTriangle, PackageX,
-	PieChart, TrendingUp, Building2, Route, AlertCircle, CheckCircle2, Timer,
+	PieChart, TrendingUp, Building2, Route, AlertCircle, CheckCircle2,
 } from "@lucide/vue";
 import { api } from "./api";
 import { useThemeStore } from "../../stores/theme";
 import { formatMoney, formatDate, statusColor } from "../../format";
-import KpiCard from "../../components/KpiCard.vue";
+import { OVERVIEW_PIPELINE_META } from "./operationalPhases";
 import StatusBadge from "../../components/StatusBadge.vue";
+import PhasePipelineCard from "../../components/PhasePipelineCard.vue";
 import DonutChart from "../../components/DonutChart.vue";
 import Sparkline from "../../components/Sparkline.vue";
 import EmptyState from "../../components/EmptyState.vue";
+import { MapPin } from "@lucide/vue";
 
-defineEmits(["open-job"]);
+defineEmits(["open-job", "navigate-bucket"]);
 
 const theme = useThemeStore();
 const loading = ref(true);
 const error = ref("");
 const data = ref(null);
 
+function pipelineMeta(key) {
+	return OVERVIEW_PIPELINE_META[key] || { icon: MapPin, tone: "neutral" };
+}
+
 const statusData = computed(() => {
-	void theme.themeId; // re-evaluate segment colours when the theme changes
+	void theme.themeId;
 	if (!data.value) return [];
 	return data.value.jobs_by_status.map((row, idx) => ({
 		label: row.status,

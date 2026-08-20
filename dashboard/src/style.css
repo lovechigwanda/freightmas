@@ -413,6 +413,170 @@ h1, h2, h3, h4 {
 }
 
 /* ============================================================
+   Phase pipeline (Forwarding Overview)
+   ============================================================ */
+
+.sd-phase-pipeline {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	margin-bottom: 18px;
+}
+
+@media (min-width: 768px) {
+	.sd-phase-pipeline {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1200px) {
+	.sd-phase-pipeline {
+		grid-template-columns: repeat(7, minmax(0, 1fr));
+		gap: 8px;
+	}
+}
+
+.sd-phase-pipeline-item {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.sd-phase-card {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 10px 12px;
+	border: 1px solid var(--sd-border);
+	border-radius: var(--sd-radius-lg);
+	background: var(--sd-surface);
+	box-shadow: var(--sd-shadow-sm);
+	cursor: pointer;
+	text-align: left;
+	transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.sd-phase-card-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.sd-phase-card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--sd-shadow-md);
+	border-color: color-mix(in srgb, var(--sd-accent) 35%, var(--sd-border));
+}
+
+.sd-phase-card:focus-visible {
+	outline: 2px solid var(--sd-accent);
+	outline-offset: 2px;
+}
+
+.sd-phase-card-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	flex-shrink: 0;
+}
+
+.sd-phase-card-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.sd-phase-card-count {
+	font-family: var(--cc-font-mono);
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	color: var(--sd-text);
+}
+
+.sd-phase-card-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--sd-text-muted);
+	line-height: 1.3;
+}
+
+.sd-phase-card.neutral .sd-phase-card-icon {
+	background: var(--sd-surface-2, #f1f5f9);
+	color: var(--sd-text-muted);
+}
+
+.sd-phase-card.blue .sd-phase-card-icon {
+	background: color-mix(in srgb, #3b82f6 14%, transparent);
+	color: #2563eb;
+}
+
+.sd-phase-card.teal .sd-phase-card-icon {
+	background: color-mix(in srgb, #0d9488 14%, transparent);
+	color: #0f766e;
+}
+
+.sd-phase-card.purple .sd-phase-card-icon {
+	background: color-mix(in srgb, #7c3aed 14%, transparent);
+	color: #6d28d9;
+}
+
+.sd-phase-card.orange .sd-phase-card-icon {
+	background: color-mix(in srgb, #ea580c 14%, transparent);
+	color: #c2410c;
+}
+
+.sd-phase-card.amber .sd-phase-card-icon {
+	background: var(--sd-amber-soft);
+	color: var(--sd-amber);
+}
+
+.sd-phase-card.green .sd-phase-card-icon {
+	background: var(--sd-green-soft);
+	color: var(--sd-green);
+}
+
+.sd-phase-connector {
+	flex-shrink: 0;
+	color: var(--sd-text-muted);
+	opacity: 0.35;
+	display: none;
+}
+
+@media (min-width: 1200px) {
+	.sd-phase-pipeline-item:not(:last-child) .sd-phase-connector {
+		display: block;
+		margin-left: 4px;
+	}
+}
+
+.sd-phase-pipeline-skeleton {
+	min-height: 72px;
+	border-radius: var(--sd-radius-lg);
+}
+
+.sd-pipeline-section-title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--sd-text);
+	margin: 0 0 10px;
+	letter-spacing: -0.01em;
+}
+
+.sd-pipeline-section-sub {
+	font-size: 12px;
+	color: var(--sd-text-muted);
+	margin: -6px 0 12px;
+}
+
+/* ============================================================
    Table
    ============================================================ */
 
@@ -480,6 +644,49 @@ h1, h2, h3, h4 {
 	color: var(--sd-text-faint);
 	cursor: default;
 	text-decoration: none;
+}
+
+.sd-table-job {
+	white-space: nowrap;
+	width: 1%;
+}
+
+.sd-table-job .sd-table-link {
+	white-space: nowrap;
+}
+
+.sd-table-customer {
+	min-width: 220px;
+	width: 28%;
+}
+
+.sd-table-bl {
+	white-space: nowrap;
+	width: 1%;
+}
+
+.sd-table-date {
+	white-space: nowrap;
+	width: 1%;
+}
+
+.sd-table-phase {
+	min-width: 172px;
+	width: 18%;
+	white-space: nowrap;
+}
+
+.sd-table-progress {
+	width: 1%;
+	white-space: nowrap;
+	text-align: right;
+}
+
+.sd-table-progress-inner {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
 }
 
 .sd-muted {
@@ -565,6 +772,11 @@ h1, h2, h3, h4 {
 	transition: width 0.3s ease;
 }
 
+.sd-progress-label {
+	font-size: 11px;
+	flex-shrink: 0;
+}
+
 /* ============================================================
    Filters / toolbar / buttons
    ============================================================ */
@@ -576,7 +788,7 @@ h1, h2, h3, h4 {
 	margin-bottom: 14px;
 }
 
-.sd-filters input,
+.sd-filters input:not([type="checkbox"]),
 .sd-filters select {
 	padding: 8px 12px;
 	border: 1px solid var(--sd-border);
@@ -588,14 +800,14 @@ h1, h2, h3, h4 {
 	transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.sd-filters input:focus,
+.sd-filters input:not([type="checkbox"]):focus,
 .sd-filters select:focus {
 	outline: none;
 	border-color: var(--sd-accent);
 	box-shadow: 0 0 0 3px var(--sd-accent-soft);
 }
 
-.sd-filters input {
+.sd-filters input:not([type="checkbox"]) {
 	min-width: 240px;
 }
 

@@ -40,6 +40,7 @@
 import { ref, computed, onMounted } from "vue";
 import { X, Mail } from "@lucide/vue";
 import { api, sendReportEmail } from "./api";
+import { formatDate } from "../../format";
 
 const props = defineProps({
 	kind: { type: String, required: true },
@@ -51,7 +52,7 @@ const emit = defineEmits(["close"]);
 
 const toEmail = ref("");
 const ccEmails = ref("");
-const subject = ref(`${props.reportLabel} - ${new Date().toLocaleDateString()}`);
+const subject = ref(`${props.reportLabel} - ${formatDate(new Date())}`);
 const message = ref("Please find attached the requested tracking report.\n\nBest regards,");
 const sending = ref(false);
 const error = ref("");

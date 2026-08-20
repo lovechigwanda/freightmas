@@ -12,6 +12,7 @@ own whitelisted methods.
 """
 
 import re
+import json
 from collections import Counter
 from io import BytesIO
 
@@ -28,8 +29,11 @@ from openpyxl.utils import get_column_letter
 from freightmas.utils.permissions import check_freightmas_role, check_doc_read_permission
 from freightmas.forwarding_service.utils.operational_phase import (
 	OPERATIONAL_PHASES,
+	get_overview_bucket_phases,
 	get_phase_label,
+	build_overview_phase_pipeline,
 )
+from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
@@ -154,80 +158,8 @@ def get_branding():
 @frappe.whitelist()
 def get_overview():
 	check_freightmas_role()
-	today = nowdate()
 
-	active_count = frappe.db.count(
-		"Forwarding Job",
-		{"docstatus": ["<", 2], "status": ["not in", NOT_ACTIVE_STATUSES]},
-	)
-
-	overdue_arrivals = frappe.db.count(
-		"Forwarding Job",
-		{
-			"docstatus": ["<", 2],
-			"status": ["not in", NOT_ACTIVE_STATUSES],
-			"direction": "Import",
-			"eta": ["<", today],
-			"ata": ["is", "not set"],
-		},
-	)
-
-	overdue_departures = frappe.db.count(
-		"Forwarding Job",
-		{
-			"docstatus": ["<", 2],
-			"status": ["not in", NOT_ACTIVE_STATUSES],
-			"direction": "Export",
-			"etd": ["<", today],
-			"atd": ["is", "not set"],
-		},
-	)
-
-	missing_bl = frappe.db.sql(
-		"""
-		SELECT COUNT(*) FROM `tabForwarding Job`
-		WHERE docstatus < 2 AND status NOT IN %(statuses)s
-		  AND (IFNULL(bl_number, '') = '' OR IFNULL(is_bl_received, 0) = 0 OR IFNULL(is_bl_confirmed, 0) = 0)
-		""",
-		{"statuses": NOT_ACTIVE_STATUSES},
-	)[0][0]
-
-	uninvoiced_jobs = frappe.db.sql(
-		"""
-		SELECT COUNT(DISTINCT parent) FROM `tabForwarding Revenue Charges`
-		WHERE parenttype = 'Forwarding Job' AND parentfield = 'forwarding_revenue_charges'
-		  AND IFNULL(is_invoiced, 0) = 0
-		  AND parent IN (
-		      SELECT name FROM `tabForwarding Job`
-		      WHERE docstatus < 2 AND status NOT IN %(statuses)s
-		  )
-		""",
-		{"statuses": NOT_ACTIVE_STATUSES},
-	)[0][0]
-
-	dnd_exposure = frappe.db.sql(
-		"""
-		SELECT COUNT(*), COALESCE(SUM(total_est_dnd_storage_cost), 0)
-		FROM `tabForwarding Job`
-		WHERE docstatus < 2 AND status NOT IN %(statuses)s AND IFNULL(total_est_dnd_storage_cost, 0) > 0
-		""",
-		{"statuses": NOT_ACTIVE_STATUSES},
-	)[0]
-
-	returnable_overdue = frappe.db.sql(
-		"""
-		SELECT COUNT(*) FROM `tabCargo Parcel Details` cpd
-		INNER JOIN `tabForwarding Job` fj ON fj.name = cpd.parent
-		WHERE cpd.parenttype = 'Forwarding Job' AND cpd.cargo_type = 'Containerised'
-		  AND IFNULL(cpd.to_be_returned, 0) = 1 AND IFNULL(cpd.is_returned, 0) = 0
-		  AND cpd.empty_return_date IS NULL
-		  AND cpd.return_by_date IS NOT NULL AND cpd.return_by_date < %(today)s
-		  AND fj.status NOT IN %(statuses)s
-		""",
-		{"today": today, "statuses": NOT_ACTIVE_STATUSES},
-	)[0][0]
-
-	containers_at_risk = len(_get_at_risk_containers())
+	phase_pipeline = build_overview_phase_pipeline()
 
 	jobs_by_status = frappe.db.sql(
 		"""
@@ -282,17 +214,7 @@ def get_overview():
 	)
 
 	return {
-		"kpis": {
-			"active_jobs": active_count,
-			"overdue_arrivals": overdue_arrivals,
-			"overdue_departures": overdue_departures,
-			"missing_bl_docs": missing_bl,
-			"uninvoiced_jobs": uninvoiced_jobs,
-			"dnd_jobs": dnd_exposure[0] or 0,
-			"dnd_exposure": flt(dnd_exposure[1] or 0, 2),
-			"overdue_container_returns": returnable_overdue,
-			"containers_at_risk": containers_at_risk,
-		},
+		"phase_pipeline": phase_pipeline,
 		"jobs_by_status": jobs_by_status,
 		"monthly_trend": monthly_trend,
 		"top_customers": top_customers,
@@ -365,6 +287,37 @@ def _operational_phase_label(phase):
 	return get_phase_label(phase)
 
 
+def _resolve_operational_phase_filter(operational_phase=None, operational_phases=None, overview_bucket=None):
+	"""Return a frappe filter value for operational_phase, or None."""
+	bucket_phases = get_overview_bucket_phases(overview_bucket) if overview_bucket else []
+	if bucket_phases:
+		return ["in", bucket_phases] if len(bucket_phases) > 1 else bucket_phases[0]
+
+	phases = []
+	if operational_phases:
+		if isinstance(operational_phases, str):
+			raw = operational_phases.strip()
+			if raw.startswith("["):
+				try:
+					parsed = json.loads(raw)
+					phases = [phase for phase in parsed if phase]
+				except (json.JSONDecodeError, TypeError):
+					phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
+			else:
+				phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
+		elif isinstance(operational_phases, (list, tuple)):
+			phases = [phase for phase in operational_phases if phase]
+
+	if not phases and operational_phase:
+		phases = [operational_phase]
+
+	if not phases:
+		return None
+	if len(phases) == 1:
+		return phases[0]
+	return ["in", phases]
+
+
 @frappe.whitelist()
 def get_operational_phases():
 	check_freightmas_role()
@@ -372,7 +325,7 @@ def get_operational_phases():
 
 
 @frappe.whitelist()
-def get_jobs(customer=None, status=None, direction=None, operational_phase=None, search=None, limit_start=0, limit_page_length=20):
+def get_jobs(customer=None, status=None, direction=None, operational_phase=None, operational_phases=None, overview_bucket=None, search=None, limit_start=0, limit_page_length=20):
 	check_freightmas_role()
 
 	filters = {"docstatus": ["<", 2]}
@@ -382,8 +335,14 @@ def get_jobs(customer=None, status=None, direction=None, operational_phase=None,
 		filters["status"] = status
 	if direction:
 		filters["direction"] = direction
-	if operational_phase:
-		filters["operational_phase"] = operational_phase
+
+	phase_filter = _resolve_operational_phase_filter(
+		operational_phase=operational_phase,
+		operational_phases=operational_phases,
+		overview_bucket=overview_bucket,
+	)
+	if phase_filter is not None:
+		filters["operational_phase"] = phase_filter
 
 	or_filters = None
 	if search:
@@ -414,7 +373,7 @@ def get_jobs(customer=None, status=None, direction=None, operational_phase=None,
 
 	total_count = frappe.db.count("Forwarding Job", filters=filters)
 
-	progress_map = _milestone_progress_map([j.name for j in jobs])
+	progress_map = forwarding_milestone_progress_map([j.name for j in jobs])
 	today = getdate(nowdate())
 	for j in jobs:
 		j["milestone_percent"] = progress_map.get(j.name, 0)
@@ -425,33 +384,6 @@ def get_jobs(customer=None, status=None, direction=None, operational_phase=None,
 		)
 
 	return {"jobs": jobs, "total_count": total_count}
-
-
-def _milestone_progress_map(job_names):
-	if not job_names:
-		return {}
-
-	counts = {}
-	for fieldname in MILESTONE_TABLE_FIELDS:
-		rows = frappe.db.sql(
-			"""
-			SELECT parent, COUNT(*) AS total, SUM(IFNULL(is_completed, 0)) AS done
-			FROM `tabJob Milestone Progress`
-			WHERE parenttype = 'Forwarding Job' AND parentfield = %(field)s AND parent IN %(names)s
-			GROUP BY parent
-			""",
-			{"field": fieldname, "names": job_names},
-			as_dict=True,
-		)
-		for r in rows:
-			bucket = counts.setdefault(r.parent, {"total": 0, "done": 0})
-			bucket["total"] += r.total or 0
-			bucket["done"] += int(r.done or 0)
-
-	return {
-		name: (round(v["done"] / v["total"] * 100) if v["total"] else 0)
-		for name, v in counts.items()
-	}
 
 
 def milestone_stage_rollup(milestones):
@@ -1123,13 +1055,14 @@ def _timestamped(name):
 
 
 @frappe.whitelist()
-def export_jobs(customer=None, status=None, direction=None, operational_phase=None, search=None):
+def export_jobs(customer=None, status=None, direction=None, operational_phase=None, operational_phases=None, overview_bucket=None, search=None):
 	"""Export the (unpaginated, filtered) Shipments list to Excel."""
 	check_freightmas_role()
 
 	res = get_jobs(
 		customer=customer, status=status, direction=direction,
-		operational_phase=operational_phase, search=search,
+		operational_phase=operational_phase, operational_phases=operational_phases,
+		overview_bucket=overview_bucket, search=search,
 		limit_start=0, limit_page_length=5000,
 	)
 

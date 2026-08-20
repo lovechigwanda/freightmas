@@ -21,6 +21,7 @@ from freightmas.portal.security import (
 	log_portal_access,
 )
 from freightmas.forwarding_service.utils.operational_phase import get_phase_label
+from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
@@ -30,13 +31,6 @@ JOB_LIST_FIELDS = [
 	"port_of_loading", "port_of_discharge", "destination",
 	"vessel_flight_no", "bl_number", "cargo_count", "eta", "ata", "etd", "atd",
 	"discharge_date", "current_comment", "last_updated_on",
-]
-
-MILESTONE_TABLE_FIELDS = [
-	"road_freight_milestones",
-	"port_clearance_milestones",
-	"border_clearance_milestones",
-	"warehouse_milestones",
 ]
 
 # ============================================================
@@ -179,33 +173,6 @@ def _job_list_filters(customers, status=None, direction=None, operational_phase=
 	return filters, or_filters
 
 
-def _milestone_progress_map(job_names):
-	if not job_names:
-		return {}
-
-	counts = {}
-	for fieldname in MILESTONE_TABLE_FIELDS:
-		rows = frappe.db.sql(
-			"""
-			SELECT parent, COUNT(*) AS total, SUM(IFNULL(is_completed, 0)) AS done
-			FROM `tabJob Milestone Progress`
-			WHERE parenttype = 'Forwarding Job' AND parentfield = %(field)s AND parent IN %(names)s
-			GROUP BY parent
-			""",
-			{"field": fieldname, "names": job_names},
-			as_dict=True,
-		)
-		for r in rows:
-			bucket = counts.setdefault(r.parent, {"total": 0, "done": 0})
-			bucket["total"] += r.total or 0
-			bucket["done"] += int(r.done or 0)
-
-	return {
-		name: (round(v["done"] / v["total"] * 100) if v["total"] else 0)
-		for name, v in counts.items()
-	}
-
-
 # --- Milestone stage summary --------------------------------------------------
 # These mirror the stage rollup / mode resolution in
 # freightmas/page/shipment_dashboard/shipment_dashboard.py. The portal
@@ -297,7 +264,7 @@ def get_jobs(status=None, direction=None, operational_phase=None, search=None, l
 
 	total_count = frappe.db.count("Forwarding Job", filters=filters)
 
-	progress_map = _milestone_progress_map([j.name for j in jobs])
+	progress_map = forwarding_milestone_progress_map([j.name for j in jobs])
 	today = getdate(nowdate())
 	for j in jobs:
 		j["milestone_percent"] = progress_map.get(j.name, 0)

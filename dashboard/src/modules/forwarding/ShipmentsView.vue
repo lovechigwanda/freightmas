@@ -19,12 +19,11 @@
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
-				<select v-model="operationalPhase" @change="onFilterChange">
-					<option v-for="p in operationalPhases" :key="p.value" :value="p.value">{{ p.label }}</option>
-				</select>
-				<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">
-					<Download :size="14" stroke-width="2" /> Export to Excel
-				</a>
+				<PhaseMultiSelect
+					v-model="selectedPhases"
+					:options="phaseOptions"
+					@change="onPhasesChange"
+				/>
 			</div>
 		</div>
 
@@ -38,32 +37,30 @@
 					<thead>
 						<tr>
 							<th>Job</th>
-							<th>Customer</th>
-							<th>BL / Cargo Count</th>
-							<th>ETA / ATA</th>
-							<th>Status</th>
-							<th>Phase</th>
-							<th>Progress</th>
+							<th class="sd-table-customer">Customer</th>
+							<th class="sd-table-bl">BL</th>
+							<th class="sd-table-date">ETA / ATA</th>
+							<th class="sd-table-phase">Phase</th>
+							<th class="sd-table-progress sd-right">Progress</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr v-for="job in jobs" :key="job.name" :class="{ 'cc-row-overdue': job.is_overdue }">
-							<td>
+							<td class="sd-table-job">
 								<div class="sd-cell-linkgroup">
 									<button class="sd-table-link" @click="$emit('open-job', job.name)">{{ job.name }}</button>
 									<DeskLink doctype="Forwarding Job" :name="job.name" icon-only />
 								</div>
 							</td>
-							<td>{{ job.customer }}</td>
-							<td>
-								{{ job.bl_number || "–" }}<span v-if="job.cargo_count" class="sd-muted"> · {{ job.cargo_count }}</span>
+							<td class="sd-table-customer">{{ job.customer }}</td>
+							<td class="sd-table-bl">{{ job.bl_number || "–" }}</td>
+							<td class="sd-table-date">{{ formatEstimatedOrActualDate(job) }}</td>
+							<td class="sd-table-phase">{{ formatOperationalPhase(job) }}</td>
+							<td class="sd-table-progress">
+								<div class="sd-table-progress-inner">
+									<ProgressBar :percent="job.milestone_percent" />
+								</div>
 							</td>
-							<td>
-								{{ formatDate(job.eta) }}<span class="sd-muted"> · {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
-							</td>
-							<td><StatusBadge :status="job.status" /></td>
-							<td>{{ formatOperationalPhase(job) }}</td>
-							<td><ProgressBar :percent="job.milestone_percent" /></td>
 						</tr>
 					</tbody>
 				</table>
@@ -82,19 +79,29 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { Download, SearchX } from "@lucide/vue";
-import { api, exportUrl } from "./api";
-import { formatDate } from "../../format";
-import StatusBadge from "../../components/StatusBadge.vue";
+import { ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { SearchX } from "@lucide/vue";
+import { api } from "./api";
+import { formatEstimatedOrActualDate } from "../../format";
 import ProgressBar from "../../components/ProgressBar.vue";
 import EmptyState from "../../components/EmptyState.vue";
 import DeskLink from "../../components/DeskLink.vue";
-import { OPERATIONAL_PHASES, formatOperationalPhase } from "./operationalPhases";
+import PhaseMultiSelect from "../../components/PhaseMultiSelect.vue";
+import {
+	OPERATIONAL_PHASE_OPTIONS,
+	formatOperationalPhase,
+	phasesFromBucket,
+	parsePhasesQuery,
+	phasesToQuery,
+} from "./operationalPhases";
 
 defineEmits(["open-job"]);
 
-const operationalPhases = OPERATIONAL_PHASES;
+const route = useRoute();
+const router = useRouter();
+
+const phaseOptions = OPERATIONAL_PHASE_OPTIONS;
 const statusTabs = [
 	{ value: "", label: "All" },
 	{ value: "Draft", label: "Draft" },
@@ -108,7 +115,7 @@ const directions = ["Import", "Export", "Local", "Transit"];
 const search = ref("");
 const status = ref("");
 const direction = ref("");
-const operationalPhase = ref("");
+const selectedPhases = ref([]);
 const jobs = ref([]);
 const totalCount = ref(0);
 const loading = ref(true);
@@ -117,18 +124,51 @@ const page = ref(0);
 const pageSize = 20;
 let debounceTimer = null;
 
+function applyRouteFilters() {
+	const bucket = typeof route.query.bucket === "string" ? route.query.bucket : "";
+	if (bucket) {
+		selectedPhases.value = phasesFromBucket(bucket);
+	} else {
+		selectedPhases.value = parsePhasesQuery(route.query.phases);
+	}
+	if (selectedPhases.value.length) {
+		status.value = "";
+	}
+}
+
+function syncPhasesToRoute() {
+	const query = { ...route.query };
+	const phasesQuery = phasesToQuery(selectedPhases.value);
+	if (phasesQuery) {
+		query.phases = phasesQuery;
+	} else {
+		delete query.phases;
+	}
+	delete query.bucket;
+	router.replace({ query });
+}
+
+function buildPhaseParams() {
+	if (!selectedPhases.value.length) return {};
+	if (selectedPhases.value.length === 1) {
+		return { operational_phase: selectedPhases.value[0] };
+	}
+	return { operational_phases: selectedPhases.value };
+}
+
 async function load() {
 	loading.value = true;
 	error.value = "";
 	try {
-		const res = await api.getJobs({
+		const params = {
 			search: search.value,
 			status: status.value,
 			direction: direction.value,
-			operational_phase: operationalPhase.value,
 			limit_start: page.value * pageSize,
 			limit_page_length: pageSize,
-		});
+			...buildPhaseParams(),
+		};
+		const res = await api.getJobs(params);
 		jobs.value = res.jobs;
 		totalCount.value = res.total_count;
 	} catch (e) {
@@ -144,6 +184,12 @@ function onFilterChange() {
 	debounceTimer = setTimeout(load, 300);
 }
 
+function onPhasesChange() {
+	page.value = 0;
+	syncPhasesToRoute();
+	load();
+}
+
 function setStatus(value) {
 	if (status.value === value) return;
 	status.value = value;
@@ -151,19 +197,28 @@ function setStatus(value) {
 	load();
 }
 
-const exportHref = computed(() =>
-	exportUrl("shipments", {
-		search: search.value,
-		status: status.value,
-		direction: direction.value,
-		operational_phase: operationalPhase.value,
-	})
-);
-
 function changePage(delta) {
 	page.value += delta;
 	load();
 }
 
-onMounted(load);
+watch(
+	() => [route.query.phases, route.query.bucket],
+	() => {
+		applyRouteFilters();
+		if (route.query.bucket) {
+			syncPhasesToRoute();
+		}
+		page.value = 0;
+		load();
+	},
+);
+
+onMounted(() => {
+	applyRouteFilters();
+	if (route.query.bucket) {
+		syncPhasesToRoute();
+	}
+	load();
+});
 </script>

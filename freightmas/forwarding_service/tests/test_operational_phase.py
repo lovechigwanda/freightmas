@@ -7,7 +7,10 @@ import unittest
 
 import frappe
 
-from freightmas.forwarding_service.utils.operational_phase import derive_operational_phase
+from freightmas.forwarding_service.utils.operational_phase import (
+	derive_operational_phase,
+	get_overview_bucket_phases,
+)
 
 
 def _job(**kwargs):
@@ -117,6 +120,16 @@ class TestOperationalPhase(unittest.TestCase):
 			})],
 		))
 		self.assertEqual(result["phase"], "delivered")
+
+	def test_overview_bucket_phases_at_origin(self):
+		phases = get_overview_bucket_phases("at_origin")
+		self.assertEqual(phases, ["planning", "awaiting_departure"])
+
+	def test_overview_pipeline_has_seven_buckets(self):
+		from freightmas.forwarding_service.utils.operational_phase import OVERVIEW_PIPELINE_BUCKETS
+		self.assertEqual(len(OVERVIEW_PIPELINE_BUCKETS), 7)
+		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[0]["label"], "At Origin")
+		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[-1]["label"], "Delivered")
 
 
 if __name__ == "__main__":

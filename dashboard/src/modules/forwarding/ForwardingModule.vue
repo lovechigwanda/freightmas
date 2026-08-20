@@ -14,7 +14,7 @@
 		</nav>
 
 		<main class="sd-body" style="padding: 0;">
-			<OverviewView v-if="activeTab === 'overview'" @open-job="openJob" />
+			<OverviewView v-if="activeTab === 'overview'" @open-job="openJob" @navigate-bucket="navigateToBucket" />
 			<ShipmentsView v-else-if="activeTab === 'shipments'" @open-job="openJob" />
 			<TrackingView v-else-if="activeTab === 'tracking'" />
 			<FinanceView v-else-if="activeTab === 'finance'" @open-job="openJob" />
@@ -35,6 +35,7 @@ import TrackingView from "./TrackingView.vue";
 import FinanceView from "./FinanceView.vue";
 import DndView from "./DndView.vue";
 import JobDetailModal from "./JobDetailModal.vue";
+import { phasesFromBucket, phasesToQuery } from "./operationalPhases";
 
 const tabs = [
 	{ key: "overview", label: "Overview", icon: LayoutDashboard },
@@ -54,8 +55,27 @@ const activeTab = ref(validKeys.includes(route.query.tab) ? route.query.tab : "o
 const selectedJob = ref(null);
 
 watch(activeTab, (key) => {
-	router.replace({ query: { ...route.query, tab: key === "overview" ? undefined : key } });
+	const query = { ...route.query, tab: key === "overview" ? undefined : key };
+	if (key !== "shipments") {
+		delete query.bucket;
+		delete query.phases;
+	}
+	router.replace({ query });
 });
+
+async function navigateToBucket(bucket) {
+	const phases = phasesFromBucket(bucket);
+	const query = { ...route.query, tab: "shipments" };
+	delete query.bucket;
+	const phasesQuery = phasesToQuery(phases);
+	if (phasesQuery) {
+		query.phases = phasesQuery;
+	} else {
+		delete query.phases;
+	}
+	await router.replace({ query });
+	activeTab.value = "shipments";
+}
 
 function openJob(jobName) {
 	selectedJob.value = jobName;
