@@ -195,6 +195,8 @@
   "last_updated_on",
   "section_break_umkg",
   "status",
+  "operational_phase",
+  "operational_substage",
   "column_break_qlnm",
   "completed_on",
   "column_break_limi",
@@ -290,6 +292,23 @@
    "label": "Status",
    "no_copy": 1,
    "options": "Draft\nIn Progress\nDelivered\nCompleted\nClosed\nCancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "operational_phase",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Operational Phase",
+   "no_copy": 1,
+   "options": "planning\nawaiting_departure\nin_transit\nat_terminal\nunder_port_clearance\nunder_border_clearance\non_road\nat_warehouse\ndelivered\nclosed\ncancelled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "operational_substage",
+   "fieldtype": "Data",
+   "label": "Operational Substage",
+   "no_copy": 1,
    "read_only": 1
   },
   {

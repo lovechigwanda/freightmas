@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import flt, nowdate, cint, now_datetime
 from frappe import _
 from freightmas.utils.permissions import check_doc_read_permission
+from freightmas.forwarding_service.utils.operational_phase import set_operational_phase
 
 class ForwardingJob(Document):
     
@@ -49,6 +50,8 @@ class ForwardingJob(Document):
             self.lock_services_required_once_set()
             self.prevent_milestone_row_deletion()
             self.prevent_manual_milestone_rows()
+
+        set_operational_phase(self)
 
     def lock_services_required_once_set(self):
         """Once a Services Required checkbox has been saved as ticked, it can

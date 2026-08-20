@@ -26,6 +26,10 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 
 from freightmas.utils.permissions import check_freightmas_role, check_doc_read_permission
+from freightmas.forwarding_service.utils.operational_phase import (
+	OPERATIONAL_PHASES,
+	get_phase_label,
+)
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
@@ -357,8 +361,18 @@ def _monthly_revenue_margin_trend(months=6):
 # SHIPMENTS (Forwarding Jobs)
 # ============================================================
 
+def _operational_phase_label(phase):
+	return get_phase_label(phase)
+
+
 @frappe.whitelist()
-def get_jobs(customer=None, status=None, direction=None, search=None, limit_start=0, limit_page_length=20):
+def get_operational_phases():
+	check_freightmas_role()
+	return [{"value": phase, "label": get_phase_label(phase)} for phase in OPERATIONAL_PHASES]
+
+
+@frappe.whitelist()
+def get_jobs(customer=None, status=None, direction=None, operational_phase=None, search=None, limit_start=0, limit_page_length=20):
 	check_freightmas_role()
 
 	filters = {"docstatus": ["<", 2]}
@@ -368,6 +382,8 @@ def get_jobs(customer=None, status=None, direction=None, search=None, limit_star
 		filters["status"] = status
 	if direction:
 		filters["direction"] = direction
+	if operational_phase:
+		filters["operational_phase"] = operational_phase
 
 	or_filters = None
 	if search:
@@ -380,7 +396,8 @@ def get_jobs(customer=None, status=None, direction=None, search=None, limit_star
 
 	fields = [
 		"name", "customer", "customer_reference", "direction", "shipment_mode",
-		"status", "port_of_loading", "port_of_discharge", "destination",
+		"status", "operational_phase", "operational_substage",
+		"port_of_loading", "port_of_discharge", "destination",
 		"vessel_flight_no", "bl_number", "cargo_count", "eta", "ata", "etd", "atd",
 		"discharge_date", "current_comment", "last_updated_on",
 	]
@@ -401,6 +418,7 @@ def get_jobs(customer=None, status=None, direction=None, search=None, limit_star
 	today = getdate(nowdate())
 	for j in jobs:
 		j["milestone_percent"] = progress_map.get(j.name, 0)
+		j["operational_phase_label"] = _operational_phase_label(j.get("operational_phase"))
 		j["is_overdue"] = bool(
 			(j.direction == "Import" and j.eta and getdate(j.eta) < today and not j.ata)
 			or (j.direction == "Export" and j.etd and getdate(j.etd) < today and not j.atd)
@@ -1105,12 +1123,13 @@ def _timestamped(name):
 
 
 @frappe.whitelist()
-def export_jobs(customer=None, status=None, direction=None, search=None):
+def export_jobs(customer=None, status=None, direction=None, operational_phase=None, search=None):
 	"""Export the (unpaginated, filtered) Shipments list to Excel."""
 	check_freightmas_role()
 
 	res = get_jobs(
-		customer=customer, status=status, direction=direction, search=search,
+		customer=customer, status=status, direction=direction,
+		operational_phase=operational_phase, search=search,
 		limit_start=0, limit_page_length=5000,
 	)
 
@@ -1130,6 +1149,8 @@ def export_jobs(customer=None, status=None, direction=None, search=None):
 		{"label": "ETD", "fieldname": "etd", "fieldtype": "Date"},
 		{"label": "ATD", "fieldname": "atd", "fieldtype": "Date"},
 		{"label": "Status", "fieldname": "status"},
+		{"label": "Operational Phase", "fieldname": "operational_phase_label"},
+		{"label": "Substage", "fieldname": "operational_substage"},
 		{"label": "Milestone %", "fieldname": "milestone_percent", "fieldtype": "Float"},
 	]
 

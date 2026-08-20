@@ -19,6 +19,9 @@
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
+				<select v-model="operationalPhase" @change="onFilterChange">
+					<option v-for="p in operationalPhases" :key="p.value" :value="p.value">{{ p.label }}</option>
+				</select>
 				<a class="sd-table-link" :href="reportUrl" target="_blank" rel="noopener">
 					<Download :size="14" style="vertical-align: -2px;" /> Download Report
 				</a>
@@ -38,6 +41,7 @@
 							<th>Reference / Cargo Count</th>
 							<th>ETA / ATA</th>
 							<th>Status</th>
+							<th>Phase</th>
 							<th>Progress</th>
 						</tr>
 					</thead>
@@ -55,6 +59,7 @@
 								{{ formatDate(job.eta) }}<span class="sd-muted"> &middot; {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
 							</td>
 							<td><StatusBadge :status="job.status" /></td>
+							<td>{{ formatOperationalPhase(job) }}</td>
 							<td><ProgressBar :percent="job.milestone_percent" /></td>
 						</tr>
 					</tbody>
@@ -82,7 +87,9 @@ import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
 import ProgressBar from "../components/ProgressBar.vue";
 import EmptyState from "../components/EmptyState.vue";
+import { OPERATIONAL_PHASES, formatOperationalPhase } from "../operationalPhases";
 
+const operationalPhases = OPERATIONAL_PHASES;
 const statusTabs = [
 	{ value: "", label: "All" },
 	{ value: "In Progress", label: "In Progress" },
@@ -95,6 +102,7 @@ const directions = ["Import", "Export", "Local", "Transit"];
 const search = ref("");
 const status = ref("");
 const direction = ref("");
+const operationalPhase = ref("");
 const jobs = ref([]);
 const totalCount = ref(0);
 const loading = ref(true);
@@ -111,6 +119,7 @@ async function load() {
 			search: search.value,
 			status: status.value,
 			direction: direction.value,
+			operational_phase: operationalPhase.value,
 			limit_start: page.value * pageSize,
 			limit_page_length: pageSize,
 		});

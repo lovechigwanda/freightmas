@@ -4,6 +4,8 @@
 import frappe
 from frappe.utils import formatdate
 
+from freightmas.forwarding_service.utils.operational_phase import get_phase_label
+
 
 def execute(filters=None):
     
@@ -33,6 +35,10 @@ def execute(filters=None):
         conditions.append("status = %(status)s")
         params["status"] = filters["status"]
 
+    if filters.get("operational_phase"):
+        conditions.append("operational_phase = %(operational_phase)s")
+        params["operational_phase"] = filters["operational_phase"]
+
     if filters.get("customer_reference"):
         conditions.append("customer_reference LIKE %(customer_reference)s")
         params["customer_reference"] = f"%{filters['customer_reference']}%"
@@ -49,7 +55,7 @@ def execute(filters=None):
     # Get forwarding jobs data - matching exact columns from screenshot
     jobs = frappe.db.sql("""
         SELECT name, date_created, customer, consignee, customer_reference, 
-               eta, direction, status
+               eta, direction, status, operational_phase, operational_substage
         FROM `tabForwarding Job`
         WHERE """ + where_clause + """
         ORDER BY date_created DESC
@@ -66,6 +72,8 @@ def execute(filters=None):
             "eta": format_date(job.get("eta")),
             "direction": job.get("direction", ""),
             "status": job.get("status", ""),
+            "operational_phase": get_phase_label(job.get("operational_phase")),
+            "operational_substage": job.get("operational_substage") or "",
         })
 
     # Return data for pagination
@@ -94,6 +102,8 @@ def get_columns():
         {"label": "ETA", "fieldname": "eta", "fieldtype": "Data", "width": 110},
         {"label": "Direction", "fieldname": "direction", "fieldtype": "Data", "width": 110},
         {"label": "Status", "fieldname": "status", "fieldtype": "Data", "width": 110},
+        {"label": "Operational Phase", "fieldname": "operational_phase", "fieldtype": "Data", "width": 160},
+        {"label": "Substage", "fieldname": "operational_substage", "fieldtype": "Data", "width": 140},
     ]
 
 

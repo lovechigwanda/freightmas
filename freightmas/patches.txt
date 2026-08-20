@@ -26,3 +26,4 @@ freightmas.patches.clear_mislocated_tracking_dates
 freightmas.patches.set_invoice_no_copy_fields
 freightmas.patches.backfill_service_order_instructions
 freightmas.patches.fix_trucking_service_inconsistency
+freightmas.patches.backfill_operational_phase

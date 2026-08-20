@@ -19,6 +19,9 @@
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
+				<select v-model="operationalPhase" @change="onFilterChange">
+					<option v-for="p in operationalPhases" :key="p.value" :value="p.value">{{ p.label }}</option>
+				</select>
 				<a class="sd-btn sd-btn-primary" :href="exportHref" target="_blank" rel="noopener">
 					<Download :size="14" stroke-width="2" /> Export to Excel
 				</a>
@@ -39,6 +42,7 @@
 							<th>BL / Cargo Count</th>
 							<th>ETA / ATA</th>
 							<th>Status</th>
+							<th>Phase</th>
 							<th>Progress</th>
 						</tr>
 					</thead>
@@ -58,6 +62,7 @@
 								{{ formatDate(job.eta) }}<span class="sd-muted"> · {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
 							</td>
 							<td><StatusBadge :status="job.status" /></td>
+							<td>{{ formatOperationalPhase(job) }}</td>
 							<td><ProgressBar :percent="job.milestone_percent" /></td>
 						</tr>
 					</tbody>
@@ -85,9 +90,11 @@ import StatusBadge from "../../components/StatusBadge.vue";
 import ProgressBar from "../../components/ProgressBar.vue";
 import EmptyState from "../../components/EmptyState.vue";
 import DeskLink from "../../components/DeskLink.vue";
+import { OPERATIONAL_PHASES, formatOperationalPhase } from "./operationalPhases";
 
 defineEmits(["open-job"]);
 
+const operationalPhases = OPERATIONAL_PHASES;
 const statusTabs = [
 	{ value: "", label: "All" },
 	{ value: "Draft", label: "Draft" },
@@ -101,6 +108,7 @@ const directions = ["Import", "Export", "Local", "Transit"];
 const search = ref("");
 const status = ref("");
 const direction = ref("");
+const operationalPhase = ref("");
 const jobs = ref([]);
 const totalCount = ref(0);
 const loading = ref(true);
@@ -117,6 +125,7 @@ async function load() {
 			search: search.value,
 			status: status.value,
 			direction: direction.value,
+			operational_phase: operationalPhase.value,
 			limit_start: page.value * pageSize,
 			limit_page_length: pageSize,
 		});
@@ -143,7 +152,12 @@ function setStatus(value) {
 }
 
 const exportHref = computed(() =>
-	exportUrl("shipments", { search: search.value, status: status.value, direction: direction.value })
+	exportUrl("shipments", {
+		search: search.value,
+		status: status.value,
+		direction: direction.value,
+		operational_phase: operationalPhase.value,
+	})
 );
 
 function changePage(delta) {

@@ -99,6 +99,25 @@ frappe.query_reports["Forwarding Job List"] = {
 			options: ["", "Draft", "In Progress", "Completed", "Cancelled"]
 		},
 		{
+			fieldname: "operational_phase",
+			label: __("Operational Phase"),
+			fieldtype: "Select",
+			options: [
+				"",
+				"planning",
+				"awaiting_departure",
+				"in_transit",
+				"at_terminal",
+				"under_port_clearance",
+				"under_border_clearance",
+				"on_road",
+				"at_warehouse",
+				"delivered",
+				"closed",
+				"cancelled",
+			]
+		},
+		{
 			fieldname: "customer_reference",
 			label: __("Reference"),
 			fieldtype: "Data"

@@ -20,12 +20,14 @@ from freightmas.portal.security import (
 	get_portal_customer_names,
 	log_portal_access,
 )
+from freightmas.forwarding_service.utils.operational_phase import get_phase_label
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
 JOB_LIST_FIELDS = [
 	"name", "customer_reference", "direction", "shipment_mode", "shipment_type",
-	"status", "port_of_loading", "port_of_discharge", "destination",
+	"status", "operational_phase", "operational_substage",
+	"port_of_loading", "port_of_discharge", "destination",
 	"vessel_flight_no", "bl_number", "cargo_count", "eta", "ata", "etd", "atd",
 	"discharge_date", "current_comment", "last_updated_on",
 ]
@@ -158,12 +160,14 @@ def _caller_customer_filter():
 	return customers
 
 
-def _job_list_filters(customers, status=None, direction=None, search=None):
+def _job_list_filters(customers, status=None, direction=None, operational_phase=None, search=None):
 	filters = {"docstatus": ["<", 2], "customer": ["in", customers]}
 	if status:
 		filters["status"] = status
 	if direction:
 		filters["direction"] = direction
+	if operational_phase:
+		filters["operational_phase"] = operational_phase
 
 	or_filters = None
 	if search:
@@ -271,11 +275,11 @@ def _resolve_milestone_report_mode(customer=None):
 
 
 @frappe.whitelist()
-def get_jobs(status=None, direction=None, search=None, limit_start=0, limit_page_length=20):
+def get_jobs(status=None, direction=None, operational_phase=None, search=None, limit_start=0, limit_page_length=20):
 	check_portal_access()
 	customers = _caller_customer_filter()
 
-	filters, or_filters = _job_list_filters(customers, status, direction, search)
+	filters, or_filters = _job_list_filters(customers, status, direction, operational_phase, search)
 
 	# get_all(), not get_list(): Customer Portal User holds zero DocType
 	# permissions by design (see freightmas/portal/security.py) - the
@@ -297,6 +301,7 @@ def get_jobs(status=None, direction=None, search=None, limit_start=0, limit_page
 	today = getdate(nowdate())
 	for j in jobs:
 		j["milestone_percent"] = progress_map.get(j.name, 0)
+		j["operational_phase_label"] = get_phase_label(j.get("operational_phase"))
 		j["is_overdue"] = bool(
 			(j.direction == "Import" and j.eta and getdate(j.eta) < today and not j.ata)
 			or (j.direction == "Export" and j.etd and getdate(j.etd) < today and not j.atd)
