@@ -891,7 +891,7 @@ class ForwardingJob(Document):
     def check_cargo_parcel_requirements(self):
         """
         Check cargo parcel details requirements:
-        - If to_be_returned is checked, return_by_date should be set
+        - For Containerised cargo: if to_be_returned is checked, return_by_date should be set
         - If is_truck_required, road_freight_route and is_completed should be checked
         """
         errors = []
@@ -907,18 +907,19 @@ class ForwardingJob(Document):
         
         for idx, cargo in enumerate(cargo_rows, 1):
             row_identifier = getattr(cargo, "container_number", "") or f"Row {idx}"
-            
-            # Check: If to_be_returned is checked, return_by_date should be set
-            if getattr(cargo, "to_be_returned", 0) and not getattr(cargo, "return_by_date", None):
+            is_containerised = getattr(cargo, "cargo_type", None) == "Containerised"
+
+            # Check: Containerised cargo marked for return must have a return-by date
+            if is_containerised and getattr(cargo, "to_be_returned", 0) and not getattr(cargo, "return_by_date", None):
                 missing_return_date.append(row_identifier)
-            
+
             # Check: If is_truck_required, road_freight_route and is_completed should be checked
             if getattr(cargo, "is_truck_required", 0):
                 if not getattr(cargo, "road_freight_route", None):
                     missing_route.append(row_identifier)
                 if not getattr(cargo, "is_completed", 0):
                     incomplete_trucking.append(row_identifier)
-                if getattr(cargo, "to_be_returned", 0) and not (
+                if is_containerised and getattr(cargo, "to_be_returned", 0) and not (
                     getattr(cargo, "is_returned", 0) or getattr(cargo, "empty_return_date", None)
                 ):
                     missing_return_milestone.append(row_identifier)

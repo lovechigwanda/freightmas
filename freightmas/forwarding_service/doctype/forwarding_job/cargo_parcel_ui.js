@@ -12,6 +12,55 @@ function get_cargo_parcel_grid_row(frm, cdn) {
 	return frm.fields_dict.cargo_parcel_details?.grid?.grid_rows_by_docname?.[cdn];
 }
 
+// Frappe child-table row forms reset to tab 1 on every layout.refresh_sections().
+// Patch the row layout so the user's active tab is restored after dependency refreshes.
+function install_parcel_row_tab_preservation(grid_row) {
+	const layout = grid_row?.grid_form?.layout;
+	if (!layout?.is_child_table || layout._freightmas_tab_preservation) {
+		return;
+	}
+	layout._freightmas_tab_preservation = true;
+
+	const restore_saved_tab = () => {
+		const saved_tab = layout.grid_row_form?.active_tab;
+		if (saved_tab && typeof saved_tab.is_hidden === 'function' && !saved_tab.is_hidden()) {
+			saved_tab.set_active();
+			return true;
+		}
+		return false;
+	};
+
+	const original_set_tab_as_active = layout.set_tab_as_active.bind(layout);
+	layout.set_tab_as_active = function () {
+		if (restore_saved_tab()) {
+			return;
+		}
+		original_set_tab_as_active();
+	};
+
+	const original_refresh = layout.refresh.bind(layout);
+	layout.refresh = function (doc) {
+		original_refresh(doc);
+		restore_saved_tab();
+	};
+
+	const original_refresh_sections = layout.refresh_sections.bind(layout);
+	layout.refresh_sections = function () {
+		original_refresh_sections();
+		restore_saved_tab();
+	};
+
+	if (!grid_row._freightmas_row_refresh_patched) {
+		grid_row._freightmas_row_refresh_patched = true;
+		const original_row_refresh = grid_row.refresh.bind(grid_row);
+		grid_row.refresh = function () {
+			const tab_fieldname = get_active_parcel_tab_fieldname(grid_row);
+			original_row_refresh();
+			restore_parcel_row_tab(grid_row, tab_fieldname);
+		};
+	}
+}
+
 function get_active_parcel_tab_fieldname(grid_row) {
 	const active_tab = grid_row?.grid_form?.active_tab;
 	if (active_tab?.df?.fieldname) {
@@ -36,16 +85,16 @@ function refresh_cargo_parcel_row(frm, cdn, fieldnames) {
 		return;
 	}
 
+	install_parcel_row_tab_preservation(grid_row);
 	const active_tab = get_active_parcel_tab_fieldname(grid_row);
 
 	if (fieldnames?.length) {
 		fieldnames.forEach((fieldname) => grid_row.refresh_field(fieldname));
 	} else {
 		grid_row.grid_form?.layout?.refresh(grid_row.doc);
-		restore_parcel_row_tab(grid_row, active_tab);
 	}
 
-	setup_parcel_row_helpers(frm, 'Cargo Parcel Details', cdn);
+	restore_parcel_row_tab(grid_row, active_tab);
 	show_milestone_bridge_hints(frm, 'Cargo Parcel Details', cdn);
 }
 
@@ -177,6 +226,8 @@ function setup_parcel_row_helpers(frm, cdt, cdn) {
 	const grid_row = frm.fields_dict.cargo_parcel_details?.grid?.grid_rows_by_docname?.[cdn];
 	const layout = grid_row?.grid_form?.layout;
 	if (!layout?.tabs?.length) return;
+
+	install_parcel_row_tab_preservation(grid_row);
 
 	layout.tabs.forEach(tab => {
 		if (tab._parcel_helpers_bound) return;
@@ -369,6 +420,10 @@ frappe.ui.form.on('Forwarding Job', {
 
 frappe.ui.form.on('Cargo Parcel Details', {
 	form_render(frm, cdt, cdn) {
+		const grid_row = get_cargo_parcel_grid_row(frm, cdn);
+		if (grid_row) {
+			install_parcel_row_tab_preservation(grid_row);
+		}
 		setup_parcel_row_helpers(frm, cdt, cdn);
 		const row = locals[cdt][cdn];
 		if (row?.is_truck_required) {

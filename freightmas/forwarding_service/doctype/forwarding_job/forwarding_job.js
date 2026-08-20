@@ -1,6 +1,8 @@
 // Copyright (c) 2025, Zvomaita Technologies (Pvt) Ltd
 // For license information, please see license.txt
 
+{% include "freightmas/forwarding_service/doctype/forwarding_job/cargo_parcel_ui.js" %}
+
 // ==========================================================
 // Forwarding Job - Client Script
 // Handles currency logic, charge calculations, invoicing,
@@ -2827,5 +2829,3 @@ function _fetch_forwarding_tracking(frm) {
         }
     });
 }
-
-{% include "freightmas/forwarding_service/doctype/forwarding_job/cargo_parcel_ui.js" %}
