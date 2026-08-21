@@ -133,7 +133,21 @@ function applyRouteFilters() {
 	}
 	if (selectedPhases.value.length) {
 		status.value = "";
+	} else if (typeof route.query.status === "string") {
+		status.value = route.query.status;
 	}
+}
+
+function syncStatusToRoute() {
+	const query = { ...route.query };
+	if (status.value) {
+		query.status = status.value;
+	} else {
+		delete query.status;
+	}
+	delete query.bucket;
+	delete query.phases;
+	router.replace({ query });
 }
 
 function syncPhasesToRoute() {
@@ -145,6 +159,7 @@ function syncPhasesToRoute() {
 		delete query.phases;
 	}
 	delete query.bucket;
+	delete query.status;
 	router.replace({ query });
 }
 
@@ -186,6 +201,9 @@ function onFilterChange() {
 
 function onPhasesChange() {
 	page.value = 0;
+	if (selectedPhases.value.length) {
+		status.value = "";
+	}
 	syncPhasesToRoute();
 	load();
 }
@@ -194,6 +212,8 @@ function setStatus(value) {
 	if (status.value === value) return;
 	status.value = value;
 	page.value = 0;
+	selectedPhases.value = [];
+	syncStatusToRoute();
 	load();
 }
 
@@ -203,7 +223,7 @@ function changePage(delta) {
 }
 
 watch(
-	() => [route.query.phases, route.query.bucket],
+	() => [route.query.phases, route.query.bucket, route.query.status],
 	() => {
 		applyRouteFilters();
 		if (route.query.bucket) {

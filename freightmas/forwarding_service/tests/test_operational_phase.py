@@ -129,6 +129,9 @@ class TestOperationalPhase(unittest.TestCase):
 		from freightmas.forwarding_service.utils.operational_phase import OVERVIEW_PIPELINE_BUCKETS
 		self.assertEqual(len(OVERVIEW_PIPELINE_BUCKETS), 7)
 		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[0]["label"], "At Origin")
+		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[2]["label"], "At POD")
+		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[2]["title"], "At Port of Discharge")
+		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[3]["label"], "Port Clearance")
 		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[-1]["label"], "Delivered")
 
 

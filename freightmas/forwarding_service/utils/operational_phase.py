@@ -50,14 +50,15 @@ MILESTONE_TABLE_FIELDS = (
 )
 
 # Dashboard overview pipeline — display buckets (subset of operational phases).
+# `label` is the short card text; `title` is the full name for tooltips.
 OVERVIEW_PIPELINE_BUCKETS = (
-	{"key": "at_origin", "label": "At Origin", "phases": ("planning", "awaiting_departure")},
-	{"key": "in_transit", "label": "In Water / Air", "phases": ("in_transit",)},
-	{"key": "at_terminal", "label": "At Port of Discharge", "phases": ("at_terminal",)},
-	{"key": "under_port_clearance", "label": "Under Port Clearance", "phases": ("under_port_clearance",)},
-	{"key": "under_border_clearance", "label": "Under Border Clearance", "phases": ("under_border_clearance",)},
-	{"key": "on_road", "label": "On Road to Destination", "phases": ("on_road",)},
-	{"key": "delivered", "label": "Delivered", "phases": ("delivered",)},
+	{"key": "at_origin", "label": "At Origin", "title": "At Origin", "phases": ("planning", "awaiting_departure")},
+	{"key": "in_transit", "label": "In Water / Air", "title": "In Water / Air", "phases": ("in_transit",)},
+	{"key": "at_terminal", "label": "At POD", "title": "At Port of Discharge", "phases": ("at_terminal",)},
+	{"key": "under_port_clearance", "label": "Port Clearance", "title": "Under Port Clearance", "phases": ("under_port_clearance",)},
+	{"key": "under_border_clearance", "label": "Border Clearance", "title": "Under Border Clearance", "phases": ("under_border_clearance",)},
+	{"key": "on_road", "label": "On Road", "title": "On Road to Destination", "phases": ("on_road",)},
+	{"key": "delivered", "label": "Delivered", "title": "Delivered", "phases": ("delivered",)},
 )
 
 _OVERVIEW_BUCKET_BY_KEY = {bucket["key"]: bucket for bucket in OVERVIEW_PIPELINE_BUCKETS}
@@ -98,6 +99,7 @@ def build_overview_phase_pipeline():
 		pipeline.append({
 			"key": bucket["key"],
 			"label": bucket["label"],
+			"title": bucket.get("title") or bucket["label"],
 			"count": count,
 			"phases": list(bucket["phases"]),
 		})

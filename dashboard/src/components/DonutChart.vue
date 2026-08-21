@@ -37,7 +37,16 @@
 			>total</text>
 		</svg>
 		<div class="cc-donut-legend">
-			<div v-for="row in data" :key="row.label" class="cc-donut-legend-row">
+			<div
+				v-for="row in data"
+				:key="row.label"
+				class="cc-donut-legend-row"
+				:class="{ 'cc-donut-legend-row-clickable': clickable }"
+				:role="clickable ? 'button' : undefined"
+				:tabindex="clickable ? 0 : undefined"
+				@click="onRowClick(row)"
+				@keydown.enter.prevent="onRowClick(row)"
+			>
 				<span class="cc-donut-legend-dot" :style="{ background: row.color }"></span>
 				<span class="cc-donut-legend-label">{{ row.label }}</span>
 				<span class="cc-donut-legend-value">{{ row.value }}</span>
@@ -55,7 +64,15 @@ const props = defineProps({
 	size: { type: Number, default: 108 },
 	thickness: { type: Number, default: 14 },
 	trackColor: { type: String, default: "#eef0f5" },
+	clickable: { type: Boolean, default: false },
 });
+
+const emit = defineEmits(["row-click"]);
+
+function onRowClick(row) {
+	if (!props.clickable || !Number(row.value)) return;
+	emit("row-click", row);
+}
 
 const radius = computed(() => props.size / 2 - props.thickness / 2 - 2);
 const circumference = computed(() => 2 * Math.PI * radius.value);
@@ -89,5 +106,17 @@ const segments = computed(() => {
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
 	font-family: inherit;
+}
+
+.cc-donut-legend-row-clickable {
+	cursor: pointer;
+	border-radius: 6px;
+	margin: 0 -6px;
+	padding: 2px 6px;
+	transition: background 0.12s ease;
+}
+
+.cc-donut-legend-row-clickable:hover {
+	background: var(--sd-surface-alt);
 }
 </style>

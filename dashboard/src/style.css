@@ -438,16 +438,18 @@ h1, h2, h3, h4 {
 
 .sd-phase-pipeline-item {
 	display: flex;
-	align-items: center;
+	align-items: stretch;
 	min-width: 0;
 }
 
 .sd-phase-card {
 	flex: 1;
 	min-width: 0;
+	min-height: 58px;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	justify-content: center;
 	gap: 6px;
 	padding: 10px 12px;
 	border: 1px solid var(--sd-border);
@@ -506,6 +508,7 @@ h1, h2, h3, h4 {
 	font-weight: 600;
 	color: var(--sd-text-muted);
 	line-height: 1.3;
+	white-space: nowrap;
 }
 
 .sd-phase-card.neutral .sd-phase-card-icon {
@@ -1650,6 +1653,65 @@ h1, h2, h3, h4 {
 .cc-donut-legend-value {
 	color: var(--sd-text-muted);
 	font-weight: 600;
+}
+
+.sd-jobs-scope-tabs {
+	padding: 2px;
+	margin: 0;
+	flex-shrink: 0;
+}
+
+.sd-jobs-scope-tabs .sd-tab {
+	padding: 4px 10px;
+	font-size: 11px;
+}
+
+.sd-jobs-status-card .sd-card-title {
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.sd-jobs-cargo-summary {
+	display: flex;
+	gap: 12px;
+	margin-top: 16px;
+	padding-top: 14px;
+	border-top: 1px solid var(--sd-border-soft);
+}
+
+.sd-jobs-cargo-stat {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: var(--sd-surface-alt);
+}
+
+.sd-jobs-cargo-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--sd-text-muted);
+}
+
+.sd-jobs-cargo-value {
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--sd-text);
+	line-height: 1.1;
+}
+
+.sd-jobs-direction-table {
+	margin-top: 14px;
+}
+
+.sd-jobs-direction-table th,
+.sd-jobs-direction-table td {
+	padding: 8px 10px;
+	font-size: 12px;
 }
 
 .cc-bar-row {

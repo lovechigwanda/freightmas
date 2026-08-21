@@ -1,6 +1,6 @@
 <template>
 	<div class="sd-phase-pipeline-item">
-		<button type="button" class="sd-phase-card" :class="tone" @click="$emit('click')">
+		<button type="button" class="sd-phase-card" :class="tone" :title="cardTitle" @click="$emit('click')">
 			<div class="sd-phase-card-head">
 				<div class="sd-phase-card-icon">
 					<component :is="icon" stroke-width="2" />
@@ -14,11 +14,13 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { ChevronRight } from "@lucide/vue";
 import { MapPin } from "@lucide/vue";
 
-defineProps({
+const props = defineProps({
 	label: { type: String, required: true },
+	title: { type: String, default: "" },
 	count: { type: Number, default: 0 },
 	tone: { type: String, default: "default" },
 	icon: { type: [Object, Function], default: () => MapPin },
@@ -26,4 +28,6 @@ defineProps({
 });
 
 defineEmits(["click"]);
+
+const cardTitle = computed(() => props.title || props.label);
 </script>

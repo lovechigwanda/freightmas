@@ -155,22 +155,94 @@ def get_branding():
 # OVERVIEW
 # ============================================================
 
+def _active_status_clause(prefix="", active_only=False):
+	col = f"{prefix}status" if prefix else "status"
+	if active_only:
+		return f"AND {col} NOT IN %(statuses)s"
+	return ""
+
+
+def _build_jobs_summary(active_only=False):
+	"""Jobs-by-status, cargo totals, and direction breakdown for the overview widget."""
+	params = {"statuses": NOT_ACTIVE_STATUSES} if active_only else {}
+	status_clause = _active_status_clause(active_only=active_only)
+	fj_status_clause = _active_status_clause(prefix="fj.", active_only=active_only)
+
+	by_status = frappe.db.sql(
+		f"""
+		SELECT status, COUNT(*) AS count
+		FROM `tabForwarding Job`
+		WHERE docstatus < 2 {status_clause}
+		GROUP BY status
+		ORDER BY FIELD(status, 'Draft', 'In Progress', 'Delivered', 'Completed', 'Closed', 'Cancelled')
+		""",
+		params,
+		as_dict=True,
+	)
+
+	cargo_totals = frappe.db.sql(
+		f"""
+		SELECT
+			COALESCE(SUM(
+				CASE WHEN cpd.cargo_type = 'Containerised'
+				THEN COALESCE(cpd.cargo_quantity, 0) ELSE 0 END
+			), 0) AS containers,
+			COALESCE(SUM(
+				CASE WHEN cpd.cargo_type = 'Packages'
+				THEN COALESCE(cpd.cargo_quantity, 0) ELSE 0 END
+			), 0) AS parcels
+		FROM `tabForwarding Job` fj
+		LEFT JOIN `tabCargo Parcel Details` cpd
+			ON cpd.parent = fj.name AND cpd.parenttype = 'Forwarding Job'
+		WHERE fj.docstatus < 2 {fj_status_clause}
+		""",
+		params,
+		as_dict=True,
+	)[0]
+
+	by_direction = frappe.db.sql(
+		f"""
+		SELECT
+			fj.direction,
+			COUNT(DISTINCT fj.name) AS jobs,
+			COALESCE(SUM(
+				CASE WHEN cpd.cargo_type = 'Containerised'
+				THEN COALESCE(cpd.cargo_quantity, 0) ELSE 0 END
+			), 0) AS containers,
+			COALESCE(SUM(
+				CASE WHEN cpd.cargo_type = 'Packages'
+				THEN COALESCE(cpd.cargo_quantity, 0) ELSE 0 END
+			), 0) AS parcels
+		FROM `tabForwarding Job` fj
+		LEFT JOIN `tabCargo Parcel Details` cpd
+			ON cpd.parent = fj.name AND cpd.parenttype = 'Forwarding Job'
+		WHERE fj.docstatus < 2 {fj_status_clause}
+		GROUP BY fj.direction
+		ORDER BY FIELD(fj.direction, 'Import', 'Export', 'Local', 'Transit'), jobs DESC
+		""",
+		params,
+		as_dict=True,
+	)
+
+	return {
+		"by_status": by_status,
+		"containers": cint(cargo_totals.containers),
+		"parcels": cint(cargo_totals.parcels),
+		"by_direction": by_direction,
+	}
+
+
 @frappe.whitelist()
 def get_overview():
 	check_freightmas_role()
 
 	phase_pipeline = build_overview_phase_pipeline()
 
-	jobs_by_status = frappe.db.sql(
-		"""
-		SELECT status, COUNT(*) AS count
-		FROM `tabForwarding Job`
-		WHERE docstatus < 2
-		GROUP BY status
-		ORDER BY FIELD(status, 'Draft', 'In Progress', 'Delivered', 'Completed', 'Closed', 'Cancelled')
-		""",
-		as_dict=True,
-	)
+	jobs_summary = {
+		"active": _build_jobs_summary(active_only=True),
+		"all": _build_jobs_summary(active_only=False),
+	}
+	jobs_by_status = jobs_summary["all"]["by_status"]
 
 	monthly_trend = _monthly_revenue_margin_trend(months=6)
 
@@ -216,6 +288,7 @@ def get_overview():
 	return {
 		"phase_pipeline": phase_pipeline,
 		"jobs_by_status": jobs_by_status,
+		"jobs_summary": jobs_summary,
 		"monthly_trend": monthly_trend,
 		"top_customers": top_customers,
 		"top_corridors": top_corridors,

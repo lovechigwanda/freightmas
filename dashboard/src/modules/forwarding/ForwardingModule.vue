@@ -14,7 +14,12 @@
 		</nav>
 
 		<main class="sd-body" style="padding: 0;">
-			<OverviewView v-if="activeTab === 'overview'" @open-job="openJob" @navigate-bucket="navigateToBucket" />
+			<OverviewView
+				v-if="activeTab === 'overview'"
+				@open-job="openJob"
+				@navigate-bucket="navigateToBucket"
+				@navigate-status="navigateToStatus"
+			/>
 			<ShipmentsView v-else-if="activeTab === 'shipments'" @open-job="openJob" />
 			<TrackingView v-else-if="activeTab === 'tracking'" />
 			<FinanceView v-else-if="activeTab === 'finance'" @open-job="openJob" />
@@ -59,6 +64,7 @@ watch(activeTab, (key) => {
 	if (key !== "shipments") {
 		delete query.bucket;
 		delete query.phases;
+		delete query.status;
 	}
 	router.replace({ query });
 });
@@ -67,12 +73,21 @@ async function navigateToBucket(bucket) {
 	const phases = phasesFromBucket(bucket);
 	const query = { ...route.query, tab: "shipments" };
 	delete query.bucket;
+	delete query.status;
 	const phasesQuery = phasesToQuery(phases);
 	if (phasesQuery) {
 		query.phases = phasesQuery;
 	} else {
 		delete query.phases;
 	}
+	await router.replace({ query });
+	activeTab.value = "shipments";
+}
+
+async function navigateToStatus(status) {
+	const query = { ...route.query, tab: "shipments", status };
+	delete query.bucket;
+	delete query.phases;
 	await router.replace({ query });
 	activeTab.value = "shipments";
 }
