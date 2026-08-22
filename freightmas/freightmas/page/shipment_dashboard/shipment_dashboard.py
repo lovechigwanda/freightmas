@@ -18,7 +18,7 @@ from io import BytesIO
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt, getdate, nowdate, add_days, add_months, get_first_day, get_last_day, formatdate
+from frappe.utils import cint, flt, getdate, nowdate, add_days, add_months, get_first_day, get_last_day, formatdate, get_formatted_email
 
 from freightmas.utils.forwarding_dnd_calculator import days_remaining_to_lfd
 
@@ -2914,6 +2914,7 @@ def email_tracking_report(to_email, subject, message, customers=None, status=Non
 
 	frappe.sendmail(
 		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
 		cc=cc,
 		subject=subject,
 		message=message,
@@ -2939,6 +2940,7 @@ def email_master_tracking_report(to_email, subject, message, customers=None, sta
 
 	frappe.sendmail(
 		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
 		cc=cc,
 		subject=subject,
 		message=message,
@@ -2959,6 +2961,7 @@ def email_shipment_tracking_report(to_email, subject, message, customer, cc_emai
 
 	frappe.sendmail(
 		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
 		cc=cc,
 		subject=subject,
 		message=message,
@@ -2984,6 +2987,7 @@ def email_shipment_tracking_report_excel(to_email, subject, message, customer, c
 
 	frappe.sendmail(
 		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
 		cc=cc,
 		subject=subject,
 		message=message,

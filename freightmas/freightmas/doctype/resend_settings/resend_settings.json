@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-08-22 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "setup_instructions_section",
+  "setup_instructions",
+  "api_section",
+  "api_key",
+  "column_break_api",
+  "fallback_sender",
+  "allowed_domains_section",
+  "allowed_domains",
+  "test_section",
+  "test_recipient"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "description": "When enabled, all outgoing Email Queue messages are sent via the Resend HTTP API instead of SMTP.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Resend"
+  },
+  {
+   "depends_on": "eval:!doc.enabled",
+   "fieldname": "setup_instructions_section",
+   "fieldtype": "Section Break",
+   "label": "Setup"
+  },
+  {
+   "depends_on": "eval:!doc.enabled",
+   "fieldname": "setup_instructions",
+   "fieldtype": "HTML",
+   "label": "Setup Instructions",
+   "options": "<p>Loading setup instructions...</p>"
+  },
+  {
+   "fieldname": "api_section",
+   "fieldtype": "Section Break",
+   "label": "API Configuration"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "Resend API Key",
+   "mandatory_depends_on": "eval:doc.enabled"
+  },
+  {
+   "fieldname": "column_break_api",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Used for system emails (password reset, cron) when no user sender is available. Example: Your App <noreply@yourdomain.com>",
+   "fieldname": "fallback_sender",
+   "fieldtype": "Data",
+   "label": "Fallback Sender",
+   "mandatory_depends_on": "eval:doc.enabled"
+  },
+  {
+   "fieldname": "allowed_domains_section",
+   "fieldtype": "Section Break",
+   "label": "Allowed Sender Domains"
+  },
+  {
+   "description": "One domain per line. User From addresses must match one of these domains. Example: yourdomain.com",
+   "fieldname": "allowed_domains",
+   "fieldtype": "Small Text",
+   "label": "Allowed Domains"
+  },
+  {
+   "fieldname": "test_section",
+   "fieldtype": "Section Break",
+   "label": "Test"
+  },
+  {
+   "description": "Optional. Defaults to the current user's email when sending a test.",
+   "fieldname": "test_recipient",
+   "fieldtype": "Data",
+   "label": "Test Recipient",
+   "options": "Email"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-08-22 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FreightMas",
+ "name": "Resend Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "FreightMas Admin",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

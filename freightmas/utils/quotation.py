@@ -11,7 +11,7 @@ Handles:
 
 import frappe
 from frappe import _
-from frappe.utils import today, getdate, get_fullname, flt
+from frappe.utils import today, getdate, get_fullname, flt, get_formatted_email
 
 
 # ==============================
@@ -135,6 +135,7 @@ def send_approval_request_email(doc):
 		for manager in sales_managers:
 			frappe.sendmail(
 				recipients=[manager],
+				sender=get_formatted_email(frappe.session.user),
 				subject=subject,
 				message=message,
 				reference_doctype="Quotation",
@@ -203,6 +204,7 @@ def send_approval_notification_email(doc):
 		# Send email to quotation owner
 		frappe.sendmail(
 			recipients=[doc.owner],
+			sender=get_formatted_email(frappe.session.user),
 			subject=subject,
 			message=message,
 			reference_doctype="Quotation",

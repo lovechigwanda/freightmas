@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.utils import formatdate, flt
+from frappe.utils import formatdate, flt, get_formatted_email
 from freightmas.utils.permissions import check_freightmas_role
 
 def execute(filters=None):
@@ -124,6 +124,7 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
         # Send email using Frappe's built-in email service
         frappe.sendmail(
             recipients=recipients,
+            sender=get_formatted_email(frappe.session.user),
             cc=cc,
             subject=subject,
             message=message,

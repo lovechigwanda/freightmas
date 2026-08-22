@@ -192,6 +192,8 @@ scheduler_events = {
 # Overriding Methods
 # ------------------------------
 #
+override_email_send = "freightmas.integrations.resend.delivery.send_via_resend"
+#
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "freightmas.event.get_events"
 # }
@@ -300,7 +302,10 @@ doc_events = {
         "validate": "freightmas.portal.provisioning.sync_portal_user_on_contact_save"
     },
     "User": {
-        "validate": "freightmas.portal.provisioning.enforce_portal_user_type"
+        "validate": [
+            "freightmas.portal.provisioning.enforce_portal_user_type",
+            "freightmas.integrations.resend.user.validate_user_email_domain",
+        ]
     },
     "Quotation": {
 		"validate": "freightmas.utils.quotation.validate_quotation",
