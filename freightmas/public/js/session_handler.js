@@ -96,6 +96,10 @@
 		d.show();
 	}
 
+	// Exposed for the Command Centre Vue SPA, which uses fetch() instead of
+	// jQuery ajax and therefore bypasses the ajaxError hook below.
+	window.fmShowSessionExpiredDialog = showSessionExpiredDialog;
+
 	function installMsgprintHook() {
 		if (!frappe.msgprint || frappe.msgprint.__fmSessionHook) return;
 
