@@ -75,6 +75,12 @@ frappe.ui.form.on('Forwarding Job', {
                     '_blank'
                 );
             }, __('View'));
+
+            setup_job_creation_notification_ui(frm);
+        }
+
+        if (frm._fwd_job_prev_status === undefined) {
+            frm._fwd_job_prev_status = frm.doc.status;
         }
     },
     
@@ -157,6 +163,15 @@ frappe.ui.form.on('Forwarding Job', {
             set_main_value_safe(frm, 'last_updated_on', last.date);
             set_main_value_safe(frm, 'last_updated_by', last.updated_by_name || last.updated_by);
         }
+    },
+
+    after_save(frm) {
+        const prev = frm._fwd_job_prev_status;
+        const curr = frm.doc.status;
+        if (prev === 'Draft' && curr === 'In Progress') {
+            prompt_job_creation_email(frm);
+        }
+        frm._fwd_job_prev_status = curr;
     },
 
     fetch_from_quotation(frm) {
@@ -2828,4 +2843,130 @@ function _fetch_forwarding_tracking(frm) {
             }, 5);
         }
     });
+}
+
+// ==========================================================
+// Job Creation Notification Email
+// ==========================================================
+
+function setup_job_creation_notification_ui(frm) {
+    if (frm.doc.status !== 'In Progress' || frm.doc.job_creation_notification_sent) {
+        return;
+    }
+    frappe.db.get_single_value('FreightMas Settings', 'enable_job_creation_notifications').then(enabled => {
+        if (!enabled) return;
+        frm.add_custom_button(__('Notify Customer'), function() {
+            prompt_job_creation_email(frm);
+        }, __('Actions'));
+    });
+}
+
+function prompt_job_creation_email(frm) {
+    frappe.call({
+        method: 'freightmas.forwarding_service.notifications.job_creation_email.get_job_creation_email_draft',
+        args: { forwarding_job: frm.doc.name },
+        callback(r) {
+            const draft = r.message;
+            if (!draft || !draft.enabled) return;
+            show_job_creation_email_dialog(frm, draft);
+        }
+    });
+}
+
+function show_job_creation_email_dialog(frm, draft) {
+    let warning_html = '';
+    if (draft.tracking_email_enabled === 0) {
+        warning_html = `<div class="alert alert-warning" style="margin-bottom: 12px;">${
+            __('Tracking emails are disabled for {0} in Customer settings. You can still send manually.', [draft.customer_name])
+        }</div>`;
+    }
+
+    const dialog = new frappe.ui.Dialog({
+        title: __('Notify Customer — {0}', [draft.job_name]),
+        fields: [
+            {
+                fieldtype: 'HTML',
+                fieldname: 'warning_banner',
+                options: warning_html
+            },
+            {
+                fieldname: 'to_email',
+                label: __('To Email'),
+                fieldtype: 'Data',
+                options: 'Email',
+                reqd: 1,
+                default: draft.to_email || ''
+            },
+            {
+                fieldname: 'cc_emails',
+                label: __('CC Emails'),
+                fieldtype: 'Small Text',
+                default: draft.cc_emails || ''
+            },
+            {
+                fieldname: 'subject',
+                label: __('Subject'),
+                fieldtype: 'Data',
+                reqd: 1,
+                default: draft.subject || ''
+            },
+            {
+                fieldname: 'message',
+                label: __('Message'),
+                fieldtype: 'Text Editor',
+                reqd: 1,
+                default: draft.message || ''
+            }
+        ],
+        primary_action_label: __('Send Email'),
+        primary_action(values) {
+            if (!validate_email_format(values.to_email)) {
+                frappe.msgprint(__('Please enter a valid email address'));
+                return;
+            }
+            if (values.cc_emails && !validate_cc_emails(values.cc_emails)) {
+                frappe.msgprint(__('Please enter valid CC email addresses (comma separated)'));
+                return;
+            }
+            frappe.call({
+                method: 'freightmas.forwarding_service.notifications.job_creation_email.send_job_creation_notification',
+                args: {
+                    forwarding_job: frm.doc.name,
+                    to_email: values.to_email,
+                    subject: values.subject,
+                    message: values.message,
+                    cc_emails: values.cc_emails || ''
+                },
+                freeze: true,
+                freeze_message: __('Sending email...'),
+                callback(res) {
+                    if (res.message && res.message.success) {
+                        frappe.show_alert({
+                            message: res.message.message || __('Email sent successfully.'),
+                            indicator: 'green'
+                        }, 5);
+                        dialog.hide();
+                        frm.reload_doc();
+                    }
+                }
+            });
+        },
+        secondary_action_label: __('Skip'),
+        secondary_action() {
+            dialog.hide();
+        }
+    });
+
+    dialog.show();
+}
+
+function validate_email_format(email) {
+    const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return email_regex.test(email);
+}
+
+function validate_cc_emails(cc_emails) {
+    if (!cc_emails || !cc_emails.trim()) return true;
+    const emails = cc_emails.split(',').map(email => email.trim());
+    return emails.every(email => validate_email_format(email));
 }

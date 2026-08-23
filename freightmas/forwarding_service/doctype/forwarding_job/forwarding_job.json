@@ -197,6 +197,7 @@
   "status",
   "operational_phase",
   "operational_substage",
+  "job_creation_notification_sent",
   "column_break_qlnm",
   "completed_on",
   "column_break_limi",
@@ -308,6 +309,15 @@
    "fieldname": "operational_substage",
    "fieldtype": "Data",
    "label": "Operational Substage",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "job_creation_notification_sent",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Job Creation Notification Sent",
    "no_copy": 1,
    "read_only": 1
   },

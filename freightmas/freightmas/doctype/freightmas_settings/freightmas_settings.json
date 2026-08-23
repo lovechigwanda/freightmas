@@ -77,7 +77,8 @@
   "default_quotation_tc",
   "portal_tab",
   "client_report_milestone_detail",
-  "enable_command_center_home_page"
+  "enable_command_center_home_page",
+  "enable_job_creation_notifications"
  ],
  "fields": [
   {
@@ -546,6 +547,13 @@
    "fieldname": "enable_command_center_home_page",
    "fieldtype": "Check",
    "label": "Set Command Center as Home Page"
+  },
+  {
+   "default": "0",
+   "description": "When enabled, users are prompted to email the customer when a Forwarding Job is started (Draft → In Progress).",
+   "fieldname": "enable_job_creation_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Job Creation Notifications"
   }
  ],
  "index_web_pages_for_search": 1,
