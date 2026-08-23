@@ -51,42 +51,49 @@ def _company_display_name(company_link):
 	return frappe.db.get_value("Company", company_link, "company_name") or company_link
 
 
+def build_job_creation_subject(job_name, customer_name, customer_reference):
+	return f"New Shipment - Job: {job_name} {customer_name} {customer_reference}"
+
+
 def build_job_creation_message(job_doc, customer_name, company_name, missing_docs):
-	"""Build the default HTML body for a job creation notification."""
-	job_ref = frappe.utils.escape_html(job_doc.name)
-	customer_ref = frappe.utils.escape_html(job_doc.customer_reference or "")
-	safe_customer = frappe.utils.escape_html(customer_name or "")
-	safe_company = frappe.utils.escape_html(company_name or "")
+	"""Build the default plain-text body for a job creation notification."""
+	bl_number = job_doc.bl_number or "—"
 
 	parts = [
-		f'<p style="margin: 0 0 1.25rem;">Dear {safe_customer},</p>',
-		"<p>Your shipment has been registered in our system with the following details:</p>",
-		'<table style="border-collapse: collapse; margin: 12px 0;">',
-		f'<tr><td style="padding: 2px 24px 2px 0; font-weight: 600;">Job Reference:</td><td>{job_ref}</td></tr>',
-		f'<tr><td style="padding: 2px 24px 2px 0; font-weight: 600;">Your Reference:</td><td>{customer_ref}</td></tr>',
-		"</table>",
-		f"<p>Please quote the Job Reference <strong>{job_ref}</strong> in all future correspondence regarding this shipment.</p>",
+		f"Dear {customer_name or ''},",
+		"",
+		"Your shipment has been registered in our system with the following details:",
+		"",
+		f"  Job Reference:    {job_doc.name}",
+		f"  BL Number:          {bl_number}",
+		"",
+		f"Please quote the Job Reference {job_doc.name} in all future correspondence regarding this shipment.",
 	]
 
 	if missing_docs:
-		items = "".join(
-			f"<li>{frappe.utils.escape_html(label)}</li>" for label in missing_docs
-		)
-		parts.append(
-			'<div style="background: #FAEEDA; border-radius: 8px; padding: 12px 16px; margin: 16px 0;">'
-			'<p style="margin: 0 0 8px; font-weight: 600; color: #854F0B;">Action required — documents outstanding</p>'
-			'<p style="margin: 0 0 8px; color: #2C2C2A;">The following documents are still needed to clear this shipment through port:</p>'
-			f'<ul style="margin: 0 0 8px; padding-left: 20px; color: #2C2C2A;">{items}</ul>'
-			'<p style="margin: 0; color: #2C2C2A;">Please send these at your earliest convenience to avoid delaying the shipment.</p>'
-			"</div>"
-		)
+		parts.extend([
+			"",
+			"ACTION REQUIRED — DOCUMENTS OUTSTANDING",
+			"",
+			"The following documents are still needed to clear this shipment through port:",
+			"",
+		])
+		parts.extend(f"  • {label}" for label in missing_docs)
+		parts.extend([
+			"",
+			"Please send these at your earliest convenience to avoid delaying the shipment.",
+		])
 
 	parts.extend([
-		"<p>If you have any questions, feel free to reach out — we're happy to help.</p>",
-		'<p style="margin: 0 0 1.25rem;">Thank you for your business.</p>',
-		f"<p>Best regards,<br>{safe_company}</p>",
+		"",
+		"If you have any questions, feel free to reach out — we're happy to help.",
+		"",
+		"Thank you for your business.",
+		"",
+		"Best regards,",
+		company_name or "",
 	])
-	return "".join(parts)
+	return "\n".join(parts)
 
 
 @frappe.whitelist()
@@ -116,7 +123,7 @@ def get_job_creation_email_draft(forwarding_job):
 		"enabled": True,
 		"to_email": customer_info.get("tracking_email") or customer_info.get("email_id") or "",
 		"cc_emails": customer_info.get("tracking_cc_emails") or "",
-		"subject": f"Shipment Registered - {job.name}",
+		"subject": build_job_creation_subject(job.name, customer_name, job.customer_reference),
 		"message": build_job_creation_message(job, customer_name, company_name, missing_docs),
 		"missing_docs": missing_docs,
 		"customer_name": customer_name,

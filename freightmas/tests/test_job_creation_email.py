@@ -11,6 +11,7 @@ from frappe.utils import add_days, nowdate
 
 from freightmas.forwarding_service.notifications.job_creation_email import (
 	build_job_creation_message,
+	build_job_creation_subject,
 	get_job_creation_email_draft,
 	get_missing_port_clearance_docs,
 	send_job_creation_notification,
@@ -40,7 +41,7 @@ def _make_customer(suffix, tracking_email=None):
 	return customer
 
 
-def _make_forwarding_job(customer, suffix, requires_port_clearance=0):
+def _make_forwarding_job(customer, suffix, requires_port_clearance=0, bl_number=None):
 	job = frappe.get_doc(
 		{
 			"doctype": "Forwarding Job",
@@ -60,6 +61,7 @@ def _make_forwarding_job(customer, suffix, requires_port_clearance=0):
 			"eta": add_days(nowdate(), 5),
 			"status": "Draft",
 			"requires_port_clearance": requires_port_clearance,
+			"bl_number": bl_number,
 		}
 	)
 	job.insert(ignore_permissions=True)
@@ -97,14 +99,33 @@ class TestJobCreationEmail(IntegrationTestCase):
 		}
 		self.assertEqual(set(missing), doc_labels)
 
+	def test_build_job_creation_subject(self):
+		subject = build_job_creation_subject(
+			"FWJB-0146-26", "Grant Plastics", "MEDUL012596"
+		)
+		self.assertEqual(
+			subject,
+			"New Shipment - Job: FWJB-0146-26 Grant Plastics MEDUL012596",
+		)
+
 	def test_build_job_creation_message_includes_references(self):
 		customer = _make_customer("msg1")
-		job = _make_forwarding_job(customer, "msg1")
+		job = _make_forwarding_job(customer, "msg1", bl_number="BL123456")
 		message = build_job_creation_message(job, "Acme Ltd", "Maita Logistics", [])
 		self.assertIn(job.name, message)
-		self.assertIn(job.customer_reference, message)
+		self.assertIn("Job Reference:", message)
+		self.assertIn("BL Number:", message)
+		self.assertIn("BL123456", message)
 		self.assertIn("Acme Ltd", message)
-		self.assertNotIn("Action required", message)
+		self.assertNotIn("<p>", message)
+		self.assertNotIn("Your Reference:", message)
+		self.assertNotIn("ACTION REQUIRED", message)
+
+	def test_build_job_creation_message_shows_dash_when_bl_missing(self):
+		customer = _make_customer("msg1b")
+		job = _make_forwarding_job(customer, "msg1b")
+		message = build_job_creation_message(job, "Acme Ltd", "Maita Logistics", [])
+		self.assertIn("BL Number:          —", message)
 
 	def test_build_job_creation_message_includes_missing_docs_block(self):
 		customer = _make_customer("msg2")
@@ -112,9 +133,10 @@ class TestJobCreationEmail(IntegrationTestCase):
 		message = build_job_creation_message(
 			job, "Acme Ltd", "Maita Logistics", ["Commercial Invoice", "Bill of Lading"]
 		)
-		self.assertIn("Action required", message)
-		self.assertIn("Commercial Invoice", message)
-		self.assertIn("Bill of Lading", message)
+		self.assertIn("ACTION REQUIRED — DOCUMENTS OUTSTANDING", message)
+		self.assertIn("  • Commercial Invoice", message)
+		self.assertIn("  • Bill of Lading", message)
+		self.assertNotIn("<div>", message)
 
 	def test_get_job_creation_email_draft_disabled_when_setting_off(self):
 		_enable_job_creation_notifications(0)
@@ -134,9 +156,13 @@ class TestJobCreationEmail(IntegrationTestCase):
 		self.assertTrue(result["enabled"])
 		self.assertEqual(result["to_email"], "track@example.com")
 		self.assertEqual(result["cc_emails"], "cc@example.com")
+		self.assertIn("New Shipment - Job:", result["subject"])
 		self.assertIn(job.name, result["subject"])
+		self.assertIn(customer.customer_name, result["subject"])
+		self.assertIn(job.customer_reference, result["subject"])
 		self.assertIn(job.name, result["message"])
-		self.assertIn(job.customer_reference, result["message"])
+		self.assertIn("BL Number:", result["message"])
+		self.assertNotIn("Your Reference:", result["message"])
 
 	def test_get_job_creation_email_draft_disabled_when_already_sent(self):
 		_enable_job_creation_notifications(1)
@@ -159,8 +185,8 @@ class TestJobCreationEmail(IntegrationTestCase):
 		result = send_job_creation_notification(
 			job.name,
 			"track@example.com",
-			f"Shipment Registered - {job.name}",
-			"<p>Test message</p>",
+			build_job_creation_subject(job.name, customer.customer_name, job.customer_reference),
+			"Test plain text message",
 		)
 		self.assertTrue(result["success"])
 		mock_sendmail.assert_called_once()
@@ -179,14 +205,14 @@ class TestJobCreationEmail(IntegrationTestCase):
 		send_job_creation_notification(
 			job.name,
 			"track@example.com",
-			f"Shipment Registered - {job.name}",
-			"<p>Test message</p>",
+			build_job_creation_subject(job.name, customer.customer_name, job.customer_reference),
+			"Test plain text message",
 		)
 		with self.assertRaises(frappe.ValidationError):
 			send_job_creation_notification(
 				job.name,
 				"track@example.com",
-				f"Shipment Registered - {job.name}",
-				"<p>Test message again</p>",
+				build_job_creation_subject(job.name, customer.customer_name, job.customer_reference),
+				"Test plain text message again",
 			)
 		self.assertEqual(mock_sendmail.call_count, 1)

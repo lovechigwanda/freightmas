@@ -2913,7 +2913,7 @@ function show_job_creation_email_dialog(frm, draft) {
             {
                 fieldname: 'message',
                 label: __('Message'),
-                fieldtype: 'Text Editor',
+                fieldtype: 'Small Text',
                 reqd: 1,
                 default: draft.message || ''
             }
