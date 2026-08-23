@@ -11,6 +11,18 @@ from freightmas.integrations.resend.defaults import get_noreply_email, get_site_
 from freightmas.integrations.resend.parser import parse_mime_message
 from freightmas.integrations.resend.sender import resolve_sender
 from freightmas.integrations.resend.settings import get_allowed_domains, is_resend_enabled
+from freightmas.integrations.resend.validation import sanitize_resend_tag
+
+
+def _test_tag_sanitization() -> dict:
+	long_value = "a" * 300
+	return {
+		"doctype_spaces": sanitize_resend_tag("Forwarding Job") == "Forwarding_Job",
+		"owner_email": sanitize_resend_tag("user@company.co.zw") == "user_company_co_zw",
+		"empty_skipped": sanitize_resend_tag("") is None,
+		"invalid_skipped": sanitize_resend_tag("!!!") is None,
+		"truncated_256": len(sanitize_resend_tag(long_value) or "") == 256,
+	}
 
 
 def run():
@@ -25,6 +37,7 @@ def run():
 		"suggested_domain": get_site_sending_domain(),
 		"parser_ok": False,
 		"sender_resolution_ok": False,
+		"tag_sanitization": _test_tag_sanitization(),
 		"user_audit": None,
 	}
 

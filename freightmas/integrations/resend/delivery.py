@@ -9,6 +9,7 @@ from freightmas.integrations.resend.client import ResendAPIError, ResendClient
 from freightmas.integrations.resend.parser import parse_mime_message
 from freightmas.integrations.resend.sender import resolve_sender
 from freightmas.integrations.resend.settings import is_resend_enabled
+from freightmas.integrations.resend.validation import sanitize_resend_tag
 
 
 def send_via_resend(email_queue, sender, recipient, message):
@@ -33,10 +34,10 @@ def send_via_resend(email_queue, sender, recipient, message):
 	payload["idempotency_key"] = f"{email_queue.name}:{recipient}"
 
 	tags = []
-	if email_queue.reference_doctype:
-		tags.append({"name": "doctype", "value": email_queue.reference_doctype[:50]})
-	if email_queue.owner:
-		tags.append({"name": "owner", "value": email_queue.owner[:50]})
+	if value := sanitize_resend_tag(email_queue.reference_doctype):
+		tags.append({"name": "doctype", "value": value})
+	if value := sanitize_resend_tag(email_queue.owner):
+		tags.append({"name": "owner", "value": value})
 	if tags:
 		payload["tags"] = tags
 

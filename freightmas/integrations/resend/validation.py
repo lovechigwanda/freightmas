@@ -3,12 +3,31 @@
 
 from __future__ import annotations
 
+import re
+
 import frappe
 from frappe import _
 from frappe.utils import extract_email_id
 
 from freightmas.integrations.resend.client import ResendAPIError, ResendClient, VERIFIED_DOMAIN_STATUSES
 from freightmas.integrations.resend.settings import get_fallback_sender
+
+RESEND_TAG_MAX_LENGTH = 256
+_INVALID_TAG_CHAR = re.compile(r"[^A-Za-z0-9_-]")
+_MULTI_UNDERSCORE = re.compile(r"_+")
+
+
+def sanitize_resend_tag(value: str | None, *, max_length: int = RESEND_TAG_MAX_LENGTH) -> str | None:
+	"""Return a Resend-safe tag value or None when nothing usable remains."""
+	if not value:
+		return None
+
+	clean = _INVALID_TAG_CHAR.sub("_", value.strip())
+	clean = _MULTI_UNDERSCORE.sub("_", clean).strip("_")
+	if not clean:
+		return None
+
+	return clean[:max_length]
 
 
 def sender_domain(sender: str) -> str:
