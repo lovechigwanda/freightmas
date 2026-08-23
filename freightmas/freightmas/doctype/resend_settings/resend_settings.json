@@ -9,7 +9,7 @@
   "setup_instructions_section",
   "setup_instructions",
   "api_section",
-  "api_key",
+  "resend_api_key",
   "column_break_api",
   "fallback_sender",
   "allowed_domains_section",
@@ -44,7 +44,7 @@
    "label": "API Configuration"
   },
   {
-   "fieldname": "api_key",
+   "fieldname": "resend_api_key",
    "fieldtype": "Password",
    "label": "Resend API Key",
    "mandatory_depends_on": "eval:doc.enabled"
@@ -54,7 +54,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Used for system emails (password reset, cron) when no user sender is available. Example: Your App <noreply@yourdomain.com>",
+   "description": "Used for system emails and test emails. Must be on a domain verified in the same Resend account as your API key. Example: Your App <noreply@yourdomain.com>",
    "fieldname": "fallback_sender",
    "fieldtype": "Data",
    "label": "Fallback Sender",

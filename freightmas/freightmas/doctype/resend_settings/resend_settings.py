@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_formatted_email, validate_email_address
+from frappe.utils import validate_email_address
 
 from freightmas.integrations.resend.defaults import (
 	get_default_allowed_domains_text,
@@ -12,6 +12,7 @@ from freightmas.integrations.resend.defaults import (
 	get_sender_display_name,
 	get_site_sending_domain,
 )
+from freightmas.integrations.resend.settings import get_stored_api_key
 
 
 class ResendSettings(Document):
@@ -32,7 +33,9 @@ class ResendSettings(Document):
 		if self.test_recipient:
 			validate_email_address(self.test_recipient, throw=True)
 
-		if self.enabled and not self.get_password("api_key"):
+		self._validate_resend_api_key()
+
+		if self.enabled and not get_stored_api_key():
 			frappe.throw(_("Resend API Key is required when Resend is enabled."))
 
 		if self.enabled and not get_allowed_domains_from_doc(self):
@@ -45,6 +48,31 @@ class ResendSettings(Document):
 
 		if self.enabled and not self.fallback_sender:
 			frappe.throw(_("Set Fallback Sender before enabling Resend."))
+
+	def _validate_resend_api_key(self):
+		pwd = self.get("resend_api_key")
+		if not pwd or self.is_dummy_password(pwd):
+			return
+
+		pwd = pwd.strip()
+		if pwd.startswith("re_"):
+			return
+
+		# Prevent unrelated values (e.g. Frappe User REST api_key hashes) overwriting the secret.
+		self.flags.ignore_save_passwords = ["resend_api_key"]
+		stored = get_stored_api_key()
+		if stored:
+			self.resend_api_key = "*" * len(stored)
+		else:
+			self.resend_api_key = None
+
+		frappe.throw(
+			_(
+				"Invalid Resend API key. Keys from resend.com start with <code>re_</code>. "
+				"Paste your Resend sending key and save again."
+			),
+			title=_("Resend API Key"),
+		)
 
 
 def get_allowed_domains_from_doc(doc) -> list[str]:
@@ -88,12 +116,56 @@ def get_setup_context():
 
 
 @frappe.whitelist()
+def check_resend_domains():
+	frappe.only_for(("System Manager", "FreightMas Admin"))
+
+	from freightmas.integrations.resend.client import ResendAPIError, ResendClient
+	from freightmas.integrations.resend.settings import get_stored_api_key
+
+	api_key = get_stored_api_key()
+	if not api_key:
+		frappe.throw(_("Save a Resend API Key first."))
+
+	try:
+		domains = ResendClient(api_key=api_key).list_domains()
+	except ResendAPIError as exc:
+		frappe.throw(_("Could not list Resend domains ({0}): {1}").format(exc.status_code, exc))
+
+	return {
+		"domains": [
+			{
+				"name": row.get("name"),
+				"status": row.get("status"),
+				"region": row.get("region"),
+			}
+			for row in domains
+		]
+	}
+
+
+@frappe.whitelist()
 def send_test_email(recipient=None):
 	frappe.only_for(("System Manager", "FreightMas Admin"))
 
+	from freightmas.integrations.resend.client import ResendAPIError, ResendClient
+	from freightmas.integrations.resend.settings import get_stored_api_key
+	from freightmas.integrations.resend.validation import (
+		format_resend_error,
+		resolve_test_sender,
+		validate_sender_for_resend,
+	)
+
 	settings = frappe.get_single("Resend Settings")
-	if not settings.get_password("api_key"):
-		frappe.throw(_("Set a Resend API Key before sending a test email."))
+	api_key = get_stored_api_key()
+	if not api_key:
+		frappe.throw(
+			_("Save a valid Resend API Key before sending a test email. Create one at resend.com/api-keys.")
+		)
+
+	if not settings.fallback_sender:
+		frappe.throw(
+			_("Set Fallback Sender to an address on your verified Resend domain before sending a test email.")
+		)
 
 	recipient = recipient or settings.test_recipient or frappe.db.get_value("User", frappe.session.user, "email")
 	if not recipient:
@@ -101,23 +173,26 @@ def send_test_email(recipient=None):
 
 	validate_email_address(recipient, throw=True)
 
-	sender = get_formatted_email(frappe.session.user)
-	if not sender:
-		from freightmas.integrations.resend.settings import get_fallback_sender
+	sender = resolve_test_sender(settings)
+	validate_sender_for_resend(api_key, sender)
 
-		sender = get_fallback_sender()
+	try:
+		ResendClient(api_key=api_key).send_email(
+			{
+				"from": sender,
+				"to": [recipient],
+				"subject": _("{0} Resend test email").format(get_sender_display_name()),
+				"html": (
+					f"<p>{_('This is a test email sent via Resend.')}</p>"
+					f"<p>{_('From')}: {frappe.utils.escape_html(sender)}</p>"
+				),
+				"text": _("This is a test email sent via Resend. From: {0}").format(sender),
+			}
+		)
+	except ResendAPIError as exc:
+		frappe.throw(format_resend_error(exc, sender, recipient), title=_("Resend Error"))
 
-	from freightmas.integrations.resend.client import ResendClient
-
-	client = ResendClient()
-	client.send_email(
-		{
-			"from": sender,
-			"to": [recipient],
-			"subject": _("{0} Resend test email").format(get_sender_display_name()),
-			"html": f"<p>{_('This is a test email sent via Resend.')}</p>",
-			"text": _("This is a test email sent via Resend."),
-		}
-	)
-
-	return {"success": True, "message": _("Test email sent to {0}").format(recipient)}
+	return {
+		"success": True,
+		"message": _("Test email sent to {0} from {1}").format(recipient, sender),
+	}

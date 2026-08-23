@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import frappe
+from frappe.utils.password import get_decrypted_password
 
 from freightmas.integrations.resend.defaults import get_default_allowed_domains_text, get_default_fallback_sender
 
@@ -20,11 +21,18 @@ def is_resend_enabled() -> bool:
 		return False
 
 
+def get_stored_api_key() -> str | None:
+	"""Read the encrypted Resend key from __Auth, not tabSingles."""
+	key = get_decrypted_password(
+		"Resend Settings", "Resend Settings", "resend_api_key", raise_exception=False
+	)
+	return key.strip() if key else None
+
+
 def get_api_key() -> str | None:
-	settings = get_resend_settings()
-	if not settings.enabled:
+	if not is_resend_enabled():
 		return None
-	return settings.get_password("api_key")
+	return get_stored_api_key()
 
 
 def get_allowed_domains() -> list[str]:
