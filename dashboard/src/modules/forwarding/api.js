@@ -33,11 +33,9 @@ export function exportUrl(kind, params = {}) {
 }
 
 // Mirrors exportUrl's methodMap - one whitelisted "email_*" function per
-// report row - but goes through client.call (JSON success/error result)
-// instead of buildUrl (raw browser navigation), since sending needs a
-// response to react to. Note client.call is still GET-based under the hood
-// (see core.js), so keep params - especially the Message field - reasonably
-// short to stay clear of URL-length limits.
+// report row. Uses POST (not GET) so message bodies and customer filters
+// are not limited by URL length. Backend sends immediately (delayed=False)
+// via Resend API when Resend Settings is enabled.
 const emailMethodMap = {
 	trackingReport: "email_tracking_report",
 	masterTrackingReport: "email_master_tracking_report",
@@ -45,6 +43,6 @@ const emailMethodMap = {
 	shipmentTrackingReportExcel: "email_shipment_tracking_report_excel",
 };
 export function sendReportEmail(kind, params = {}) {
-	return client.call(emailMethodMap[kind], params);
+	return client.callPost(emailMethodMap[kind], params);
 }
 

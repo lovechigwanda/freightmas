@@ -2920,6 +2920,7 @@ def email_tracking_report(to_email, subject, message, customers=None, status=Non
 		message=message,
 		attachments=[attachment],
 		**_single_customer_reference(customers),
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2946,6 +2947,7 @@ def email_master_tracking_report(to_email, subject, message, customers=None, sta
 		message=message,
 		attachments=[attachment],
 		**_single_customer_reference(customers),
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2968,6 +2970,7 @@ def email_shipment_tracking_report(to_email, subject, message, customer, cc_emai
 		attachments=[attachment],
 		reference_doctype="Customer",
 		reference_name=customer,
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2994,5 +2997,6 @@ def email_shipment_tracking_report_excel(to_email, subject, message, customer, c
 		attachments=[attachment],
 		reference_doctype="Customer",
 		reference_name=customer,
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}

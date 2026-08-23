@@ -130,7 +130,8 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
             message=message,
             attachments=attachments,
             reference_doctype="Customer",
-            reference_name=customer
+            reference_name=customer,
+            delayed=False,
         )
         
         return {

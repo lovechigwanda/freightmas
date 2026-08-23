@@ -56,17 +56,28 @@ function handleSessionExpired() {
 	}
 }
 
-async function call(prefix, method, params = {}) {
-	const fullUrl = buildUrl(prefix, method, params);
+async function request(prefix, method, params = {}, { method: httpMethod = "GET" } = {}) {
+	const url = httpMethod === "GET" ? buildUrl(prefix, method, params) : `/api/method/${prefix}.${method}`;
 
-	const res = await fetch(fullUrl, {
-		method: "GET",
+	const init = {
+		method: httpMethod,
 		credentials: "same-origin",
 		headers: {
 			"X-Frappe-CSRF-Token": window.csrf_token || "",
 			Accept: "application/json",
 		},
-	});
+	};
+
+	if (httpMethod === "POST") {
+		const body = new URLSearchParams();
+		Object.entries(params).forEach(([key, value]) => {
+			if (value === undefined || value === null || value === "") return;
+			body.append(key, typeof value === "object" ? JSON.stringify(value) : value);
+		});
+		init.body = body;
+	}
+
+	const res = await fetch(url, init);
 
 	if (!res.ok) {
 		let detail = "";
@@ -88,9 +99,18 @@ async function call(prefix, method, params = {}) {
 	return data.message;
 }
 
+async function call(prefix, method, params = {}) {
+	return request(prefix, method, params, { method: "GET" });
+}
+
+async function callPost(prefix, method, params = {}) {
+	return request(prefix, method, params, { method: "POST" });
+}
+
 export function createApiClient(prefix) {
 	return {
 		call: (method, params) => call(prefix, method, params),
+		callPost: (method, params) => callPost(prefix, method, params),
 		buildUrl: (method, params) => buildUrl(prefix, method, params),
 	};
 }
