@@ -29,3 +29,4 @@ freightmas.patches.fix_trucking_service_inconsistency
 freightmas.patches.backfill_operational_phase
 freightmas.patches.setup_resend_email
 freightmas.patches.rename_resend_api_key_field
+freightmas.patches.seed_job_creation_email_template

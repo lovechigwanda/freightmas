@@ -2911,9 +2911,23 @@ function show_job_creation_email_dialog(frm, draft) {
                 default: draft.subject || ''
             },
             {
+                fieldname: 'email_template',
+                label: __('Load Template'),
+                fieldtype: 'Link',
+                options: 'Email Template',
+                description: __('Optional: select a template to load'),
+                default: draft.default_email_template || '',
+                change() {
+                    const template_name = dialog.get_value('email_template');
+                    if (template_name) {
+                        load_job_creation_email_template(template_name, dialog, frm.doc.name);
+                    }
+                }
+            },
+            {
                 fieldname: 'message',
                 label: __('Message'),
-                fieldtype: 'Small Text',
+                fieldtype: 'Text Editor',
                 reqd: 1,
                 default: draft.message || ''
             }
@@ -2958,6 +2972,29 @@ function show_job_creation_email_dialog(frm, draft) {
     });
 
     dialog.show();
+}
+
+function load_job_creation_email_template(template_name, dialog, job_name) {
+    frappe.call({
+        method: 'freightmas.forwarding_service.notifications.job_creation_email.render_job_creation_email_template',
+        args: {
+            forwarding_job: job_name,
+            template_name
+        },
+        callback(r) {
+            if (!r.message) return;
+            if (r.message.subject) {
+                dialog.set_value('subject', r.message.subject);
+            }
+            if (r.message.message) {
+                dialog.set_value('message', r.message.message);
+            }
+            frappe.show_alert({
+                message: __('Template "{0}" loaded successfully', [template_name]),
+                indicator: 'green'
+            });
+        }
+    });
 }
 
 function validate_email_format(email) {

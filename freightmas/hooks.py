@@ -450,6 +450,12 @@ fixtures = [
             ["name", "in", ["FreightMas User", "FreightMas Manager", "FreightMas Admin", "FreightMas Accounts", "Customer Portal User", "Supplier Portal User"]]
         ]
     },
+    {
+        "dt": "Email Template",
+        "filters": [
+            ["name", "in", ["Job Creation Notification"]]
+        ]
+    },
     # Workspaces, Workspace Sidebars, and Print Formats are managed
     # exclusively via module-level JSON files (synced during bench migrate).
     # Do NOT add them here — it creates a dual source of truth conflict.

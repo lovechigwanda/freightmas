@@ -9,9 +9,20 @@ import frappe
 from frappe import _
 from frappe.utils import get_formatted_email
 
+from freightmas.forwarding_service.notifications.job_creation_template_content import (
+	JOB_CREATION_TEMPLATE_NAME,
+)
 from freightmas.utils.permissions import check_doc_read_permission
 
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+_SERVICE_MAP = [
+	("requires_sea_air_freight", "Sea/Air Freight"),
+	("requires_port_clearance", "Port Clearance"),
+	("is_trucking_required", "Trucking Service"),
+	("requires_border_clearance", "Border Clearance"),
+	("requires_warehousing", "Warehousing"),
+]
 
 
 def get_missing_port_clearance_docs(job_doc) -> list[str]:
@@ -29,6 +40,15 @@ def _notifications_enabled() -> bool:
 	return bool(frappe.db.get_single_value(
 		"FreightMas Settings", "enable_job_creation_notifications"
 	))
+
+
+def _default_template_name() -> str | None:
+	return (
+		frappe.db.get_single_value(
+			"FreightMas Settings", "default_job_creation_email_template"
+		)
+		or JOB_CREATION_TEMPLATE_NAME
+	)
 
 
 def _validate_email_address(email):
@@ -51,49 +71,148 @@ def _company_display_name(company_link):
 	return frappe.db.get_value("Company", company_link, "company_name") or company_link
 
 
+def _format_route(job_doc) -> str | None:
+	legs = [job_doc.port_of_loading, job_doc.port_of_discharge, job_doc.destination]
+	legs = [leg for leg in legs if leg]
+	return " → ".join(legs) if legs else None
+
+
+def _format_cargo_summary(job_doc) -> str | None:
+	return job_doc.cargo_count or job_doc.cargo_description or None
+
+
+def _consignee_name(job_doc) -> str | None:
+	if not job_doc.consignee:
+		return None
+	return frappe.db.get_value("Customer", job_doc.consignee, "customer_name") or job_doc.consignee
+
+
+def _format_services_enabled(job_doc) -> str | None:
+	enabled = [label for field, label in _SERVICE_MAP if job_doc.get(field)]
+	return ", ".join(enabled) if enabled else None
+
+
+def _customer_display_name(job_doc) -> str:
+	return frappe.db.get_value("Customer", job_doc.customer, "customer_name") or job_doc.customer
+
+
+def _build_template_context(job_doc, customer_name=None, company_name=None) -> dict:
+	missing_docs = get_missing_port_clearance_docs(job_doc)
+	customer_name = customer_name or _customer_display_name(job_doc)
+	company_name = company_name or _company_display_name(job_doc.company)
+
+	context = job_doc.as_dict()
+	context.update({
+		"customer_name": customer_name,
+		"company_name": company_name,
+		"missing_docs": missing_docs,
+		"route": _format_route(job_doc),
+		"cargo_summary": _format_cargo_summary(job_doc),
+		"consignee_name": _consignee_name(job_doc),
+		"services_enabled": _format_services_enabled(job_doc),
+		"eta_formatted": (
+			frappe.format_value(job_doc.eta, {"fieldtype": "Date"}) if job_doc.eta else None
+		),
+		"bl_number_display": job_doc.bl_number or "—",
+	})
+	return context
+
+
+def _build_shipment_detail_rows(job_doc) -> list[tuple[str, str]]:
+	"""Return (label, value) pairs for the email details table."""
+	rows = [
+		("Job Reference", job_doc.name),
+		("BL Number", job_doc.bl_number or "—"),
+	]
+	optional = [
+		("Direction", job_doc.direction),
+		("Mode", job_doc.shipment_mode),
+		("Shipment Type", job_doc.shipment_type),
+		("Route", _format_route(job_doc)),
+		("ETA", frappe.format_value(job_doc.eta, {"fieldtype": "Date"}) if job_doc.eta else None),
+		("Cargo", _format_cargo_summary(job_doc)),
+		("Consignee", _consignee_name(job_doc)),
+		("Services", _format_services_enabled(job_doc)),
+	]
+	for label, value in optional:
+		if value:
+			rows.append((label, value))
+	return rows
+
+
+def _render_detail_table_html(rows) -> str:
+	parts = ['<table style="border-collapse: collapse; margin: 0 0 16px;">']
+	for label, value in rows:
+		safe_label = frappe.utils.escape_html(label)
+		safe_value = frappe.utils.escape_html(value)
+		parts.append(
+			f'<tr><td style="padding: 4px 24px 4px 0; font-weight: 600;">{safe_label}:</td>'
+			f'<td style="padding: 4px 0;">{safe_value}</td></tr>'
+		)
+	parts.append("</table>")
+	return "".join(parts)
+
+
 def build_job_creation_subject(job_name, customer_name, customer_reference):
 	return f"New Shipment - Job: {job_name} {customer_name} {customer_reference}"
 
 
 def build_job_creation_message(job_doc, customer_name, company_name, missing_docs):
-	"""Build the default plain-text body for a job creation notification."""
-	bl_number = job_doc.bl_number or "—"
+	"""Build the default HTML body for a job creation notification (Python fallback)."""
+	job_ref = frappe.utils.escape_html(job_doc.name)
+	safe_customer = frappe.utils.escape_html(customer_name or "")
+	safe_company = frappe.utils.escape_html(company_name or "")
 
 	parts = [
-		f"Dear {customer_name or ''},",
-		"",
-		"Your shipment has been registered in our system with the following details:",
-		"",
-		f"  Job Reference:    {job_doc.name}",
-		f"  BL Number:          {bl_number}",
-		"",
-		f"Please quote the Job Reference {job_doc.name} in all future correspondence regarding this shipment.",
+		f'<p style="margin: 0 0 16px;">Dear {safe_customer},</p>',
+		'<p style="margin: 0 0 16px;">Your shipment has been registered in our system with the following details:</p>',
+		_render_detail_table_html(_build_shipment_detail_rows(job_doc)),
+		f'<p style="margin: 0 0 16px;">Please quote the Job Reference <strong>{job_ref}</strong> '
+		"in all future correspondence regarding this shipment.</p>",
 	]
 
 	if missing_docs:
-		parts.extend([
-			"",
-			"ACTION REQUIRED — DOCUMENTS OUTSTANDING",
-			"",
-			"The following documents are still needed to clear this shipment through port:",
-			"",
-		])
-		parts.extend(f"  • {label}" for label in missing_docs)
-		parts.extend([
-			"",
-			"Please send these at your earliest convenience to avoid delaying the shipment.",
-		])
+		items = "".join(
+			f"<li>{frappe.utils.escape_html(label)}</li>" for label in missing_docs
+		)
+		parts.append(
+			'<div style="background: #FAEEDA; border-radius: 8px; padding: 12px 16px; margin: 0 0 16px;">'
+			'<p style="margin: 0 0 8px; font-weight: 600; color: #854F0B;">'
+			"Action required — documents outstanding</p>"
+			'<p style="margin: 0 0 8px;">The following documents are still needed to clear this shipment through port:</p>'
+			f'<ul style="margin: 0 0 8px; padding-left: 20px;">{items}</ul>'
+			'<p style="margin: 0;">Please send these at your earliest convenience to avoid delaying the shipment.</p>'
+			"</div>"
+		)
 
 	parts.extend([
-		"",
-		"If you have any questions, feel free to reach out — we're happy to help.",
-		"",
-		"Thank you for your business.",
-		"",
-		"Best regards,",
-		company_name or "",
+		'<p style="margin: 0 0 16px;">If you have any questions, feel free to reach out — '
+		"we're happy to help.</p>",
+		'<p style="margin: 0 0 16px;">Thank you for your business.</p>',
+		f'<p style="margin: 0;">Best regards,<br>{safe_company}</p>',
 	])
-	return "\n".join(parts)
+	return "".join(parts)
+
+
+def render_job_creation_email(job_doc, template_name=None, customer_name=None, company_name=None):
+	"""Render subject/message from Email Template, falling back to Python builder."""
+	context = _build_template_context(job_doc, customer_name=customer_name, company_name=company_name)
+	template_name = template_name or _default_template_name()
+
+	if template_name and frappe.db.exists("Email Template", template_name):
+		from frappe.email.doctype.email_template.email_template import get_email_template
+
+		return get_email_template(template_name, context)
+
+	customer_name = context["customer_name"]
+	company_name = context["company_name"]
+	missing_docs = context["missing_docs"]
+	return {
+		"subject": build_job_creation_subject(
+			job_doc.name, customer_name, job_doc.customer_reference
+		),
+		"message": build_job_creation_message(job_doc, customer_name, company_name, missing_docs),
+	}
 
 
 @frappe.whitelist()
@@ -118,18 +237,35 @@ def get_job_creation_email_draft(forwarding_job):
 	customer_name = customer_info.get("customer_name") or job.customer
 	company_name = _company_display_name(job.company)
 	missing_docs = get_missing_port_clearance_docs(job)
+	default_template = _default_template_name()
+	rendered = render_job_creation_email(
+		job, template_name=default_template, customer_name=customer_name, company_name=company_name
+	)
 
 	return {
 		"enabled": True,
 		"to_email": customer_info.get("tracking_email") or customer_info.get("email_id") or "",
 		"cc_emails": customer_info.get("tracking_cc_emails") or "",
-		"subject": build_job_creation_subject(job.name, customer_name, job.customer_reference),
-		"message": build_job_creation_message(job, customer_name, company_name, missing_docs),
+		"subject": rendered["subject"],
+		"message": rendered["message"],
 		"missing_docs": missing_docs,
 		"customer_name": customer_name,
 		"job_name": job.name,
+		"default_email_template": default_template if frappe.db.exists("Email Template", default_template or "") else None,
 		"tracking_email_enabled": customer_info.get("tracking_email_enabled", 1),
 	}
+
+
+@frappe.whitelist()
+def render_job_creation_email_template(forwarding_job, template_name):
+	"""Re-render subject/message when the user picks a different Email Template."""
+	check_doc_read_permission("Forwarding Job", forwarding_job)
+
+	if not template_name:
+		frappe.throw(_("Please select an email template."))
+
+	job = frappe.get_doc("Forwarding Job", forwarding_job)
+	return render_job_creation_email(job, template_name=template_name)
 
 
 @frappe.whitelist()

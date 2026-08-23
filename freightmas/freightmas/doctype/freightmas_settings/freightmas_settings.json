@@ -78,7 +78,8 @@
   "portal_tab",
   "client_report_milestone_detail",
   "enable_command_center_home_page",
-  "enable_job_creation_notifications"
+  "enable_job_creation_notifications",
+  "default_job_creation_email_template"
  ],
  "fields": [
   {
@@ -554,6 +555,15 @@
    "fieldname": "enable_job_creation_notifications",
    "fieldtype": "Check",
    "label": "Enable Job Creation Notifications"
+  },
+  {
+   "default": "Job Creation Notification",
+   "depends_on": "eval:doc.enable_job_creation_notifications",
+   "description": "Default email template for the Notify Customer dialog when a Forwarding Job is started.",
+   "fieldname": "default_job_creation_email_template",
+   "fieldtype": "Link",
+   "label": "Default Job Creation Email Template",
+   "options": "Email Template"
   }
  ],
  "index_web_pages_for_search": 1,
