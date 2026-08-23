@@ -1,7 +1,7 @@
 // Shared fetch helper for all Command Center modules. Runs same-origin
 // inside a logged-in Frappe Desk session, so the browser already carries the
-// session cookie - we only need to attach the CSRF token Frappe exposes
-// globally as window.csrf_token.
+// session cookie - attach the CSRF token from frappe.csrf_token (Desk)
+// or window.csrf_token (www portal pages).
 //
 // Each module's api.js creates its own client bound to its whitelisted
 // Python module path via createApiClient(prefix).
@@ -50,6 +50,10 @@ function isSessionExpiry(status, message) {
 	return lower.includes("login to access") || lower.includes("not whitelisted");
 }
 
+function getCsrfToken() {
+	return window.frappe?.csrf_token || window.csrf_token || "";
+}
+
 function handleSessionExpired() {
 	if (typeof window.fmShowSessionExpiredDialog === "function") {
 		window.fmShowSessionExpiredDialog();
@@ -63,13 +67,17 @@ async function request(prefix, method, params = {}, { method: httpMethod = "GET"
 		method: httpMethod,
 		credentials: "same-origin",
 		headers: {
-			"X-Frappe-CSRF-Token": window.csrf_token || "",
+			"X-Frappe-CSRF-Token": getCsrfToken(),
 			Accept: "application/json",
 		},
 	};
 
 	if (httpMethod === "POST") {
 		const body = new URLSearchParams();
+		const csrfToken = getCsrfToken();
+		if (csrfToken) {
+			body.append("csrf_token", csrfToken);
+		}
 		Object.entries(params).forEach(([key, value]) => {
 			if (value === undefined || value === null || value === "") return;
 			body.append(key, typeof value === "object" ? JSON.stringify(value) : value);
