@@ -2857,7 +2857,7 @@ function setup_job_creation_notification_ui(frm) {
         if (!enabled) return;
         frm.add_custom_button(__('Notify Customer'), function() {
             prompt_job_creation_email(frm);
-        }, __('Actions'));
+        });
     });
 }
 
