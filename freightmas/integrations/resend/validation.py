@@ -32,6 +32,9 @@ def validate_sender_for_resend(api_key: str, sender: str) -> dict[str, str]:
 		client = ResendClient(api_key=api_key)
 		domain_status = client.get_domain_status_map()
 	except ResendAPIError as exc:
+		# Send-only keys cannot list domains; Resend validates the From domain on send.
+		if exc.is_send_only_key_restriction():
+			return {}
 		frappe.throw(
 			_("Could not read domains from Resend ({0}): {1}").format(exc.status_code, exc),
 			title=_("Resend Error"),

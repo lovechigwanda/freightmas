@@ -23,6 +23,12 @@ class ResendAPIError(Exception):
 		self.status_code = status_code
 		self.response_body = response_body
 
+	def is_send_only_key_restriction(self) -> bool:
+		"""True when the key can send email but cannot call management APIs like /domains."""
+		if self.status_code not in (401, 403):
+			return False
+		return "only send" in str(self).lower()
+
 
 class ResendClient:
 	def __init__(self, api_key: str | None = None):

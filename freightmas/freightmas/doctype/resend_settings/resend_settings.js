@@ -40,6 +40,15 @@ frappe.ui.form.on("Resend Settings", {
 				method: "freightmas.freightmas.doctype.resend_settings.resend_settings.check_resend_domains",
 				freeze: true,
 				callback(r) {
+					if (r.message?.send_only_key) {
+						frappe.msgprint({
+							title: __("Send-only API Key"),
+							message: r.message.message,
+							indicator: "orange",
+						});
+						return;
+					}
+
 					const domains = r.message?.domains || [];
 					if (!domains.length) {
 						frappe.msgprint(__("No domains are linked to this API key in Resend."));

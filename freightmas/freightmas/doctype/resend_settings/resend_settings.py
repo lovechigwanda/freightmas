@@ -129,6 +129,14 @@ def check_resend_domains():
 	try:
 		domains = ResendClient(api_key=api_key).list_domains()
 	except ResendAPIError as exc:
+		if exc.is_send_only_key_restriction():
+			return {
+				"send_only_key": True,
+				"message": _(
+					"This API key is restricted to sending email only, so domain listing is not available. "
+					"Verify domains at resend.com/domains, or create a full-access key for setup checks."
+				),
+			}
 		frappe.throw(_("Could not list Resend domains ({0}): {1}").format(exc.status_code, exc))
 
 	return {
