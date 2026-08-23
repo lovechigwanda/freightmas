@@ -22,6 +22,9 @@ from freightmas.forwarding_service.notifications.job_creation_email import (
 	send_job_creation_notification,
 )
 from freightmas.forwarding_service.notifications.job_creation_template_content import (
+	FORWARDING_JOB_CREATION_TEMPLATE_HTML,
+	FORWARDING_JOB_CREATION_TEMPLATE_NAME,
+	FORWARDING_JOB_CREATION_TEMPLATE_SUBJECT,
 	JOB_CREATION_TEMPLATE_HTML,
 	JOB_CREATION_TEMPLATE_NAME,
 	JOB_CREATION_TEMPLATE_SUBJECT,
@@ -48,6 +51,17 @@ def _ensure_job_creation_email_template():
 	doc.subject = JOB_CREATION_TEMPLATE_SUBJECT
 	doc.use_html = 1
 	doc.response_html = JOB_CREATION_TEMPLATE_HTML
+	doc.insert(ignore_permissions=True)
+
+
+def _ensure_forwarding_job_creation_email_template():
+	if frappe.db.exists("Email Template", FORWARDING_JOB_CREATION_TEMPLATE_NAME):
+		return
+	doc = frappe.new_doc("Email Template")
+	doc.name = FORWARDING_JOB_CREATION_TEMPLATE_NAME
+	doc.subject = FORWARDING_JOB_CREATION_TEMPLATE_SUBJECT
+	doc.use_html = 1
+	doc.response_html = FORWARDING_JOB_CREATION_TEMPLATE_HTML
 	doc.insert(ignore_permissions=True)
 
 
@@ -261,6 +275,19 @@ class TestJobCreationEmail(IntegrationTestCase):
 		rendered = render_job_creation_email(job, template_name=JOB_CREATION_TEMPLATE_NAME)
 		self.assertIn("Action required — documents outstanding", rendered["message"])
 		self.assertIn("Commercial Invoice", rendered["message"])
+
+	def test_render_forwarding_job_creation_email_modern_template(self):
+		_ensure_forwarding_job_creation_email_template()
+		customer = _make_customer("modern1")
+		job = _make_forwarding_job(customer, "modern1", bl_number="BL-MOD")
+		rendered = render_job_creation_email(
+			job, template_name=FORWARDING_JOB_CREATION_TEMPLATE_NAME
+		)
+		self.assertIn(job.name, rendered["subject"])
+		self.assertIn("Shipment Details", rendered["message"])
+		self.assertIn("BL-MOD", rendered["message"])
+		self.assertIn("#f8fafc", rendered["message"])
+		self.assertIn("border-top: 1px solid #e2e8f0", rendered["message"])
 
 	def test_render_job_creation_email_falls_back_when_template_blank(self):
 		customer = _make_customer("fallback1")

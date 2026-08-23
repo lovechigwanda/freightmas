@@ -453,7 +453,7 @@ fixtures = [
     {
         "dt": "Email Template",
         "filters": [
-            ["name", "in", ["Job Creation Notification"]]
+            ["name", "in", ["Job Creation Notification", "Forwarding Job Creation Notification"]]
         ]
     },
     # Workspaces, Workspace Sidebars, and Print Formats are managed
