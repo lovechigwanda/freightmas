@@ -1,9 +1,10 @@
 <template>
 	<aside class="cc-sidebar">
 		<div class="cc-sidebar-brand">
-			<div class="cc-sidebar-brand-fallback">FM</div>
+			<img v-if="branding.logo" :src="branding.logo" :alt="branding.company_name" />
+			<div v-else class="cc-sidebar-brand-fallback">{{ brandInitials }}</div>
 			<div class="cc-sidebar-brand-text">
-				<div class="cc-sidebar-brand-name">FreightMas</div>
+				<div class="cc-sidebar-brand-name">{{ branding.company_name || "FreightMas" }}</div>
 				<div class="cc-sidebar-brand-sub">Client Portal</div>
 			</div>
 		</div>
@@ -48,10 +49,11 @@ defineProps({
 });
 
 const session = useSessionStore();
-const { fullName } = storeToRefs(session);
+const { fullName, branding } = storeToRefs(session);
 
 const displayName = computed(() => fullName.value || "Account");
 const userInitials = computed(() => initials(displayName.value));
+const brandInitials = computed(() => initials(branding.value.company_name));
 
 function onLogout() {
 	logout();

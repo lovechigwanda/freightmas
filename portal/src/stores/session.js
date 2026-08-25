@@ -9,6 +9,7 @@ import { api } from "../api/profile";
 export const useSessionStore = defineStore("session", () => {
 	const fullName = ref("");
 	const customers = ref([]);
+	const branding = ref({ company_name: "FreightMas", logo: null });
 	const loaded = ref(false);
 	const error = ref("");
 	let inflight = null;
@@ -21,6 +22,7 @@ export const useSessionStore = defineStore("session", () => {
 				const data = await api.getProfile();
 				fullName.value = (data && data.full_name) || "";
 				customers.value = (data && data.customers) || [];
+				branding.value = (data && data.branding) || { company_name: "FreightMas", logo: null };
 			} catch (e) {
 				error.value = e.message || "Failed to load your account.";
 			} finally {
@@ -31,5 +33,5 @@ export const useSessionStore = defineStore("session", () => {
 		return inflight;
 	}
 
-	return { fullName, customers, loaded, error, load };
+	return { fullName, customers, branding, loaded, error, load };
 });

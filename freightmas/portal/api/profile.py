@@ -9,6 +9,23 @@ import frappe
 from freightmas.portal.security import check_portal_access, get_portal_customer_names, log_portal_access
 
 
+def _get_default_company_branding():
+	company = frappe.db.get_single_value("Global Defaults", "default_company")
+	if not company:
+		return {"company_name": "FreightMas", "logo": None}
+
+	info = frappe.db.get_value(
+		"Company",
+		company,
+		["company_name", "company_logo"],
+		as_dict=True,
+	) or {}
+	return {
+		"company_name": info.get("company_name") or company,
+		"logo": info.get("company_logo"),
+	}
+
+
 @frappe.whitelist()
 def get_profile():
 	check_portal_access()
@@ -30,6 +47,7 @@ def get_profile():
 		"user": frappe.session.user,
 		"full_name": full_name,
 		"customers": customer_rows,
+		"branding": _get_default_company_branding(),
 	}
 
 
