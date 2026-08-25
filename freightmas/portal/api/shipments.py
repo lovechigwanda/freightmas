@@ -20,7 +20,7 @@ from freightmas.portal.security import (
 	get_portal_customer_names,
 	log_portal_access,
 )
-from freightmas.forwarding_service.utils.operational_phase import get_phase_label
+from freightmas.forwarding_service.utils.operational_phase import get_phase_label, resolve_operational_phase_filter
 from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
@@ -154,14 +154,28 @@ def _caller_customer_filter():
 	return customers
 
 
-def _job_list_filters(customers, status=None, direction=None, operational_phase=None, search=None):
+def _job_list_filters(
+	customers,
+	status=None,
+	direction=None,
+	operational_phase=None,
+	operational_phases=None,
+	overview_bucket=None,
+	search=None,
+):
 	filters = {"docstatus": ["<", 2], "customer": ["in", customers]}
 	if status:
 		filters["status"] = status
 	if direction:
 		filters["direction"] = direction
-	if operational_phase:
-		filters["operational_phase"] = operational_phase
+
+	phase_filter = resolve_operational_phase_filter(
+		operational_phase=operational_phase,
+		operational_phases=operational_phases,
+		overview_bucket=overview_bucket,
+	)
+	if phase_filter is not None:
+		filters["operational_phase"] = phase_filter
 
 	or_filters = None
 	if search:
@@ -242,11 +256,28 @@ def _resolve_milestone_report_mode(customer=None):
 
 
 @frappe.whitelist()
-def get_jobs(status=None, direction=None, operational_phase=None, search=None, limit_start=0, limit_page_length=20):
+def get_jobs(
+	status=None,
+	direction=None,
+	operational_phase=None,
+	operational_phases=None,
+	overview_bucket=None,
+	search=None,
+	limit_start=0,
+	limit_page_length=20,
+):
 	check_portal_access()
 	customers = _caller_customer_filter()
 
-	filters, or_filters = _job_list_filters(customers, status, direction, operational_phase, search)
+	filters, or_filters = _job_list_filters(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
 
 	# get_all(), not get_list(): Customer Portal User holds zero DocType
 	# permissions by design (see freightmas/portal/security.py) - the
@@ -529,11 +560,26 @@ def _build_tracking_workbook(sections, rows):
 
 
 @frappe.whitelist()
-def export_tracking_report(status=None, direction=None, search=None):
+def export_tracking_report(
+	status=None,
+	direction=None,
+	operational_phase=None,
+	operational_phases=None,
+	overview_bucket=None,
+	search=None,
+):
 	check_portal_access()
 	customers = _caller_customer_filter()
 
-	filters, or_filters = _job_list_filters(customers, status, direction, search)
+	filters, or_filters = _job_list_filters(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
 	# Tracking is for jobs still being worked - once a job is submitted it's
 	# considered finalized and drops out of this report (unlike the on-screen
 	# Shipments list, which _job_list_filters also backs and still shows

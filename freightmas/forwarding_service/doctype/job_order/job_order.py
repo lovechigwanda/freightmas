@@ -309,6 +309,7 @@ def create_forwarding_job(job_order_name):
 		fwd_job.append("documents_checklist", {
 			"document": doc.document,
 			"attach": doc.attach,
+			"client_view": doc.get("client_view"),
 			"is_submitted": doc.is_submitted,
 			"date_submitted": doc.date_submitted,
 			"is_verified": doc.is_verified,

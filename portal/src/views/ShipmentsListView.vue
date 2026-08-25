@@ -19,9 +19,11 @@
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
 				</select>
-				<select v-model="operationalPhase" @change="onFilterChange">
-					<option v-for="p in operationalPhases" :key="p.value" :value="p.value">{{ p.label }}</option>
-				</select>
+				<PhaseMultiSelect
+					v-model="selectedPhases"
+					:options="phaseOptions"
+					@change="onPhasesChange"
+				/>
 				<a class="sd-table-link" :href="reportUrl" target="_blank" rel="noopener">
 					<Download :size="14" style="vertical-align: -2px;" /> Download Report
 				</a>
@@ -79,17 +81,28 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { Download, SearchX } from "@lucide/vue";
 import { api } from "../api/shipments";
 import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
 import ProgressBar from "../components/ProgressBar.vue";
 import EmptyState from "../components/EmptyState.vue";
-import { OPERATIONAL_PHASES, formatOperationalPhase } from "../operationalPhases";
+import PhaseMultiSelect from "../components/PhaseMultiSelect.vue";
+import {
+	OPERATIONAL_PHASE_OPTIONS,
+	formatOperationalPhase,
+	phasesFromBucket,
+	parsePhasesQuery,
+	phasesToQuery,
+} from "../operationalPhases";
 
-const operationalPhases = OPERATIONAL_PHASES;
+const route = useRoute();
+const router = useRouter();
+
+const phaseOptions = OPERATIONAL_PHASE_OPTIONS;
 const statusTabs = [
 	{ value: "", label: "All" },
 	{ value: "In Progress", label: "In Progress" },
@@ -102,7 +115,7 @@ const directions = ["Import", "Export", "Local", "Transit"];
 const search = ref("");
 const status = ref("");
 const direction = ref("");
-const operationalPhase = ref("");
+const selectedPhases = ref([]);
 const jobs = ref([]);
 const totalCount = ref(0);
 const loading = ref(true);
@@ -110,6 +123,53 @@ const error = ref("");
 const page = ref(0);
 const pageSize = 20;
 let debounceTimer = null;
+
+function applyRouteFilters() {
+	const bucket = typeof route.query.bucket === "string" ? route.query.bucket : "";
+	if (bucket) {
+		selectedPhases.value = phasesFromBucket(bucket);
+	} else {
+		selectedPhases.value = parsePhasesQuery(route.query.phases);
+	}
+	if (selectedPhases.value.length) {
+		status.value = "";
+	} else if (typeof route.query.status === "string") {
+		status.value = route.query.status;
+	}
+}
+
+function syncStatusToRoute() {
+	const query = { ...route.query };
+	if (status.value) {
+		query.status = status.value;
+	} else {
+		delete query.status;
+	}
+	delete query.bucket;
+	delete query.phases;
+	router.replace({ query });
+}
+
+function syncPhasesToRoute() {
+	const query = { ...route.query };
+	const phasesQuery = phasesToQuery(selectedPhases.value);
+	if (phasesQuery) {
+		query.phases = phasesQuery;
+	} else {
+		delete query.phases;
+	}
+	delete query.bucket;
+	delete query.status;
+	router.replace({ query });
+}
+
+function buildPhaseParams() {
+	if (!selectedPhases.value.length) return {};
+	if (selectedPhases.value.length === 1) {
+		return { operational_phase: selectedPhases.value[0] };
+	}
+	return { operational_phases: selectedPhases.value };
+}
 
 async function load() {
 	loading.value = true;
@@ -119,9 +179,9 @@ async function load() {
 			search: search.value,
 			status: status.value,
 			direction: direction.value,
-			operational_phase: operationalPhase.value,
 			limit_start: page.value * pageSize,
 			limit_page_length: pageSize,
+			...buildPhaseParams(),
 		});
 		jobs.value = res.jobs;
 		totalCount.value = res.total_count;
@@ -138,10 +198,21 @@ function onFilterChange() {
 	debounceTimer = setTimeout(load, 300);
 }
 
+function onPhasesChange() {
+	page.value = 0;
+	if (selectedPhases.value.length) {
+		status.value = "";
+	}
+	syncPhasesToRoute();
+	load();
+}
+
 function setStatus(value) {
 	if (status.value === value) return;
 	status.value = value;
 	page.value = 0;
+	selectedPhases.value = [];
+	syncStatusToRoute();
 	load();
 }
 
@@ -151,8 +222,31 @@ function changePage(delta) {
 }
 
 const reportUrl = computed(() =>
-	api.exportTrackingReportUrl({ search: search.value, status: status.value, direction: direction.value })
+	api.exportTrackingReportUrl({
+		search: search.value,
+		status: status.value,
+		direction: direction.value,
+		...buildPhaseParams(),
+	})
 );
 
-onMounted(load);
+watch(
+	() => [route.query.phases, route.query.bucket, route.query.status],
+	() => {
+		applyRouteFilters();
+		if (route.query.bucket) {
+			syncPhasesToRoute();
+		}
+		page.value = 0;
+		load();
+	},
+);
+
+onMounted(() => {
+	applyRouteFilters();
+	if (route.query.bucket) {
+		syncPhasesToRoute();
+	}
+	load();
+});
 </script>

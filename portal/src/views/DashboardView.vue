@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<div v-if="loading" class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-			<div class="sd-card cc-kpi-skeleton cc-skeleton" v-for="i in 3" :key="i"></div>
+		<div v-if="loading" class="sd-phase-pipeline">
+			<div class="sd-card sd-phase-pipeline-skeleton cc-skeleton" v-for="i in 7" :key="i"></div>
 		</div>
 		<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 
@@ -10,16 +10,24 @@
 				<span class="sd-muted">Welcome back, {{ fullName || "there" }}.</span>
 			</div>
 
+			<div style="margin-bottom: 18px;">
+				<h3 class="sd-pipeline-section-title">Shipment Pipeline</h3>
+				<div class="sd-phase-pipeline">
+					<PhasePipelineCard
+						v-for="(bucket, idx) in data.phase_pipeline"
+						:key="bucket.key"
+						:label="bucket.label"
+						:title="bucket.title || bucket.label"
+						:count="bucket.count"
+						:icon="pipelineMeta(bucket.key).icon"
+						:tone="pipelineMeta(bucket.key).tone"
+						:show-connector="idx < data.phase_pipeline.length - 1"
+						@click="navigateToBucket(bucket.key)"
+					/>
+				</div>
+			</div>
+
 			<div class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-				<KpiCard label="Active Shipments" :value="formatNumber(data.active_shipments)" :icon="Boxes" />
-				<KpiCard label="In Transit" :value="formatNumber(data.in_transit)" :icon="Ship" />
-				<KpiCard
-					label="Needs Attention"
-					:value="formatNumber(data.overdue)"
-					:tone="data.overdue ? 'warn' : 'good'"
-					:icon="AlertTriangle"
-					sub="Past ETA/ETD, unconfirmed"
-				/>
 				<KpiCard
 					label="Outstanding"
 					:value="formatMoney(data.outstanding_amount)"
@@ -69,11 +77,17 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { Boxes, Ship, AlertTriangle, Wallet, Receipt } from "@lucide/vue";
+import { Ship, Wallet, Receipt, MapPin } from "@lucide/vue";
 import { api } from "../api/dashboard";
-import { formatDate, formatNumber, formatMoney } from "../format";
+import { formatDate, formatMoney } from "../format";
 import { useSessionStore } from "../stores/session";
+import {
+	OVERVIEW_PIPELINE_META,
+	phasesFromBucket,
+	phasesToQuery,
+} from "../operationalPhases";
 import KpiCard from "../components/KpiCard.vue";
+import PhasePipelineCard from "../components/PhasePipelineCard.vue";
 import StatusBadge from "../components/StatusBadge.vue";
 import EmptyState from "../components/EmptyState.vue";
 import { useRouter } from "vue-router";
@@ -85,6 +99,20 @@ const { fullName } = storeToRefs(session);
 const data = ref(null);
 const loading = ref(true);
 const error = ref("");
+
+function pipelineMeta(key) {
+	return OVERVIEW_PIPELINE_META[key] || { icon: MapPin, tone: "neutral" };
+}
+
+function navigateToBucket(bucket) {
+	const phases = phasesFromBucket(bucket);
+	const query = {};
+	const phasesQuery = phasesToQuery(phases);
+	if (phasesQuery) {
+		query.phases = phasesQuery;
+	}
+	router.push({ path: "/shipments", query });
+}
 
 async function load() {
 	loading.value = true;

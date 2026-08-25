@@ -9,6 +9,8 @@ fields), Shipment Dashboard, Client Portal, reports, and list views.
 
 from __future__ import annotations
 
+import json
+
 import frappe
 from frappe.utils import cint
 
@@ -75,20 +77,57 @@ def get_overview_bucket_phases(bucket_key):
 	return list(bucket["phases"]) if bucket else []
 
 
-def build_overview_phase_pipeline():
+def resolve_operational_phase_filter(operational_phase=None, operational_phases=None, overview_bucket=None):
+	"""Return a frappe filter value for operational_phase, or None."""
+	bucket_phases = get_overview_bucket_phases(overview_bucket) if overview_bucket else []
+	if bucket_phases:
+		return ["in", bucket_phases] if len(bucket_phases) > 1 else bucket_phases[0]
+
+	phases = []
+	if operational_phases:
+		if isinstance(operational_phases, str):
+			raw = operational_phases.strip()
+			if raw.startswith("["):
+				try:
+					parsed = json.loads(raw)
+					phases = [phase for phase in parsed if phase]
+				except (json.JSONDecodeError, TypeError):
+					phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
+			else:
+				phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
+		elif isinstance(operational_phases, (list, tuple)):
+			phases = [phase for phase in operational_phases if phase]
+
+	if not phases and operational_phase:
+		phases = [operational_phase]
+
+	if not phases:
+		return None
+	if len(phases) == 1:
+		return phases[0]
+	return ["in", phases]
+
+
+def build_overview_phase_pipeline(customers=None):
 	"""Counts per overview pipeline bucket from persisted operational_phase."""
 	visible_phases = {phase for bucket in OVERVIEW_PIPELINE_BUCKETS for phase in bucket["phases"]}
 	if not visible_phases:
 		return []
 
+	params = {"phases": tuple(visible_phases)}
+	customer_clause = ""
+	if customers:
+		customer_clause = " AND customer IN %(customers)s"
+		params["customers"] = tuple(customers)
+
 	rows = frappe.db.sql(
-		"""
+		f"""
 		SELECT operational_phase, COUNT(*) AS count
 		FROM `tabForwarding Job`
-		WHERE docstatus < 2 AND operational_phase IN %(phases)s
+		WHERE docstatus < 2 AND operational_phase IN %(phases)s{customer_clause}
 		GROUP BY operational_phase
 		""",
-		{"phases": tuple(visible_phases)},
+		params,
 		as_dict=True,
 	)
 	counts_by_phase = {row.operational_phase: row.count for row in rows}

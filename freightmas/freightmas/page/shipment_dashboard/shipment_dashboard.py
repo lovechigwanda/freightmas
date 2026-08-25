@@ -29,9 +29,9 @@ from openpyxl.utils import get_column_letter
 from freightmas.utils.permissions import check_freightmas_role, check_doc_read_permission
 from freightmas.forwarding_service.utils.operational_phase import (
 	OPERATIONAL_PHASES,
-	get_overview_bucket_phases,
 	get_phase_label,
 	build_overview_phase_pipeline,
+	resolve_operational_phase_filter,
 )
 from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
 
@@ -360,37 +360,6 @@ def _operational_phase_label(phase):
 	return get_phase_label(phase)
 
 
-def _resolve_operational_phase_filter(operational_phase=None, operational_phases=None, overview_bucket=None):
-	"""Return a frappe filter value for operational_phase, or None."""
-	bucket_phases = get_overview_bucket_phases(overview_bucket) if overview_bucket else []
-	if bucket_phases:
-		return ["in", bucket_phases] if len(bucket_phases) > 1 else bucket_phases[0]
-
-	phases = []
-	if operational_phases:
-		if isinstance(operational_phases, str):
-			raw = operational_phases.strip()
-			if raw.startswith("["):
-				try:
-					parsed = json.loads(raw)
-					phases = [phase for phase in parsed if phase]
-				except (json.JSONDecodeError, TypeError):
-					phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
-			else:
-				phases = [phase.strip() for phase in raw.split(",") if phase.strip()]
-		elif isinstance(operational_phases, (list, tuple)):
-			phases = [phase for phase in operational_phases if phase]
-
-	if not phases and operational_phase:
-		phases = [operational_phase]
-
-	if not phases:
-		return None
-	if len(phases) == 1:
-		return phases[0]
-	return ["in", phases]
-
-
 @frappe.whitelist()
 def get_operational_phases():
 	check_freightmas_role()
@@ -409,7 +378,7 @@ def get_jobs(customer=None, status=None, direction=None, operational_phase=None,
 	if direction:
 		filters["direction"] = direction
 
-	phase_filter = _resolve_operational_phase_filter(
+	phase_filter = resolve_operational_phase_filter(
 		operational_phase=operational_phase,
 		operational_phases=operational_phases,
 		overview_bucket=overview_bucket,

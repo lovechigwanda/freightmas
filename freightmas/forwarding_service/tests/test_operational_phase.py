@@ -10,6 +10,7 @@ import frappe
 from freightmas.forwarding_service.utils.operational_phase import (
 	derive_operational_phase,
 	get_overview_bucket_phases,
+	resolve_operational_phase_filter,
 )
 
 
@@ -133,6 +134,14 @@ class TestOperationalPhase(unittest.TestCase):
 		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[2]["title"], "At Port of Discharge")
 		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[3]["label"], "Port Clearance")
 		self.assertEqual(OVERVIEW_PIPELINE_BUCKETS[-1]["label"], "Delivered")
+
+	def test_resolve_operational_phase_filter_multi_phase(self):
+		result = resolve_operational_phase_filter(operational_phases="planning,awaiting_departure")
+		self.assertEqual(result, ["in", ["planning", "awaiting_departure"]])
+
+	def test_resolve_operational_phase_filter_overview_bucket(self):
+		result = resolve_operational_phase_filter(overview_bucket="at_origin")
+		self.assertEqual(result, ["in", ["planning", "awaiting_departure"]])
 
 
 if __name__ == "__main__":

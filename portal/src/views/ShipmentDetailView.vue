@@ -13,8 +13,9 @@
 			</div>
 
 			<nav class="sd-tabs">
-				<button class="sd-tab" :class="{ active: tab === 'overview' }" @click="tab = 'overview'">Overview</button>
-				<button class="sd-tab" :class="{ active: tab === 'tracking' }" @click="tab = 'tracking'">Tracking</button>
+				<button class="sd-tab" :class="{ active: tab === 'overview' }" @click="setTab('overview')">Overview</button>
+				<button class="sd-tab" :class="{ active: tab === 'tracking' }" @click="setTab('tracking')">Tracking</button>
+				<button class="sd-tab" :class="{ active: tab === 'documents' }" @click="setTab('documents')">Documents</button>
 			</nav>
 
 			<div v-if="tab === 'overview'" class="sd-grid sd-grid-2">
@@ -47,7 +48,7 @@
 				</div>
 			</div>
 
-			<template v-else>
+			<template v-else-if="tab === 'tracking'">
 				<div v-if="stageSummary.length" class="sd-card" style="margin-bottom: 14px;">
 					<div class="sd-card-title"><span class="sd-card-title-main">Progress</span></div>
 					<div v-for="group in stageSummary" :key="group.group" class="sd-stage-group">
@@ -92,14 +93,91 @@
 					</table>
 				</div>
 			</template>
+
+			<template v-else-if="tab === 'documents'">
+				<div v-if="documentsLoading" class="sd-card">
+					<div class="cc-row-skeleton cc-skeleton" v-for="i in 4" :key="i"></div>
+				</div>
+				<div v-else-if="documentsError" class="sd-state" style="color: var(--sd-red)">{{ documentsError }}</div>
+				<template v-else-if="documents">
+					<div class="sd-card" style="margin-bottom: 14px;">
+						<div class="sd-card-title"><span class="sd-card-title-main">Outgoing</span></div>
+						<p class="sd-muted cc-documents-intro">Documents shared with you by your account team.</p>
+						<table class="sd-table" v-if="documents.outgoing.length">
+							<thead>
+								<tr>
+									<th>Document</th>
+									<th>File</th>
+									<th>Submitted</th>
+									<th>Verified</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="row in documents.outgoing" :key="row.name">
+									<td>{{ row.document_label }}</td>
+									<td class="sd-muted">{{ row.file_name || "–" }}</td>
+									<td>{{ formatDate(row.date_submitted) }}</td>
+									<td>{{ row.is_verified ? formatDate(row.date_verified) : "–" }}</td>
+									<td>
+										<a
+											class="sd-table-link"
+											:href="downloadUrl(row.name)"
+											target="_blank"
+											rel="noopener"
+										>
+											Download
+										</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<EmptyState v-else :icon="FileText" title="No outgoing documents yet" sub="Your team has not shared any documents for this shipment." />
+					</div>
+
+					<div class="sd-card">
+						<div class="sd-card-title"><span class="sd-card-title-main">Incoming</span></div>
+						<p class="sd-muted cc-documents-intro">Documents you submit to your account team.</p>
+						<table class="sd-table" v-if="documents.incoming.length">
+							<thead>
+								<tr>
+									<th>Document</th>
+									<th>File</th>
+									<th>Submitted</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="row in documents.incoming" :key="row.name">
+									<td>{{ row.document_label }}</td>
+									<td class="sd-muted">{{ row.file_name || "–" }}</td>
+									<td>{{ formatDate(row.date_submitted) }}</td>
+									<td>
+										<a
+											class="sd-table-link"
+											:href="downloadUrl(row.name)"
+											target="_blank"
+											rel="noopener"
+										>
+											Download
+										</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<EmptyState v-else :icon="Upload" title="No incoming documents yet" sub="Documents you upload will appear here." />
+					</div>
+				</template>
+			</template>
 		</template>
 	</div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from "vue";
-import { Clock } from "@lucide/vue";
+import { Clock, FileText, Upload } from "@lucide/vue";
 import { api } from "../api/shipments";
+import { api as documentsApi } from "../api/documents";
 import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
 import EmptyState from "../components/EmptyState.vue";
@@ -111,25 +189,17 @@ const detail = ref(null);
 const loading = ref(true);
 const error = ref("");
 const tab = ref("overview");
+const documents = ref(null);
+const documentsLoading = ref(false);
+const documentsError = ref("");
 
-// When the client is set to "Stage Summary", services with stages configured
-// are shown as a compact stage rollup (see stageSummary) instead of listing
-// every milestone.
 const summaryMode = computed(() => detail.value?.milestone_report_mode === "Stage Summary");
 
-// Per-service stage rollup for the summary card - only services that actually
-// have stages configured; the current stage is flagged by the backend.
 const stageSummary = computed(() => {
 	if (!detail.value || !summaryMode.value) return [];
 	return (detail.value.milestone_stages || []).filter((g) => g.has_stages && g.stages?.length);
 });
 
-// Merges the structured milestone checklist and the free-text tracking log
-// into one chronological journey: completed milestones + logged events,
-// newest first, followed by not-yet-completed milestones (no date yet). In
-// summary mode, milestones from staged services are omitted here (they're
-// represented by the stage summary card) so the journey isn't flooded with
-// every step.
 const timeline = computed(() => {
 	if (!detail.value) return [];
 
@@ -158,13 +228,41 @@ const timeline = computed(() => {
 async function load(jobName) {
 	loading.value = true;
 	error.value = "";
+	documents.value = null;
+	documentsError.value = "";
 	try {
 		detail.value = await api.getJobDetail(jobName);
+		if (tab.value === "documents") {
+			await loadDocuments(jobName);
+		}
 	} catch (e) {
 		error.value = e.message || "Failed to load this shipment.";
 	} finally {
 		loading.value = false;
 	}
+}
+
+async function loadDocuments(jobName) {
+	documentsLoading.value = true;
+	documentsError.value = "";
+	try {
+		documents.value = await documentsApi.getJobDocuments(jobName);
+	} catch (e) {
+		documentsError.value = e.message || "Failed to load documents.";
+	} finally {
+		documentsLoading.value = false;
+	}
+}
+
+function setTab(nextTab) {
+	tab.value = nextTab;
+	if (nextTab === "documents" && props.id && !documents.value && !documentsLoading.value) {
+		loadDocuments(props.id);
+	}
+}
+
+function downloadUrl(checklistRow) {
+	return documentsApi.downloadDocumentUrl(props.id, checklistRow);
 }
 
 function cargoStatus(row) {
@@ -178,3 +276,10 @@ function cargoStatus(row) {
 
 watch(() => props.id, (id) => id && load(id), { immediate: true });
 </script>
+
+<style scoped>
+.cc-documents-intro {
+	margin: -6px 0 14px;
+	font-size: 13px;
+}
+</style>

@@ -194,7 +194,10 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 
 	def test_get_overview_scopes_kpis_to_own_customer(self):
 		customer_a, _customer_b, user_a, job_a, job_b = _make_pair("E4")
-		_make_forwarding_job(customer_a, "E4a2", status="Completed")
+		completed_job = _make_forwarding_job(customer_a, "E4a2", status="Completed")
+		frappe.db.set_value("Forwarding Job", job_a.name, "operational_phase", "planning")
+		frappe.db.set_value("Forwarding Job", completed_job.name, "operational_phase", "closed")
+		frappe.db.set_value("Forwarding Job", job_b.name, "operational_phase", "in_transit")
 
 		frappe.set_user(user_a.name)
 		try:
@@ -202,10 +205,30 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
-		self.assertEqual(result["active_shipments"], 1)  # job_a only; completed one excluded
+		self.assertEqual(len(result["phase_pipeline"]), 7)
+		at_origin = next(b for b in result["phase_pipeline"] if b["key"] == "at_origin")
+		in_transit = next(b for b in result["phase_pipeline"] if b["key"] == "in_transit")
+		self.assertEqual(at_origin["count"], 1)  # job_a only; completed job excluded from pipeline phases
+		self.assertEqual(in_transit["count"], 0)  # job_b belongs to another customer
 		recent_names = [j.name for j in result["recent_jobs"]]
 		self.assertIn(job_a.name, recent_names)
 		self.assertNotIn(job_b.name, recent_names)
+
+	def test_get_jobs_filters_by_operational_phases(self):
+		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E4b")
+		job_origin = _make_forwarding_job(customer_a, "E4b-origin")
+		frappe.db.set_value("Forwarding Job", job_a.name, "operational_phase", "in_transit")
+		frappe.db.set_value("Forwarding Job", job_origin.name, "operational_phase", "planning")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_shipments.get_jobs(operational_phases="planning,awaiting_departure")
+		finally:
+			frappe.set_user("Administrator")
+
+		names = [j.name for j in result["jobs"]]
+		self.assertIn(job_origin.name, names)
+		self.assertNotIn(job_a.name, names)
 
 	def test_portal_endpoints_reject_guest(self):
 		frappe.set_user("Guest")
