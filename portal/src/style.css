@@ -392,6 +392,16 @@ h1, h2, h3, h4 {
 	grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
 }
 
+.cc-dashboard-feeds {
+	grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+	.cc-dashboard-feeds {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
 .sd-card {
 	background: var(--sd-surface);
 	border: 1px solid var(--sd-border);

@@ -215,6 +215,9 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 		recent_names = [j.name for j in result["recent_jobs"]]
 		self.assertIn(job_a.name, recent_names)
 		self.assertNotIn(job_b.name, recent_names)
+		self.assertIn("active_count", result)
+		self.assertIn("paid_ytd", result)
+		self.assertIn("needs_attention", result)
 
 	def test_get_jobs_filters_by_operational_phases(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E4b")

@@ -1,0 +1,75 @@
+# Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
+# For license information, please see license.txt
+
+"""Client Portal dashboard overview tests."""
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, nowdate
+
+from freightmas.portal.api import dashboard as portal_dashboard
+from freightmas.tests.test_client_portal_shipments import _make_pair
+
+
+class TestPortalDashboardOverview(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_get_overview_returns_enriched_dashboard_sections(self):
+		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("D1")
+		frappe.db.set_value("Forwarding Job", job_a.name, "operational_phase", "in_transit")
+		frappe.db.set_value("Forwarding Job", job_a.name, "current_comment", "Awaiting vessel update")
+		frappe.db.set_value("Forwarding Job", job_a.name, "eta", add_days(nowdate(), -2))
+		job_a.reload()
+		job_a.append(
+			"tracking_timeline",
+			{"event": "Departed origin", "date": nowdate(), "source": "Manual"},
+		)
+		job_a.save(ignore_permissions=True)
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_dashboard.get_overview()
+		finally:
+			frappe.set_user("Administrator")
+
+		for key in (
+			"phase_pipeline",
+			"active_count",
+			"delayed_count",
+			"recent_jobs",
+			"needs_attention",
+			"arriving_soon",
+			"recent_updates",
+			"recent_documents",
+			"recent_invoices",
+			"outstanding_amount",
+			"overdue_amount",
+			"paid_ytd",
+		):
+			self.assertIn(key, result)
+
+		self.assertGreaterEqual(result["active_count"], 1)
+		self.assertGreaterEqual(result["delayed_count"], 1)
+		recent = result["recent_jobs"][0]
+		self.assertIn("milestone_percent", recent)
+		self.assertIn("operational_phase_label", recent)
+		self.assertIn("is_overdue", recent)
+		self.assertTrue(recent["is_overdue"])
+		self.assertEqual(result["needs_attention"][0]["name"], job_a.name)
+		self.assertTrue(any(row["event"] == "Departed origin" for row in result["recent_updates"]))
+
+	def test_get_overview_scopes_delayed_jobs_to_own_customer(self):
+		customer_a, _customer_b, user_a, job_a, job_b = _make_pair("D2")
+		frappe.db.set_value("Forwarding Job", job_a.name, "eta", add_days(nowdate(), -1))
+		frappe.db.set_value("Forwarding Job", job_b.name, "eta", add_days(nowdate(), -1))
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_dashboard.get_overview()
+		finally:
+			frappe.set_user("Administrator")
+
+		attention_names = {job["name"] for job in result["needs_attention"]}
+		self.assertIn(job_a.name, attention_names)
+		self.assertNotIn(job_b.name, attention_names)
