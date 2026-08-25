@@ -229,7 +229,7 @@ def _build_clearance_section(group, title, use_stage_summary):
 	milestones = group.get("milestones") or []
 	done = sum(1 for m in milestones if m.get("is_completed"))
 	progress = _progress_fraction(done, len(milestones) or 0)
-	if use_stage_summary and group.get("has_stages"):
+	if group.get("has_stages"):
 		return {
 			"kind": "clearance_stages",
 			"title": title,

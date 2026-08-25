@@ -64,6 +64,16 @@ export function milestoneSections(sections = []) {
 	return (sections || []).filter((section) => MILESTONE_KINDS.has(section.kind));
 }
 
+export function leftMilestoneSections(sections = []) {
+	return milestoneSections(sections).filter(
+		(section) => section.kind === "sea_air" || section.title === "Border Clearance",
+	);
+}
+
+export function portMilestoneSection(sections = []) {
+	return milestoneSections(sections).find((section) => section.title === "Port Clearance") || null;
+}
+
 export function completionSection(sections = []) {
 	return (sections || []).find((section) => section.kind === "completion") || null;
 }

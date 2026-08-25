@@ -11,8 +11,8 @@
 				<div class="sd-shipment-header-main">
 					<h1 class="sd-shipment-title">{{ detail.header.name }}</h1>
 					<StatusBadge :status="detail.header.status" />
+					<span v-if="serviceTagLine" class="sd-shipment-subtitle">{{ serviceTagLine }}</span>
 				</div>
-				<p v-if="serviceTagLine" class="sd-shipment-subtitle">{{ serviceTagLine }}</p>
 			</header>
 
 			<TrackingBanner
@@ -37,18 +37,6 @@
 									{{ detail.header.port_of_loading || "–" }} &rarr;
 									{{ detail.header.destination || detail.header.port_of_discharge || "–" }}
 								</dd>
-							</div>
-							<div class="sd-shipment-detail-row">
-								<dt class="sd-muted">Direction</dt>
-								<dd>{{ detail.header.direction || "–" }}</dd>
-							</div>
-							<div class="sd-shipment-detail-row">
-								<dt class="sd-muted">Incoterms</dt>
-								<dd>{{ detail.header.incoterms || "–" }}</dd>
-							</div>
-							<div class="sd-shipment-detail-row">
-								<dt class="sd-muted">Booking Date</dt>
-								<dd>{{ formatDate(detail.shipment_dates.booking_date) }}</dd>
 							</div>
 							<div class="sd-shipment-detail-row">
 								<dt class="sd-muted">ETD / ATD</dt>
@@ -77,10 +65,6 @@
 								</dd>
 							</div>
 							<div class="sd-shipment-detail-row">
-								<dt class="sd-muted">Vessel / Flight</dt>
-								<dd>{{ detail.header.vessel_flight_no || "–" }}</dd>
-							</div>
-							<div class="sd-shipment-detail-row">
 								<dt class="sd-muted">Cargo</dt>
 								<dd>
 									{{ detail.header.cargo_description || "–" }}
@@ -90,10 +74,6 @@
 							<div class="sd-shipment-detail-row">
 								<dt class="sd-muted">Discharge Date</dt>
 								<dd>{{ formatDate(detail.shipment_dates.discharge_date) }}</dd>
-							</div>
-							<div class="sd-shipment-detail-row">
-								<dt class="sd-muted">Completed On</dt>
-								<dd>{{ formatDate(detail.shipment_dates.completed_on) }}</dd>
 							</div>
 						</dl>
 					</div>
@@ -107,16 +87,16 @@
 				/>
 			</div>
 
-			<ShipmentMilestonesCard
-				:view="detail.tracking_view"
-				:fallback-percent="detail.header.milestone_percent"
-			/>
+			<ShipmentMilestonesCard :view="detail.tracking_view" />
 
 			<ShipmentCargoTable :view="detail.tracking_view" />
 
 			<div class="sd-grid sd-grid-2">
 				<ShipmentCommentsCard :updates="detail.tracking_view?.live_updates" />
-				<ShipmentCompletionCard :section="completion" />
+				<ShipmentCompletionCard
+					:section="completion"
+					:completed-on="detail.shipment_dates.completed_on"
+				/>
 			</div>
 		</div>
 	</div>

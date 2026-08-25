@@ -23,15 +23,26 @@
 				</div>
 			</div>
 		</div>
+		<div class="sd-completion-date">
+			<span class="sd-muted">Completed On</span>
+			<span>{{ completedOnLabel }}</span>
+		</div>
 	</div>
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { Check } from "@lucide/vue";
 import { formatDate } from "../format";
 import { progressTone } from "../utils/shipmentView";
 
-defineProps({
+const props = defineProps({
 	section: { type: Object, default: null },
+	completedOn: { type: String, default: "" },
+});
+
+const completedOnLabel = computed(() => {
+	const value = props.section?.completed_on || props.completedOn;
+	return value ? formatDate(value) : "–";
 });
 </script>

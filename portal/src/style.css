@@ -1863,7 +1863,7 @@ h1, h2, h3, h4 {
 .sd-shipment-header-main {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 10px 12px;
 	flex-wrap: wrap;
 }
 
@@ -1872,6 +1872,7 @@ h1, h2, h3, h4 {
 	font-size: 20px;
 	font-weight: 700;
 	line-height: 1.2;
+	flex-shrink: 0;
 }
 
 .sd-shipment-subtitle {
@@ -2054,6 +2055,27 @@ h1, h2, h3, h4 {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 20px 24px;
+}
+
+.sd-milestones-row {
+	align-items: stretch;
+}
+
+.sd-milestones-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.sd-completion-date {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--sd-border-soft);
+	font-size: 13px;
 }
 
 .sd-milestones-section {

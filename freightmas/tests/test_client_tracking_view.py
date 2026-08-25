@@ -140,8 +140,12 @@ class TestClientTrackingView(IntegrationTestCase):
 
 		full_view = build_client_tracking_view(job, milestone_report_mode="Full Milestones")
 		port_full = next(s for s in full_view["sections"] if s["title"] == "Port Clearance")
-		self.assertEqual(port_full["kind"], "clearance_checklist")
-		self.assertEqual(len(port_full["entries"]), len(job.port_clearance_milestones))
+		if any(m.get("stage") for m in job.port_clearance_milestones):
+			self.assertEqual(port_full["kind"], "clearance_stages")
+			self.assertTrue(port_full["stages"])
+		else:
+			self.assertEqual(port_full["kind"], "clearance_checklist")
+			self.assertEqual(len(port_full["entries"]), len(job.port_clearance_milestones))
 
 	def test_live_updates_from_tracking_timeline_only(self):
 		customer = _make_customer("L1")
