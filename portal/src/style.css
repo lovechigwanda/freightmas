@@ -700,7 +700,7 @@ h1, h2, h3, h4 {
 	margin-bottom: 14px;
 }
 
-.sd-filters input,
+.sd-filters input:not([type="checkbox"]),
 .sd-filters select {
 	padding: 8px 12px;
 	border: 1px solid var(--sd-border);
@@ -712,14 +712,14 @@ h1, h2, h3, h4 {
 	transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
-.sd-filters input:focus,
+.sd-filters input:not([type="checkbox"]):focus,
 .sd-filters select:focus {
 	outline: none;
 	border-color: var(--sd-accent);
 	box-shadow: 0 0 0 3px var(--sd-accent-soft);
 }
 
-.sd-filters input {
+.sd-filters input:not([type="checkbox"]) {
 	min-width: 240px;
 }
 

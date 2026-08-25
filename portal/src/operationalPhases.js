@@ -50,11 +50,7 @@ export const OVERVIEW_BUCKET_PHASES = {
 
 export function formatOperationalPhase(job) {
 	if (!job?.operational_phase) return "–";
-	const label = job.operational_phase_label || job.operational_phase;
-	if (job.operational_substage) {
-		return `${label} · ${job.operational_substage}`;
-	}
-	return label;
+	return job.operational_phase_label || job.operational_phase;
 }
 
 export function phasesFromBucket(bucket) {
