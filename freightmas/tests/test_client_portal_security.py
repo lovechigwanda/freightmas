@@ -343,3 +343,22 @@ class TestEnforcePrivateOnInsert(IntegrationTestCase):
 		enforce_private_on_insert(file_doc)
 
 		self.assertEqual(file_doc.is_private, 0)
+
+
+class TestPortalLogout(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_logout_clears_portal_session(self):
+		from freightmas.portal.api.profile import logout as portal_logout
+
+		customer = _make_customer("L1")
+		user = _make_user("l1")
+		_make_contact(user, [customer])
+
+		frappe.set_user(user.name)
+		self.assertEqual(frappe.session.user, user.name)
+
+		result = portal_logout()
+		self.assertEqual(result["redirect_to"], "/login?redirect-to=/client-portal")
+		self.assertEqual(frappe.session.user, "Guest")

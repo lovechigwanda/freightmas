@@ -25,13 +25,13 @@
 			</router-link>
 		</nav>
 
-		<a class="cc-sidebar-foot" href="/api/method/logout" title="Log out">
+		<button type="button" class="cc-sidebar-foot" title="Log out" @click="onLogout">
 			<div class="cc-sidebar-foot-avatar">{{ userInitials }}</div>
 			<div class="cc-sidebar-foot-text">
 				<div class="cc-sidebar-foot-name">{{ displayName }}</div>
 				<div class="cc-sidebar-foot-role">Log out</div>
 			</div>
-		</a>
+		</button>
 	</aside>
 </template>
 
@@ -40,6 +40,7 @@ import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { initials } from "../format";
 import { NAV_ICONS } from "../icons";
+import { logout } from "../api/auth";
 import { useSessionStore } from "../stores/session";
 
 defineProps({
@@ -51,4 +52,8 @@ const { fullName } = storeToRefs(session);
 
 const displayName = computed(() => fullName.value || "Account");
 const userInitials = computed(() => initials(displayName.value));
+
+function onLogout() {
+	logout();
+}
 </script>

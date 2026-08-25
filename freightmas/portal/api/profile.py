@@ -31,3 +31,13 @@ def get_profile():
 		"full_name": full_name,
 		"customers": customer_rows,
 	}
+
+
+@frappe.whitelist(methods=["POST"])
+def logout():
+	"""End the portal session. Frappe's built-in /api/method/logout rejects GET
+	requests; the SPA must POST here (or to frappe.handler.logout) instead."""
+	if frappe.session.user and frappe.session.user != "Guest":
+		frappe.local.login_manager.logout()
+		frappe.db.commit()
+	return {"redirect_to": "/login?redirect-to=/client-portal"}
