@@ -1747,6 +1747,83 @@ h1, h2, h3, h4 {
 	color: var(--sd-text-faint);
 }
 
+/* Client Portal tracking banner */
+.sd-tracking-banner {
+	margin-bottom: 14px;
+	border-left: 4px solid var(--sd-accent);
+}
+
+.sd-tracking-banner--green {
+	border-left-color: var(--sd-green);
+}
+
+.sd-tracking-banner--red {
+	border-left-color: var(--sd-red);
+}
+
+.sd-tracking-banner--orange,
+.sd-tracking-banner--gray {
+	border-left-color: var(--sd-amber);
+}
+
+.sd-tracking-banner-top {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 16px;
+	margin-bottom: 8px;
+}
+
+.sd-tracking-status-chip {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	padding: 3px 9px;
+	border-radius: 999px;
+	background: var(--sd-accent-soft);
+	color: var(--sd-accent);
+}
+
+.sd-tracking-banner--green .sd-tracking-status-chip {
+	background: var(--sd-green-soft);
+	color: var(--sd-green);
+}
+
+.sd-tracking-banner--red .sd-tracking-status-chip {
+	background: var(--sd-red-soft);
+	color: var(--sd-red);
+}
+
+.sd-tracking-banner--orange .sd-tracking-status-chip,
+.sd-tracking-banner--gray .sd-tracking-status-chip {
+	background: var(--sd-amber-soft);
+	color: var(--sd-amber);
+}
+
+.sd-tracking-phase {
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.sd-tracking-progress {
+	flex: 1;
+	min-width: 120px;
+	display: flex;
+	align-items: center;
+}
+
+.sd-tracking-latest {
+	font-size: 13px;
+	margin-bottom: 6px;
+}
+
+.sd-tracking-key-date {
+	display: flex;
+	gap: 8px;
+	font-size: 13px;
+}
+
 .cc-modal-note {
 	margin-top: 12px;
 	padding: 11px 14px;

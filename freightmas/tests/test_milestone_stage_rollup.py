@@ -9,7 +9,7 @@ milestone dicts, the same shape they receive from Job Milestone Progress rows.
 
 import unittest
 
-from freightmas.freightmas.page.shipment_dashboard.shipment_dashboard import (
+from freightmas.forwarding_service.utils.client_tracking_view import (
 	has_milestone_stages,
 	milestone_stage_rollup,
 )

@@ -22,6 +22,11 @@ from freightmas.portal.security import (
 )
 from freightmas.forwarding_service.utils.operational_phase import get_phase_label, resolve_operational_phase_filter
 from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
+from freightmas.forwarding_service.utils.client_tracking_view import (
+	build_client_tracking_view,
+	build_job_cargo_list,
+	resolve_client_milestone_report_mode,
+)
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
@@ -187,74 +192,6 @@ def _job_list_filters(
 	return filters, or_filters
 
 
-# --- Milestone stage summary --------------------------------------------------
-# These mirror the stage rollup / mode resolution in
-# freightmas/page/shipment_dashboard/shipment_dashboard.py. The portal
-# deliberately re-implements shared logic locally (see module docstring) rather
-# than importing from the internal dashboard, so the two are kept in sync by
-# matching comments - the same way the done/total counting rule already is.
-
-
-def _has_milestone_stages(milestones):
-	"""True when at least one milestone carries a stage - i.e. the service can
-	be summarized by stage. When False the front-end shows the full list."""
-	return any(m.get("stage") for m in milestones)
-
-
-def _milestone_stage_rollup(milestones):
-	"""Roll a service's milestone list up into its named stages, in order. The
-	*current stage* is the first stage (by stage_sequence) not fully complete;
-	if all are complete none is flagged. Unstaged milestones fall into a
-	trailing "Other" bucket. Returns [{name, done, total, pct, is_current}]."""
-	buckets = {}
-	order = {}
-	for m in milestones:
-		key = m.get("stage") or None
-		seq = m.get("stage_sequence") or 0
-		bucket = buckets.setdefault(key, {"done": 0, "total": 0})
-		bucket["total"] += 1
-		if m.get("is_completed"):
-			bucket["done"] += 1
-		order[key] = min(order[key], seq) if key in order else seq
-
-	ordered = sorted(
-		buckets.items(),
-		key=lambda item: (1, 0) if item[0] is None else (0, order.get(item[0], 0)),
-	)
-
-	stages = []
-	current_taken = False
-	for key, bucket in ordered:
-		pct = round(bucket["done"] / bucket["total"] * 100) if bucket["total"] else 0
-		is_current = (not current_taken) and bucket["done"] < bucket["total"]
-		if is_current:
-			current_taken = True
-		stages.append({
-			"name": key or "Other",
-			"done": bucket["done"],
-			"total": bucket["total"],
-			"pct": pct,
-			"is_current": is_current,
-		})
-	return stages
-
-
-def _resolve_milestone_report_mode(customer=None):
-	"""Effective client-report milestone detail mode ('Stage Summary' or 'Full
-	Milestones'): the per-Customer override wins unless blank/'Use Default',
-	otherwise the FreightMas Settings default (default 'Full Milestones')."""
-	if customer:
-		override = frappe.db.get_value(
-			"Customer", customer, "custom_client_report_milestone_detail"
-		)
-		if override and override != "Use Default":
-			return override
-	return (
-		frappe.db.get_single_value("FreightMas Settings", "client_report_milestone_detail")
-		or "Full Milestones"
-	)
-
-
 @frappe.whitelist()
 def get_jobs(
 	status=None,
@@ -316,6 +253,8 @@ def get_job_detail(job_name):
 	customer = assert_customer_scope("Forwarding Job", job_name, "customer")
 
 	doc = frappe.get_doc("Forwarding Job", job_name)
+	report_mode = resolve_client_milestone_report_mode(doc.customer)
+	milestone_percent = forwarding_milestone_progress_map([doc.name]).get(doc.name, 0)
 
 	header = {
 		"name": doc.name,
@@ -325,6 +264,9 @@ def get_job_detail(job_name):
 		"shipment_mode": doc.shipment_mode,
 		"shipment_type": doc.shipment_type,
 		"status": doc.status,
+		"operational_phase": doc.operational_phase,
+		"operational_phase_label": get_phase_label(doc.operational_phase),
+		"milestone_percent": milestone_percent,
 		"port_of_loading": doc.port_of_loading,
 		"port_of_discharge": doc.port_of_discharge,
 		"destination": doc.destination,
@@ -350,87 +292,20 @@ def get_job_detail(job_name):
 		"completed_on": doc.completed_on,
 	}
 
-	milestone_stages = []
-	report_mode = _resolve_milestone_report_mode(doc.customer)
-	section_labels = {
-		"road_freight_milestones": "Road Freight",
-		"port_clearance_milestones": "Port Clearance",
-		"border_clearance_milestones": "Border Clearance",
-		"warehouse_milestones": "Warehouse",
-	}
-	requires_map = {
-		"road_freight_milestones": True,
-		"port_clearance_milestones": doc.requires_port_clearance,
-		"border_clearance_milestones": doc.requires_border_clearance,
-		"warehouse_milestones": doc.requires_warehousing,
-	}
-	for fieldname, label in section_labels.items():
-		if not requires_map.get(fieldname):
-			continue
-		rows = doc.get(fieldname) or []
-		if not rows:
-			continue
-		milestones = [
-			{
-				"label": r.milestone_label,
-				"is_completed": bool(r.is_completed),
-				"completed_on": r.completed_on,
-				"stage": r.get("stage"),
-				"stage_sequence": r.get("stage_sequence") or 0,
-			}
-			for r in rows
-		]
-		milestone_stages.append(
-			{
-				"group": label,
-				"milestones": milestones,
-				# Stage rollup for the summarized view - the front-end shows it
-				# instead of the milestone list when report_mode is "Stage
-				# Summary" and the service actually has stages configured.
-				"has_stages": _has_milestone_stages(milestones),
-				"stages": _milestone_stage_rollup(milestones),
-			}
-		)
-
-	cargo = [
-		{
-			"name": r.name,
-			"container_number": r.container_number or r.cargo_item_description,
-			"container_type": r.container_type,
-			"cargo_type": r.cargo_type,
-			"cargo_quantity": r.cargo_quantity,
-			"cargo_uom": r.cargo_uom,
-			"is_hazardous": bool(r.is_hazardous),
-			"is_booked": bool(r.is_booked),
-			"is_loaded": bool(r.is_loaded),
-			"is_offloaded": bool(r.is_offloaded),
-			"is_returned": bool(r.is_returned),
-			"is_completed": bool(r.is_completed),
-			"truck_location": r.truck_location,
-			"tracking_comment": r.tracking_comment,
-			"updated_on": r.updated_on,
-		}
-		for r in (doc.cargo_parcel_details or [])
-	]
-
-	tracking = [
-		{
-			"event": r.event,
-			"date": r.date,
-			"source": r.source,
-		}
-		for r in sorted(doc.get("tracking_timeline") or [], key=lambda r: r.idx or 0, reverse=True)
-	][:15]
+	tracking_view = build_client_tracking_view(
+		doc,
+		milestone_report_mode=report_mode,
+		milestone_percent=milestone_percent,
+	)
 
 	log_portal_access("view_shipment", doctype="Forwarding Job", docname=job_name, customer=customer)
 
 	return {
 		"header": header,
 		"shipment_dates": shipment_dates,
-		"milestone_stages": milestone_stages,
 		"milestone_report_mode": report_mode,
-		"cargo": cargo,
-		"tracking": tracking,
+		"tracking_view": tracking_view,
+		"cargo": build_job_cargo_list(doc),
 	}
 
 

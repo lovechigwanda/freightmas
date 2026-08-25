@@ -48,51 +48,7 @@
 				</div>
 			</div>
 
-			<template v-else-if="tab === 'tracking'">
-				<div v-if="stageSummary.length" class="sd-card" style="margin-bottom: 14px;">
-					<div class="sd-card-title"><span class="sd-card-title-main">Progress</span></div>
-					<div v-for="group in stageSummary" :key="group.group" class="sd-stage-group">
-						<div class="sd-stage-group-title">{{ group.group }}</div>
-						<ul class="sd-list sd-stage-list">
-							<li v-for="st in group.stages" :key="st.name" :class="{ 'sd-stage-current': st.is_current }">
-								<span>
-									{{ st.name }}
-									<span v-if="st.is_current" class="sd-stage-badge">Current</span>
-								</span>
-								<span class="sd-muted">{{ st.done }}/{{ st.total }} &middot; {{ st.pct }}%</span>
-							</li>
-						</ul>
-					</div>
-				</div>
-
-				<div class="sd-card" style="margin-bottom: 14px;">
-					<div class="sd-card-title"><span class="sd-card-title-main">Journey</span></div>
-					<Timeline v-if="timeline.length" :items="timeline" />
-					<EmptyState v-else :icon="Clock" title="No tracking updates yet" />
-				</div>
-
-				<div v-if="detail.cargo.length" class="sd-card">
-					<div class="sd-card-title"><span class="sd-card-title-main">Cargo / Containers ({{ detail.cargo.length }})</span></div>
-					<table class="sd-table">
-						<thead>
-							<tr>
-								<th>Container / Item</th>
-								<th>Type</th>
-								<th>Status</th>
-								<th>Location</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="row in detail.cargo" :key="row.name">
-								<td>{{ row.container_number || "–" }}</td>
-								<td>{{ row.container_type || row.cargo_type || "–" }}</td>
-								<td>{{ cargoStatus(row) }}</td>
-								<td>{{ row.truck_location || "–" }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</template>
+			<TrackingTab v-else-if="tab === 'tracking'" :view="detail.tracking_view" />
 
 			<template v-else-if="tab === 'documents'">
 				<div v-if="documentsLoading" class="sd-card">
@@ -174,14 +130,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
-import { Clock, FileText, Upload } from "@lucide/vue";
+import { ref, watch } from "vue";
+import { FileText, Upload } from "@lucide/vue";
 import { api } from "../api/shipments";
 import { api as documentsApi } from "../api/documents";
 import { formatDate } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
 import EmptyState from "../components/EmptyState.vue";
-import Timeline from "../components/Timeline.vue";
+import TrackingTab from "../components/TrackingTab.vue";
 
 const props = defineProps({ id: { type: String, required: true } });
 
@@ -192,38 +148,6 @@ const tab = ref("overview");
 const documents = ref(null);
 const documentsLoading = ref(false);
 const documentsError = ref("");
-
-const summaryMode = computed(() => detail.value?.milestone_report_mode === "Stage Summary");
-
-const stageSummary = computed(() => {
-	if (!detail.value || !summaryMode.value) return [];
-	return (detail.value.milestone_stages || []).filter((g) => g.has_stages && g.stages?.length);
-});
-
-const timeline = computed(() => {
-	if (!detail.value) return [];
-
-	const dated = [];
-	const pending = [];
-	for (const group of detail.value.milestone_stages || []) {
-		if (summaryMode.value && group.has_stages) continue;
-		for (const m of group.milestones) {
-			if (m.is_completed && m.completed_on) {
-				dated.push({ label: m.label, sub: group.group, date: m.completed_on, done: true });
-			} else if (!m.is_completed) {
-				pending.push({ label: m.label, sub: group.group, date: null, done: false });
-			}
-		}
-	}
-	for (const t of detail.value.tracking || []) {
-		dated.push({ label: t.event, sub: t.source ? `via ${t.source}` : "", date: t.date, done: true });
-	}
-	dated.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-	if (pending.length) pending[0].next = true;
-
-	return [...dated, ...pending];
-});
 
 async function load(jobName) {
 	loading.value = true;
@@ -263,15 +187,6 @@ function setTab(nextTab) {
 
 function downloadUrl(checklistRow) {
 	return documentsApi.downloadDocumentUrl(props.id, checklistRow);
-}
-
-function cargoStatus(row) {
-	if (row.is_completed) return "Completed";
-	if (row.is_returned) return "Returned";
-	if (row.is_offloaded) return "Offloaded";
-	if (row.is_loaded) return "Loaded";
-	if (row.is_booked) return "Booked";
-	return "Pending";
 }
 
 watch(() => props.id, (id) => id && load(id), { immediate: true });

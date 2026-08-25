@@ -178,6 +178,8 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 			frappe.set_user("Administrator")
 
 		self.assertEqual(result["header"]["name"], job_a.name)
+		self.assertIn("tracking_view", result)
+		self.assertIn("banner", result["tracking_view"])
 		# Financial/margin fields must never appear in a portal response.
 		for leaky_key in ("finance", "dnd_totals", "purchase_invoices", "sales_invoices"):
 			self.assertNotIn(leaky_key, result)

@@ -34,6 +34,15 @@ from freightmas.forwarding_service.utils.operational_phase import (
 	resolve_operational_phase_filter,
 )
 from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
+from freightmas.forwarding_service.utils.client_tracking_view import (
+	DOSSIER_STATUS_LABELS,
+	build_job_cargo_list as _build_job_cargo_list,
+	build_job_milestone_stages as _build_job_milestone_stages,
+	dossier_latest_line as _dossier_latest_line,
+	dossier_status_key as _dossier_status_key,
+	has_milestone_stages,
+	milestone_stage_rollup,
+)
 
 NOT_ACTIVE_STATUSES = ["Completed", "Closed", "Cancelled"]
 
@@ -426,144 +435,6 @@ def get_jobs(customer=None, status=None, direction=None, operational_phase=None,
 		)
 
 	return {"jobs": jobs, "total_count": total_count}
-
-
-def milestone_stage_rollup(milestones):
-	"""Roll a service's milestone list up into its named stages, in order, for
-	the summarized (stage-level) client report view. Each milestone dict must
-	carry `stage` and `stage_sequence` (snapshotted on Job Milestone Progress).
-
-	Returns [{name, done, total, pct, is_current, missing}] where the *current
-	stage* is the first stage (by stage_sequence) that isn't fully complete; if
-	every stage is complete none is flagged current. `missing` is the labels of
-	that stage's incomplete milestones, in original order - callers decide
-	whether to display it (e.g. only for the first stage). Milestones with no
-	stage are collected into a trailing "Other" bucket so nothing is silently
-	dropped. Callers should first check `has_milestone_stages()` and only use
-	this when stages are actually configured for the service."""
-	buckets = {}
-	order = {}
-	for m in milestones:
-		key = m.get("stage") or None
-		seq = m.get("stage_sequence") or 0
-		bucket = buckets.setdefault(key, {"done": 0, "total": 0, "missing": []})
-		bucket["total"] += 1
-		if m.get("is_completed"):
-			bucket["done"] += 1
-		else:
-			bucket["missing"].append(m.get("label"))
-		order[key] = min(order[key], seq) if key in order else seq
-
-	# Order by stage_sequence; the unstaged "Other" bucket always sorts last.
-	ordered = sorted(
-		buckets.items(),
-		key=lambda item: (1, 0) if item[0] is None else (0, order.get(item[0], 0)),
-	)
-
-	stages = []
-	current_taken = False
-	for key, bucket in ordered:
-		pct = round(bucket["done"] / bucket["total"] * 100) if bucket["total"] else 0
-		is_current = (not current_taken) and bucket["done"] < bucket["total"]
-		if is_current:
-			current_taken = True
-		stages.append({
-			"name": key or "Other",
-			"done": bucket["done"],
-			"total": bucket["total"],
-			"pct": pct,
-			"is_current": is_current,
-			"missing": bucket["missing"],
-		})
-	return stages
-
-
-def has_milestone_stages(milestones):
-	"""True when at least one milestone in the list carries a stage - i.e. the
-	service can be summarized by stage. When False, callers fall back to the
-	full milestone checklist even in summary mode."""
-	return any(m.get("stage") for m in milestones)
-
-
-def _build_job_milestone_stages(doc):
-	"""Milestone groups (Road Freight / Port Clearance / Border Clearance /
-	Warehouse) for a Forwarding Job - only services actually required on the
-	job, and only groups that carry milestone rows. Shared by get_job_detail
-	(the Vue job drawer) and _build_job_dossier_context (the PDF dossier), so
-	both render the exact same milestone shape without re-deriving it.
-
-	Each group also carries a stage rollup (`stages` + `has_stages`) for the
-	summarized client-report view - see milestone_stage_rollup()."""
-	section_labels = {
-		"road_freight_milestones": "Road Freight",
-		"port_clearance_milestones": "Port Clearance",
-		"border_clearance_milestones": "Border Clearance",
-		"warehouse_milestones": "Warehouse",
-	}
-	requires_map = {
-		"road_freight_milestones": True,
-		"port_clearance_milestones": doc.requires_port_clearance,
-		"border_clearance_milestones": doc.requires_border_clearance,
-		"warehouse_milestones": doc.requires_warehousing,
-	}
-	stages = []
-	for fieldname, label in section_labels.items():
-		if not requires_map.get(fieldname):
-			continue
-		rows = doc.get(fieldname) or []
-		if not rows:
-			continue
-		milestones = [
-			{
-				"label": r.milestone_label,
-				"is_completed": bool(r.is_completed),
-				"completed_on": r.completed_on,
-				"remarks": r.remarks,
-				"stage": r.get("stage"),
-				"stage_sequence": r.get("stage_sequence") or 0,
-			}
-			for r in rows
-		]
-		stages.append({
-			"group": label,
-			"milestones": milestones,
-			"has_stages": has_milestone_stages(milestones),
-			"stages": milestone_stage_rollup(milestones),
-		})
-	return stages
-
-
-def _build_job_cargo_list(doc):
-	"""Cargo/container rows for a Forwarding Job, shaped for the dashboard.
-	Shared by get_job_detail (Vue drawer) and _build_job_dossier_context."""
-	return [
-		{
-			"name": r.name,
-			"container_number": r.container_number or r.cargo_item_description,
-			"container_type": r.container_type,
-			"cargo_type": r.cargo_type,
-			"to_be_returned": bool(r.to_be_returned),
-			"return_by_date": r.return_by_date,
-			"is_truck_required": bool(r.is_truck_required),
-			"is_booked": bool(r.is_booked),
-			"is_loaded": bool(r.is_loaded),
-			"is_offloaded": bool(r.is_offloaded),
-			"is_returned": bool(r.is_returned),
-			"is_completed": bool(r.is_completed),
-			"booked_on_date": r.booked_on_date,
-			"loaded_on_date": r.loaded_on_date,
-			"offloaded_on_date": r.offloaded_on_date,
-			"returned_on_date": r.returned_on_date,
-			"completed_on_date": r.completed_on_date,
-			"discharge_date": r.discharge_date,
-			"gate_out_date": r.gate_out_date,
-			"empty_return_date": r.empty_return_date,
-			"api_container_status": r.api_container_status,
-			"api_last_event": r.api_last_event,
-			"api_last_event_date": r.api_last_event_date,
-		}
-		for r in (doc.cargo_parcel_details or [])
-	]
 
 
 @frappe.whitelist()
@@ -2223,20 +2094,6 @@ DOSSIER_STATUS_COLORS = {
 }
 
 
-def _dossier_status_key(doc, today):
-	"""One of orange/green/red for a job's color band. Completed/Closed/
-	Delivered are green; an import past its ETA with no ATA (or an export past
-	its ETD with no ATD) is a red 'delayed'; everything else in progress is
-	orange."""
-	if doc.status in ("Completed", "Closed", "Delivered"):
-		return "green"
-	is_overdue = (
-		(doc.direction == "Import" and doc.eta and getdate(doc.eta) < today and not doc.ata)
-		or (doc.direction == "Export" and doc.etd and getdate(doc.etd) < today and not doc.atd)
-	)
-	return "red" if is_overdue else "orange"
-
-
 def _dossier_date(value, fmt="MMM d, yyyy"):
 	return formatdate(value, fmt) if value else None
 
@@ -2275,29 +2132,6 @@ def _dossier_stage_row(stage, is_first=False):
 		"is_first": is_first,
 		"missing": stage.get("missing") or [] if is_first else [],
 	}
-
-
-def _dossier_latest_line(doc, status_key):
-	"""The 'LATEST: ...' status line on a job block. Prefers the job's own
-	current_comment (the same free-text note the Command Centre shows); falls
-	back to a status/ETA-derived line when there isn't one."""
-	if doc.current_comment:
-		return doc.current_comment
-	if status_key == "green":
-		return "Delivered · Job closed" if doc.status in ("Completed", "Closed") else "Delivered"
-	eta = _dossier_date(doc.eta, "dd-MMM-yy")
-	if status_key == "red":
-		return f"Delayed · Revised ETA {eta}" if eta else "Delayed"
-	return f"In transit · ETA {eta}" if eta else "In progress"
-
-
-# status_key -> the label shown in the "Shipments at a Glance" status cell.
-DOSSIER_STATUS_LABELS = {
-	"orange": "In Progress",
-	"green": "Completed",
-	"red": "Delayed",
-	"gray": "In Progress",
-}
 
 
 def _build_job_dossier_context(job_name):
