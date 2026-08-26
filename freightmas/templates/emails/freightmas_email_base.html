@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ company_name or 'FreightMas' }}</title>
+<style>
+@media only screen and (max-width: 480px) {
+	.fm-shell { width: 100% !important; }
+	.fm-pad { padding-left: 16px !important; padding-right: 16px !important; }
+}
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #eef2f6; font-family: {{ theme.font_family }};">
+{% if preheader %}
+<div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">{{ preheader }}</div>
+{% endif %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #eef2f6;">
+<tr>
+<td align="center" style="padding: 24px 12px;">
+<table role="presentation" class="fm-shell" data-fm-email="1" cellpadding="0" cellspacing="0" border="0" width="{{ theme.max_width }}" style="width: {{ theme.max_width }}; max-width: {{ theme.max_width }}; background-color: {{ theme.body_bg }}; border-collapse: collapse;">
+	<tr>
+		<td style="background-color: {{ theme.header_bg }}; padding: 16px {{ theme.side_padding }};">
+			<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+				<tr>
+					<td style="vertical-align: middle; width: 56px;">
+						{% if logo_url %}
+						<img src="{{ logo_url }}" alt="{{ company_name or 'Company logo' }}" width="{{ theme.logo_size }}" height="{{ theme.logo_size }}" style="display: block; width: {{ theme.logo_size }}; height: {{ theme.logo_size }}; border-radius: 6px; object-fit: contain; background: #ffffff;">
+						{% else %}
+						<div style="width: {{ theme.logo_size }}; height: {{ theme.logo_size }}; border-radius: 6px; background: #ffffff; color: {{ theme.header_bg }}; font-size: 18px; font-weight: 700; line-height: {{ theme.logo_size }}; text-align: center;">{{ logo_initial or 'F' }}</div>
+						{% endif %}
+					</td>
+					<td style="vertical-align: middle; padding-left: 12px;">
+						<div style="font-size: 16px; font-weight: 700; color: #ffffff; line-height: 1.2;">{{ company_name or 'FreightMas' }}</div>
+						{% if email_type %}
+						<div style="margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.82);">{{ email_type }}</div>
+						{% endif %}
+					</td>
+					<td style="vertical-align: top; text-align: right; white-space: nowrap;">
+						{% if email_date %}
+						<div style="font-size: 12px; color: rgba(255,255,255,0.78);">{{ email_date }}</div>
+						{% endif %}
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td style="height: 3px; line-height: 3px; font-size: 0; background-color: {{ theme.accent }};">&nbsp;</td>
+	</tr>
+	<tr>
+		<td class="fm-pad" style="padding: 28px {{ theme.side_padding }} 8px {{ theme.side_padding }}; font-family: {{ theme.font_family }}; font-size: {{ theme.body_size }}; line-height: {{ theme.body_line_height }}; color: {{ theme.body_text }};">
+			{{ body | safe }}
+		</td>
+	</tr>
+	<tr>
+		<td class="fm-pad" style="padding: 16px {{ theme.side_padding }} 24px {{ theme.side_padding }}; background-color: {{ theme.footer_bg }}; border-top: 1px solid {{ theme.card_border }};">
+			<p style="margin: 0; font-family: {{ theme.font_family }}; font-size: {{ theme.footer_size }}; line-height: 1.5; color: {{ theme.footer_text }};">{{ theme.legal_disclaimer }}</p>
+		</td>
+	</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
