@@ -62,7 +62,7 @@
 							</td>
 							<td><StatusBadge :status="job.status" /></td>
 							<td>{{ formatOperationalPhase(job) }}</td>
-							<td><ProgressBar :percent="job.milestone_percent" /></td>
+							<td><ProgressBar :percent="job.client_progress_percent ?? job.milestone_percent" /></td>
 						</tr>
 					</tbody>
 				</table>

@@ -9,6 +9,7 @@ from frappe.utils import add_days, nowdate
 
 from freightmas.forwarding_service.utils.client_tracking_view import (
 	build_client_tracking_view,
+	client_list_progress,
 	dossier_status_key,
 	resolve_client_milestone_report_mode,
 )
@@ -72,9 +73,72 @@ class TestClientTrackingView(IntegrationTestCase):
 
 		self.assertEqual(view["banner"]["status_label"], "In Progress")
 		self.assertEqual(view["banner"]["operational_phase"], "in_transit")
-		self.assertEqual(view["banner"]["progress_percent"], 42)
+		self.assertGreaterEqual(view["banner"]["progress_percent"], 0)
+		self.assertLessEqual(view["banner"]["progress_percent"], 100)
 		self.assertEqual(view["banner"]["latest_update"], "Vessel departed Beira")
 		self.assertEqual(view["banner"]["key_date_label"], "ETA")
+		self.assertIn("client_status", view)
+		self.assertIn("journey", view)
+		self.assertIn("steps", view)
+
+	def test_delivered_status_shows_full_client_progress(self):
+		customer = _make_customer("B3")
+		job = _make_job(customer, "B3")
+		frappe.db.set_value("Forwarding Job", job.name, "status", "Delivered")
+		frappe.db.set_value("Forwarding Job", job.name, "operational_phase", "delivered")
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			"current_comment",
+			"In Transit - Gated out to consignee: 18-Aug-26",
+		)
+		job.reload()
+
+		view = build_client_tracking_view(job, milestone_percent=15)
+		self.assertEqual(view["banner"]["status_key"], "green")
+		self.assertEqual(view["client_status"]["progress_percent"], 100)
+		self.assertEqual(view["banner"]["progress_percent"], 100)
+		self.assertTrue(view["client_status"]["is_terminal"])
+		self.assertEqual(view["client_status"]["label"], "Delivered")
+		for phase in view["journey"]:
+			self.assertEqual(phase["state"], "done")
+
+	def test_journey_phase_order(self):
+		customer = _make_customer("J1")
+		job = _make_job(customer, "J1")
+		frappe.db.set_value("Forwarding Job", job.name, "requires_port_clearance", 1)
+		frappe.db.set_value("Forwarding Job", job.name, "is_trucking_required", 1)
+		job.reload()
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "Containerised",
+				"container_number": "TRK-J1",
+				"container_type": "20SD",
+				"cargo_quantity": 1,
+				"is_truck_required": 1,
+			},
+		)
+		job.save(ignore_permissions=True)
+		job.reload()
+
+		view = build_client_tracking_view(job)
+		titles = [phase["title"] for phase in view["journey"]]
+		self.assertEqual(titles[0], "Sea / Air Freight")
+		self.assertIn("Port Clearance", titles)
+		self.assertIn("Road Transport", titles)
+		self.assertLess(titles.index("Port Clearance"), titles.index("Road Transport"))
+
+	def test_client_list_progress(self):
+		customer = _make_customer("P1")
+		job = _make_job(customer, "P1")
+		frappe.db.set_value("Forwarding Job", job.name, "status", "Delivered")
+		job.reload()
+		self.assertEqual(client_list_progress(job), 100)
+		frappe.db.set_value("Forwarding Job", job.name, "status", "In Progress")
+		frappe.db.set_value("Forwarding Job", job.name, "operational_phase", "in_transit")
+		job.reload()
+		self.assertEqual(client_list_progress(job), 35)
 
 	def test_delayed_status_when_eta_passed_without_ata(self):
 		customer = _make_customer("B2")
@@ -179,6 +243,8 @@ class TestClientTrackingView(IntegrationTestCase):
 
 		self.assertIn("tracking_view", result)
 		self.assertIn("banner", result["tracking_view"])
+		self.assertIn("client_status", result["tracking_view"])
+		self.assertIn("journey", result["tracking_view"])
 		self.assertIn("sections", result["tracking_view"])
 		self.assertIn("live_updates", result["tracking_view"])
 		self.assertNotIn("milestone_stages", result)

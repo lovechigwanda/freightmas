@@ -25,6 +25,7 @@ from freightmas.forwarding_service.utils.milestone_progress import forwarding_mi
 from freightmas.forwarding_service.utils.client_tracking_view import (
 	build_client_tracking_view,
 	build_job_cargo_list,
+	client_list_progress,
 	resolve_client_milestone_report_mode,
 )
 
@@ -236,6 +237,7 @@ def get_jobs(
 	today = getdate(nowdate())
 	for j in jobs:
 		j["milestone_percent"] = progress_map.get(j.name, 0)
+		j["client_progress_percent"] = client_list_progress(j)
 		j["operational_phase_label"] = get_phase_label(j.get("operational_phase"))
 		j["is_overdue"] = bool(
 			(j.direction == "Import" and j.eta and getdate(j.eta) < today and not j.ata)
@@ -267,6 +269,7 @@ def get_job_detail(job_name):
 		"operational_phase": doc.operational_phase,
 		"operational_phase_label": get_phase_label(doc.operational_phase),
 		"milestone_percent": milestone_percent,
+		"client_progress_percent": client_list_progress(doc),
 		"port_of_loading": doc.port_of_loading,
 		"port_of_discharge": doc.port_of_discharge,
 		"destination": doc.destination,
