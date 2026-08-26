@@ -11,14 +11,7 @@ Handles:
 
 import frappe
 from frappe import _
-from frappe.utils import today, getdate, get_fullname, flt, get_formatted_email, get_url
-
-from freightmas.utils.email_layout import (
-	render_detail_card,
-	render_freightmas_email,
-	render_headline,
-	render_sign_off,
-)
+from frappe.utils import today, getdate, get_fullname, flt, get_formatted_email
 
 
 # ==============================
@@ -75,70 +68,70 @@ def on_quotation_workflow_change(doc, method=None):
 		send_approval_notification_email(doc)
 
 
-def _quotation_detail_rows(doc, *, include_submitted_by=False):
-	rows = [
-		("Quotation", doc.name),
-		("Customer", doc.party_name or doc.customer_name),
-		("Amount", frappe.format_value(doc.grand_total, {"fieldtype": "Currency"}, doc)),
-		("Valid Till", frappe.format_value(doc.valid_till, {"fieldtype": "Date"})),
-	]
-	if include_submitted_by:
-		rows.append(("Submitted By", get_fullname(doc.owner)))
-	return rows
-
-
-def _build_quotation_workflow_body(doc, *, headline, salutation, intro, include_submitted_by=False, closing=None):
-	company_name = frappe.db.get_value("Company", doc.company, "company_name") or doc.company
-	quotation_url = get_url() + f"/app/quotation/{doc.name}"
-	parts = [
-		render_headline(headline),
-		f'<p style="margin: 0 0 24px;">{salutation}</p>',
-		f'<p style="margin: 0 0 24px;">{intro}</p>',
-		render_detail_card("Quotation Details", _quotation_detail_rows(doc, include_submitted_by=include_submitted_by)),
-	]
-	if closing:
-		parts.append(f'<p style="margin: 0 0 24px;">{closing}</p>')
-	parts.append(
-		f'<p style="margin: 0 0 24px;">Review quotation <strong>{frappe.utils.escape_html(doc.name)}</strong> '
-		f'at {frappe.utils.escape_html(quotation_url)}</p>'
-	)
-	parts.append(render_sign_off(company_name))
-	return "".join(parts)
-
-
 def send_approval_request_email(doc):
 	"""
 	Send email to Sales Manager when quotation is submitted for approval.
 	"""
 	try:
+		# Get users with Sales Manager role
 		sales_managers = frappe.get_all(
 			"Has Role",
 			filters={"role": "Sales Manager", "parenttype": "User"},
 			fields=["parent"],
 			pluck="parent"
 		)
-
+		
 		if not sales_managers:
 			frappe.log_error(
 				title="No Sales Manager found for quotation approval notification",
 				message=f"Quotation {doc.name} submitted for approval but no Sales Manager role assigned"
 			)
 			return
-
+		
+		# Prepare email
 		subject = f"Quotation {doc.name} - Approval Required"
-		body = _build_quotation_workflow_body(
-			doc,
-			headline=f"Approval required — Quotation {doc.name}",
-			salutation="Dear Sales Manager,",
-			intro="A quotation has been submitted for your approval.",
-			include_submitted_by=True,
-		)
-		message = render_freightmas_email(
-			body,
-			company=doc.company,
-			email_type="INTERNAL NOTIFICATION",
-		)
-
+		
+		message = f"""
+		<p>Dear Sales Manager,</p>
+		
+		<p>A quotation has been submitted for your approval:</p>
+		
+		<table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Quotation</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Customer</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.party_name or doc.customer_name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Amount</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{frappe.format_value(doc.grand_total, {"fieldtype": "Currency"})}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Valid Till</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{frappe.format_value(doc.valid_till, {"fieldtype": "Date"})}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Submitted By</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{get_fullname(doc.owner)}</td>
+			</tr>
+		</table>
+		
+		<p style="margin-top: 20px;">
+			<a href="{frappe.utils.get_url()}/app/quotation/{doc.name}" 
+			   style="background-color: #2490ef; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+				Review Quotation
+			</a>
+		</p>
+		
+		<p style="margin-top: 20px; color: #666; font-size: 12px;">
+			This is an automated notification from FreightMas.
+		</p>
+		"""
+		
+		# Send email to all Sales Managers
 		for manager in sales_managers:
 			frappe.sendmail(
 				recipients=[manager],
@@ -149,8 +142,8 @@ def send_approval_request_email(doc):
 				reference_name=doc.name,
 				delayed=False
 			)
-
-	except Exception:
+		
+	except Exception as e:
 		frappe.log_error(
 			title=f"Failed to send approval request email for {doc.name}",
 			message=frappe.get_traceback()
@@ -164,21 +157,51 @@ def send_approval_notification_email(doc):
 	try:
 		if not doc.owner:
 			return
-
+		
+		# Prepare email
 		subject = f"Quotation {doc.name} - Approved"
-		body = _build_quotation_workflow_body(
-			doc,
-			headline=f"Quotation approved — {doc.name}",
-			salutation=f"Dear {frappe.utils.escape_html(get_fullname(doc.owner))},",
-			intro='Your quotation has been <strong style="color: #16a34a;">approved</strong> by the Sales Manager.',
-			closing="You can now send this quotation to the customer.",
-		)
-		message = render_freightmas_email(
-			body,
-			company=doc.company,
-			email_type="INTERNAL NOTIFICATION",
-		)
-
+		
+		message = f"""
+		<p>Dear {get_fullname(doc.owner)},</p>
+		
+		<p>Your quotation has been <strong style="color: #28a745;">approved</strong> by the Sales Manager:</p>
+		
+		<table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Quotation</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Customer</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.party_name or doc.customer_name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Amount</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{frappe.format_value(doc.grand_total, {"fieldtype": "Currency"})}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Valid Till</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{frappe.format_value(doc.valid_till, {"fieldtype": "Date"})}</td>
+			</tr>
+		</table>
+		
+		<p style="margin-top: 20px;">
+			You can now send this quotation to the customer.
+		</p>
+		
+		<p style="margin-top: 20px;">
+			<a href="{frappe.utils.get_url()}/app/quotation/{doc.name}" 
+			   style="background-color: #2490ef; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+				View Quotation
+			</a>
+		</p>
+		
+		<p style="margin-top: 20px; color: #666; font-size: 12px;">
+			This is an automated notification from FreightMas.
+		</p>
+		"""
+		
+		# Send email to quotation owner
 		frappe.sendmail(
 			recipients=[doc.owner],
 			sender=get_formatted_email(frappe.session.user),
@@ -188,8 +211,8 @@ def send_approval_notification_email(doc):
 			reference_name=doc.name,
 			delayed=False
 		)
-
-	except Exception:
+		
+	except Exception as e:
 		frappe.log_error(
 			title=f"Failed to send approval notification email for {doc.name}",
 			message=frappe.get_traceback()

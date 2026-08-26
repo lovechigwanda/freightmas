@@ -2683,33 +2683,6 @@ def _single_customer_reference(customers):
 	return {}
 
 
-def _send_tracking_report_email(
-	*,
-	to_email,
-	subject,
-	message,
-	cc,
-	attachments,
-	headline,
-	**sendmail_kwargs,
-):
-	from freightmas.utils.email_layout import send_freightmas_email
-
-	send_freightmas_email(
-		recipients=[to_email],
-		subject=subject,
-		message=message,
-		email_type="TRACKING REPORT",
-		headline=headline,
-		company=frappe.defaults.get_global_default("company"),
-		sender=get_formatted_email(frappe.session.user),
-		cc=cc,
-		attachments=attachments,
-		delayed=False,
-		**sendmail_kwargs,
-	)
-
-
 @frappe.whitelist()
 def get_customer_tracking_info(customer):
 	"""Lightweight lookup for the Command Center's Email modal To/CC prefill.
@@ -2742,14 +2715,15 @@ def email_tracking_report(to_email, subject, message, customers=None, status=Non
 	wb = _build_tracking_workbook(sections, report_rows)
 	attachment = {"fname": _timestamped("Tracking_Report"), "fcontent": _workbook_bytes(wb)}
 
-	_send_tracking_report_email(
-		to_email=to_email,
+	frappe.sendmail(
+		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
+		cc=cc,
 		subject=subject,
 		message=message,
-		cc=cc,
 		attachments=[attachment],
-		headline="Tracking report attached",
 		**_single_customer_reference(customers),
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2768,14 +2742,15 @@ def email_master_tracking_report(to_email, subject, message, customers=None, sta
 	wb = _build_master_tracking_workbook(sections, report_rows, containers_by_job, ladder)
 	attachment = {"fname": _timestamped("Master_Tracking_Report"), "fcontent": _workbook_bytes(wb)}
 
-	_send_tracking_report_email(
-		to_email=to_email,
+	frappe.sendmail(
+		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
+		cc=cc,
 		subject=subject,
 		message=message,
-		cc=cc,
 		attachments=[attachment],
-		headline="Master tracking report attached",
 		**_single_customer_reference(customers),
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2789,15 +2764,16 @@ def email_shipment_tracking_report(to_email, subject, message, customer, cc_emai
 	pdf, _customer_name = _build_shipment_tracking_pdf(customer)
 	attachment = {"fname": f"Shipment-Tracking-{frappe.scrub(customer)}.pdf", "fcontent": pdf}
 
-	_send_tracking_report_email(
-		to_email=to_email,
+	frappe.sendmail(
+		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
+		cc=cc,
 		subject=subject,
 		message=message,
-		cc=cc,
 		attachments=[attachment],
-		headline="Shipment tracking report attached",
 		reference_doctype="Customer",
 		reference_name=customer,
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}
 
@@ -2815,14 +2791,15 @@ def email_shipment_tracking_report_excel(to_email, subject, message, customer, c
 	wb = _build_shipment_tracking_workbook(customer_name, dossier_jobs)
 	attachment = {"fname": f"Shipment-Tracking-{frappe.scrub(customer)}.xlsx", "fcontent": _workbook_bytes(wb)}
 
-	_send_tracking_report_email(
-		to_email=to_email,
+	frappe.sendmail(
+		recipients=[to_email],
+		sender=get_formatted_email(frappe.session.user),
+		cc=cc,
 		subject=subject,
 		message=message,
-		cc=cc,
 		attachments=[attachment],
-		headline="Shipment tracking report attached",
 		reference_doctype="Customer",
 		reference_name=customer,
+		delayed=False,
 	)
 	return {"success": True, "message": f"Email sent to {to_email}"}

@@ -122,17 +122,12 @@ def send_customer_tracking_email(customer, to_email, subject, message, cc_emails
                 })
         
         # Send email using Frappe's built-in email service
-        from freightmas.utils.email_layout import send_freightmas_email
-
-        send_freightmas_email(
+        frappe.sendmail(
             recipients=recipients,
-            subject=subject,
-            message=message,
-            email_type="TRACKING REPORT",
-            headline="Consolidated tracking report attached",
-            company=frappe.defaults.get_global_default("company"),
             sender=get_formatted_email(frappe.session.user),
             cc=cc,
+            subject=subject,
+            message=message,
             attachments=attachments,
             reference_doctype="Customer",
             reference_name=customer,

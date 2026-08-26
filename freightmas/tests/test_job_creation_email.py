@@ -221,11 +221,11 @@ class TestJobCreationEmail(IntegrationTestCase):
 		job = _make_forwarding_job(customer, "msg1", bl_number="BL123456")
 		message = build_job_creation_message(job, "Acme Ltd", "Maita Logistics", [])
 		self.assertIn(job.name, message)
-		self.assertIn("Job Reference", message)
-		self.assertIn("BL Number", message)
+		self.assertIn("Job Reference:", message)
+		self.assertIn("BL Number:", message)
 		self.assertIn("BL123456", message)
-		self.assertIn("Direction", message)
-		self.assertIn("Services", message)
+		self.assertIn("Direction:", message)
+		self.assertIn("Services:", message)
 		self.assertIn("Acme Ltd", message)
 		self.assertIn("<p", message)
 		self.assertNotIn("Your Reference:", message)
@@ -235,7 +235,7 @@ class TestJobCreationEmail(IntegrationTestCase):
 		customer = _make_customer("msg1b")
 		job = _make_forwarding_job(customer, "msg1b")
 		message = build_job_creation_message(job, "Acme Ltd", "Maita Logistics", [])
-		self.assertIn("BL Number", message)
+		self.assertIn("BL Number:", message)
 		self.assertIn("—", message)
 
 	def test_build_job_creation_message_includes_missing_docs_block(self):
@@ -245,9 +245,9 @@ class TestJobCreationEmail(IntegrationTestCase):
 			job, "Acme Ltd", "Maita Logistics", ["Commercial Invoice", "Bill of Lading"]
 		)
 		self.assertIn("Action required — documents outstanding", message)
-		self.assertIn("Commercial Invoice", message)
-		self.assertIn("Bill of Lading", message)
-		self.assertIn("#fffbeb", message)
+		self.assertIn("<li>Commercial Invoice</li>", message)
+		self.assertIn("<li>Bill of Lading</li>", message)
+		self.assertIn("background: #FAEEDA", message)
 
 	def test_render_job_creation_email_uses_template(self):
 		_ensure_job_creation_email_template()
@@ -257,11 +257,9 @@ class TestJobCreationEmail(IntegrationTestCase):
 		self.assertIn(job.name, rendered["subject"])
 		self.assertIn(customer.customer_name, rendered["subject"])
 		self.assertIn(job.customer_reference, rendered["subject"])
-		self.assertIn("SHIPMENT NOTIFICATION", rendered["message"])
-		self.assertIn("Shipment Details", rendered["message"])
+		self.assertIn("Job Reference:", rendered["message"])
 		self.assertIn("BL-TPL", rendered["message"])
-		self.assertIn("Direction", rendered["message"])
-		self.assertIn("data-fm-email", rendered["message"])
+		self.assertIn("Direction:", rendered["message"])
 
 	def test_render_job_creation_email_template_includes_missing_docs_block(self):
 		_ensure_job_creation_email_template()
@@ -289,8 +287,7 @@ class TestJobCreationEmail(IntegrationTestCase):
 		self.assertIn("Shipment Details", rendered["message"])
 		self.assertIn("BL-MOD", rendered["message"])
 		self.assertIn("#f8fafc", rendered["message"])
-		self.assertIn("Yours faithfully,", rendered["message"])
-		self.assertIn("data-fm-email", rendered["message"])
+		self.assertIn("border-top: 1px solid #e2e8f0", rendered["message"])
 
 	def test_render_job_creation_email_falls_back_when_template_blank(self):
 		customer = _make_customer("fallback1")
@@ -335,9 +332,8 @@ class TestJobCreationEmail(IntegrationTestCase):
 		self.assertIn(customer.customer_name, result["subject"])
 		self.assertIn(job.customer_reference, result["subject"])
 		self.assertIn(job.name, result["message"])
-		self.assertIn("Shipment Details", result["message"])
+		self.assertIn("BL Number:", result["message"])
 		self.assertIn("<p", result["message"])
-		self.assertIn("data-fm-email", result["message"])
 		self.assertNotIn("Your Reference:", result["message"])
 
 	def test_get_job_creation_email_draft_disabled_when_already_sent(self):

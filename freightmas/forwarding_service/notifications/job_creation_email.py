@@ -12,14 +12,6 @@ from frappe.utils import get_formatted_email
 from freightmas.forwarding_service.notifications.job_creation_template_content import (
 	JOB_CREATION_TEMPLATE_NAME,
 )
-from freightmas.notifications.email_templates import TEMPLATE_REGISTRY
-from freightmas.utils.email_layout import (
-	format_email_date,
-	render_alert_box,
-	render_detail_card,
-	render_freightmas_email,
-	render_sign_off,
-)
 from freightmas.utils.permissions import check_doc_read_permission
 
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -122,7 +114,6 @@ def _build_template_context(job_doc, customer_name=None, company_name=None) -> d
 			frappe.format_value(job_doc.eta, {"fieldtype": "Date"}) if job_doc.eta else None
 		),
 		"bl_number_display": job_doc.bl_number or "—",
-		"email_date": format_email_date(),
 	})
 	return context
 
@@ -149,19 +140,17 @@ def _build_shipment_detail_rows(job_doc) -> list[tuple[str, str]]:
 	return rows
 
 
-def _email_type_for_template(template_name: str | None) -> str:
-	if template_name and template_name in TEMPLATE_REGISTRY:
-		return TEMPLATE_REGISTRY[template_name].get("email_type") or "SHIPMENT NOTIFICATION"
-	return "SHIPMENT NOTIFICATION"
-
-
-def _wrap_job_creation_message(body_html: str, job_doc, template_name: str | None = None) -> str:
-	return render_freightmas_email(
-		body_html,
-		company=job_doc.company,
-		email_type=_email_type_for_template(template_name),
-		email_date=format_email_date(),
-	)
+def _render_detail_table_html(rows) -> str:
+	parts = ['<table style="border-collapse: collapse; margin: 0 0 16px;">']
+	for label, value in rows:
+		safe_label = frappe.utils.escape_html(label)
+		safe_value = frappe.utils.escape_html(value)
+		parts.append(
+			f'<tr><td style="padding: 4px 24px 4px 0; font-weight: 600;">{safe_label}:</td>'
+			f'<td style="padding: 4px 0;">{safe_value}</td></tr>'
+		)
+	parts.append("</table>")
+	return "".join(parts)
 
 
 def build_job_creation_subject(job_name, customer_name, customer_reference):
@@ -170,39 +159,37 @@ def build_job_creation_subject(job_name, customer_name, customer_reference):
 
 def build_job_creation_message(job_doc, customer_name, company_name, missing_docs):
 	"""Build the default HTML body for a job creation notification (Python fallback)."""
-	from freightmas.utils.email_layout import render_headline
-
-	safe_customer = frappe.utils.escape_html(customer_name or "")
 	job_ref = frappe.utils.escape_html(job_doc.name)
+	safe_customer = frappe.utils.escape_html(customer_name or "")
+	safe_company = frappe.utils.escape_html(company_name or "")
 
 	parts = [
-		render_headline(f"Shipment registered — Job {job_doc.name}"),
-		f'<p style="margin: 0 0 24px;">Dear {safe_customer},</p>',
-		'<p style="margin: 0 0 24px;">Your shipment has been registered in our system. '
-		"A summary of the key details is below.</p>",
-		render_detail_card("Shipment Details", _build_shipment_detail_rows(job_doc)),
-		f'<p style="margin: 0 0 24px;">Kindly quote the Job Reference <strong>{job_ref}</strong> '
+		f'<p style="margin: 0 0 16px;">Dear {safe_customer},</p>',
+		'<p style="margin: 0 0 16px;">Your shipment has been registered in our system with the following details:</p>',
+		_render_detail_table_html(_build_shipment_detail_rows(job_doc)),
+		f'<p style="margin: 0 0 16px;">Please quote the Job Reference <strong>{job_ref}</strong> '
 		"in all future correspondence regarding this shipment.</p>",
 	]
 
 	if missing_docs:
 		items = "".join(
-			f'<li style="margin: 0 0 4px;">{frappe.utils.escape_html(label)}</li>'
-			for label in missing_docs
+			f"<li>{frappe.utils.escape_html(label)}</li>" for label in missing_docs
 		)
-		callout_body = (
-			"<p style=\"margin: 0 0 8px;\">The following documents are still needed to clear "
-			f"this shipment through port:</p>"
-			f'<ul style="margin: 0 0 8px; padding-left: 18px;">{items}</ul>'
-			"<p style=\"margin: 0;\">Please send these at your earliest convenience to avoid "
-			"delaying the shipment.</p>"
+		parts.append(
+			'<div style="background: #FAEEDA; border-radius: 8px; padding: 12px 16px; margin: 0 0 16px;">'
+			'<p style="margin: 0 0 8px; font-weight: 600; color: #854F0B;">'
+			"Action required — documents outstanding</p>"
+			'<p style="margin: 0 0 8px;">The following documents are still needed to clear this shipment through port:</p>'
+			f'<ul style="margin: 0 0 8px; padding-left: 20px;">{items}</ul>'
+			'<p style="margin: 0;">Please send these at your earliest convenience to avoid delaying the shipment.</p>'
+			"</div>"
 		)
-		parts.append(render_alert_box("Action required — documents outstanding", callout_body))
 
 	parts.extend([
-		'<p style="margin: 0 0 24px;">If you have any questions, feel free to reach out — '
+		'<p style="margin: 0 0 16px;">If you have any questions, feel free to reach out — '
 		"we're happy to help.</p>",
-		render_sign_off(company_name),
+		'<p style="margin: 0 0 16px;">Thank you for your business.</p>',
+		f'<p style="margin: 0;">Best regards,<br>{safe_company}</p>',
 	])
 	return "".join(parts)
 
@@ -215,21 +202,16 @@ def render_job_creation_email(job_doc, template_name=None, customer_name=None, c
 	if template_name and frappe.db.exists("Email Template", template_name):
 		from frappe.email.doctype.email_template.email_template import get_email_template
 
-		rendered = get_email_template(template_name, context)
-		rendered["message"] = _wrap_job_creation_message(
-			rendered["message"], job_doc, template_name=template_name
-		)
-		return rendered
+		return get_email_template(template_name, context)
 
 	customer_name = context["customer_name"]
 	company_name = context["company_name"]
 	missing_docs = context["missing_docs"]
-	body = build_job_creation_message(job_doc, customer_name, company_name, missing_docs)
 	return {
 		"subject": build_job_creation_subject(
 			job_doc.name, customer_name, job_doc.customer_reference
 		),
-		"message": _wrap_job_creation_message(body, job_doc, template_name=template_name),
+		"message": build_job_creation_message(job_doc, customer_name, company_name, missing_docs),
 	}
 
 
