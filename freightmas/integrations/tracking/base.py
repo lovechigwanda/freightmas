@@ -58,7 +58,44 @@ def extract_date(datetime_str):
 	return str(datetime_str)[:10] or None
 
 
-def parse_container_events(events, locations=None, pol_location_id=None, pod_location_id=None):
+def _location_key(value):
+	if value is None:
+		return ""
+	return str(value).strip().lower().split(",")[0].strip()
+
+
+def location_matches(event_location, target_location):
+	"""Return True when an event location corresponds to a POL/POD guard."""
+	if target_location is None:
+		return True
+	if event_location is None:
+		return False
+
+	if isinstance(target_location, int) or isinstance(event_location, int):
+		try:
+			return int(event_location) == int(target_location)
+		except (TypeError, ValueError):
+			return event_location == target_location
+
+	event_key = _location_key(event_location)
+	target_key = _location_key(target_location)
+	if not event_key or not target_key:
+		return False
+	return (
+		event_key == target_key
+		or event_key.startswith(f"{target_key} ")
+		or target_key.startswith(f"{event_key} ")
+	)
+
+
+def parse_container_events(
+	events,
+	locations=None,
+	pol_location_id=None,
+	pod_location_id=None,
+	pol_location_name=None,
+	pod_location_name=None,
+):
 	"""Parse milestone events into container-level dates and latest event.
 
 	Args:
@@ -66,6 +103,8 @@ def parse_container_events(events, locations=None, pol_location_id=None, pod_loc
 		locations: optional id->location dict (SeaRates) or unused when events carry location names
 		pol_location_id: SeaRates POL location id guard
 		pod_location_id: SeaRates POD location id guard
+		pol_location_name: Traqo POL port name guard (export-side gate-outs)
+		pod_location_name: Traqo POD port name guard (import discharge/gate-out)
 	"""
 	locations = locations or {}
 	today = frappe.utils.nowdate()
@@ -96,23 +135,41 @@ def parse_container_events(events, locations=None, pol_location_id=None, pod_loc
 	discharge_date = None
 	gate_out_date = None
 	empty_return_date = None
+	pod_guard = pod_location_id if pod_location_id is not None else pod_location_name
+	pol_guard = pol_location_id if pol_location_id is not None else pol_location_name
+
+	def _is_at_pol(evt_location):
+		if pol_location_id is not None:
+			return evt_location == pol_location_id
+		if pol_location_name:
+			return location_matches(evt_location, pol_location_name)
+		return False
+
+	def _is_at_pod(evt_location):
+		if pod_location_id is not None:
+			return evt_location == pod_location_id
+		if pod_location_name:
+			return location_matches(evt_location, pod_location_name)
+		return False
 
 	def _apply_event_date(code, evt_date, evt_location):
 		nonlocal discharge_date, gate_out_date, empty_return_date
 		if evt_date > today:
 			return
 		if code == "DISC":
-			if pod_location_id is not None and evt_location != pod_location_id:
+			if pod_guard is not None and not _is_at_pod(evt_location):
 				return
 			if not discharge_date or evt_date > discharge_date:
 				discharge_date = evt_date
 		elif code in ("GOUT", "AVPU", "DLVR", "GTOT"):
-			if pol_location_id is not None and evt_location == pol_location_id:
+			if _is_at_pol(evt_location):
+				return
+			if pod_guard is not None and not _is_at_pod(evt_location):
 				return
 			if not gate_out_date or evt_date > gate_out_date:
 				gate_out_date = evt_date
 		elif code in ("IRTN", "EMRT", "RTRN"):
-			if pol_location_id is not None and evt_location == pol_location_id:
+			if _is_at_pol(evt_location):
 				return
 			if not empty_return_date or evt_date > empty_return_date:
 				empty_return_date = evt_date
@@ -142,7 +199,9 @@ def parse_container_events(events, locations=None, pol_location_id=None, pod_loc
 			evt_date = extract_date(event.get("date"))
 			if not evt_date or evt_date > today:
 				continue
-			if pol_location_id is not None and event.get("location") == pol_location_id:
+			if _is_at_pol(event.get("location")):
+				continue
+			if pod_guard is not None and not _is_at_pod(event.get("location")):
 				continue
 			desc = (event.get("description") or "").lower()
 			if not gate_out_date and any(kw in desc for kw in _gate_out_keywords):

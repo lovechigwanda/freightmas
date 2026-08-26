@@ -31,3 +31,4 @@ freightmas.patches.setup_resend_email
 freightmas.patches.rename_resend_api_key_field
 freightmas.patches.seed_job_creation_email_template
 freightmas.patches.seed_forwarding_job_creation_email_template
+freightmas.patches.clear_bl_merged_container_tracking_dates

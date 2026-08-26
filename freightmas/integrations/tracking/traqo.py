@@ -133,7 +133,7 @@ def _parse_traqo_response(data, tracking_type):
 
 	route_data = _parse_route(data)
 	vessel_data = _parse_vessel(data)
-	containers = _parse_containers(data, tracking_type)
+	containers = _parse_containers(data, tracking_type, route_data)
 
 	last_voyage = ""
 	for ct in containers:
@@ -281,27 +281,35 @@ def _parse_vessel(data):
 	}
 
 
-def _parse_containers(data, tracking_type):
+def _parse_containers(data, tracking_type, route_data=None):
 	events = data.get("events_table") or []
 	containers_raw = data.get("containers_table") or []
+	route_data = route_data or {}
+	pol_name = (route_data.get("pol") or {}).get("name") or None
+	pod_name = (route_data.get("pod") or {}).get("name") or None
 
 	if not containers_raw:
 		ref = data.get("reference_number", "")
 		if tracking_type == "CT" and ref:
-			containers_raw = [{"number": ref, "iso_code": "", "size_type": "", "status": data.get("status", "")}]
+			containers_raw = [{"container_number": ref, "iso_code": "", "size_type": "", "status": data.get("status", "")}]
 		elif ref:
-			containers_raw = [{"number": ref, "iso_code": "", "size_type": "", "status": data.get("status", "")}]
+			containers_raw = [{"container_number": ref, "iso_code": "", "size_type": "", "status": data.get("status", "")}]
 
 	parsed = []
 	for container in containers_raw:
-		container_events = events
-		if container.get("events"):
-			container_events = container["events"]
+		container_number = _container_number(container)
+		container_events = container.get("events")
+		if not container_events:
+			container_events = _events_for_container(events, container_number)
 
-		event_data = parse_container_events(container_events)
+		event_data = parse_container_events(
+			container_events,
+			pol_location_name=pol_name,
+			pod_location_name=pod_name,
+		)
 		status = container.get("status") or data.get("status") or ""
 		parsed.append({
-			"container_number": container.get("number") or container.get("container_number") or "",
+			"container_number": container_number,
 			"iso_code": container.get("iso_code") or container.get("iso") or "",
 			"size_type": container.get("size_type") or container.get("type") or "",
 			"status": status,
@@ -313,6 +321,29 @@ def _parse_containers(data, tracking_type):
 		})
 
 	return parsed
+
+
+def _container_number(container):
+	return (
+		container.get("container_number")
+		or container.get("number")
+		or container.get("container")
+		or ""
+	).strip()
+
+
+def _event_container_number(event):
+	for key in ("container_number", "container", "equipment_number", "container_no"):
+		value = event.get(key)
+		if value:
+			return str(value).strip()
+	return ""
+
+
+def _events_for_container(events, container_number):
+	if not container_number:
+		return events
+	return [event for event in events if _event_container_number(event) == container_number]
 
 
 def _parse_eta_history(rows):
