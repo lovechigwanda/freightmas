@@ -1,0 +1,45 @@
+---
+description: Always run Frappe bench commands yourself — never ask the user to run them
+alwaysApply: true
+---
+
+# Frappe Bench Commands
+
+Run bench commands directly in the terminal. Do **not** tell the user to run them unless the command requires their approval or credentials you cannot use.
+
+## Bench root
+
+```text
+/home/lovemore/frappe-bench
+```
+
+## Default site
+
+Use `maita` unless the user specifies another site.
+
+## When to run what
+
+| Change type | Command |
+|---|---|
+| DocType JSON / patches / new fields | `bench --site maita migrate` |
+| Python, JS, hooks, or integration code | `bench restart` |
+| Doctype + code in same task | `migrate` then `restart` |
+| One-off scripts / validation | `bench --site maita execute <module.path>` |
+| Clear cache if behaviour still stale | `bench --site maita clear-cache` |
+
+## Order of operations
+
+1. Make code changes
+2. `bench --site maita migrate` (if doctypes or patches changed)
+3. `bench restart` (after backend/frontend code changes)
+4. Verify with `bench --site maita execute ...` when a test script exists
+
+## Examples
+
+```bash
+cd /home/lovemore/frappe-bench && bench --site maita migrate
+cd /home/lovemore/frappe-bench && bench restart
+cd /home/lovemore/frappe-bench && bench --site maita execute freightmas.integrations.tracking.test_traqo_sandbox.run
+```
+
+Request `all` permissions when supervisor restart needs it.

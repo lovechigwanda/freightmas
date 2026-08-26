@@ -177,15 +177,15 @@
   "column_break_bts1",
   "api_last_event_date",
   "api_last_fetched",
-   "api_call_count",
-   "traqo_shipment_id",
-   "tracking_enrichment_section",
-   "tracking_public_url",
-   "predictive_eta",
-   "column_break_ten1",
-   "is_delayed",
-   "eta_reliable",
-   "tracking_timeline_section",
+  "api_call_count",
+  "traqo_shipment_id",
+  "tracking_enrichment_section",
+  "tracking_public_url",
+  "predictive_eta",
+  "column_break_ten1",
+  "is_delayed",
+  "eta_reliable",
+  "tracking_timeline_section",
   "tracking_timeline",
   "section_break_eooh",
   "current_comment",
@@ -195,12 +195,12 @@
   "last_updated_on",
   "section_break_umkg",
   "status",
-  "operational_phase",
-  "operational_substage",
   "job_creation_notification_sent",
   "column_break_qlnm",
   "completed_on",
   "column_break_limi",
+  "operational_phase",
+  "operational_substage",
   "dnd_storage_tab",
   "dnd_storage_info_section",
   "calculate_dnd_storage_btn",
@@ -820,6 +820,7 @@
    "fieldtype": "Data",
    "label": "Public Tracking URL",
    "no_copy": 1,
+   "options": "URL",
    "read_only": 1
   },
   {
@@ -1337,19 +1338,19 @@
    "label": "Revenue Recognition"
   },
   {
+   "allow_on_submit": 1,
    "default": "0",
    "fieldname": "revenue_recognised",
    "fieldtype": "Check",
    "label": "Revenue Recognised",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "revenue_recognised_on",
    "fieldtype": "Date",
    "label": "Revenue Recognised On",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
@@ -1358,19 +1359,19 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "revenue_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Revenue Recognition Journal Entry",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_recognised_revenue",
    "fieldtype": "Currency",
    "label": "Total Recognised Revenue",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "base_currency",
    "read_only": 1
@@ -1382,11 +1383,11 @@
    "label": "Cost Recognition"
   },
   {
+   "allow_on_submit": 1,
    "default": "0",
    "fieldname": "cost_recognised",
    "fieldtype": "Check",
    "label": "Cost Recognised",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "read_only": 1
   },
@@ -1395,19 +1396,19 @@
    "fieldtype": "Column Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "cost_recognition_journal_entry",
    "fieldtype": "Link",
    "label": "Cost Recognition Journal Entry",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "Journal Entry",
    "read_only": 1
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "total_recognised_cost",
    "fieldtype": "Currency",
    "label": "Total Recognised Cost",
-   "allow_on_submit": 1,
    "no_copy": 1,
    "options": "base_currency",
    "read_only": 1
@@ -1540,7 +1541,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-07-21 21:50:55.784256",
+ "modified": "2026-08-26 18:18:24.370941",
  "modified_by": "Administrator",
  "module": "Forwarding Service",
  "name": "Forwarding Job",
