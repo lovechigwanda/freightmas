@@ -243,10 +243,8 @@ def _fetch_tracking_report_jobs(customers, status=None, direction=None, operatio
 
 
 def _build_portal_tracking_pdf(customers, status=None, direction=None, operational_phase=None, operational_phases=None, overview_bucket=None, search=None):
-	from freightmas.freightmas.page.shipment_dashboard.shipment_dashboard import (
-		_build_job_dossier_context,
-		_summarize_statuses,
-	)
+	from freightmas.freightmas.page.shipment_dashboard.shipment_dashboard import _summarize_statuses
+	from freightmas.forwarding_service.utils.client_tracking_view import build_pdf_job_context
 	from freightmas.utils.company_branding import company_logo_data_uri
 
 	jobs, _filters, _or_filters = _fetch_tracking_report_jobs(
@@ -259,11 +257,20 @@ def _build_portal_tracking_pdf(customers, status=None, direction=None, operation
 		search,
 	)
 
-	dossier_jobs = []
-	for i, job in enumerate(jobs, start=1):
-		ctx = _build_job_dossier_context(job.name)
+	pdf_jobs = []
+	for job in jobs:
+		doc = frappe.get_doc("Forwarding Job", job.name)
+		pdf_jobs.append(build_pdf_job_context(doc))
+
+	status_priority = {"red": 0, "orange": 1, "gray": 1, "green": 2}
+	pdf_jobs.sort(
+		key=lambda ctx: (
+			status_priority.get(ctx["status_key"], 1),
+			ctx.get("sort_date") or getdate("2099-12-31"),
+		),
+	)
+	for i, ctx in enumerate(pdf_jobs, start=1):
 		ctx["num"] = i
-		dossier_jobs.append(ctx)
 
 	company = frappe.db.get_single_value("Global Defaults", "default_company") or "FreightMas"
 	company_name = frappe.db.get_value("Company", company, "company_name") or company
@@ -276,9 +283,9 @@ def _build_portal_tracking_pdf(customers, status=None, direction=None, operation
 			"company": company_name,
 			"customer": customer_name,
 			"logo": company_logo_data_uri(company),
-			"jobs": dossier_jobs,
+			"jobs": pdf_jobs,
 			"generated_on": generated_on,
-			"summary": _summarize_statuses(dossier_jobs),
+			"summary": _summarize_statuses(pdf_jobs),
 		},
 	)
 

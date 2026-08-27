@@ -39,6 +39,7 @@ from freightmas.forwarding_service.utils.client_tracking_view import (
 	DOSSIER_STATUS_LABELS,
 	build_job_cargo_list as _build_job_cargo_list,
 	build_job_milestone_stages as _build_job_milestone_stages,
+	build_pdf_job_context,
 	dossier_latest_line as _dossier_latest_line,
 	dossier_status_key as _dossier_status_key,
 	has_milestone_stages,
@@ -2333,6 +2334,35 @@ def _summarize_statuses(dossier_jobs):
 	}
 
 
+def _pdf_jobs_for_customer(customer, numbered=False):
+	"""Open Forwarding Jobs for one customer, shaped for the client-facing PDF."""
+	jobs = frappe.get_all(
+		"Forwarding Job",
+		filters={
+			"customer": customer,
+			"docstatus": ["in", [0, 1]],
+			"status": ["in", ["Draft", "In Progress", "Delivered"]],
+		},
+		fields=["name"],
+	)
+	pdf_jobs = []
+	for job in jobs:
+		doc = frappe.get_doc("Forwarding Job", job.name)
+		pdf_jobs.append(build_pdf_job_context(doc))
+
+	status_priority = {"red": 0, "orange": 1, "gray": 1, "green": 2}
+	pdf_jobs.sort(
+		key=lambda ctx: (
+			status_priority.get(ctx["status_key"], 1),
+			ctx.get("sort_date") or getdate("2099-12-31"),
+		),
+	)
+	if numbered:
+		for i, ctx in enumerate(pdf_jobs, start=1):
+			ctx["num"] = i
+	return pdf_jobs
+
+
 def _dossier_jobs_for_customer(customer, numbered=False):
 	"""Shared by export_shipment_tracking_report(_excel) and their email
 	counterparts: fetches this customer's open Forwarding Jobs and builds
@@ -2371,7 +2401,7 @@ def _build_shipment_tracking_pdf(customer):
 		or "FreightMas"
 	)
 
-	dossier_jobs = _dossier_jobs_for_customer(customer, numbered=True)
+	dossier_jobs = _pdf_jobs_for_customer(customer, numbered=True)
 
 	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer

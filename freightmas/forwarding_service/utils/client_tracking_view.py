@@ -18,6 +18,45 @@ DOSSIER_STATUS_LABELS = {
 	"gray": "In Progress",
 }
 
+PDF_STATUS_COLORS = {
+	"orange": "#dd6b20",
+	"green": "#15803d",
+	"red": "#b91c1c",
+	"gray": "#98a1ac",
+}
+
+PDF_PROGRESS_COLORS = {
+	"none": "#b91c1c",
+	"started": "#b45309",
+	"progress": "#4338ca",
+	"complete": "#15803d",
+}
+
+PHASE_TONE = {
+	"planning": "neutral",
+	"awaiting_departure": "neutral",
+	"in_transit": "blue",
+	"at_terminal": "teal",
+	"under_port_clearance": "purple",
+	"under_border_clearance": "orange",
+	"on_road": "amber",
+	"at_warehouse": "amber",
+	"delivered": "green",
+	"closed": "neutral",
+	"cancelled": "red",
+}
+
+PHASE_TONE_COLORS = {
+	"neutral": "#64748b",
+	"blue": "#2563eb",
+	"teal": "#0d9488",
+	"purple": "#7c3aed",
+	"orange": "#ea580c",
+	"amber": "#d97706",
+	"green": "#15803d",
+	"red": "#b91c1c",
+}
+
 # Client journey display order (operational flow, not internal section build order).
 JOURNEY_SECTION_ORDER = (
 	"Sea / Air Freight",
@@ -604,4 +643,208 @@ def build_client_tracking_view(doc, milestone_report_mode=None, milestone_percen
 			}
 			for row in sorted(doc.get("tracking_timeline") or [], key=lambda r: r.idx or 0, reverse=True)
 		][:10],
+	}
+
+
+def pdf_progress_class(percent):
+	if percent >= 100:
+		return "complete"
+	if percent >= 50:
+		return "progress"
+	if percent > 0:
+		return "started"
+	return "none"
+
+
+def pdf_progress_color(percent):
+	return PDF_PROGRESS_COLORS[pdf_progress_class(percent)]
+
+
+def pdf_primary_label(doc):
+	return doc.customer_reference or doc.bl_number or doc.name
+
+
+def pdf_route_line(doc):
+	origin = doc.port_of_loading or "–"
+	dest = doc.destination or doc.port_of_discharge or "–"
+	parts = [f"{origin} → {dest}"]
+	if doc.direction:
+		parts.append(doc.direction)
+	if doc.shipment_mode and doc.shipment_type:
+		parts.append(f"{doc.shipment_mode} · {doc.shipment_type}")
+	return " · ".join(parts)
+
+
+def pdf_headline(doc, status_key):
+	if doc.current_comment:
+		return doc.current_comment
+	if doc.operational_phase:
+		return get_phase_label(doc.operational_phase)
+	primary = pdf_primary_label(doc)
+	if doc.name and doc.name != primary:
+		return doc.name
+	return "No tracking update yet"
+
+
+def pdf_eta_display(doc, is_overdue):
+	is_export = doc.direction == "Export"
+	date = doc.etd if is_export else doc.eta
+	label = "ETD" if is_export else "ETA"
+	if not date:
+		return {"label": label, "display": "–", "urgency": "normal"}
+	return {
+		"label": label,
+		"display": f"{label} {formatdate(date, 'dd MMM yyyy')}",
+		"urgency": "overdue" if is_overdue else "normal",
+	}
+
+
+def pdf_cargo_units(cargo):
+	from collections import Counter
+
+	type_counts = Counter(c["container_type"] for c in cargo if c.get("container_type"))
+	return " + ".join(f"{n}×{t}" for t, n in type_counts.items())
+
+
+def _pdf_journey_status_text(phase):
+	state = phase.get("state")
+	if state == "done":
+		return "Done"
+	if state == "pending":
+		return "Pending"
+
+	progress = phase.get("progress") or {}
+	pct = progress.get("percent", 0)
+	section = phase.get("section") or {}
+	if section.get("kind") == "clearance_stages":
+		current = next((s for s in (section.get("stages") or []) if s.get("is_current")), None)
+		if current and current.get("missing"):
+			count = len(current["missing"])
+			doc_word = "documents" if count != 1 else "document"
+			return f"Current · {count} {doc_word} outstanding"
+	if pct:
+		return f"Current · {pct}%"
+	return "Current"
+
+
+def _pdf_fact_strip(doc):
+	return [
+		{"label": "BL Number", "value": doc.bl_number or "—"},
+		{"label": "Customer Ref", "value": doc.customer_reference or "—"},
+		{
+			"label": "ETD / ATD",
+			"value": (
+				f"{formatdate(doc.etd, 'dd MMM yyyy') if doc.etd else '—'}"
+				f" · {formatdate(doc.atd, 'dd MMM yyyy') if doc.atd else 'Pending'}"
+			),
+		},
+		{
+			"label": "ETA / ATA",
+			"value": (
+				f"{formatdate(doc.eta, 'dd MMM yyyy') if doc.eta else '—'}"
+				f" · {formatdate(doc.ata, 'dd MMM yyyy') if doc.ata else 'Pending'}"
+			),
+		},
+		{
+			"label": "Cargo",
+			"value": " · ".join(
+				part for part in [doc.cargo_description, str(doc.cargo_count) if doc.cargo_count else None] if part
+			)
+			or "—",
+		},
+		{
+			"label": "Discharge",
+			"value": formatdate(doc.discharge_date, "dd MMM yyyy") if doc.discharge_date else "—",
+		},
+	]
+
+
+def build_pdf_job_context(doc):
+	"""Client-portal-shaped context for the Shipment Tracking PDF."""
+	today = getdate(nowdate())
+	status_key = dossier_status_key(doc, today)
+	tracking = build_client_tracking_view(doc)
+	client_status = tracking["client_status"]
+	banner = tracking["banner"]
+
+	is_overdue = status_key == "red"
+	primary_label = pdf_primary_label(doc)
+	secondary_label = doc.name if primary_label != doc.name else None
+	cargo = build_job_cargo_list(doc)
+	cargo_units = pdf_cargo_units(cargo)
+	eta = pdf_eta_display(doc, is_overdue)
+	progress_percent = client_status["progress_percent"]
+	progress_class = pdf_progress_class(progress_percent)
+	phase_tone = PHASE_TONE.get(doc.operational_phase, "neutral")
+
+	is_import = doc.direction == "Import"
+	sort_date = doc.eta if is_import else doc.etd
+
+	journey_rows = [
+		{
+			"title": phase["title"],
+			"state": phase["state"],
+			"summary": phase["summary"] or "—",
+			"status_text": _pdf_journey_status_text(phase),
+		}
+		for phase in tracking["journey"]
+	]
+
+	container_rows = [
+		{
+			"container_number": row["container_number"],
+			"container_type": row["container_type"],
+			"status": row["status"],
+			"last_event": row["last_event"],
+			"last_event_date": formatdate(row["last_event_date"], "dd MMM yyyy")
+			if row.get("last_event_date")
+			else "—",
+		}
+		for row in tracking["containers"]
+	]
+
+	key_date = banner.get("key_date")
+	key_date_label = banner.get("key_date_label") or "ETA"
+
+	return {
+		"ref": doc.name,
+		"status_key": status_key,
+		"status_color": PDF_STATUS_COLORS.get(status_key, PDF_STATUS_COLORS["gray"]),
+		"status_label": DOSSIER_STATUS_LABELS.get(status_key, "In Progress"),
+		"is_overdue": is_overdue,
+		"sort_date": sort_date,
+		"progress_percent": progress_percent,
+		"progress_class": progress_class,
+		"progress_color": pdf_progress_color(progress_percent),
+		"glance": {
+			"primary_label": primary_label,
+			"secondary_label": secondary_label,
+			"route": pdf_route_line(doc).split(" · ")[0],
+			"phase_label": banner.get("operational_phase_label") or get_phase_label(doc.operational_phase) or "—",
+			"phase_tone": phase_tone,
+			"phase_color": PHASE_TONE_COLORS.get(phase_tone, PHASE_TONE_COLORS["neutral"]),
+			"eta_display": eta["display"],
+			"eta_urgency": eta["urgency"],
+			"headline": pdf_headline(doc, status_key),
+			"cargo_units": cargo_units,
+			"progress_percent": progress_percent,
+			"progress_class": progress_class,
+			"progress_color": pdf_progress_color(progress_percent),
+		},
+		"hero": {
+			"status_label": client_status["label"],
+			"headline": client_status["headline"],
+			"route_line": pdf_route_line(doc),
+			"key_date_label": key_date_label,
+			"key_date_display": formatdate(key_date, "dd MMM yyyy") if key_date else "—",
+			"key_date_urgency": "overdue" if is_overdue else "normal",
+			"is_delayed": is_overdue,
+			"progress_percent": progress_percent,
+			"progress_class": progress_class,
+			"progress_color": pdf_progress_color(progress_percent),
+			"steps": tracking["steps"],
+		},
+		"facts": _pdf_fact_strip(doc),
+		"journey": journey_rows,
+		"containers": container_rows,
 	}

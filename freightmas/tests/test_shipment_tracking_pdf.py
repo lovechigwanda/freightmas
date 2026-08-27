@@ -1,0 +1,73 @@
+# Copyright (c) 2026, Zvomaita Technologies (Pvt) Ltd and contributors
+# For license information, please see license.txt
+
+"""Tests for the client-facing Shipment Tracking PDF report."""
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, nowdate
+
+from freightmas.forwarding_service.utils.client_tracking_view import build_pdf_job_context
+from freightmas.freightmas.page.shipment_dashboard.shipment_dashboard import (
+	_build_shipment_tracking_pdf,
+	_pdf_jobs_for_customer,
+)
+from freightmas.tests.test_client_tracking_view import _make_customer, _make_job
+
+
+class TestShipmentTrackingPdf(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+
+	def test_pdf_jobs_sort_delayed_first_then_by_eta(self):
+		customer = _make_customer("SORT1")
+		on_time = _make_job(customer, "SORT1a", eta=add_days(nowdate(), 10))
+		delayed = _make_job(customer, "SORT1b", eta=add_days(nowdate(), -2))
+		frappe.db.set_value("Forwarding Job", delayed.name, "operational_phase", "in_transit")
+		delayed.reload()
+
+		jobs = _pdf_jobs_for_customer(customer.name)
+		names = [job["ref"] for job in jobs]
+		self.assertEqual(names.index(delayed.name), 0)
+		self.assertLess(names.index(on_time.name), len(names))
+
+	def test_pdf_template_renders_portal_layout(self):
+		customer = _make_customer("HTML1")
+		job = _make_job(
+			customer,
+			"HTML1",
+			customer_reference="PO-HTML-001",
+		)
+		frappe.db.set_value("Forwarding Job", job.name, "current_comment", "Awaiting vessel arrival")
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		html = frappe.render_template(
+			"freightmas/templates/shipment_tracking_report.html",
+			{
+				"company": "Test Co",
+				"customer": customer.customer_name,
+				"logo": None,
+				"jobs": [{**ctx, "num": 1}],
+				"generated_on": "27 Aug 2026",
+				"summary": {"line": "1 SHIPMENT · 1 IN TRANSIT"},
+			},
+		)
+
+		self.assertIn("Shipments at a Glance", html)
+		self.assertIn("PO-HTML-001", html)
+		self.assertIn("Shipment Journey", html)
+		self.assertIn("Journey progress", html)
+		self.assertIn("Awaiting vessel arrival", html)
+		self.assertNotIn("LATEST:", html)
+		self.assertNotIn("sec-card", html)
+		self.assertNotIn("card-grid", html)
+
+	def test_build_shipment_tracking_pdf_returns_bytes(self):
+		customer = _make_customer("PDFX1")
+		_make_job(customer, "PDFX1")
+
+		pdf, customer_name = _build_shipment_tracking_pdf(customer.name)
+
+		self.assertTrue(customer_name)
+		self.assertTrue(pdf.startswith(b"%PDF"))

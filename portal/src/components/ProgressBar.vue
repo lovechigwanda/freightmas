@@ -1,8 +1,12 @@
 <template>
 	<span class="sd-progress" :title="`${percent}%`">
-		<span :style="{ width: percent + '%', background: color }"></span>
+		<span
+			class="sd-progress-fill"
+			:class="fillClass"
+			:style="{ width: percent + '%' }"
+		></span>
 	</span>
-	<span v-if="showLabel" class="sd-muted" style="font-size: 11px; margin-left: 6px">{{ percent }}%</span>
+	<span v-if="showLabel" class="sd-muted sd-progress-label">{{ percent }}%</span>
 </template>
 
 <script setup>
@@ -13,10 +17,10 @@ const props = defineProps({
 	showLabel: { type: Boolean, default: true },
 });
 
-const color = computed(() => {
-	if (props.percent >= 100) return "#15803d";
-	if (props.percent >= 50) return "#4f46e5";
-	if (props.percent > 0) return "#b45309";
-	return "#b91c1c";
+const fillClass = computed(() => {
+	if (props.percent >= 100) return "sd-progress-fill--complete";
+	if (props.percent >= 50) return "sd-progress-fill--progress";
+	if (props.percent > 0) return "sd-progress-fill--started";
+	return "sd-progress-fill--none";
 });
 </script>

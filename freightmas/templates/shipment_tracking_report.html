@@ -1,88 +1,31 @@
-{%- macro render_card(sec) -%}
-<div class="sec-card">
-	<table class="sec-head"><tr>
-		<td><span class="sec-title">{{ sec.title }}</span></td>
-		{% if sec.frac and sec.frac.total %}
-			<td class="sec-frac" style="color:{{ sec.frac.color }};">{{ sec.frac.text }}</td>
-		{% endif %}
-	</tr></table>
-	<div class="sec-body">
-		{% if sec.kind == 'containers' %}
-			{% if sec.atd or sec.ata %}
-				<div class="atd-ata">
-					<strong>ATD:</strong> {{ sec.atd or '—' }}&nbsp;&nbsp;&nbsp;<strong>ATA:</strong> {{ sec.ata or '—' }}
-				</div>
-			{% endif %}
-			{% if sec.rows %}
-				<table class="ct">
-					<thead><tr>{% for h in sec.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
-					<tbody>
-						{% for row in sec.rows %}
-							<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			{% else %}
-				<div class="sec-empty">No containers recorded.</div>
-			{% endif %}
-		{% elif sec.kind == 'checklist' %}
-			{% if sec.entries %}
-				<table class="chk">
-					{% for row in sec.entries | batch(2) %}
-						<tr>
-							{% for item in row %}
-								<td>
-									<span class="chk-k">{{ item.label }}</span>
-									<span class="chk-v {{ 'chk-v-done' if item.done else '' }}">{{ item.value }}</span>
-								</td>
-							{% endfor %}
-							{% if row | length == 1 %}<td></td>{% endif %}
-						</tr>
-					{% endfor %}
-				</table>
-			{% else %}
-				<div class="sec-empty">Not required for this shipment.</div>
-			{% endif %}
-		{% elif sec.kind == 'stages' %}
-			{% if sec.stages %}
-				<table class="stg">
-					{% for st in sec.stages %}
-						<tr class="{{ 'stg-current' if st.is_current else '' }}">
-							<td class="stg-k">
-								{{ st.name }}{% if st.is_current %} <span class="stg-now">CURRENT</span>{% endif %}
-								{% if st.missing %}
-									<div class="stg-missing">Missing: {{ st.missing | join(', ') }}</div>
-								{% endif %}
-							</td>
-							<td class="stg-v" style="color:{{ st.color }};">{{ st.text }}</td>
-						</tr>
-					{% endfor %}
-					<tr class="stg-overall">
-						<td class="stg-k">Overall</td>
-						<td class="stg-v" style="color:{{ sec.frac.color }};">{{ sec.frac.text }}</td>
-					</tr>
-				</table>
-			{% else %}
-				<div class="sec-empty">Not required for this shipment.</div>
-			{% endif %}
-		{% endif %}
-	</div>
-</div>
+{%- macro progress_bar(percent, css_class, color) -%}
+<table class="progress-wrap" cellpadding="0" cellspacing="0"><tr>
+	<td class="progress-track">
+		<div class="progress-fill progress-fill--{{ css_class }}" style="width:{{ percent }}%;background:{{ color }};"></div>
+	</td>
+	<td class="progress-pct">{{ percent }}%</td>
+</tr></table>
 {%- endmacro -%}
+
+{%- macro step_marker(state) -%}
+<span class="step-marker step-marker--{{ state }}">
+	{%- if state == 'done' -%}✓{%- elif state == 'current' -%}●{%- else -%}○{%- endif -%}
+</span>
+{%- endmacro -%}
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-	@page {
-		size: A4 portrait;
-	}
+	@page { size: A4 portrait; }
 
 	body {
 		margin: 0;
 		font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		color: #26333f;
+		color: #111827;
 		font-size: 11px;
+		background: #f6f7fb;
 	}
 
 	h1, h2, h3 { margin: 0; }
@@ -92,7 +35,7 @@
 		width: 100%;
 		border-collapse: collapse;
 		background: #2c2560;
-		border-radius: 8px 8px 0 0;
+		border-radius: 10px 10px 0 0;
 	}
 	.banner td { padding: 14px 26px; vertical-align: middle; }
 	.banner-logo {
@@ -130,217 +73,256 @@
 	.banner-rule {
 		height: 4px;
 		background: #F4901E;
-		border-radius: 0 0 8px 8px;
+		border-radius: 0 0 10px 10px;
 		margin-bottom: 6px;
 	}
 
-	/* ---- Shipments at a Glance ---- */
-	.glance-wrap { margin-top: 20px; margin-bottom: 6px; }
+	/* ---- Glance table ---- */
+	.glance-wrap { margin-top: 18px; margin-bottom: 8px; }
 	.glance-title {
-		font: 700 12px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .03em;
-		text-transform: uppercase;
-		color: #2c2560;
-		margin-bottom: 8px;
-	}
-	table.sum { width: 100%; border-collapse: collapse; table-layout: fixed; }
-	table.sum th {
-		font: 700 8.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .05em;
-		text-transform: uppercase;
-		color: #8b95a1;
-		text-align: left;
-		padding: 0 6px 7px 0;
-		border-bottom: 1.5px solid #2c2560;
-		white-space: nowrap;
-	}
-	table.sum td {
-		padding: 8px 6px 8px 0;
-		border-bottom: 1px solid #e7eaee;
-		font-size: 11.5px;
-		color: #26333f;
-		vertical-align: middle;
-		white-space: nowrap;
-	}
-	table.sum tr:last-child td { border-bottom: none; }
-	.sum-num { color: #8b95a1; }
-	.sum-ref { font-weight: 700; color: #2c2560; }
-	.sum-bl {
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-	table.sum td.sum-update { white-space: normal; }
-	.sum-dot {
-		width: 7px; height: 7px;
-		border-radius: 50%;
-		display: inline-block;
-		margin-right: 6px;
-	}
-
-	/* ---- Per-job block ---- */
-	.job-block {
-		page-break-inside: avoid;
-		margin-top: 22px;
-		padding-top: 12px;
-		border-top: 3px solid #dd6b20;
-	}
-	.job-head { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-	.job-num {
-		font: 700 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #8b95a1;
-	}
-	.job-ref {
-		font: 800 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #16212c;
-	}
-	.job-latest {
-		text-align: right;
-		font: 700 11.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .02em;
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-
-	/* ---- Fields bar ---- */
-	.fields-bar {
-		width: 100%;
-		border-collapse: collapse;
-		background: #4B3F8F;
-		border-radius: 6px;
-		margin-bottom: 11px;
-	}
-	.fields-bar td { padding: 9px 16px; vertical-align: top; }
-	.dk-label {
-		font: 700 8.5px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .06em;
 		text-transform: uppercase;
-		color: #8996a5;
-		margin-bottom: 3px;
+		color: #64748b;
+		margin-bottom: 8px;
 	}
-	.dk-val {
-		font: 600 11px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #fff;
+	table.glance { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; border: 1px solid #e6e9f0; border-radius: 10px; }
+	table.glance th {
+		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .05em;
+		text-transform: uppercase;
+		color: #64748b;
+		text-align: left;
+		padding: 8px 8px 7px;
+		border-bottom: 1px solid #e6e9f0;
+		background: #fafbfc;
+	}
+	table.glance td {
+		padding: 9px 8px;
+		border-bottom: 1px solid #eef1f4;
+		font-size: 10.5px;
+		color: #111827;
+		vertical-align: middle;
+	}
+	table.glance tr:last-child td { border-bottom: none; }
+	.glance-primary { font-weight: 700; color: #111827; display: block; }
+	.glance-secondary { font-size: 9px; color: #94a3b8; display: block; margin-top: 2px; }
+	.glance-cargo { font-size: 9px; color: #64748b; display: block; margin-top: 2px; }
+	.glance-headline { color: #64748b; white-space: normal; line-height: 1.35; }
+	.glance-eta--overdue { color: #b91c1c; font-weight: 700; }
+	.glance-eta--normal { color: #111827; }
+
+	.progress-wrap { width: 100%; border-collapse: collapse; }
+	.progress-track {
+		height: 6px;
+		background: #e6e9f0;
+		border-radius: 3px;
+		overflow: hidden;
+		width: 100%;
+	}
+	.progress-fill { height: 6px; border-radius: 3px; }
+	.progress-pct {
+		font: 600 9.5px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #64748b;
+		padding-left: 6px;
 		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		width: 1%;
 	}
 
-	/* ---- Card grid ---- */
-	.card-grid { width: 100%; border-collapse: separate; border-spacing: 0; }
-	.card-col { width: 50%; vertical-align: top; }
-	.card-col-left { padding-right: 6px; }
-	.card-col-right { padding-left: 6px; }
+	/* ---- Detail page ---- */
+	.detail-page {
+		page-break-before: always;
+		padding-top: 4px;
+	}
+	.detail-page:first-of-type { page-break-before: auto; }
 
-	.sec-card {
-		border: 1px solid #dde2e8;
-		border-radius: 7px;
-		overflow: hidden;
+	.card {
 		background: #fff;
+		border: 1px solid #e6e9f0;
+		border-radius: 10px;
 		margin-bottom: 12px;
+		overflow: hidden;
 		page-break-inside: avoid;
 	}
-	.sec-head {
+
+	/* Hero */
+	.hero {
+		border-left: 4px solid #dd6b20;
+		padding: 16px 18px;
+	}
+	.hero--green { border-left-color: #15803d; }
+	.hero--red { border-left-color: #b91c1c; }
+	.hero--orange { border-left-color: #dd6b20; }
+	.hero--gray { border-left-color: #98a1ac; }
+
+	.hero-top { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+	.hero-status {
+		font: 800 22px/1.15 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #111827;
+	}
+	.hero-keydate {
+		text-align: right;
+		font: 700 11px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		white-space: nowrap;
+	}
+	.hero-keydate--overdue { color: #b91c1c; }
+	.hero-keydate--normal { color: #4338ca; }
+	.hero-headline {
+		margin: 0 0 6px;
+		font-size: 12px;
+		color: #475569;
+		line-height: 1.4;
+	}
+	.hero-route {
+		margin: 0 0 12px;
+		font-size: 10.5px;
+		color: #64748b;
+	}
+	.hero-ref {
+		margin: 10px 0 0;
+		text-align: right;
+		font-size: 9px;
+		color: #94a3b8;
+	}
+	.hero-delayed {
+		display: inline-block;
+		margin-left: 8px;
+		padding: 1px 6px;
+		border-radius: 999px;
+		background: #fef2f2;
+		color: #b91c1c;
+		font: 700 9px/16px 'Work Sans', Helvetica, Arial, sans-serif;
+		vertical-align: middle;
+	}
+
+	.hero-steps {
 		width: 100%;
 		border-collapse: collapse;
-		background: #eef1f4;
+		margin: 0 0 12px;
 	}
-	.sec-head td { padding: 7px 12px; vertical-align: middle; }
-	.sec-title {
-		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .03em;
-		text-transform: uppercase;
-		color: #1c2b3a;
-	}
-	.sec-frac {
-		text-align: right;
-		font: 700 10.5px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		white-space: nowrap;
-	}
-	.sec-body { padding: 9px 12px 11px; }
-
-	.atd-ata { margin-bottom: 7px; font-size: 11px; color: #26333f; }
-	.atd-ata strong { color: #16212c; }
-
-	/* ---- Container tables ---- */
-	table.ct { width: 100%; border-collapse: collapse; }
-	table.ct th {
-		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .03em;
-		text-transform: uppercase;
-		color: #98a1ac;
-		text-align: left;
-		padding: 0 4px 4px;
-		border-bottom: 1px solid #e7eaee;
-	}
-	table.ct td {
-		padding: 4.5px 4px;
-		border-bottom: 1px solid #f0f2f5;
-		font-size: 11px;
-		color: #26333f;
-	}
-	table.ct tr:last-child td { border-bottom: none; }
-
-	/* ---- Checklist grids ---- */
-	table.chk { width: 100%; border-collapse: collapse; }
-	table.chk td {
-		width: 50%;
-		padding: 2.5px 8px 2.5px 0;
-		font-size: 11px;
-		vertical-align: middle;
-	}
-	.chk-k { color: #26333f; }
-	.chk-v {
-		float: right;
-		color: #a7afb9;
-		font-style: italic;
-		font-size: 10px;
-	}
-	.chk-v-done { color: #1f8a4a; font-style: normal; }
-
-	/* ---- Stage summary rows ---- */
-	table.stg { width: 100%; border-collapse: collapse; }
-	table.stg td {
-		padding: 4px 8px 4px 0;
-		font-size: 11px;
-		vertical-align: middle;
-		border-bottom: 1px solid #eef0f3;
-	}
-	tr.stg-current td { background: #fbf4ea; }
-	.stg-k { color: #26333f; font-weight: 400; }
-	.stg-v {
-		text-align: right;
-		white-space: nowrap;
+	.hero-steps td {
+		text-align: center;
 		vertical-align: top;
-		font-size: 10px;
-		font-weight: 600;
+		padding: 0 2px;
+		font-size: 9px;
+		color: #64748b;
 	}
-	.stg-missing {
-		margin-top: 2px;
-		font-size: 9.5px;
-		font-weight: 400;
-		font-style: italic;
-		color: #a7afb9;
-	}
-	tr.stg-overall td {
-		border-bottom: none;
-		border-top: 1.5px solid #dde2e8;
-		padding-top: 6px;
-	}
-	tr.stg-overall .stg-k { color: #1c2b3a; font-weight: 700; }
-	tr.stg-overall .stg-v { font-weight: 700; }
-	.stg-now {
+	.step-marker {
 		display: inline-block;
-		margin-left: 6px;
-		padding: 0 5px;
-		border-radius: 3px;
-		background: #F4901E;
+		width: 18px;
+		height: 18px;
+		line-height: 18px;
+		border-radius: 50%;
+		font-size: 10px;
+		font-weight: 700;
+		margin-bottom: 4px;
+	}
+	.step-marker--done {
+		background: #15803d;
 		color: #fff;
-		font: 700 8px/14px 'Work Sans', Helvetica, Arial, sans-serif;
+	}
+	.step-marker--current {
+		background: #4338ca;
+		color: #fff;
+	}
+	.step-marker--pending {
+		background: #e6e9f0;
+		color: #94a3b8;
+	}
+	.step-connector {
+		display: block;
+		height: 2px;
+		background: #e6e9f0;
+		margin: 8px 0 0;
+	}
+	.step-connector--done { background: #15803d; }
+
+	.hero-progress-label {
+		font: 600 9px/1 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .04em;
-		vertical-align: middle;
+		text-transform: uppercase;
+		color: #64748b;
+		margin-bottom: 5px;
 	}
 
-	.sec-empty { font-size: 11px; color: #98a1ac; font-style: italic; }
+	/* Fact strip */
+	.fact-strip { width: 100%; border-collapse: collapse; }
+	.fact-strip td {
+		width: 16.66%;
+		padding: 12px 10px;
+		vertical-align: top;
+		border-right: 1px solid #eef1f4;
+	}
+	.fact-strip td:last-child { border-right: none; }
+	.fact-label {
+		display: block;
+		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .05em;
+		text-transform: uppercase;
+		color: #94a3b8;
+		margin-bottom: 4px;
+	}
+	.fact-value {
+		display: block;
+		font: 600 10.5px/1.35 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #111827;
+	}
+
+	/* Journey */
+	.section-title {
+		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		color: #64748b;
+		padding: 12px 14px 0;
+	}
+	table.journey { width: 100%; border-collapse: collapse; }
+	table.journey td {
+		padding: 9px 14px;
+		border-bottom: 1px solid #eef1f4;
+		font-size: 10.5px;
+		vertical-align: middle;
+	}
+	table.journey tr:last-child td { border-bottom: none; }
+	table.journey tr.journey--current td { background: #f8fafc; }
+	.journey-marker {
+		width: 22px;
+		font-weight: 700;
+		color: #64748b;
+	}
+	.journey-marker--done { color: #15803d; }
+	.journey-marker--current { color: #4338ca; }
+	.journey-marker--pending { color: #cbd5e1; }
+	.journey-title { font-weight: 600; color: #111827; }
+	.journey-summary { color: #64748b; }
+	.journey-status {
+		text-align: right;
+		white-space: nowrap;
+		font-weight: 600;
+		color: #64748b;
+	}
+	.journey-status--current { color: #4338ca; }
+	.journey-status--done { color: #15803d; }
+
+	/* Containers */
+	table.containers { width: 100%; border-collapse: collapse; }
+	table.containers th {
+		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .05em;
+		text-transform: uppercase;
+		color: #64748b;
+		text-align: left;
+		padding: 0 14px 6px;
+		border-bottom: 1px solid #e6e9f0;
+	}
+	table.containers td {
+		padding: 7px 14px;
+		border-bottom: 1px solid #eef1f4;
+		font-size: 10.5px;
+		color: #111827;
+	}
+	table.containers tr:last-child td { border-bottom: none; }
+	.container-num { font-weight: 600; }
 
 	.doc-empty {
 		margin-top: 40px;
@@ -387,24 +369,40 @@
 	{% if jobs %}
 	<div class="glance-wrap">
 		<div class="glance-title">Shipments at a Glance</div>
-		<table class="sum">
+		<table class="glance">
 			<colgroup>
-				<col style="width:4%;"/><col style="width:13%;"/><col style="width:20%;"/>
-				<col style="width:43%;"/><col style="width:20%;"/>
+				<col style="width:16%;"/>
+				<col style="width:14%;"/>
+				<col style="width:12%;"/>
+				<col style="width:12%;"/>
+				<col style="width:28%;"/>
+				<col style="width:18%;"/>
 			</colgroup>
 			<thead><tr>
-				<th>#</th><th>Job Ref</th><th>BL No.</th><th>Latest Update</th><th>Status</th>
+				<th>Reference</th>
+				<th>Route</th>
+				<th>Phase</th>
+				<th>ETA / ETD</th>
+				<th>Latest Update</th>
+				<th>Progress</th>
 			</tr></thead>
 			<tbody>
 				{% for job in jobs %}
 				<tr>
-					<td class="sum-num">{{ job.num }}</td>
-					<td class="sum-ref">{{ job.glance.ref }}</td>
-					<td class="sum-bl">{{ job.glance.bl_no }}</td>
-					<td class="sum-update">{{ job.glance.latest_update }}</td>
 					<td>
-						<span class="sum-dot" style="background:{{ job.glance.status_color }};"></span>{{ job.glance.status_label }} &middot; {{ job.glance.status_pct }}%
+						<span class="glance-primary">{{ job.glance.primary_label }}</span>
+						{% if job.glance.secondary_label %}
+							<span class="glance-secondary">{{ job.glance.secondary_label }}</span>
+						{% endif %}
+						{% if job.glance.cargo_units %}
+							<span class="glance-cargo">{{ job.glance.cargo_units }}</span>
+						{% endif %}
 					</td>
+					<td>{{ job.glance.route }}</td>
+					<td style="color:{{ job.glance.phase_color }};font-weight:600;">{{ job.glance.phase_label }}</td>
+					<td class="glance-eta--{{ job.glance.eta_urgency }}">{{ job.glance.eta_display }}</td>
+					<td class="glance-headline">{{ job.glance.headline }}</td>
+					<td>{{ progress_bar(job.glance.progress_percent, job.glance.progress_class, job.glance.progress_color) }}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
@@ -412,42 +410,97 @@
 	</div>
 	{% endif %}
 
-	<!-- ONE BLOCK PER JOB -->
+	<!-- ONE PAGE PER SHIPMENT -->
 	{% for job in jobs %}
-	<div class="job-block" style="border-top-color:{{ job.status_color }};">
-		<table class="job-head">
-			<tr>
-				<td><span class="job-num">{{ job.num }}.</span> <span class="job-ref">{{ job.ref }}</span></td>
-				<td class="job-latest" style="color:{{ job.status_color }};">
-					LATEST: {{ job.latest_line }}
+	<div class="detail-page">
+		<div class="card hero hero--{{ job.status_key }}">
+			<table class="hero-top"><tr>
+				<td class="hero-status">
+					{{ job.hero.status_label }}
+					{% if job.hero.is_delayed %}<span class="hero-delayed">Delayed</span>{% endif %}
 				</td>
-			</tr>
-		</table>
+				<td class="hero-keydate hero-keydate--{{ job.hero.key_date_urgency }}">
+					{{ job.hero.key_date_label }} {{ job.hero.key_date_display }}
+				</td>
+			</tr></table>
+			{% if job.hero.headline %}
+				<p class="hero-headline">{{ job.hero.headline }}</p>
+			{% endif %}
+			{% if job.hero.route_line %}
+				<p class="hero-route">{{ job.hero.route_line }}</p>
+			{% endif %}
 
-		<table class="fields-bar">
-			<tr>
-				<td style="width:16%;"><div class="dk-label">BL Number</div><div class="dk-val">{{ job.fields.bl_number }}</div></td>
-				<td style="width:20%;"><div class="dk-label">Reference</div><div class="dk-val">{{ job.fields.reference }}</div></td>
-				<td style="width:30%;"><div class="dk-label">Cargo</div><div class="dk-val">{{ job.fields.cargo }}</div></td>
-				<td style="width:16%;"><div class="dk-label">Mode</div><div class="dk-val">{{ job.fields.mode }}</div></td>
-				<td style="width:18%;"><div class="dk-label">Last Update</div><div class="dk-val">{{ job.fields.last_update }}</div></td>
-			</tr>
-		</table>
+			{% if job.hero.steps %}
+			<table class="hero-steps"><tr>
+				{% for step in job.hero.steps %}
+				<td>
+					{{ step_marker(step.state) }}<br/>
+					<span>{{ step.label }}</span>
+					{% if not loop.last %}<span class="step-connector{% if step.state == 'done' %} step-connector--done{% endif %}"></span>{% endif %}
+				</td>
+				{% endfor %}
+			</tr></table>
+			{% endif %}
 
-		<table class="card-grid">
-			<tr>
-				<td class="card-col card-col-left">
-					{% for sec in job.sections if sec.column == 'left' %}
-						{{ render_card(sec) }}
-					{% endfor %}
+			<div class="hero-progress-label">Journey progress</div>
+			{{ progress_bar(job.hero.progress_percent, job.hero.progress_class, job.hero.progress_color) }}
+			<div class="hero-ref">{{ job.ref }}</div>
+		</div>
+
+		<div class="card">
+			<table class="fact-strip"><tr>
+				{% for fact in job.facts %}
+				<td>
+					<span class="fact-label">{{ fact.label }}</span>
+					<span class="fact-value">{{ fact.value }}</span>
 				</td>
-				<td class="card-col card-col-right">
-					{% for sec in job.sections if sec.column == 'right' %}
-						{{ render_card(sec) }}
+				{% endfor %}
+			</tr></table>
+		</div>
+
+		{% if job.journey %}
+		<div class="card">
+			<div class="section-title">Shipment Journey</div>
+			<table class="journey">
+				{% for phase in job.journey %}
+				<tr class="journey--{{ phase.state }}">
+					<td class="journey-marker journey-marker--{{ phase.state }}" style="width:28px;">
+						{%- if phase.state == 'done' -%}✓{%- elif phase.state == 'current' -%}●{%- else -%}○{%- endif -%}
+					</td>
+					<td class="journey-title" style="width:26%;">{{ phase.title }}</td>
+					<td class="journey-summary">{{ phase.summary }}</td>
+					<td class="journey-status journey-status--{{ phase.state }}">{{ phase.status_text }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</div>
+		{% endif %}
+
+		{% if job.containers %}
+		<div class="card">
+			<div class="section-title">Containers</div>
+			<table class="containers">
+				<thead><tr>
+					<th>Container</th>
+					<th>Type</th>
+					<th>Status</th>
+					<th>Last Event</th>
+					<th>Date</th>
+				</tr></thead>
+				<tbody>
+					{% for row in job.containers %}
+					<tr>
+						<td class="container-num">{{ row.container_number }}</td>
+						<td>{{ row.container_type }}</td>
+						<td>{{ row.status }}</td>
+						<td>{{ row.last_event }}</td>
+						<td>{{ row.last_event_date }}</td>
+					</tr>
 					{% endfor %}
-				</td>
-			</tr>
-		</table>
+				</tbody>
+			</table>
+		</div>
+		{% endif %}
 	</div>
 	{% endfor %}
 

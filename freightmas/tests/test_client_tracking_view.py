@@ -9,8 +9,10 @@ from frappe.utils import add_days, nowdate
 
 from freightmas.forwarding_service.utils.client_tracking_view import (
 	build_client_tracking_view,
+	build_pdf_job_context,
 	client_list_progress,
 	dossier_status_key,
+	pdf_primary_label,
 	resolve_client_milestone_report_mode,
 )
 from freightmas.portal.api import shipments as portal_shipments
@@ -261,3 +263,50 @@ class TestClientTrackingView(IntegrationTestCase):
 			"Stage Summary",
 		)
 		self.assertEqual(resolve_client_milestone_report_mode(customer.name), "Stage Summary")
+
+	def test_pdf_primary_label_prefers_customer_reference(self):
+		customer = _make_customer("PDF1")
+		job = _make_job(customer, "PDF1", customer_reference="PO-CLIENT-001", bl_number="BL-999")
+		self.assertEqual(pdf_primary_label(job), "PO-CLIENT-001")
+
+	def test_build_pdf_job_context_glance_uses_client_first_fields(self):
+		customer = _make_customer("PDF2")
+		job = _make_job(
+			customer,
+			"PDF2",
+			customer_reference="PO-CLIENT-002",
+			bl_number="BL-888",
+		)
+		frappe.db.set_value("Forwarding Job", job.name, "current_comment", "Vessel departed Beira")
+		frappe.db.set_value("Forwarding Job", job.name, "operational_phase", "in_transit")
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+
+		self.assertEqual(ctx["glance"]["primary_label"], "PO-CLIENT-002")
+		self.assertEqual(ctx["glance"]["secondary_label"], job.name)
+		self.assertEqual(ctx["glance"]["headline"], "Vessel departed Beira")
+		self.assertIn("hero", ctx)
+		self.assertIn("facts", ctx)
+		self.assertIn("journey", ctx)
+		self.assertGreater(len(ctx["journey"]), 0)
+		self.assertIn("steps", ctx["hero"])
+
+	def test_build_pdf_job_context_journey_has_phase_rows_not_checklists(self):
+		customer = _make_customer("PDF3")
+		job = _make_job(customer, "PDF3")
+		ctx = build_pdf_job_context(job)
+
+		for row in ctx["journey"]:
+			self.assertIn(row["state"], ("done", "current", "pending"))
+			self.assertIn("title", row)
+			self.assertIn("summary", row)
+			self.assertIn("status_text", row)
+			self.assertNotIn("missing", row)
+
+	def test_build_pdf_job_context_sort_date_is_eta_for_import(self):
+		customer = _make_customer("PDF4")
+		job = _make_job(customer, "PDF4", eta=add_days(nowdate(), 7))
+		job.reload()
+		ctx = build_pdf_job_context(job)
+		self.assertEqual(ctx["sort_date"], job.eta)

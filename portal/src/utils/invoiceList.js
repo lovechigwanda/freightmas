@@ -1,3 +1,4 @@
+import { FileText, Receipt } from "@lucide/vue";
 import { formatDate, formatMoney } from "../format";
 
 export function invoicePrimaryLabel(invoice) {
@@ -7,26 +8,50 @@ export function invoicePrimaryLabel(invoice) {
 	return invoice.name;
 }
 
-export function invoiceContextLine(invoice) {
-	const parts = [];
+export function invoiceListIcon(invoice) {
+	return invoiceIsCredit(invoice) ? FileText : Receipt;
+}
+
+export function invoiceContextChips(invoice) {
+	const chips = [];
 	if (invoice.job_name) {
-		parts.push(invoice.job_name);
+		chips.push({ label: invoice.job_name });
 	}
 	if (invoice.job_cargo_count) {
-		parts.push(`${invoice.job_cargo_count} container(s)`);
+		chips.push({ label: `${invoice.job_cargo_count} container(s)` });
 	} else if (invoice.job_cargo_description) {
-		parts.push(invoice.job_cargo_description);
+		chips.push({ label: invoice.job_cargo_description });
 	}
-	return parts.length ? parts.join(" · ") : "No linked shipment";
+	return chips;
+}
+
+export function invoiceContextLine(invoice) {
+	const labels = invoiceContextChips(invoice).map((chip) => chip.label);
+	return labels.length ? labels.join(" · ") : "No linked shipment";
+}
+
+export function invoiceDueLabel(invoice) {
+	if (!invoice.due_date) {
+		return { display: "–", urgency: "normal" };
+	}
+	return {
+		display: `Due ${formatDate(invoice.due_date)}`,
+		urgency: invoice.is_overdue ? "overdue" : "normal",
+	};
+}
+
+export function invoiceSecondaryMeta(invoice) {
+	return invoice.name || "–";
 }
 
 export function invoiceMetaLine(invoice) {
-	const parts = [invoice.name];
+	const parts = [invoiceSecondaryMeta(invoice)];
 	if (invoice.posting_date) {
 		parts.push(`Posted ${formatDate(invoice.posting_date)}`);
 	}
+	const due = invoiceDueLabel(invoice);
 	if (invoice.due_date) {
-		parts.push(`Due ${formatDate(invoice.due_date)}`);
+		parts.push(due.display);
 	}
 	return parts.join(" · ");
 }
