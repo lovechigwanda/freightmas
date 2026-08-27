@@ -256,172 +256,124 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 		self.assertIn(job_b.name, [j.name for j in result_b["jobs"]])
 
 	def _export_as_user(self, user, **kwargs):
-		"""Runs export_tracking_report and parses the resulting workbook: a
-		single "Tracking Report" sheet with row 1 = main title, row 2 =
-		section band headers, row 3 = column headers, row 4+ = one data row
-		per container (or one row per containerless job)."""
+		"""Runs export_tracking_report and parses the resulting workbook."""
 		frappe.set_user(user.name)
 		try:
 			portal_shipments.export_tracking_report(**kwargs)
 		finally:
 			frappe.set_user("Administrator")
 		wb = load_workbook(io.BytesIO(frappe.local.response.filecontent))
-		self.assertEqual(wb.sheetnames, ["Tracking Report"])
+		self.assertEqual(wb.sheetnames, ["Shipments", "Detail", "Containers"])
 
-		ws = wb["Tracking Report"]
+		ws = wb["Shipments"]
 		rows = list(ws.iter_rows(values_only=True))
-		self.assertEqual(rows[0][0], "Shipment Tracking Report")
-		header = rows[2]
-		data_rows = [r for r in rows[3:] if r[0] is not None]
-		return header, data_rows
+		self.assertIn("SHIPMENT TRACKING", str(rows[0][0]))
+		header = rows[1]
+		data_rows = [r for r in rows[2:] if r[0] is not None]
+		return header, data_rows, wb
 
 	def test_export_tracking_report_scopes_to_own_customer(self):
 		customer_a, _customer_b, user_a, job_a, job_b = _make_pair("E7")
 
-		header, data_rows = self._export_as_user(user_a)
+		header, data_rows, _wb = self._export_as_user(user_a)
 
-		self.assertEqual(header[0], "Job ID")
-		job_ids = {r[0] for r in data_rows}
-		self.assertIn(job_a.name, job_ids)
-		self.assertNotIn(job_b.name, job_ids)
+		self.assertEqual(header[0], "Reference")
+		self.assertEqual(header[1], "Job Ref")
+		job_refs = {r[1] for r in data_rows}
+		self.assertIn(job_a.name, job_refs)
+		self.assertNotIn(job_b.name, job_refs)
 
-	def test_export_tracking_report_one_row_per_container(self):
+	def test_export_tracking_report_one_row_per_job_on_shipments_sheet(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E8")
 		_add_container(job_a, "E8-1", booked_on_date=nowdate())
 		_add_container(job_a, "E8-2", booked_on_date=nowdate(), loaded_on_date=nowdate())
 
-		header, data_rows = self._export_as_user(user_a)
+		header, data_rows, wb = self._export_as_user(user_a)
 
-		job_rows = [r for r in data_rows if r[0] == job_a.name]
-		self.assertEqual(len(job_rows), 2)  # one row per container
-
-		booked_col = header.index("Booked")
-		loaded_col = header.index("Loaded")
-		booked_dates = {r[booked_col] for r in job_rows}
-		loaded_values = {r[loaded_col] for r in job_rows}
-		self.assertEqual(booked_dates, {formatdate(nowdate(), "dd-MMM-yy")})  # both containers booked
-		# openpyxl round-trips a blank cell (we write "") back as None, not "".
-		self.assertEqual(loaded_values, {None, formatdate(nowdate(), "dd-MMM-yy")})  # only one loaded
-
-		# Job/BL-level identity fields repeat identically on both container rows.
-		consignee_col = header.index("Consignee")
-		self.assertEqual({r[consignee_col] for r in job_rows}, {customer_a.customer_name})
-
-	def test_export_tracking_report_job_with_no_containers_gets_one_row(self):
-		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E9")
-
-		header, data_rows = self._export_as_user(user_a)
-
-		job_rows = [r for r in data_rows if r[0] == job_a.name]
+		job_rows = [r for r in data_rows if r[1] == job_a.name]
 		self.assertEqual(len(job_rows), 1)
 
-		booked_col = header.index("Booked")
-		container_number_col = header.index("Container Number")
-		self.assertIsNone(job_rows[0][booked_col])
-		self.assertIsNone(job_rows[0][container_number_col])
+		container_rows = list(wb["Containers"].iter_rows(min_row=3, values_only=True))
+		container_rows = [r for r in container_rows if r and r[0] == job_a.name]
+		self.assertEqual(len(container_rows), 2)
+		container_numbers = {r[2] for r in container_rows}
+		self.assertEqual(container_numbers, {"CONT-E8-1", "CONT-E8-2"})
 
-	def test_export_tracking_report_job_level_milestones_repeat_across_containers(self):
+	def test_export_tracking_report_job_with_no_containers_gets_one_shipment_row(self):
+		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E9")
+
+		header, data_rows, wb = self._export_as_user(user_a)
+
+		job_rows = [r for r in data_rows if r[1] == job_a.name]
+		self.assertEqual(len(job_rows), 1)
+
+		container_rows = list(wb["Containers"].iter_rows(min_row=3, values_only=True))
+		container_rows = [r for r in container_rows if r and r[0]]
+		self.assertEqual(container_rows, [])
+
+	def test_export_tracking_report_detail_sheet_has_journey_columns(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E10")
-
-		# Port Clearance checklist only auto-populates via populate_mode_
-		# milestones() on validate/save, once requires_port_clearance is set.
 		frappe.db.set_value("Forwarding Job", job_a.name, "requires_port_clearance", 1)
 		job_a.reload()
 		job_a.save(ignore_permissions=True)
 		job_a.reload()
 		_complete_milestone(job_a, "port_clearance_milestones", completed_on=nowdate())
-		_add_container(job_a, "E10-1")
-		_add_container(job_a, "E10-2")
 
-		header, data_rows = self._export_as_user(user_a)
-		job_rows = [r for r in data_rows if r[0] == job_a.name]
-		self.assertEqual(len(job_rows), 2)
+		_header, _data_rows, wb = self._export_as_user(user_a)
+		detail_header = list(wb["Detail"].iter_rows(min_row=2, max_row=2, values_only=True))[0]
+		self.assertIn("Port Clearance Summary", detail_header)
+		self.assertNotIn("Consignee", detail_header)
 
-		# The completed milestone's own column (its label, from Milestone
-		# Definition) shows the same date on every container row of this job.
-		completed_code = job_a.port_clearance_milestones[0].milestone_code
-		completed_label = job_a.port_clearance_milestones[0].milestone_label
-		port_col = header.index(completed_label)
-		self.assertEqual(
-			{r[port_col] for r in job_rows},
-			{formatdate(nowdate(), "dd-MMM-yy")},
-		)
-
-	def test_export_tracking_report_percent_complete_ignores_inapplicable_milestones(self):
-		# A job with neither optional section (Port/Border Clearance)
-		# required has a denominator of exactly 6 (Sea/Air) + 5 (Road
-		# Transport) + 1 (Overview Completed) = 12 - the Port/Border
-		# Clearance milestone columns in the sheet must not count against it
-		# just because those columns exist for other jobs.
+	def test_export_tracking_report_uses_client_progress_not_milestone_grid(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E12")
 		frappe.db.set_value("Forwarding Job", job_a.name, "atd", nowdate())
 
-		header, data_rows = self._export_as_user(user_a)
-		job_rows = [r for r in data_rows if r[0] == job_a.name]
+		header, data_rows, wb = self._export_as_user(user_a)
+		job_rows = [r for r in data_rows if r[1] == job_a.name]
 		self.assertEqual(len(job_rows), 1)
 
-		percent_col = header.index("% Complete")
-		# 2/12: ATD (just set) and ETA/ATA (the fixture's own `eta` falls back
-		# into this column) - everything else, including all Port/Border
-		# Clearance columns, stays outstanding.
-		self.assertAlmostEqual(job_rows[0][percent_col], 2 / 12, places=4)
+		progress_col = header.index("Progress %")
+		self.assertIsNotNone(job_rows[0][progress_col])
+		detail_header = list(wb["Detail"].iter_rows(min_row=2, max_row=2, values_only=True))[0]
+		self.assertNotIn("% Complete", detail_header)
 
-	def test_export_tracking_report_shows_dash_for_not_required_service(self):
-		# A job with requires_border_clearance=1 but requires_port_clearance
-		# unset (the default): every Port Clearance column shows "-" (not a
-		# blank/amber "outstanding" cell), and Port Clearance contributes
-		# nothing to % Complete - only Border Clearance's own 5 milestones do.
+	def test_export_tracking_report_omits_port_clearance_when_not_required(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E13")
 		frappe.db.set_value("Forwarding Job", job_a.name, "requires_border_clearance", 1)
 		job_a.reload()
 		job_a.save(ignore_permissions=True)
 		job_a.reload()
-		self.assertTrue(job_a.border_clearance_milestones)  # checklist populated
+		self.assertTrue(job_a.border_clearance_milestones)
 		_complete_milestone(job_a, "border_clearance_milestones", completed_on=nowdate())
 
-		header, data_rows = self._export_as_user(user_a)
-		job_rows = [r for r in data_rows if r[0] == job_a.name]
-		self.assertEqual(len(job_rows), 1)
-
-		# Every Port Clearance column (identified by falling between the
-		# Sea/Air and Road Transport sections in the header) shows "-".
-		port_clearance_cols = range(header.index("Empty Returned") + 1, header.index("Booked"))
-		self.assertTrue(port_clearance_cols)  # sanity: the system has some Port Clearance definitions
-		for col in port_clearance_cols:
-			self.assertEqual(job_rows[0][col], "-")
-
-		completed_label = job_a.border_clearance_milestones[0].milestone_label
-		border_col = header.index(completed_label)
-		self.assertEqual(job_rows[0][border_col], formatdate(nowdate(), "dd-MMM-yy"))
-
-		percent_col = header.index("% Complete")
-		# 2 completed (ETA/ATA - the fixture's own `eta` falls back into this
-		# column - and the Border Clearance milestone) / (12 base + 5 Border
-		# Clearance applicable) = 2/17 - Port Clearance's columns (shown as
-		# "-") aren't in the denominator at all.
-		self.assertAlmostEqual(job_rows[0][percent_col], 2 / 17, places=4)
+		_header, data_rows, wb = self._export_as_user(user_a)
+		detail_rows = list(wb["Detail"].iter_rows(min_row=3, values_only=True))
+		job_detail = next(r for r in detail_rows if r[0] == job_a.name)
+		detail_header = list(wb["Detail"].iter_rows(min_row=2, max_row=2, values_only=True))[0]
+		port_summary_col = detail_header.index("Port Clearance Summary")
+		self.assertIsNone(job_detail[port_summary_col])
 
 	def test_export_tracking_report_reflects_status_filter(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E11")
 		_make_forwarding_job(customer_a, "E11a2", status="Completed")
 
-		_header, data_rows = self._export_as_user(user_a, status="Completed")
-		job_ids = {r[0] for r in data_rows}
-		self.assertNotIn(job_a.name, job_ids)  # job_a is "In Progress", filtered out
+		_header, data_rows, _wb = self._export_as_user(user_a, status="Completed")
+		job_refs = {r[1] for r in data_rows}
+		self.assertNotIn(job_a.name, job_refs)  # job_a is "In Progress", filtered out
 
 	def test_export_tracking_report_excludes_submitted_jobs(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E14")
 
-		_header, data_rows = self._export_as_user(user_a)
-		self.assertIn(job_a.name, {r[0] for r in data_rows})  # still Draft (docstatus 0)
+		_header, data_rows, _wb = self._export_as_user(user_a)
+		self.assertIn(job_a.name, {r[1] for r in data_rows})  # still Draft (docstatus 0)
 
 		# Force submitted at the DB level - same bypass technique already used
 		# for `status` in _make_forwarding_job, avoids triggering the
 		# controller's full submit-time validation just for this scoping test.
 		frappe.db.set_value("Forwarding Job", job_a.name, "docstatus", 1)
 
-		_header, data_rows = self._export_as_user(user_a)
-		self.assertNotIn(job_a.name, {r[0] for r in data_rows})
+		_header, data_rows, _wb = self._export_as_user(user_a)
+		self.assertNotIn(job_a.name, {r[1] for r in data_rows})
 
 	def test_get_tracking_summary_returns_active_counts(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E15")

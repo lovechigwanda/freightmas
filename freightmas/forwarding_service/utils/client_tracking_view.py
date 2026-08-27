@@ -786,6 +786,7 @@ def build_pdf_job_context(doc):
 			"state": phase["state"],
 			"summary": phase["summary"] or "—",
 			"status_text": _pdf_journey_status_text(phase),
+			"progress_percent": (phase.get("progress") or {}).get("percent", 0),
 		}
 		for phase in tracking["journey"]
 	]
@@ -805,9 +806,30 @@ def build_pdf_job_context(doc):
 
 	key_date = banner.get("key_date")
 	key_date_label = banner.get("key_date_label") or "ETA"
+	mode_parts = [doc.shipment_mode, doc.shipment_type]
+	cargo_display = " · ".join(
+		part
+		for part in [
+			doc.cargo_description,
+			cargo_units if cargo_units and cargo_units != "—" else None,
+		]
+		if part
+	) or "—"
 
 	return {
 		"ref": doc.name,
+		"bl_number": doc.bl_number or "—",
+		"direction": doc.direction or "—",
+		"mode": " · ".join(part for part in mode_parts if part) or "—",
+		"cargo_display": cargo_display,
+		"dates": {
+			"etd": doc.etd,
+			"atd": doc.atd,
+			"eta": doc.eta,
+			"ata": doc.ata,
+			"discharge_date": doc.discharge_date,
+			"completed_on": doc.completed_on,
+		},
 		"status_key": status_key,
 		"status_color": PDF_STATUS_COLORS.get(status_key, PDF_STATUS_COLORS["gray"]),
 		"status_label": DOSSIER_STATUS_LABELS.get(status_key, "In Progress"),
