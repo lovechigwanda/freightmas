@@ -26,13 +26,16 @@
 			</router-link>
 		</nav>
 
-		<button type="button" class="cc-sidebar-foot" title="Log out" @click="onLogout">
-			<div class="cc-sidebar-foot-avatar">{{ userInitials }}</div>
-			<div class="cc-sidebar-foot-text">
-				<div class="cc-sidebar-foot-name">{{ displayName }}</div>
-				<div class="cc-sidebar-foot-role">Log out</div>
-			</div>
-		</button>
+		<div class="cc-sidebar-foot">
+			<button type="button" class="cc-sidebar-foot-user" title="Log out" @click="onLogout">
+				<div class="cc-sidebar-foot-avatar">{{ userInitials }}</div>
+				<div class="cc-sidebar-foot-text">
+					<div class="cc-sidebar-foot-name">{{ displayName }}</div>
+					<div class="cc-sidebar-foot-role">Log out</div>
+				</div>
+			</button>
+			<ThemeMenu />
+		</div>
 	</aside>
 </template>
 
@@ -43,6 +46,7 @@ import { initials } from "../format";
 import { NAV_ICONS } from "../icons";
 import { logout } from "../api/auth";
 import { useSessionStore } from "../stores/session";
+import ThemeMenu from "./ThemeMenu.vue";
 
 defineProps({
 	items: { type: Array, required: true },

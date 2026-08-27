@@ -176,7 +176,6 @@ class TestPortalInvoicesCrossTenant(IntegrationTestCase):
 		user_a = _make_user_and_contact("I2a", customer_a)
 		job_a = _make_forwarding_job(customer_a, "I2")
 		invoice_a = _make_sales_invoice(customer_a, "I2a", job_reference=job_a.name)
-
 		frappe.set_user(user_a.name)
 		try:
 			result = portal_invoices.get_invoice_detail(invoice_a.name)
@@ -206,6 +205,34 @@ class TestPortalInvoicesCrossTenant(IntegrationTestCase):
 		try:
 			with self.assertRaises(frappe.PermissionError):
 				portal_invoices.download_invoice_pdf(invoice_b.name)
+		finally:
+			frappe.set_user("Administrator")
+
+	def test_get_job_invoices_returns_invoices_linked_to_job(self):
+		customer_a = _make_customer("I7a")
+		user_a = _make_user_and_contact("I7a", customer_a)
+		job_a = _make_forwarding_job(customer_a, "I7")
+		invoice_a = _make_sales_invoice(customer_a, "I7a", job_reference=job_a.name)
+		_make_sales_invoice(customer_a, "I7b")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_invoices.get_job_invoices(job_a.name)
+		finally:
+			frappe.set_user("Administrator")
+
+		names = [row["name"] for row in result["invoices"]]
+		self.assertEqual(names, [invoice_a.name])
+		self.assertEqual(result["invoices"][0]["job_name"], job_a.name)
+
+	def test_get_job_invoices_denies_other_customers_job(self):
+		_customer_a, customer_b, user_a, _invoice_a, _invoice_b = _make_pair("I8")
+		job_b = _make_forwarding_job(customer_b, "I8")
+
+		frappe.set_user(user_a.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				portal_invoices.get_job_invoices(job_b.name)
 		finally:
 			frappe.set_user("Administrator")
 

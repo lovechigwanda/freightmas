@@ -15,6 +15,7 @@
 <script setup>
 import { computed } from "vue";
 import { Activity } from "@lucide/vue";
+import { useThemeStore } from "../stores/theme";
 import Sparkline from "./Sparkline.vue";
 
 const props = defineProps({
@@ -26,10 +27,14 @@ const props = defineProps({
 	trend: { type: Array, default: () => [] },
 });
 
+const theme = useThemeStore();
+
 const sparkColor = computed(() => {
-	if (props.tone === "danger") return "#dc2626";
-	if (props.tone === "warn") return "#d97706";
-	if (props.tone === "good") return "#16a34a";
-	return "#4f46e5";
+	void theme.themeId;
+	const spark = theme.palette.spark;
+	if (props.tone === "danger") return spark.danger;
+	if (props.tone === "warn") return spark.warn;
+	if (props.tone === "good") return spark.good;
+	return spark.default;
 });
 </script>

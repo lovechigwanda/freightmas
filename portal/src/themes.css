@@ -1,0 +1,326 @@
+/* ============================================================
+   Command Center theme overrides
+   ------------------------------------------------------------
+   Each block redefines the design tokens declared in style.css's :root for a
+   given theme, selected by the `data-cc-theme` attribute the theme store
+   (stores/theme.js) writes on <html>. The default light theme is the :root
+   block itself, so it needs no override here.
+
+   Fidelity is "palette + typography": colours, fonts and shape follow each
+   design handoff; per-theme structural extras (glass/atmosphere, accent
+   sub-picker, in-theme light/dark toggle) are intentionally out of scope and
+   approximated with tokens. JS-set chart colours live in theme/palettes.js.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Dark Terminal - dense trading-terminal look, amber accent.
+   Fonts: Space Grotesk (display) / Manrope (body) / IBM Plex Mono (numeric).
+   ------------------------------------------------------------ */
+:root[data-cc-theme="dark-terminal"] {
+	--cc-font-sans: "Manrope Variable", "Manrope", system-ui, sans-serif;
+	--cc-font-display: "Space Grotesk Variable", "Space Grotesk", system-ui, sans-serif;
+	--cc-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+	--cc-sidebar-bg: #080b11;
+	--cc-sidebar-bg-elevated: #0d1219;
+	--cc-sidebar-border: rgba(255, 255, 255, 0.07);
+	--cc-sidebar-text: #9aa4b6;
+	--cc-sidebar-text-muted: #565f72;
+	--cc-sidebar-text-active: #f5f7fa;
+	--cc-sidebar-hover: rgba(255, 255, 255, 0.05);
+	--cc-sidebar-active-bg: rgba(245, 166, 35, 0.14);
+	--cc-nav-accent: #f5a623;
+	--cc-live-dot: #34d399;
+	--cc-brand-grad-a: #f5a623;
+	--cc-brand-grad-b: #7c3aed;
+	--cc-avatar-grad-a: #f5a623;
+	--cc-avatar-grad-b: #7c3aed;
+
+	--sd-bg: #080b11;
+	--sd-surface: #0d1219;
+	--sd-surface-alt: #10161f;
+	--sd-border: rgba(255, 255, 255, 0.07);
+	--sd-border-soft: rgba(255, 255, 255, 0.04);
+
+	--sd-text: #f5f7fa;
+	--sd-text-muted: #8b96a8;
+	--sd-text-faint: #5c6579;
+
+	--sd-primary: #f5a623;
+	--sd-primary-light: #f7b84e;
+	--sd-accent: #f5a623;
+	--sd-accent-2: #2dd4bf;
+	--sd-accent-soft: rgba(245, 166, 35, 0.14);
+	--sd-accent-soft-text: #f5a623;
+
+	--sd-green: #34d399;
+	--sd-green-soft: rgba(52, 211, 153, 0.12);
+	--sd-amber: #fbbf24;
+	--sd-amber-soft: rgba(251, 191, 36, 0.12);
+	--sd-red: #f87171;
+	--sd-red-soft: rgba(248, 113, 113, 0.12);
+	--sd-blue: #2dd4bf;
+	--sd-blue-soft: rgba(45, 212, 191, 0.12);
+
+	--sd-gray: #8b96a8;
+	--sd-gray-soft: rgba(255, 255, 255, 0.06);
+	--sd-track: rgba(255, 255, 255, 0.08);
+	--sd-backdrop: rgba(0, 0, 0, 0.6);
+	--sd-scrollbar: #2a3342;
+
+	--sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--sd-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 10px -4px rgba(0, 0, 0, 0.5);
+	--sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+	--sd-shadow-modal: -12px 0 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------
+   Gleinna Brand - deep indigo/purple with orange accent.
+   Fonts: Space Grotesk / Manrope / IBM Plex Mono.
+   ------------------------------------------------------------ */
+:root[data-cc-theme="gleinna"] {
+	--cc-font-sans: "Manrope Variable", "Manrope", system-ui, sans-serif;
+	--cc-font-display: "Space Grotesk Variable", "Space Grotesk", system-ui, sans-serif;
+	--cc-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+	--cc-sidebar-bg: #0e0a28;
+	--cc-sidebar-bg-elevated: #1c1548;
+	--cc-sidebar-border: rgba(255, 255, 255, 0.09);
+	--cc-sidebar-text: #cfc9ec;
+	--cc-sidebar-text-muted: #6a5fae;
+	--cc-sidebar-text-active: #ffffff;
+	--cc-sidebar-hover: rgba(255, 255, 255, 0.06);
+	--cc-sidebar-active-bg: rgba(245, 146, 30, 0.18);
+	--cc-nav-accent: #f5921e;
+	--cc-live-dot: #f5921e;
+	--cc-brand-grad-a: #f5921e;
+	--cc-brand-grad-b: #b5651a;
+	--cc-avatar-grad-a: #f5921e;
+	--cc-avatar-grad-b: #d97a12;
+
+	--sd-bg: #150f36;
+	--sd-surface: #221a4d;
+	--sd-surface-alt: #1c1548;
+	--sd-border: rgba(255, 255, 255, 0.10);
+	--sd-border-soft: rgba(255, 255, 255, 0.06);
+
+	--sd-text: #ffffff;
+	--sd-text-muted: #a79ddc;
+	--sd-text-faint: #8177ad;
+
+	--sd-primary: #f5921e;
+	--sd-primary-light: #ffa53d;
+	--sd-accent: #f5921e;
+	--sd-accent-2: #8f86d1;
+	--sd-accent-soft: rgba(245, 146, 30, 0.16);
+	--sd-accent-soft-text: #ffb964;
+
+	--sd-green: #34d399;
+	--sd-green-soft: rgba(52, 211, 153, 0.14);
+	--sd-amber: #ffcf4d;
+	--sd-amber-soft: rgba(255, 207, 77, 0.14);
+	--sd-red: #ff6b6b;
+	--sd-red-soft: rgba(255, 107, 107, 0.14);
+	--sd-blue: #8f86d1;
+	--sd-blue-soft: rgba(143, 134, 209, 0.18);
+
+	--sd-gray: #a79ddc;
+	--sd-gray-soft: rgba(255, 255, 255, 0.08);
+	--sd-track: rgba(255, 255, 255, 0.10);
+	--sd-backdrop: rgba(10, 7, 25, 0.6);
+	--sd-scrollbar: #3a2f6a;
+
+	--sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--sd-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 10px -4px rgba(0, 0, 0, 0.5);
+	--sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+	--sd-shadow-modal: -12px 0 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------
+   Green (Light) - closest to the original app; emerald + gold.
+   Dark sidebar over light body, like the current product.
+   Fonts: Plus Jakarta Sans (all) / JetBrains Mono (numeric).
+   ------------------------------------------------------------ */
+:root[data-cc-theme="green-light"] {
+	--cc-font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+	--cc-font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+	--cc-font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+	--cc-sidebar-bg: #0b1512;
+	--cc-sidebar-bg-elevated: #10201a;
+	--cc-sidebar-border: rgba(255, 255, 255, 0.07);
+	--cc-sidebar-text: #b9c9c0;
+	--cc-sidebar-text-muted: #6f8579;
+	--cc-sidebar-text-active: #f0f7f3;
+	--cc-sidebar-hover: rgba(255, 255, 255, 0.05);
+	--cc-sidebar-active-bg: rgba(34, 197, 94, 0.16);
+	--cc-nav-accent: #34d399;
+	--cc-live-dot: #34d399;
+	--cc-brand-grad-a: #0f7a52;
+	--cc-brand-grad-b: #0b5c3d;
+	--cc-avatar-grad-a: #0f7a52;
+	--cc-avatar-grad-b: #16a34a;
+
+	--sd-bg: #f2f7f4;
+	--sd-surface: #ffffff;
+	--sd-surface-alt: #eef5f0;
+	--sd-border: #dde7e1;
+	--sd-border-soft: #eaf1ed;
+
+	--sd-text: #16231d;
+	--sd-text-muted: #5b6d63;
+	--sd-text-faint: #8ea198;
+
+	--sd-primary: #0f7a52;
+	--sd-primary-light: #0b5c3d;
+	--sd-accent: #0f7a52;
+	--sd-accent-2: #b98b3e;
+	--sd-accent-soft: #e3f5ec;
+	--sd-accent-soft-text: #0b5c3d;
+
+	--sd-green: #0f7a52;
+	--sd-green-soft: #e3f5ec;
+	--sd-amber: #a3690f;
+	--sd-amber-soft: #fbf0dd;
+	--sd-red: #b3261e;
+	--sd-red-soft: #fbe9e7;
+	--sd-blue: #0f7a52;
+	--sd-blue-soft: #e3f5ec;
+
+	--sd-gray: #5b6d63;
+	--sd-gray-soft: #eaf1ed;
+	--sd-track: #eaf1ed;
+	--sd-backdrop: rgba(22, 35, 29, 0.45);
+	--sd-scrollbar: #c4d3cb;
+
+	--sd-shadow-sm: 0 1px 2px rgba(22, 35, 29, 0.04);
+	--sd-shadow: 0 1px 2px rgba(22, 35, 29, 0.04), 0 8px 20px -12px rgba(22, 35, 29, 0.08);
+	--sd-shadow-lg: 0 10px 15px -3px rgba(22, 35, 29, 0.10), 0 4px 6px -4px rgba(22, 35, 29, 0.06);
+	--sd-shadow-modal: -12px 0 32px rgba(22, 35, 29, 0.14);
+}
+
+/* ------------------------------------------------------------
+   Green (Dark) - the same system in dark mode; bright green.
+   Fonts: Plus Jakarta Sans / JetBrains Mono.
+   ------------------------------------------------------------ */
+:root[data-cc-theme="green-dark"] {
+	--cc-font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+	--cc-font-display: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, sans-serif;
+	--cc-font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+	--cc-sidebar-bg: #070d0a;
+	--cc-sidebar-bg-elevated: #0c1310;
+	--cc-sidebar-border: rgba(255, 255, 255, 0.08);
+	--cc-sidebar-text: #93a89c;
+	--cc-sidebar-text-muted: #5f746a;
+	--cc-sidebar-text-active: #eef5f1;
+	--cc-sidebar-hover: rgba(255, 255, 255, 0.05);
+	--cc-sidebar-active-bg: rgba(34, 197, 94, 0.14);
+	--cc-nav-accent: #22c55e;
+	--cc-live-dot: #22c55e;
+	--cc-brand-grad-a: #22c55e;
+	--cc-brand-grad-b: #15803d;
+	--cc-avatar-grad-a: #22c55e;
+	--cc-avatar-grad-b: #15803d;
+
+	--sd-bg: #0c1310;
+	--sd-surface: #121b17;
+	--sd-surface-alt: #16211b;
+	--sd-border: rgba(255, 255, 255, 0.08);
+	--sd-border-soft: rgba(255, 255, 255, 0.05);
+
+	--sd-text: #eef5f1;
+	--sd-text-muted: #93a89c;
+	--sd-text-faint: #5f746a;
+
+	--sd-primary: #22c55e;
+	--sd-primary-light: #15803d;
+	--sd-accent: #22c55e;
+	--sd-accent-2: #d9b45f;
+	--sd-accent-soft: rgba(34, 197, 94, 0.14);
+	--sd-accent-soft-text: #4ade80;
+
+	--sd-green: #22c55e;
+	--sd-green-soft: rgba(34, 197, 94, 0.14);
+	--sd-amber: #eab308;
+	--sd-amber-soft: rgba(234, 179, 8, 0.12);
+	--sd-red: #f87171;
+	--sd-red-soft: rgba(248, 113, 113, 0.12);
+	--sd-blue: #d9b45f;
+	--sd-blue-soft: rgba(217, 180, 95, 0.14);
+
+	--sd-gray: #93a89c;
+	--sd-gray-soft: rgba(255, 255, 255, 0.06);
+	--sd-track: rgba(255, 255, 255, 0.05);
+	--sd-backdrop: rgba(0, 0, 0, 0.6);
+	--sd-scrollbar: #2b3a32;
+
+	--sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+	--sd-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 20px -12px rgba(0, 0, 0, 0.4);
+	--sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+	--sd-shadow-modal: -12px 0 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ------------------------------------------------------------
+   Meridian - signature space-navy with a cobalt->cyan accent.
+   Glass/atmosphere from the mockup are approximated with solid dark
+   surfaces (structural glass is out of scope). Fonts: Sora (display) /
+   Hanken Grotesk (body) / Space Mono (numeric).
+   ------------------------------------------------------------ */
+:root[data-cc-theme="meridian"] {
+	--cc-font-sans: "Hanken Grotesk Variable", "Hanken Grotesk", system-ui, sans-serif;
+	--cc-font-display: "Sora Variable", "Sora", system-ui, sans-serif;
+	--cc-font-mono: "Space Mono", ui-monospace, Menlo, monospace;
+
+	--cc-sidebar-bg: #0a0e1a;
+	--cc-sidebar-bg-elevated: #0d1424;
+	--cc-sidebar-border: rgba(255, 255, 255, 0.08);
+	--cc-sidebar-text: #9aa8ca;
+	--cc-sidebar-text-muted: #485a82;
+	--cc-sidebar-text-active: #eef2fb;
+	--cc-sidebar-hover: rgba(255, 255, 255, 0.04);
+	--cc-sidebar-active-bg: rgba(56, 189, 248, 0.14);
+	--cc-nav-accent: #38bdf8;
+	--cc-live-dot: #38bdf8;
+	--cc-brand-grad-a: #3b82f6;
+	--cc-brand-grad-b: #22d3ee;
+	--cc-avatar-grad-a: #3b82f6;
+	--cc-avatar-grad-b: #22d3ee;
+
+	--sd-bg: #060911;
+	--sd-surface: #0e1526;
+	--sd-surface-alt: #121a2e;
+	--sd-border: rgba(255, 255, 255, 0.08);
+	--sd-border-soft: rgba(255, 255, 255, 0.05);
+
+	--sd-text: #eef2fb;
+	--sd-text-muted: #9aa8ca;
+	--sd-text-faint: #5a6a8f;
+
+	--sd-primary: #38bdf8;
+	--sd-primary-light: #22d3ee;
+	--sd-accent: #38bdf8;
+	--sd-accent-2: #818cf8;
+	--sd-accent-soft: rgba(56, 189, 248, 0.14);
+	--sd-accent-soft-text: #7dd3fc;
+
+	--sd-green: #34d399;
+	--sd-green-soft: rgba(52, 211, 153, 0.12);
+	--sd-amber: #fbbf24;
+	--sd-amber-soft: rgba(251, 191, 36, 0.12);
+	--sd-red: #f87171;
+	--sd-red-soft: rgba(248, 113, 113, 0.12);
+	--sd-blue: #818cf8;
+	--sd-blue-soft: rgba(129, 140, 248, 0.14);
+
+	--sd-gray: #9aa8ca;
+	--sd-gray-soft: rgba(255, 255, 255, 0.06);
+	--sd-track: rgba(255, 255, 255, 0.06);
+	--sd-backdrop: rgba(0, 0, 0, 0.6);
+	--sd-scrollbar: #263149;
+
+	--sd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+	--sd-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 22px -12px rgba(0, 0, 0, 0.55);
+	--sd-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+	--sd-shadow-modal: -12px 0 32px rgba(0, 0, 0, 0.55);
+}

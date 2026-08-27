@@ -29,22 +29,24 @@
 					:is-terminal="detail.tracking_view?.client_status?.is_terminal"
 				/>
 
-				<ShipmentDocumentsCard
-					:documents="documents"
-					:loading="documentsLoading"
-					:error="documentsError"
-					:download-url="downloadUrl"
-					compact-empty
-				/>
+				<div class="sd-shipment-sidebar">
+					<ShipmentDocumentsCard
+						:documents="documents"
+						:loading="documentsLoading"
+						:error="documentsError"
+						:download-url="downloadUrl"
+						compact-empty
+					/>
+					<ShipmentInvoicesCard
+						:invoices="invoices"
+						:loading="invoicesLoading"
+						:error="invoicesError"
+						compact-empty
+					/>
+				</div>
 			</div>
 
 			<ShipmentCargoTable :containers="detail.tracking_view?.containers || []" />
-
-			<ShipmentCommentsCard
-				v-if="showActivity"
-				:updates="detail.tracking_view?.live_updates"
-				:limit="5"
-			/>
 		</div>
 	</div>
 </template>
@@ -53,14 +55,15 @@
 import { computed, ref, watch } from "vue";
 import { api } from "../api/shipments";
 import { api as documentsApi } from "../api/documents";
+import { api as invoicesApi } from "../api/invoices";
 import { serviceTags } from "../utils/shipmentView";
 import StatusBadge from "../components/StatusBadge.vue";
 import ShipmentHero from "../components/ShipmentHero.vue";
 import ShipmentFactStrip from "../components/ShipmentFactStrip.vue";
 import JourneyTimeline from "../components/JourneyTimeline.vue";
 import ShipmentDocumentsCard from "../components/ShipmentDocumentsCard.vue";
+import ShipmentInvoicesCard from "../components/ShipmentInvoicesCard.vue";
 import ShipmentCargoTable from "../components/ShipmentCargoTable.vue";
-import ShipmentCommentsCard from "../components/ShipmentCommentsCard.vue";
 
 const props = defineProps({ id: { type: String, required: true } });
 
@@ -70,16 +73,13 @@ const error = ref("");
 const documents = ref(null);
 const documentsLoading = ref(false);
 const documentsError = ref("");
+const invoices = ref([]);
+const invoicesLoading = ref(false);
+const invoicesError = ref("");
 
 const serviceTagLine = computed(() => {
 	if (!detail.value) return "";
 	return serviceTags(detail.value.header, detail.value.tracking_view?.sections);
-});
-
-const showActivity = computed(() => {
-	const updates = detail.value?.tracking_view?.live_updates || [];
-	const isTerminal = detail.value?.tracking_view?.client_status?.is_terminal;
-	return updates.length > 0 && !isTerminal;
 });
 
 async function load(jobName) {
@@ -88,11 +88,18 @@ async function load(jobName) {
 	documents.value = null;
 	documentsError.value = "";
 	documentsLoading.value = true;
+	invoices.value = [];
+	invoicesError.value = "";
+	invoicesLoading.value = true;
 	try {
-		const [detailRes, docsRes] = await Promise.all([
+		const [detailRes, docsRes, invRes] = await Promise.all([
 			api.getJobDetail(jobName),
 			documentsApi.getJobDocuments(jobName).catch((e) => {
 				documentsError.value = e.message || "Failed to load documents.";
+				return null;
+			}),
+			invoicesApi.getJobInvoices(jobName).catch((e) => {
+				invoicesError.value = e.message || "Failed to load invoices.";
 				return null;
 			}),
 		]);
@@ -100,11 +107,15 @@ async function load(jobName) {
 		if (docsRes) {
 			documents.value = docsRes;
 		}
+		if (invRes) {
+			invoices.value = invRes.invoices || [];
+		}
 	} catch (e) {
 		error.value = e.message || "Failed to load this shipment.";
 	} finally {
 		loading.value = false;
 		documentsLoading.value = false;
+		invoicesLoading.value = false;
 	}
 }
 

@@ -53,6 +53,40 @@ def _caller_customer_filter():
 	return customers
 
 
+def _job_invoice_filters(job_name, customer):
+	return {
+		"docstatus": ["<", 2],
+		"customer": customer,
+		"is_forwarding_invoice": 1,
+		"forwarding_job_reference": job_name,
+	}
+
+
+@frappe.whitelist()
+def get_job_invoices(job_name):
+	"""Return Sales Invoices linked to a scoped Forwarding Job."""
+	check_portal_access()
+	customer = assert_customer_scope("Forwarding Job", job_name, "customer")
+
+	invoices = frappe.get_all(
+		"Sales Invoice",
+		filters=_job_invoice_filters(job_name, customer),
+		fields=INVOICE_LIST_FIELDS,
+		order_by="posting_date desc",
+	)
+	invoices = [_with_job_reference(row) for row in invoices]
+
+	log_portal_access(
+		"view_shipment_invoices",
+		doctype="Forwarding Job",
+		docname=job_name,
+		party_type="Customer",
+		party=customer,
+	)
+
+	return {"invoices": invoices}
+
+
 @frappe.whitelist()
 def get_invoices(status=None, limit_start=0, limit_page_length=20):
 	check_portal_access()
