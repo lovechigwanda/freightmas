@@ -46,7 +46,7 @@
 				<EmptyState v-else :icon="Receipt" title="No payments recorded yet" />
 			</div>
 
-			<a class="sd-table-link" :href="pdfUrl" target="_blank" rel="noopener">
+			<a class="sd-table-link" :href="pdfUrl" rel="noopener">
 				<button class="sd-modal-edit" style="display: inline-flex; align-items: center; gap: 6px;">
 					<Download :size="14" /> Download PDF
 				</button>

@@ -8,6 +8,7 @@ from frappe import _
 from frappe.utils import get_year_start, getdate, nowdate
 
 from freightmas.portal.security import assert_customer_scope, check_portal_access, get_portal_customer_names, log_portal_access
+from freightmas.utils.company_branding import portal_invoice_pdf_logo_injection
 
 INVOICE_LIST_FIELDS = [
 	"name", "posting_date", "due_date", "grand_total", "outstanding_amount", "status",
@@ -210,11 +211,23 @@ def download_invoice_pdf(invoice_name):
 	# fails for Customer Portal User (zero DocType permissions by design).
 	# assert_customer_scope() above is the real access boundary here.
 	doc = frappe.get_doc("Sales Invoice", invoice_name)
-	pdf_file = frappe.get_print("Sales Invoice", invoice_name, doc=doc, as_pdf=True)
+	frappe.local.flags.ignore_print_permissions = True
+	try:
+		html = frappe.get_print(
+			"Sales Invoice",
+			invoice_name,
+			print_format="FreightMas Sales Invoice",
+			doc=doc,
+			as_pdf=False,
+		)
+	finally:
+		frappe.local.flags.ignore_print_permissions = False
+	html = portal_invoice_pdf_logo_injection(doc.company) + html
+	pdf_file = frappe.utils.pdf.get_pdf(html)
 
 	frappe.local.response.filename = f"{invoice_name.replace(' ', '-').replace('/', '-')}.pdf"
 	frappe.local.response.filecontent = pdf_file
-	frappe.local.response.type = "pdf"
+	frappe.local.response.type = "download"
 
 	log_portal_access(
 		"download_invoice_pdf", doctype="Sales Invoice", docname=invoice_name,

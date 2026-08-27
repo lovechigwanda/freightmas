@@ -20,6 +20,7 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt, getdate, nowdate, add_days, add_months, get_first_day, get_last_day, formatdate, get_formatted_email
 
+from freightmas.utils.company_branding import company_logo_data_uri
 from freightmas.utils.forwarding_dnd_calculator import days_remaining_to_lfd
 
 import openpyxl
@@ -2332,33 +2333,6 @@ def _summarize_statuses(dossier_jobs):
 	}
 
 
-def _company_logo_data_uri(company):
-	"""Best-effort base64 data URI for the Company's logo, embedded inline so
-	the PDF renderer never has to fetch it over the network (which is flaky
-	during server-side PDF generation). Returns None if there's no logo or it
-	can't be read - the template then falls back to a text monogram."""
-	logo = frappe.db.get_value("Company", company, "company_logo")
-	if not logo or not isinstance(logo, str) or not logo.startswith("/"):
-		return None
-	try:
-		import base64
-		import os
-
-		is_private = "/private/" in logo
-		relative = logo.split("/files/", 1)[-1]
-		file_path = frappe.utils.get_files_path(relative, is_private=is_private)
-		if not os.path.exists(file_path):
-			return None
-		with open(file_path, "rb") as fh:
-			encoded = base64.b64encode(fh.read()).decode()
-		ext = logo.rsplit(".", 1)[-1].lower()
-		mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
-				"gif": "image/gif", "svg": "image/svg+xml"}.get(ext, "image/png")
-		return f"data:{mime};base64,{encoded}"
-	except Exception:
-		return None
-
-
 def _dossier_jobs_for_customer(customer, numbered=False):
 	"""Shared by export_shipment_tracking_report(_excel) and their email
 	counterparts: fetches this customer's open Forwarding Jobs and builds
@@ -2408,7 +2382,7 @@ def _build_shipment_tracking_pdf(customer):
 		{
 			"company": company_name,
 			"customer": customer_name,
-			"logo": _company_logo_data_uri(company),
+			"logo": company_logo_data_uri(company),
 			"jobs": dossier_jobs,
 			"generated_on": generated_on,
 			"summary": _summarize_statuses(dossier_jobs),

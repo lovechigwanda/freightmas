@@ -6,8 +6,10 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate
+from unittest.mock import patch
 
 from freightmas.portal.api import dashboard as portal_dashboard
+from freightmas.portal.api import profile as portal_profile
 from freightmas.tests.test_client_portal_shipments import _make_pair
 
 
@@ -73,3 +75,41 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 		attention_names = {job["name"] for job in result["needs_attention"]}
 		self.assertIn(job_a.name, attention_names)
 		self.assertNotIn(job_b.name, attention_names)
+
+	def test_get_profile_returns_portal_logo_url_not_private_file_path(self):
+		_customer_a, _customer_b, user_a, _job_a, _job_b = _make_pair("D3")
+		company = frappe.db.get_single_value("Global Defaults", "default_company")
+		original_logo = frappe.db.get_value("Company", company, "company_logo")
+		frappe.db.set_value("Company", company, "company_logo", "/private/files/test-logo.png")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_profile.get_profile()
+		finally:
+			frappe.set_user("Administrator")
+			frappe.db.set_value("Company", company, "company_logo", original_logo)
+
+		self.assertEqual(
+			result["branding"]["logo"],
+			"/api/method/freightmas.portal.api.profile.get_company_logo",
+		)
+		self.assertNotIn("/private/files/", result["branding"]["logo"] or "")
+
+	def test_get_company_logo_streams_image_bytes(self):
+		_customer_a, _customer_b, user_a, _job_a, _job_b = _make_pair("D4")
+		fake_bytes = b"\x89PNG\r\n\x1a\n"
+
+		with patch(
+			"freightmas.portal.api.profile.read_company_logo_bytes",
+			return_value=(fake_bytes, "image/png", "logo.png"),
+		):
+			frappe.set_user(user_a.name)
+			try:
+				portal_profile.get_company_logo()
+			finally:
+				frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.local.response.type, "binary")
+		self.assertEqual(frappe.local.response.filecontent, fake_bytes)
+		self.assertEqual(frappe.local.response.filename, "logo.png")
+		self.assertEqual(frappe.local.response["Content-Type"], "image/png")

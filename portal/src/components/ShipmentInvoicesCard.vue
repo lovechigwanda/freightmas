@@ -26,10 +26,9 @@
 							<a
 								class="sd-invoices-download"
 								:href="pdfUrl(inv.name)"
-								target="_blank"
 								rel="noopener"
 							>
-								PDF
+								Download
 							</a>
 						</div>
 					</li>

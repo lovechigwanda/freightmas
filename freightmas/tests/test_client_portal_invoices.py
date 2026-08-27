@@ -208,6 +208,19 @@ class TestPortalInvoicesCrossTenant(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
+	def test_download_invoice_pdf_sets_download_disposition(self):
+		_customer_a, _customer_b, user_a, invoice_a, _invoice_b = _make_pair("I4b")
+
+		frappe.set_user(user_a.name)
+		try:
+			portal_invoices.download_invoice_pdf(invoice_a.name)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.local.response.type, "download")
+		self.assertTrue(frappe.local.response.filename.endswith(".pdf"))
+		self.assertTrue(frappe.local.response.filecontent.startswith(b"%PDF"))
+
 	def test_get_job_invoices_returns_invoices_linked_to_job(self):
 		customer_a = _make_customer("I7a")
 		user_a = _make_user_and_contact("I7a", customer_a)
