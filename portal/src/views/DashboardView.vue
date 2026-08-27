@@ -6,9 +6,13 @@
 		<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 
 		<template v-else-if="data">
-			<div class="cc-overview-meta">
-				<span class="sd-muted">Welcome back, {{ fullName || "there" }}.</span>
-			</div>
+			<DashboardCommandHeader
+				:active-count="data.active_count"
+				:delayed-count="data.delayed_count"
+				:outstanding-amount="data.outstanding_amount"
+				:full-name="fullName"
+				style="margin-bottom: 18px;"
+			/>
 
 			<div style="margin-bottom: 18px;">
 				<h3 class="sd-pipeline-section-title">Shipment Pipeline</h3>
@@ -27,199 +31,97 @@
 				</div>
 			</div>
 
-			<div class="sd-grid sd-grid-kpi" style="margin-bottom: 18px;">
-				<KpiCard
-					label="Active Shipments"
-					:value="formatNumber(data.active_count)"
-					tone="good"
-					:icon="Ship"
-				/>
-				<KpiCard
-					label="Delayed"
-					:value="formatNumber(data.delayed_count)"
-					:tone="data.delayed_count ? 'danger' : 'good'"
-					:icon="AlertTriangle"
-				/>
-				<KpiCard
-					label="Outstanding"
-					:value="formatMoney(data.outstanding_amount)"
-					:tone="data.outstanding_amount ? 'warn' : 'good'"
-					:icon="Wallet"
-				/>
-				<KpiCard
-					label="Overdue Invoices"
-					:value="formatMoney(data.overdue_amount)"
-					:tone="data.overdue_amount ? 'danger' : 'good'"
-					:icon="Receipt"
-				/>
-				<KpiCard
-					label="Paid (YTD)"
-					:value="formatMoney(data.paid_ytd)"
-					tone="good"
-					:icon="CheckCircle2"
-				/>
+			<div class="sd-grid sd-grid-kpi sd-dashboard-kpi" style="margin-bottom: 18px;">
+				<router-link to="/shipments?status=In%20Progress" class="sd-dashboard-kpi-link">
+					<KpiCard label="Active Shipments" :value="formatNumber(data.active_count)" tone="good" :icon="Ship" />
+				</router-link>
+				<router-link to="/shipments?status=In%20Progress" class="sd-dashboard-kpi-link">
+					<KpiCard
+						label="Delayed"
+						:value="formatNumber(data.delayed_count)"
+						:tone="data.delayed_count ? 'danger' : 'good'"
+						:icon="AlertTriangle"
+					/>
+				</router-link>
+				<router-link to="/shipments?status=In%20Progress" class="sd-dashboard-kpi-link">
+					<KpiCard
+						label="Arriving Soon"
+						:value="formatNumber(data.arriving_soon_count)"
+						tone="good"
+						:icon="Package"
+					/>
+				</router-link>
+				<router-link to="/invoices" class="sd-dashboard-kpi-link">
+					<KpiCard
+						label="Outstanding"
+						:value="formatMoney(data.outstanding_amount)"
+						:tone="data.outstanding_amount ? 'warn' : 'good'"
+						:icon="Wallet"
+					/>
+				</router-link>
+				<router-link to="/invoices" class="sd-dashboard-kpi-link">
+					<KpiCard
+						label="Overdue Invoices"
+						:value="formatMoney(data.overdue_amount)"
+						:tone="data.overdue_amount ? 'danger' : 'good'"
+						:icon="Receipt"
+					/>
+				</router-link>
 			</div>
 
-			<div class="sd-grid sd-grid-2 cc-dashboard-split" style="margin-bottom: 18px;">
-				<div class="sd-card">
-					<div class="sd-card-title">
-						<span class="sd-card-title-main">Recent Shipments</span>
-						<router-link to="/shipments" class="sd-table-link" style="font-size: 12px;">View all &rarr;</router-link>
+			<div class="sd-card sd-active-tracking-cta" style="margin-bottom: 18px;">
+				<div class="sd-active-tracking-cta-body">
+					<div>
+						<div class="sd-active-tracking-cta-title">Active tracking report</div>
+						<p class="sd-muted sd-active-tracking-cta-copy">
+							{{ formatNumber(data.active_count) }} active shipment(s)
+							<span v-if="data.delayed_count"> · {{ formatNumber(data.delayed_count) }} delayed</span>
+						</p>
 					</div>
-					<table class="sd-table" v-if="data.recent_jobs.length">
-						<thead>
-							<tr>
-								<th>Job / Reference</th>
-								<th>Phase</th>
-								<th>Progress</th>
-								<th>ETA</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr
-								v-for="job in data.recent_jobs"
+					<div class="sd-active-tracking-cta-actions">
+						<router-link to="/shipments?status=In%20Progress" class="sd-table-link">View all &rarr;</router-link>
+						<a class="sd-table-link" :href="trackingExcelUrl" rel="noopener">Download Excel</a>
+						<a class="sd-table-link" :href="trackingPdfUrl" rel="noopener">Download PDF</a>
+					</div>
+				</div>
+			</div>
+
+			<div class="sd-grid sd-dashboard-main" style="margin-bottom: 18px;">
+				<DashboardAttentionQueue :items="data.attention_items" />
+
+				<div class="sd-dashboard-in-motion">
+					<div class="sd-card sd-dashboard-in-motion-card">
+						<div class="sd-card-title">
+							<span class="sd-card-title-main">In motion</span>
+							<router-link to="/shipments?status=In%20Progress" class="sd-table-link" style="font-size: 12px;">
+								View all &rarr;
+							</router-link>
+						</div>
+						<div v-if="data.in_motion_jobs.length" class="sd-dashboard-in-motion-list">
+							<ShipmentListCard
+								v-for="job in data.in_motion_jobs"
 								:key="job.name"
-								:class="{ 'cc-row-overdue': job.is_overdue }"
-							>
-								<td>
-									<button class="sd-table-link" @click="openJob(job.name)">{{ job.name }}</button>
-									<div class="sd-muted" style="font-size: 12px;">{{ job.customer_reference || "–" }}</div>
-									<div v-if="job.current_comment" class="cc-dashboard-comment">{{ job.current_comment }}</div>
-								</td>
-								<td>{{ formatOperationalPhase(job) }}</td>
-								<td><ProgressBar :percent="job.milestone_percent" /></td>
-								<td>{{ formatDate(job.eta) }}</td>
-							</tr>
-						</tbody>
-					</table>
-					<EmptyState v-else :icon="Ship" title="No shipments yet" sub="Your active shipments will show up here." />
-				</div>
-
-				<div class="cc-dashboard-side">
-					<div class="sd-card" style="margin-bottom: 14px;">
-						<div class="sd-card-title">
-							<span class="sd-card-title-main">Needs Attention</span>
+								:job="job"
+								class="sd-dashboard-in-motion-item"
+							/>
 						</div>
-						<ul v-if="data.needs_attention.length" class="sd-list cc-dashboard-feed">
-							<li v-for="job in data.needs_attention" :key="job.name">
-								<button class="sd-table-link" @click="openJob(job.name)">{{ job.name }}</button>
-								<div class="sd-muted" style="font-size: 12px;">
-									{{ job.direction === "Import" ? "ETA" : "ETD" }}
-									{{ formatDate(job.eta || job.etd) }}
-									<span v-if="job.current_comment"> &middot; {{ job.current_comment }}</span>
-								</div>
-							</li>
-						</ul>
 						<EmptyState
 							v-else
-							:icon="CheckCircle2"
-							title="No delayed shipments"
-							sub="All active shipments are on schedule."
-						/>
-					</div>
-
-					<div class="sd-card">
-						<div class="sd-card-title">
-							<span class="sd-card-title-main">Arriving Soon</span>
-						</div>
-						<ul v-if="data.arriving_soon.length" class="sd-list cc-dashboard-feed">
-							<li v-for="job in data.arriving_soon" :key="job.name">
-								<button class="sd-table-link" @click="openJob(job.name)">{{ job.name }}</button>
-								<div class="sd-muted" style="font-size: 12px;">
-									ETA {{ formatDate(job.eta) }}
-									&middot; {{ job.port_of_loading || "–" }} &rarr; {{ job.destination || job.port_of_discharge || "–" }}
-								</div>
-							</li>
-						</ul>
-						<EmptyState
-							v-else
-							:icon="Package"
-							title="Nothing arriving soon"
-							sub="No import shipments due in the next 14 days."
+							:icon="Ship"
+							title="No active shipments"
+							sub="Your in-progress shipments will appear here."
 						/>
 					</div>
 				</div>
 			</div>
 
-			<div class="sd-grid cc-dashboard-feeds">
-				<div class="sd-card">
-					<div class="sd-card-title">
-						<span class="sd-card-title-main">Recent Updates</span>
-					</div>
-					<ul v-if="data.recent_updates.length" class="sd-list cc-dashboard-feed">
-						<li v-for="(item, idx) in data.recent_updates" :key="idx">
-							<div style="display: flex; justify-content: space-between; gap: 8px;">
-								<button class="sd-table-link" @click="openJob(item.job_name)">{{ item.job_name }}</button>
-								<span class="sd-muted" style="font-size: 12px; white-space: nowrap;">{{ formatDateTime(item.date) }}</span>
-							</div>
-							<div style="font-size: 13px; margin-top: 2px;">{{ item.event }}</div>
-							<div v-if="item.source" class="sd-muted" style="font-size: 12px;">via {{ item.source }}</div>
-						</li>
-					</ul>
-					<EmptyState v-else :icon="History" title="No tracking updates yet" />
-				</div>
-
-				<div class="sd-card">
-					<div class="sd-card-title">
-						<span class="sd-card-title-main">Recent Documents</span>
-					</div>
-					<ul v-if="data.recent_documents.length" class="sd-list cc-dashboard-feed">
-						<li v-for="doc in data.recent_documents" :key="doc.name">
-							<div>{{ doc.document_label }}</div>
-							<div class="sd-muted" style="font-size: 12px;">
-								<button class="sd-table-link" @click="openJob(doc.job_name)">{{ doc.job_name }}</button>
-								<span v-if="doc.date_submitted"> &middot; {{ formatDate(doc.date_submitted) }}</span>
-							</div>
-							<a
-								class="sd-table-link"
-								style="font-size: 12px;"
-								:href="downloadDocumentUrl(doc.job_name, doc.name)"
-								target="_blank"
-								rel="noopener"
-							>
-								Download
-							</a>
-						</li>
-					</ul>
-					<EmptyState v-else :icon="FileText" title="No documents shared yet" />
-				</div>
-
-				<div class="sd-card">
-					<div class="sd-card-title">
-						<span class="sd-card-title-main">Recent Invoices</span>
-						<router-link to="/invoices" class="sd-table-link" style="font-size: 12px;">View all &rarr;</router-link>
-					</div>
-					<table class="sd-table" v-if="data.recent_invoices.length">
-						<thead>
-							<tr>
-								<th>Invoice</th>
-								<th>Shipment</th>
-								<th>Due</th>
-								<th>Amount</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="inv in data.recent_invoices" :key="inv.name">
-								<td>
-									<router-link class="sd-table-link" :to="`/invoices/${encodeURIComponent(inv.name)}`">
-										{{ inv.name }}
-									</router-link>
-								</td>
-								<td>{{ inv.job_name || "–" }}</td>
-								<td>{{ formatDate(inv.due_date) }}</td>
-								<td>{{ formatMoney(inv.grand_total) }}</td>
-							</tr>
-						</tbody>
-					</table>
-					<EmptyState v-else :icon="Receipt" title="No invoices yet" />
-				</div>
-			</div>
+			<DashboardFinancialSnapshot :snapshot="data.financial_snapshot" />
 		</template>
 	</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import {
 	Ship,
@@ -227,24 +129,23 @@ import {
 	Receipt,
 	MapPin,
 	AlertTriangle,
-	CheckCircle2,
-	History,
-	FileText,
 	Package,
 } from "@lucide/vue";
 import { api } from "../api/dashboard";
-import { api as documentsApi } from "../api/documents";
-import { formatDate, formatDateTime, formatMoney, formatNumber } from "../format";
+import { api as shipmentsApi } from "../api/shipments";
+import { formatMoney, formatNumber } from "../format";
 import { useSessionStore } from "../stores/session";
 import {
 	OVERVIEW_PIPELINE_META,
-	formatOperationalPhase,
 	phasesFromBucket,
 	phasesToQuery,
 } from "../operationalPhases";
+import DashboardAttentionQueue from "../components/DashboardAttentionQueue.vue";
+import DashboardCommandHeader from "../components/DashboardCommandHeader.vue";
+import DashboardFinancialSnapshot from "../components/DashboardFinancialSnapshot.vue";
 import KpiCard from "../components/KpiCard.vue";
 import PhasePipelineCard from "../components/PhasePipelineCard.vue";
-import ProgressBar from "../components/ProgressBar.vue";
+import ShipmentListCard from "../components/ShipmentListCard.vue";
 import EmptyState from "../components/EmptyState.vue";
 import { useRouter } from "vue-router";
 
@@ -255,6 +156,13 @@ const { fullName } = storeToRefs(session);
 const data = ref(null);
 const loading = ref(true);
 const error = ref("");
+
+const trackingExcelUrl = computed(() =>
+	shipmentsApi.exportTrackingReportUrl({ status: "In Progress" }),
+);
+const trackingPdfUrl = computed(() =>
+	shipmentsApi.exportTrackingReportPdfUrl({ status: "In Progress" }),
+);
 
 function pipelineMeta(key) {
 	return OVERVIEW_PIPELINE_META[key] || { icon: MapPin, tone: "neutral" };
@@ -270,10 +178,6 @@ function navigateToBucket(bucket) {
 	router.push({ path: "/shipments", query });
 }
 
-function downloadDocumentUrl(jobName, checklistRow) {
-	return documentsApi.downloadDocumentUrl(jobName, checklistRow);
-}
-
 async function load() {
 	loading.value = true;
 	error.value = "";
@@ -286,39 +190,39 @@ async function load() {
 	}
 }
 
-function openJob(name) {
-	router.push(`/shipments/${encodeURIComponent(name)}`);
-}
-
 onMounted(load);
 </script>
 
 <style scoped>
-.cc-dashboard-split {
+.sd-dashboard-kpi-link {
+	text-decoration: none;
+	color: inherit;
+	display: block;
+}
+
+.sd-dashboard-main {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 14px;
 	align-items: start;
 }
 
-.cc-dashboard-side {
+.sd-dashboard-in-motion-card {
+	height: 100%;
+}
+
+.sd-dashboard-in-motion-list {
 	display: flex;
 	flex-direction: column;
+	gap: 10px;
 }
 
-.cc-dashboard-comment {
-	font-size: 12px;
-	color: var(--sd-text-muted);
-	margin-top: 4px;
-	max-width: 280px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.cc-dashboard-feed li {
+.sd-dashboard-in-motion-item :deep(.sd-shipment-list-card) {
 	display: block;
-	padding: 8px 0;
 }
 
-.cc-dashboard-feed li + li {
-	border-top: 1px solid var(--sd-border-soft);
+@media (max-width: 900px) {
+	.sd-dashboard-main {
+		grid-template-columns: 1fr;
+	}
 }
 </style>

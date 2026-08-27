@@ -262,6 +262,64 @@ class TestPortalInvoicesCrossTenant(IntegrationTestCase):
 
 		self.assertEqual(result["outstanding_amount"], invoice_a.grand_total)
 		self.assertEqual(result["overdue_amount"], invoice_a.grand_total)  # due_date is in the past
+		self.assertEqual(result["open_invoice_count"], 1)
+		self.assertIn("aging", result)
+		self.assertEqual(result["aging"]["1_30"]["count"], 1)
+
+	def test_get_invoices_outstanding_filter_and_job_context(self):
+		customer_a = _make_customer("I9a")
+		user_a = _make_user_and_contact("I9a", customer_a)
+		job_a = _make_forwarding_job(customer_a, "I9")
+		invoice_a = _make_sales_invoice(customer_a, "I9a", job_reference=job_a.name, submit=True)
+		_make_sales_invoice(customer_a, "I9b", submit=True, days_ago_due=5)
+		frappe.db.set_value("Forwarding Job", job_a.name, "cargo_count", 2)
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_invoices.get_invoices(status="Outstanding")
+		finally:
+			frappe.set_user("Administrator")
+
+		names = [row["name"] for row in result["invoices"]]
+		self.assertIn(invoice_a.name, names)
+		row = next(row for row in result["invoices"] if row["name"] == invoice_a.name)
+		self.assertEqual(row["job_customer_reference"], job_a.customer_reference)
+		self.assertEqual(row["job_cargo_count"], 2)
+		self.assertGreater(row["balance_due"], 0)
+
+	def test_get_invoices_search_matches_invoice_name(self):
+		customer_a, _customer_b, user_a, invoice_a, _invoice_b = _make_pair("I10", submit=True)
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_invoices.get_invoices(search=invoice_a.name)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual([row["name"] for row in result["invoices"]], [invoice_a.name])
+
+	def test_export_statement_of_account_scoped_to_own_customer(self):
+		customer_a, customer_b, user_a, _invoice_a, _invoice_b = _make_pair("I11", submit=True)
+
+		frappe.set_user(user_a.name)
+		try:
+			portal_invoices.export_statement_of_account(format="pdf", party=customer_a.name)
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.local.response.type, "download")
+		self.assertTrue(frappe.local.response.filename.endswith(".pdf"))
+		self.assertTrue(frappe.local.response.filecontent.startswith(b"%PDF"))
+
+	def test_export_statement_of_account_denies_other_customer(self):
+		_customer_a, customer_b, user_a, _invoice_a, _invoice_b = _make_pair("I12", submit=True)
+
+		frappe.set_user(user_a.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				portal_invoices.export_statement_of_account(format="pdf", party=customer_b.name)
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_get_overview_includes_outstanding_scoped_to_own_customer(self):
 		_customer_a, _customer_b, user_a, invoice_a, invoice_b = _make_pair(

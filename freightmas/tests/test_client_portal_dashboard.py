@@ -39,12 +39,10 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 			"phase_pipeline",
 			"active_count",
 			"delayed_count",
-			"recent_jobs",
-			"needs_attention",
-			"arriving_soon",
-			"recent_updates",
-			"recent_documents",
-			"recent_invoices",
+			"arriving_soon_count",
+			"attention_items",
+			"in_motion_jobs",
+			"financial_snapshot",
 			"outstanding_amount",
 			"overdue_amount",
 			"paid_ytd",
@@ -53,13 +51,14 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 
 		self.assertGreaterEqual(result["active_count"], 1)
 		self.assertGreaterEqual(result["delayed_count"], 1)
-		recent = result["recent_jobs"][0]
-		self.assertIn("milestone_percent", recent)
-		self.assertIn("operational_phase_label", recent)
-		self.assertIn("is_overdue", recent)
-		self.assertTrue(recent["is_overdue"])
-		self.assertEqual(result["needs_attention"][0]["name"], job_a.name)
-		self.assertTrue(any(row["event"] == "Departed origin" for row in result["recent_updates"]))
+		in_motion = result["in_motion_jobs"][0]
+		self.assertIn("milestone_percent", in_motion)
+		self.assertIn("operational_phase_label", in_motion)
+		self.assertIn("is_overdue", in_motion)
+		self.assertTrue(in_motion["is_overdue"])
+		delayed_items = [row for row in result["attention_items"] if row["type"] == "delayed_shipment"]
+		self.assertTrue(any(row["job_name"] == job_a.name for row in delayed_items))
+		self.assertIn("overdue_invoice_count", result["financial_snapshot"])
 
 	def test_get_overview_scopes_delayed_jobs_to_own_customer(self):
 		customer_a, _customer_b, user_a, job_a, job_b = _make_pair("D2")
@@ -72,7 +71,8 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 		finally:
 			frappe.set_user("Administrator")
 
-		attention_names = {job["name"] for job in result["needs_attention"]}
+		delayed_items = [row for row in result["attention_items"] if row["type"] == "delayed_shipment"]
+		attention_names = {row["job_name"] for row in delayed_items}
 		self.assertIn(job_a.name, attention_names)
 		self.assertNotIn(job_b.name, attention_names)
 

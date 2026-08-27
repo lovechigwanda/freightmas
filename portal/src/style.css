@@ -2377,6 +2377,539 @@ h1, h2, h3, h4 {
 	word-break: break-word;
 }
 
+.sd-tracking-summary {
+	padding: 16px 20px;
+}
+
+.sd-tracking-summary-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px 28px;
+}
+
+.sd-tracking-summary-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 72px;
+}
+
+.sd-tracking-summary-value {
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1.1;
+	color: var(--sd-text);
+}
+
+.sd-tracking-summary-stat--warn .sd-tracking-summary-value {
+	color: var(--sd-red);
+}
+
+.sd-tracking-summary-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--sd-text-muted);
+}
+
+.sd-tracking-summary-filtered {
+	margin: 10px 0 0;
+	font-size: 12px;
+}
+
+.sd-shipment-list-panel {
+	padding: 10px;
+}
+
+.sd-shipment-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.sd-shipment-list-card {
+	display: block;
+	padding: 16px 18px;
+	border: 1px solid var(--sd-border-soft);
+	border-radius: 12px;
+	background: var(--sd-surface);
+	text-decoration: none;
+	color: inherit;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sd-shipment-list-card:hover {
+	border-color: var(--sd-border);
+	box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+.sd-shipment-list-card--overdue {
+	border-left: 3px solid var(--sd-red);
+}
+
+.sd-shipment-list-card-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.sd-shipment-list-card-primary {
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.3;
+	color: var(--sd-text);
+}
+
+.sd-shipment-list-card-cargo {
+	margin-top: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--sd-text-muted);
+}
+
+.sd-shipment-list-card-headline {
+	margin: 0 0 6px;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--sd-text);
+}
+
+.sd-shipment-list-card-meta {
+	margin: 0 0 12px;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.sd-shipment-list-card-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.sd-shipment-list-card-phase {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--sd-text-muted);
+	white-space: nowrap;
+}
+
+.sd-shipment-list-card-progress {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 160px;
+	flex: 1;
+	max-width: 280px;
+}
+
+.sd-shipment-list-card-progress-value {
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--sd-text-muted);
+	white-space: nowrap;
+}
+
+.sd-shipment-list-card-progress .sd-progress {
+	flex: 1;
+}
+
+.sd-shipment-list-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 14px;
+	padding: 0 8px 4px;
+}
+
+.sd-invoice-account-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 18px 20px;
+}
+
+.sd-invoice-account-header-main {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 16px;
+	flex: 1;
+}
+
+.sd-invoice-account-header-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.sd-invoice-account-header-stat--warn .sd-invoice-account-header-value {
+	color: var(--sd-red);
+}
+
+.sd-invoice-account-header-label {
+	font-size: 12px;
+	color: var(--sd-muted);
+}
+
+.sd-invoice-account-header-value {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.sd-invoice-account-header-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.sd-invoices-export-link {
+	white-space: nowrap;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.sd-invoice-aging-strip {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 10px;
+	padding: 14px;
+}
+
+.sd-invoice-aging-bucket {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 12px 14px;
+	border: 1px solid var(--sd-border-soft);
+	border-radius: 10px;
+	background: var(--sd-surface-alt);
+	cursor: pointer;
+	text-align: left;
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.sd-invoice-aging-bucket:hover,
+.sd-invoice-aging-bucket.active {
+	border-color: var(--sd-accent);
+	background: var(--sd-surface);
+}
+
+.sd-invoice-aging-bucket--warn .sd-invoice-aging-bucket-value {
+	color: var(--sd-amber);
+}
+
+.sd-invoice-aging-bucket-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--sd-muted);
+}
+
+.sd-invoice-aging-bucket-value {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.sd-invoice-aging-bucket-count {
+	font-size: 11px;
+	color: var(--sd-muted);
+}
+
+.sd-invoice-list-panel {
+	padding: 14px;
+}
+
+.sd-invoice-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.sd-invoice-list-card {
+	padding: 16px 18px;
+	border: 1px solid var(--sd-border-soft);
+	border-radius: 12px;
+	background: var(--sd-surface);
+}
+
+.sd-invoice-list-card--overdue {
+	border-left: 3px solid var(--sd-red);
+}
+
+.sd-invoice-list-card--credit {
+	border-left: 3px solid var(--sd-accent);
+}
+
+.sd-invoice-list-card-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.sd-invoice-list-card-primary {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--sd-accent);
+	text-decoration: none;
+}
+
+.sd-invoice-list-card-primary:hover {
+	text-decoration: underline;
+}
+
+.sd-invoice-list-card-context {
+	font-size: 13px;
+	color: var(--sd-text);
+	margin-top: 4px;
+}
+
+.sd-invoice-list-card-balance {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.sd-invoice-list-card-balance-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--sd-muted);
+}
+
+.sd-invoice-list-card-balance-value {
+	font-size: 18px;
+	font-weight: 700;
+}
+
+.sd-invoice-list-card--overdue .sd-invoice-list-card-balance-value {
+	color: var(--sd-red);
+}
+
+.sd-invoice-list-card-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.sd-invoice-list-card-meta {
+	font-size: 12px;
+}
+
+.sd-invoice-list-card-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.sd-invoice-list-card-shipment-link {
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.sd-invoice-list-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 14px;
+	padding: 0 8px 4px;
+}
+
+.sd-invoices-toolbar-actions {
+	flex-wrap: wrap;
+}
+
+.sd-invoice-detail-summary {
+	padding: 18px 20px;
+}
+
+.sd-invoice-detail-summary--overdue {
+	border-left: 3px solid var(--sd-red);
+}
+
+.sd-invoice-detail-summary--credit {
+	border-left: 3px solid var(--sd-accent);
+}
+
+.sd-invoice-detail-summary-main {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 14px;
+}
+
+.sd-invoice-detail-summary-balance {
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1.1;
+}
+
+.sd-invoice-detail-summary--overdue .sd-invoice-detail-summary-balance {
+	color: var(--sd-red);
+}
+
+.sd-shipments-toolbar-actions {
+	flex-wrap: wrap;
+}
+
+.sd-shipments-export-link {
+	white-space: nowrap;
+}
+
+.sd-dashboard-headline {
+	padding: 18px 20px;
+}
+
+.sd-dashboard-headline-text {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--sd-text);
+}
+
+.sd-dashboard-headline-text strong {
+	font-weight: 700;
+}
+
+.sd-dashboard-headline-warn {
+	color: var(--sd-red);
+}
+
+.sd-dashboard-headline-sep {
+	margin: 0 6px;
+	color: var(--sd-text-muted);
+}
+
+.sd-dashboard-headline-greeting {
+	margin: 6px 0 0;
+	font-size: 13px;
+}
+
+.sd-dashboard-kpi-link:hover .sd-card {
+	border-color: var(--sd-border);
+}
+
+.sd-dashboard-attention-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.sd-dashboard-attention-item {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	gap: 12px;
+	align-items: start;
+	padding: 12px 0;
+}
+
+.sd-dashboard-attention-item + .sd-dashboard-attention-item {
+	border-top: 1px solid var(--sd-border-soft);
+}
+
+.sd-dashboard-attention-icon {
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.sd-dashboard-attention-icon--delayed_shipment {
+	background: rgba(220, 38, 38, 0.1);
+	color: var(--sd-red);
+}
+
+.sd-dashboard-attention-icon--arriving_soon {
+	background: rgba(37, 99, 235, 0.1);
+	color: var(--sd-blue, #2563eb);
+}
+
+.sd-dashboard-attention-icon--overdue_invoice {
+	background: rgba(234, 88, 12, 0.12);
+	color: var(--sd-orange, #ea580c);
+}
+
+.sd-dashboard-attention-icon--new_document {
+	background: rgba(22, 163, 74, 0.1);
+	color: var(--sd-green);
+}
+
+.sd-dashboard-attention-title {
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.sd-dashboard-attention-subtitle {
+	margin-top: 2px;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.sd-dashboard-attention-action {
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.sd-dashboard-finance-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-bottom: 12px;
+}
+
+.sd-dashboard-finance-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.sd-dashboard-finance-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--sd-text-muted);
+}
+
+.sd-dashboard-finance-value {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.sd-dashboard-finance-stat--warn .sd-dashboard-finance-value {
+	color: var(--sd-red);
+}
+
+.sd-dashboard-finance-meta {
+	font-size: 12px;
+}
+
+.sd-dashboard-finance-next {
+	font-size: 13px;
+	padding-top: 12px;
+	border-top: 1px solid var(--sd-border-soft);
+}
+
 .sd-shipment-main-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
@@ -2711,6 +3244,52 @@ h1, h2, h3, h4 {
 	.sd-shipment-banner-right {
 		max-width: none;
 		width: 100%;
+	}
+
+	.sd-shipment-list-card-foot {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.sd-shipment-list-card-progress {
+		width: 100%;
+		max-width: none;
+	}
+
+	.sd-tracking-summary-stats {
+		gap: 16px 20px;
+	}
+
+	.sd-dashboard-finance-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.sd-invoice-account-header {
+		flex-direction: column;
+	}
+
+	.sd-invoice-account-header-main {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		width: 100%;
+	}
+
+	.sd-invoice-account-header-actions {
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+
+	.sd-invoice-aging-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.sd-invoice-list-card-head,
+	.sd-invoice-list-card-foot {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.sd-invoice-list-card-balance {
+		align-items: flex-start;
 	}
 }
 

@@ -1,5 +1,13 @@
 <template>
 	<div>
+		<ShipmentTrackingSummary
+			v-if="summary && !summaryLoading"
+			:summary="summary"
+			:has-filters="hasActiveFilters"
+			style="margin-bottom: 14px;"
+		/>
+		<div v-else-if="summaryLoading" class="sd-card cc-skeleton" style="height: 72px; margin-bottom: 14px;"></div>
+
 		<div class="sd-toolbar">
 			<nav class="sd-tabs" style="margin-bottom: 0;">
 				<button
@@ -13,7 +21,7 @@
 				</button>
 			</nav>
 
-			<div class="sd-filters" style="margin-bottom: 0;">
+			<div class="sd-filters sd-shipments-toolbar-actions" style="margin-bottom: 0;">
 				<input v-model="search" type="text" placeholder="Search job, BL, reference..." @input="onFilterChange" />
 				<select v-model="direction" @change="onFilterChange">
 					<option value="">All Directions</option>
@@ -24,51 +32,27 @@
 					:options="phaseOptions"
 					@change="onPhasesChange"
 				/>
-				<a class="sd-table-link" :href="reportUrl" target="_blank" rel="noopener">
-					<Download :size="14" style="vertical-align: -2px;" /> Download Report
+				<a class="sd-table-link sd-shipments-export-link" :href="excelReportUrl" rel="noopener">
+					<Download :size="14" style="vertical-align: -2px;" /> Excel
+				</a>
+				<a class="sd-table-link sd-shipments-export-link" :href="pdfReportUrl" rel="noopener">
+					<Download :size="14" style="vertical-align: -2px;" /> PDF
 				</a>
 			</div>
 		</div>
 
-		<div class="sd-card">
+		<div class="sd-card sd-shipment-list-panel">
 			<div v-if="loading">
 				<div class="cc-row-skeleton cc-skeleton" v-for="i in 8" :key="i"></div>
 			</div>
 			<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 			<template v-else>
-				<table class="sd-table" v-if="jobs.length">
-					<thead>
-						<tr>
-							<th>Job</th>
-							<th>Reference / Cargo Count</th>
-							<th>ETA / ATA</th>
-							<th>Status</th>
-							<th>Phase</th>
-							<th>Progress</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="job in jobs" :key="job.name" :class="{ 'cc-row-overdue': job.is_overdue }">
-							<td>
-								<router-link class="sd-table-link" :to="`/shipments/${encodeURIComponent(job.name)}`">
-									{{ job.name }}
-								</router-link>
-							</td>
-							<td>
-								{{ job.customer_reference || "–" }}<span v-if="job.cargo_count" class="sd-muted"> &middot; {{ job.cargo_count }}</span>
-							</td>
-							<td>
-								{{ formatDate(job.eta) }}<span class="sd-muted"> &middot; {{ job.ata ? "ATA " + formatDate(job.ata) : "Pending" }}</span>
-							</td>
-							<td><StatusBadge :status="job.status" /></td>
-							<td>{{ formatOperationalPhase(job) }}</td>
-							<td><ProgressBar :percent="job.client_progress_percent ?? job.milestone_percent" /></td>
-						</tr>
-					</tbody>
-				</table>
+				<div v-if="jobs.length" class="sd-shipment-list">
+					<ShipmentListCard v-for="job in jobs" :key="job.name" :job="job" />
+				</div>
 				<EmptyState v-else :icon="SearchX" title="No shipments match these filters" sub="Try clearing the search or filters above." />
 
-				<div v-if="jobs.length" style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+				<div v-if="jobs.length" class="sd-shipment-list-footer">
 					<span class="sd-muted" style="font-size: 12px;">{{ totalCount }} shipment(s)</span>
 					<div style="display: flex; gap: 8px; align-items: center;">
 						<button class="sd-table-link" :disabled="page === 0" @click="changePage(-1)">&larr; Prev</button>
@@ -86,18 +70,18 @@ import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Download, SearchX } from "@lucide/vue";
 import { api } from "../api/shipments";
-import { formatDate } from "../format";
-import StatusBadge from "../components/StatusBadge.vue";
-import ProgressBar from "../components/ProgressBar.vue";
 import EmptyState from "../components/EmptyState.vue";
 import PhaseMultiSelect from "../components/PhaseMultiSelect.vue";
+import ShipmentListCard from "../components/ShipmentListCard.vue";
+import ShipmentTrackingSummary from "../components/ShipmentTrackingSummary.vue";
 import {
 	OPERATIONAL_PHASE_OPTIONS,
-	formatOperationalPhase,
 	phasesFromBucket,
 	parsePhasesQuery,
 	phasesToQuery,
 } from "../operationalPhases";
+
+const DEFAULT_STATUS = "In Progress";
 
 const route = useRoute();
 const router = useRouter();
@@ -113,16 +97,23 @@ const statusTabs = [
 const directions = ["Import", "Export", "Local", "Transit"];
 
 const search = ref("");
-const status = ref("");
+const status = ref(DEFAULT_STATUS);
 const direction = ref("");
 const selectedPhases = ref([]);
 const jobs = ref([]);
 const totalCount = ref(0);
+const summary = ref(null);
 const loading = ref(true);
+const summaryLoading = ref(true);
 const error = ref("");
 const page = ref(0);
 const pageSize = 20;
 let debounceTimer = null;
+
+const hasActiveFilters = computed(
+	() =>
+		Boolean(search.value || direction.value || selectedPhases.value.length || status.value),
+);
 
 function applyRouteFilters() {
 	const bucket = typeof route.query.bucket === "string" ? route.query.bucket : "";
@@ -135,6 +126,8 @@ function applyRouteFilters() {
 		status.value = "";
 	} else if (typeof route.query.status === "string") {
 		status.value = route.query.status;
+	} else if (!route.query.bucket && !route.query.phases && route.name === "shipments") {
+		status.value = DEFAULT_STATUS;
 	}
 }
 
@@ -171,17 +164,34 @@ function buildPhaseParams() {
 	return { operational_phases: selectedPhases.value };
 }
 
+function buildFilterParams() {
+	return {
+		search: search.value,
+		status: status.value,
+		direction: direction.value,
+		...buildPhaseParams(),
+	};
+}
+
+async function loadSummary() {
+	summaryLoading.value = true;
+	try {
+		summary.value = await api.getTrackingSummary(buildFilterParams());
+	} catch {
+		summary.value = null;
+	} finally {
+		summaryLoading.value = false;
+	}
+}
+
 async function load() {
 	loading.value = true;
 	error.value = "";
 	try {
 		const res = await api.getJobs({
-			search: search.value,
-			status: status.value,
-			direction: direction.value,
+			...buildFilterParams(),
 			limit_start: page.value * pageSize,
 			limit_page_length: pageSize,
-			...buildPhaseParams(),
 		});
 		jobs.value = res.jobs;
 		totalCount.value = res.total_count;
@@ -192,10 +202,14 @@ async function load() {
 	}
 }
 
+async function reload() {
+	await Promise.all([load(), loadSummary()]);
+}
+
 function onFilterChange() {
 	page.value = 0;
 	clearTimeout(debounceTimer);
-	debounceTimer = setTimeout(load, 300);
+	debounceTimer = setTimeout(reload, 300);
 }
 
 function onPhasesChange() {
@@ -204,7 +218,7 @@ function onPhasesChange() {
 		status.value = "";
 	}
 	syncPhasesToRoute();
-	load();
+	reload();
 }
 
 function setStatus(value) {
@@ -213,7 +227,7 @@ function setStatus(value) {
 	page.value = 0;
 	selectedPhases.value = [];
 	syncStatusToRoute();
-	load();
+	reload();
 }
 
 function changePage(delta) {
@@ -221,14 +235,8 @@ function changePage(delta) {
 	load();
 }
 
-const reportUrl = computed(() =>
-	api.exportTrackingReportUrl({
-		search: search.value,
-		status: status.value,
-		direction: direction.value,
-		...buildPhaseParams(),
-	})
-);
+const excelReportUrl = computed(() => api.exportTrackingReportUrl(buildFilterParams()));
+const pdfReportUrl = computed(() => api.exportTrackingReportPdfUrl(buildFilterParams()));
 
 watch(
 	() => [route.query.phases, route.query.bucket, route.query.status],
@@ -238,15 +246,18 @@ watch(
 			syncPhasesToRoute();
 		}
 		page.value = 0;
-		load();
+		reload();
 	},
 );
 
 onMounted(() => {
 	applyRouteFilters();
+	if (!route.query.status && !route.query.phases && !route.query.bucket) {
+		syncStatusToRoute();
+	}
 	if (route.query.bucket) {
 		syncPhasesToRoute();
 	}
-	load();
+	reload();
 });
 </script>

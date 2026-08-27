@@ -212,12 +212,12 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 		in_transit = next(b for b in result["phase_pipeline"] if b["key"] == "in_transit")
 		self.assertEqual(at_origin["count"], 1)  # job_a only; completed job excluded from pipeline phases
 		self.assertEqual(in_transit["count"], 0)  # job_b belongs to another customer
-		recent_names = [j.name for j in result["recent_jobs"]]
-		self.assertIn(job_a.name, recent_names)
-		self.assertNotIn(job_b.name, recent_names)
+		in_motion_names = [j.name for j in result["in_motion_jobs"]]
+		self.assertIn(job_a.name, in_motion_names)
+		self.assertNotIn(job_b.name, in_motion_names)
 		self.assertIn("active_count", result)
 		self.assertIn("paid_ytd", result)
-		self.assertIn("needs_attention", result)
+		self.assertIn("attention_items", result)
 
 	def test_get_jobs_filters_by_operational_phases(self):
 		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E4b")
@@ -422,3 +422,31 @@ class TestPortalShipmentsCrossTenant(IntegrationTestCase):
 
 		_header, data_rows = self._export_as_user(user_a)
 		self.assertNotIn(job_a.name, {r[0] for r in data_rows})
+
+	def test_get_tracking_summary_returns_active_counts(self):
+		customer_a, _customer_b, user_a, job_a, _job_b = _make_pair("E15")
+		frappe.db.set_value("Forwarding Job", job_a.name, "operational_phase", "at_terminal")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_shipments.get_tracking_summary(status="In Progress")
+		finally:
+			frappe.set_user("Administrator")
+
+		for key in ("active_count", "delayed_count", "at_port_count", "arriving_soon_count", "filtered_count"):
+			self.assertIn(key, result)
+		self.assertGreaterEqual(result["active_count"], 1)
+		self.assertGreaterEqual(result["filtered_count"], 1)
+
+	def test_export_tracking_report_pdf_sets_download_disposition(self):
+		_customer_a, _customer_b, user_a, _job_a, _job_b = _make_pair("E16")
+
+		frappe.set_user(user_a.name)
+		try:
+			portal_shipments.export_tracking_report_pdf(status="In Progress")
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertEqual(frappe.local.response.type, "download")
+		self.assertTrue(frappe.local.response.filename.endswith(".pdf"))
+		self.assertTrue(frappe.local.response.filecontent.startswith(b"%PDF"))

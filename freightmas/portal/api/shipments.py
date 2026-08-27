@@ -11,7 +11,7 @@
 
 import frappe
 from frappe import _
-from frappe.utils import formatdate, getdate, now_datetime, nowdate
+from frappe.utils import add_days, formatdate, getdate, now_datetime, nowdate
 
 from freightmas.freightmas.report.report_export_utils import send_excel_response
 from freightmas.portal.security import (
@@ -35,7 +35,7 @@ JOB_LIST_FIELDS = [
 	"name", "customer_reference", "direction", "shipment_mode", "shipment_type",
 	"status", "operational_phase", "operational_substage",
 	"port_of_loading", "port_of_discharge", "destination",
-	"vessel_flight_no", "bl_number", "cargo_count", "eta", "ata", "etd", "atd",
+	"vessel_flight_no", "bl_number", "cargo_count", "cargo_description", "eta", "ata", "etd", "atd",
 	"discharge_date", "current_comment", "last_updated_on",
 ]
 
@@ -193,6 +193,173 @@ def _job_list_filters(
 	return filters, or_filters
 
 
+def _count_jobs(filters, or_filters=None):
+	if or_filters:
+		return len(
+			frappe.get_all(
+				"Forwarding Job",
+				filters=filters,
+				or_filters=or_filters,
+				pluck="name",
+			)
+		)
+	return frappe.db.count("Forwarding Job", filters=filters)
+
+
+def _delayed_job_clause():
+	return """
+		(
+			(direction = 'Import' AND eta IS NOT NULL AND eta < %(today)s AND IFNULL(ata, '') = '')
+			OR (direction = 'Export' AND etd IS NOT NULL AND etd < %(today)s AND IFNULL(atd, '') = '')
+		)
+	"""
+
+
+def _portal_customer_display_name(customers):
+	if len(customers) == 1:
+		return frappe.db.get_value("Customer", customers[0], "customer_name") or customers[0]
+	return _("Your Account")
+
+
+def _fetch_tracking_report_jobs(customers, status=None, direction=None, operational_phase=None, operational_phases=None, overview_bucket=None, search=None):
+	filters, or_filters = _job_list_filters(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
+	filters["docstatus"] = 0
+	jobs = frappe.get_all(
+		"Forwarding Job",
+		filters=filters,
+		or_filters=or_filters,
+		fields=["name"],
+		order_by="modified desc",
+	)
+	return jobs, filters, or_filters
+
+
+def _build_portal_tracking_pdf(customers, status=None, direction=None, operational_phase=None, operational_phases=None, overview_bucket=None, search=None):
+	from freightmas.freightmas.page.shipment_dashboard.shipment_dashboard import (
+		_build_job_dossier_context,
+		_summarize_statuses,
+	)
+	from freightmas.utils.company_branding import company_logo_data_uri
+
+	jobs, _filters, _or_filters = _fetch_tracking_report_jobs(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
+
+	dossier_jobs = []
+	for i, job in enumerate(jobs, start=1):
+		ctx = _build_job_dossier_context(job.name)
+		ctx["num"] = i
+		dossier_jobs.append(ctx)
+
+	company = frappe.db.get_single_value("Global Defaults", "default_company") or "FreightMas"
+	company_name = frappe.db.get_value("Company", company, "company_name") or company
+	customer_name = _portal_customer_display_name(customers)
+	generated_on = now_datetime().strftime("%d %b %Y")
+
+	html = frappe.render_template(
+		"freightmas/templates/shipment_tracking_report.html",
+		{
+			"company": company_name,
+			"customer": customer_name,
+			"logo": company_logo_data_uri(company),
+			"jobs": dossier_jobs,
+			"generated_on": generated_on,
+			"summary": _summarize_statuses(dossier_jobs),
+		},
+	)
+
+	from frappe.utils.pdf import get_pdf
+
+	return get_pdf(
+		html,
+		options={
+			"orientation": "Portrait",
+			"page-size": "A4",
+			"margin-top": "12mm",
+			"margin-bottom": "16mm",
+			"margin-left": "10mm",
+			"margin-right": "10mm",
+			"footer-left": f"Prepared for {customer_name} — Confidential",
+			"footer-right": "Page [page] of [topage]",
+			"footer-font-size": "8",
+			"footer-spacing": "4",
+		},
+	)
+
+
+@frappe.whitelist()
+def get_tracking_summary(
+	status=None,
+	direction=None,
+	operational_phase=None,
+	operational_phases=None,
+	overview_bucket=None,
+	search=None,
+):
+	check_portal_access()
+	customers = _caller_customer_filter()
+	today = getdate(nowdate())
+
+	base_filters = {"docstatus": ["<", 2], "customer": ["in", customers]}
+	active_filters = {**base_filters, "status": ["not in", NOT_ACTIVE_STATUSES]}
+	at_port_filters = {
+		**active_filters,
+		"operational_phase": ["in", ["at_terminal", "under_port_clearance"]],
+	}
+	arriving_filters = {
+		**active_filters,
+		"direction": "Import",
+		"eta": ["between", [today, add_days(today, 14)]],
+		"ata": ["is", "not set"],
+	}
+
+	list_filters, or_filters = _job_list_filters(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
+
+	delayed_count = frappe.db.sql(
+		f"""
+		SELECT COUNT(*) AS total
+		FROM `tabForwarding Job`
+		WHERE customer IN %(customers)s
+			AND docstatus < 2
+			AND status NOT IN %(statuses)s
+			AND {_delayed_job_clause()}
+		""",
+		{"customers": customers, "today": today, "statuses": NOT_ACTIVE_STATUSES},
+	)[0][0]
+
+	log_portal_access("view_tracking_summary", doctype="Forwarding Job")
+
+	return {
+		"active_count": frappe.db.count("Forwarding Job", active_filters),
+		"delayed_count": delayed_count,
+		"at_port_count": frappe.db.count("Forwarding Job", at_port_filters),
+		"arriving_soon_count": frappe.db.count("Forwarding Job", arriving_filters),
+		"filtered_count": _count_jobs(list_filters, or_filters),
+	}
+
+
 @frappe.whitelist()
 def get_jobs(
 	status=None,
@@ -231,7 +398,7 @@ def get_jobs(
 		limit_page_length=frappe.utils.cint(limit_page_length),
 	)
 
-	total_count = frappe.db.count("Forwarding Job", filters=filters)
+	total_count = _count_jobs(filters, or_filters)
 
 	progress_map = forwarding_milestone_progress_map([j.name for j in jobs])
 	today = getdate(nowdate())
@@ -449,7 +616,7 @@ def export_tracking_report(
 	check_portal_access()
 	customers = _caller_customer_filter()
 
-	filters, or_filters = _job_list_filters(
+	jobs, filters, or_filters = _fetch_tracking_report_jobs(
 		customers,
 		status,
 		direction,
@@ -458,24 +625,22 @@ def export_tracking_report(
 		overview_bucket,
 		search,
 	)
-	# Tracking is for jobs still being worked - once a job is submitted it's
-	# considered finalized and drops out of this report (unlike the on-screen
-	# Shipments list, which _job_list_filters also backs and still shows
-	# submitted jobs).
-	filters["docstatus"] = 0
-
-	jobs = frappe.get_all(
-		"Forwarding Job",
-		filters=filters,
-		or_filters=or_filters,
-		fields=[
-			"name", "customer_reference", "consignee", "bl_number", "current_comment",
-			"atd", "eta", "ata", "discharge_date", "completed_on",
-			"requires_port_clearance", "requires_border_clearance",
-		],
-		order_by="modified desc",
-	)
 	job_names = [j.name for j in jobs]
+
+	if job_names:
+		jobs = frappe.get_all(
+			"Forwarding Job",
+			filters={"name": ["in", job_names]},
+			fields=[
+				"name", "customer_reference", "consignee", "bl_number", "current_comment",
+				"atd", "eta", "ata", "discharge_date", "completed_on",
+				"requires_port_clearance", "requires_border_clearance",
+			],
+		)
+		order = {name: idx for idx, name in enumerate(job_names)}
+		jobs.sort(key=lambda job: order.get(job.name, 999))
+	else:
+		jobs = []
 
 	customer_name_map = {}
 	consignee_names = list({j.consignee for j in jobs if j.consignee})
@@ -616,3 +781,33 @@ def export_tracking_report(
 	send_excel_response(file_bytes, filename)
 
 	log_portal_access("export_tracking_report", doctype="Forwarding Job")
+
+
+@frappe.whitelist()
+def export_tracking_report_pdf(
+	status=None,
+	direction=None,
+	operational_phase=None,
+	operational_phases=None,
+	overview_bucket=None,
+	search=None,
+):
+	check_portal_access()
+	customers = _caller_customer_filter()
+
+	pdf = _build_portal_tracking_pdf(
+		customers,
+		status,
+		direction,
+		operational_phase,
+		operational_phases,
+		overview_bucket,
+		search,
+	)
+
+	filename = f"Shipment_Tracking_{now_datetime().strftime('%Y%m%d_%H%M')}.pdf"
+	frappe.local.response.filename = filename
+	frappe.local.response.filecontent = pdf
+	frappe.local.response.type = "download"
+
+	log_portal_access("export_tracking_report_pdf", doctype="Forwarding Job")

@@ -12,20 +12,43 @@
 				<StatusBadge :status="invoice.status" />
 			</div>
 
-			<div class="sd-card" style="margin-bottom: 14px;">
-				<div class="sd-card-title">
-					<span class="sd-card-title-main">
-						{{ invoice.job_name ? `${invoice.job_doctype}: ${invoice.job_name}` : "Invoice Details" }}
-					</span>
+			<div
+				class="sd-card sd-invoice-detail-summary"
+				:class="{
+					'sd-invoice-detail-summary--overdue': invoice.is_overdue,
+					'sd-invoice-detail-summary--credit': isCredit,
+				}"
+				style="margin-bottom: 14px;"
+			>
+				<div class="sd-invoice-detail-summary-main">
+					<span class="sd-muted">{{ balanceLabel }}</span>
+					<span class="sd-invoice-detail-summary-balance">{{ balanceAmount }}</span>
 				</div>
 				<ul class="sd-list">
+					<li><span class="sd-muted">Invoice total</span><span>{{ formatMoney(invoice.grand_total) }}</span></li>
 					<li><span class="sd-muted">Posted</span><span>{{ formatDate(invoice.posting_date) }}</span></li>
-					<li><span class="sd-muted">Due Date</span><span>{{ formatDate(invoice.due_date) }}</span></li>
-					<li><span class="sd-muted">Total</span><span>{{ formatMoney(invoice.grand_total) }}</span></li>
+					<li><span class="sd-muted">Due date</span><span>{{ formatDate(invoice.due_date) }}</span></li>
 					<li><span class="sd-muted">Paid</span><span>{{ formatMoney(invoice.grand_total - invoice.outstanding_amount) }}</span></li>
+				</ul>
+			</div>
+
+			<div v-if="shipmentLink" class="sd-card" style="margin-bottom: 14px;">
+				<div class="sd-card-title"><span class="sd-card-title-main">Linked shipment</span></div>
+				<ul class="sd-list">
 					<li>
-						<span class="sd-muted">Balance Due</span>
-						<span style="font-weight: 700;">{{ formatMoney(invoice.outstanding_amount) }}</span>
+						<span class="sd-muted">Reference</span>
+						<span>{{ invoice.job_customer_reference || invoice.job_name }}</span>
+					</li>
+					<li v-if="invoice.job_cargo_count || invoice.job_cargo_description">
+						<span class="sd-muted">Cargo</span>
+						<span>
+							<template v-if="invoice.job_cargo_count">{{ invoice.job_cargo_count }} container(s)</template>
+							<template v-else>{{ invoice.job_cargo_description }}</template>
+						</span>
+					</li>
+					<li>
+						<span class="sd-muted">Job</span>
+						<router-link class="sd-table-link" :to="shipmentLink">{{ invoice.job_name }}</router-link>
 					</li>
 				</ul>
 			</div>
@@ -35,7 +58,10 @@
 				<ul class="sd-list" v-if="invoice.payment_history.length">
 					<li v-for="(p, idx) in invoice.payment_history" :key="idx">
 						<span class="cc-list-label">
-							<span class="cc-list-text">{{ p.mode_of_payment || "Payment" }}<span v-if="p.reference_no"> &middot; Ref {{ p.reference_no }}</span></span>
+							<span class="cc-list-text">
+								{{ p.mode_of_payment || "Payment" }}
+								<span v-if="p.reference_no"> · Ref {{ p.reference_no }}</span>
+							</span>
 						</span>
 						<span style="display: flex; gap: 10px; align-items: center;">
 							<span>{{ formatMoney(p.paid_amount) }}</span>
@@ -60,6 +86,11 @@ import { computed, ref, watch } from "vue";
 import { Download, Receipt } from "@lucide/vue";
 import { api } from "../api/invoices";
 import { formatDate, formatMoney } from "../format";
+import {
+	invoiceBalanceAmount,
+	invoiceBalanceLabel,
+	invoiceIsCredit,
+} from "../utils/invoiceList";
 import StatusBadge from "../components/StatusBadge.vue";
 import EmptyState from "../components/EmptyState.vue";
 
@@ -70,6 +101,14 @@ const loading = ref(true);
 const error = ref("");
 
 const pdfUrl = computed(() => api.downloadPdfUrl(props.invoiceName));
+const isCredit = computed(() => (invoice.value ? invoiceIsCredit(invoice.value) : false));
+const balanceLabel = computed(() => (invoice.value ? invoiceBalanceLabel(invoice.value) : "Balance due"));
+const balanceAmount = computed(() => (invoice.value ? invoiceBalanceAmount(invoice.value) : ""));
+const shipmentLink = computed(() =>
+	invoice.value?.job_doctype === "Forwarding Job" && invoice.value?.job_name
+		? `/shipments/${encodeURIComponent(invoice.value.job_name)}`
+		: null,
+);
 
 async function load(invoiceName) {
 	loading.value = true;
