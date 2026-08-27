@@ -46,7 +46,7 @@
 								View all &rarr;
 							</router-link>
 						</div>
-						<div v-if="data.in_motion_jobs.length" class="sd-dashboard-in-motion-list">
+						<div v-if="data.in_motion_jobs.length" class="sd-shipment-list">
 							<ShipmentListCard
 								v-for="job in data.in_motion_jobs"
 								:key="job.name"
@@ -135,16 +135,6 @@ onMounted(load);
 
 .sd-dashboard-in-motion-card {
 	height: 100%;
-}
-
-.sd-dashboard-in-motion-list {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-.sd-dashboard-in-motion-item :deep(.sd-shipment-list-card) {
-	display: block;
 }
 
 .sd-pipeline-section-head {
