@@ -4,26 +4,21 @@
 		class="sd-shipment-list-card"
 		:class="{ 'sd-shipment-list-card--overdue': job.is_overdue }"
 	>
-		<div class="sd-shipment-list-card-main">
-			<div class="sd-shipment-list-card-head">
-				<div class="sd-shipment-list-card-identity">
-					<div class="sd-shipment-list-card-primary">{{ primaryLabel }}</div>
-					<div class="sd-shipment-list-card-cargo">{{ cargoLine }}</div>
-				</div>
-				<StatusBadge :status="job.status" />
+		<div class="sd-shipment-list-card-row sd-shipment-list-card-row--top">
+			<div class="sd-shipment-list-card-top-main">
+				<span class="sd-shipment-list-card-primary">{{ primaryLabel }}</span>
+				<span class="sd-shipment-list-card-cargo-inline">{{ cargoLine }}</span>
 			</div>
+			<div class="sd-shipment-list-card-top-aside">
+				<StatusBadge :status="job.status" />
+				<span class="sd-shipment-list-card-progress-value">{{ progressPercent }}%</span>
+			</div>
+		</div>
 
-			<p v-if="job.current_comment" class="sd-shipment-list-card-headline">{{ job.current_comment }}</p>
-			<p class="sd-shipment-list-card-meta sd-muted">{{ metaLine }}</p>
-
-			<div class="sd-shipment-list-card-foot">
-				<span class="sd-shipment-list-card-phase">{{ formatOperationalPhase(job) }}</span>
-				<div class="sd-shipment-list-card-progress">
-					<span class="sd-shipment-list-card-progress-value">
-						{{ progressPercent }}%
-					</span>
-					<ProgressBar :percent="progressPercent" />
-				</div>
+		<div class="sd-shipment-list-card-row sd-shipment-list-card-row--bottom">
+			<p class="sd-shipment-list-card-subline sd-muted">{{ subline }}</p>
+			<div class="sd-shipment-list-card-progress-inline">
+				<ProgressBar :percent="progressPercent" :show-label="false" />
 			</div>
 		</div>
 	</router-link>
@@ -32,11 +27,8 @@
 <script setup>
 import { computed } from "vue";
 import {
-	formatOperationalPhase,
-} from "../operationalPhases";
-import {
 	shipmentCargoLine,
-	shipmentMetaLine,
+	shipmentCompactSubline,
 	shipmentPrimaryLabel,
 } from "../utils/shipmentList";
 import ProgressBar from "./ProgressBar.vue";
@@ -48,7 +40,7 @@ const props = defineProps({
 
 const primaryLabel = computed(() => shipmentPrimaryLabel(props.job));
 const cargoLine = computed(() => shipmentCargoLine(props.job));
-const metaLine = computed(() => shipmentMetaLine(props.job));
+const subline = computed(() => shipmentCompactSubline(props.job));
 const progressPercent = computed(
 	() => props.job.client_progress_percent ?? props.job.milestone_percent ?? 0,
 );

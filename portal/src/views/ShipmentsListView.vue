@@ -1,13 +1,5 @@
 <template>
 	<div>
-		<ShipmentTrackingSummary
-			v-if="summary && !summaryLoading"
-			:summary="summary"
-			:has-filters="hasActiveFilters"
-			style="margin-bottom: 14px;"
-		/>
-		<div v-else-if="summaryLoading" class="sd-card cc-skeleton" style="height: 72px; margin-bottom: 14px;"></div>
-
 		<div class="sd-toolbar">
 			<nav class="sd-tabs" style="margin-bottom: 0;">
 				<button
@@ -73,7 +65,6 @@ import { api } from "../api/shipments";
 import EmptyState from "../components/EmptyState.vue";
 import PhaseMultiSelect from "../components/PhaseMultiSelect.vue";
 import ShipmentListCard from "../components/ShipmentListCard.vue";
-import ShipmentTrackingSummary from "../components/ShipmentTrackingSummary.vue";
 import {
 	OPERATIONAL_PHASE_OPTIONS,
 	phasesFromBucket,
@@ -102,18 +93,11 @@ const direction = ref("");
 const selectedPhases = ref([]);
 const jobs = ref([]);
 const totalCount = ref(0);
-const summary = ref(null);
 const loading = ref(true);
-const summaryLoading = ref(true);
 const error = ref("");
 const page = ref(0);
 const pageSize = 20;
 let debounceTimer = null;
-
-const hasActiveFilters = computed(
-	() =>
-		Boolean(search.value || direction.value || selectedPhases.value.length || status.value),
-);
 
 function applyRouteFilters() {
 	const bucket = typeof route.query.bucket === "string" ? route.query.bucket : "";
@@ -173,17 +157,6 @@ function buildFilterParams() {
 	};
 }
 
-async function loadSummary() {
-	summaryLoading.value = true;
-	try {
-		summary.value = await api.getTrackingSummary(buildFilterParams());
-	} catch {
-		summary.value = null;
-	} finally {
-		summaryLoading.value = false;
-	}
-}
-
 async function load() {
 	loading.value = true;
 	error.value = "";
@@ -202,14 +175,10 @@ async function load() {
 	}
 }
 
-async function reload() {
-	await Promise.all([load(), loadSummary()]);
-}
-
 function onFilterChange() {
 	page.value = 0;
 	clearTimeout(debounceTimer);
-	debounceTimer = setTimeout(reload, 300);
+	debounceTimer = setTimeout(load, 300);
 }
 
 function onPhasesChange() {
@@ -218,7 +187,7 @@ function onPhasesChange() {
 		status.value = "";
 	}
 	syncPhasesToRoute();
-	reload();
+	load();
 }
 
 function setStatus(value) {
@@ -227,7 +196,7 @@ function setStatus(value) {
 	page.value = 0;
 	selectedPhases.value = [];
 	syncStatusToRoute();
-	reload();
+	load();
 }
 
 function changePage(delta) {
@@ -246,7 +215,7 @@ watch(
 			syncPhasesToRoute();
 		}
 		page.value = 0;
-		reload();
+		load();
 	},
 );
 
@@ -258,6 +227,6 @@ onMounted(() => {
 	if (route.query.bucket) {
 		syncPhasesToRoute();
 	}
-	reload();
+	load();
 });
 </script>

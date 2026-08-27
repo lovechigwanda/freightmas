@@ -40,6 +40,7 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 			"active_count",
 			"delayed_count",
 			"arriving_soon_count",
+			"attention_count",
 			"attention_items",
 			"in_motion_jobs",
 			"financial_snapshot",
@@ -51,13 +52,12 @@ class TestPortalDashboardOverview(IntegrationTestCase):
 
 		self.assertGreaterEqual(result["active_count"], 1)
 		self.assertGreaterEqual(result["delayed_count"], 1)
-		in_motion = result["in_motion_jobs"][0]
-		self.assertIn("milestone_percent", in_motion)
-		self.assertIn("operational_phase_label", in_motion)
-		self.assertIn("is_overdue", in_motion)
-		self.assertTrue(in_motion["is_overdue"])
+		self.assertGreaterEqual(result["attention_count"], 1)
 		delayed_items = [row for row in result["attention_items"] if row["type"] == "delayed_shipment"]
 		self.assertTrue(any(row["job_name"] == job_a.name for row in delayed_items))
+		attention_job_names = {row["job_name"] for row in result["attention_items"] if row.get("job_name")}
+		for job in result["in_motion_jobs"]:
+			self.assertNotIn(job["name"], attention_job_names)
 		self.assertIn("overdue_invoice_count", result["financial_snapshot"])
 
 	def test_get_overview_scopes_delayed_jobs_to_own_customer(self):

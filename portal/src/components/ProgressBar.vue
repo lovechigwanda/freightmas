@@ -2,7 +2,7 @@
 	<span class="sd-progress" :title="`${percent}%`">
 		<span :style="{ width: percent + '%', background: color }"></span>
 	</span>
-	<span class="sd-muted" style="font-size: 11px; margin-left: 6px">{{ percent }}%</span>
+	<span v-if="showLabel" class="sd-muted" style="font-size: 11px; margin-left: 6px">{{ percent }}%</span>
 </template>
 
 <script setup>
@@ -10,6 +10,7 @@ import { computed } from "vue";
 
 const props = defineProps({
 	percent: { type: Number, default: 0 },
+	showLabel: { type: Boolean, default: true },
 });
 
 const color = computed(() => {

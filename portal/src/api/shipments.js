@@ -5,7 +5,6 @@ const client = createApiClient("freightmas.portal.api.shipments");
 export const api = {
 	getJobs: (params) => client.call("get_jobs", params),
 	getJobDetail: (jobName) => client.call("get_job_detail", { job_name: jobName }),
-	getTrackingSummary: (params) => client.call("get_tracking_summary", params),
 	exportTrackingReportUrl: (params) => client.buildUrl("export_tracking_report", params),
 	exportTrackingReportPdfUrl: (params) => client.buildUrl("export_tracking_report_pdf", params),
 };

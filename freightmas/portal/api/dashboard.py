@@ -337,35 +337,31 @@ def _attention_items(customers, today):
 	return items[:ATTENTION_LIMIT]
 
 
-def _in_motion_jobs(customers, today, delayed_jobs, arriving_jobs):
+def _in_motion_jobs(customers, today, exclude_job_names=None):
+	"""Recent active jobs excluding any already surfaced in the attention queue."""
+	exclude = set(exclude_job_names or [])
 	ordered_names = []
-	for job in delayed_jobs:
-		if job.name not in ordered_names:
-			ordered_names.append(job.name)
-	for job in arriving_jobs:
-		if job.name not in ordered_names:
-			ordered_names.append(job.name)
 
-	if len(ordered_names) < IN_MOTION_LIMIT:
-		active_filters = {
-			"docstatus": ["<", 2],
-			"customer": ["in", customers],
-			"status": ["not in", NOT_ACTIVE_STATUSES],
-		}
-		extra = frappe.get_all(
-			"Forwarding Job",
-			filters=active_filters,
-			fields=["name"],
-			order_by="modified desc",
-			limit_page_length=IN_MOTION_LIMIT * 2,
-		)
-		for row in extra:
-			if row.name not in ordered_names:
-				ordered_names.append(row.name)
-			if len(ordered_names) >= IN_MOTION_LIMIT:
-				break
+	active_filters = {
+		"docstatus": ["<", 2],
+		"customer": ["in", customers],
+		"status": ["not in", NOT_ACTIVE_STATUSES],
+	}
+	extra = frappe.get_all(
+		"Forwarding Job",
+		filters=active_filters,
+		fields=["name"],
+		order_by="modified desc",
+		limit_page_length=IN_MOTION_LIMIT * 4,
+	)
+	for row in extra:
+		if row.name in exclude:
+			continue
+		if row.name not in ordered_names:
+			ordered_names.append(row.name)
+		if len(ordered_names) >= IN_MOTION_LIMIT:
+			break
 
-	ordered_names = ordered_names[:IN_MOTION_LIMIT]
 	if not ordered_names:
 		return []
 
@@ -401,9 +397,11 @@ def get_overview():
 	delayed_count = _delayed_job_count(customers, today)
 	arriving_soon_count = _arriving_soon_count(customers, today)
 
-	delayed_jobs = _delayed_jobs(customers, today, limit=IN_MOTION_LIMIT)
-	arriving_jobs = _arriving_soon_jobs(customers, today, limit=IN_MOTION_LIMIT)
 	billing = _billing_summary(customers, today)
+	attention_items = _attention_items(customers, today)
+	attention_job_names = {
+		item["job_name"] for item in attention_items if item.get("job_name")
+	}
 
 	log_portal_access("view_dashboard", customer=customers[0] if len(customers) == 1 else None)
 
@@ -412,8 +410,9 @@ def get_overview():
 		"active_count": active_count,
 		"delayed_count": delayed_count,
 		"arriving_soon_count": arriving_soon_count,
-		"attention_items": _attention_items(customers, today),
-		"in_motion_jobs": _in_motion_jobs(customers, today, delayed_jobs, arriving_jobs),
+		"attention_count": len(attention_items),
+		"attention_items": attention_items,
+		"in_motion_jobs": _in_motion_jobs(customers, today, exclude_job_names=attention_job_names),
 		"financial_snapshot": billing,
 		**billing,
 	}

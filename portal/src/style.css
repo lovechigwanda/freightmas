@@ -2425,14 +2425,16 @@ h1, h2, h3, h4 {
 .sd-shipment-list {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 6px;
 }
 
 .sd-shipment-list-card {
-	display: block;
-	padding: 16px 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 10px 14px;
 	border: 1px solid var(--sd-border-soft);
-	border-radius: 12px;
+	border-radius: 10px;
 	background: var(--sd-surface);
 	text-decoration: none;
 	color: inherit;
@@ -2448,73 +2450,83 @@ h1, h2, h3, h4 {
 	border-left: 3px solid var(--sd-red);
 }
 
-.sd-shipment-list-card-head {
+.sd-shipment-list-card-row {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	margin-bottom: 8px;
+	min-width: 0;
+}
+
+.sd-shipment-list-card-top-main {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	min-width: 0;
+	flex: 1;
 }
 
 .sd-shipment-list-card-primary {
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 700;
-	line-height: 1.3;
+	line-height: 1.25;
 	color: var(--sd-text);
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
-.sd-shipment-list-card-cargo {
-	margin-top: 4px;
-	font-size: 13px;
-	font-weight: 600;
-	color: var(--sd-text-muted);
-}
-
-.sd-shipment-list-card-headline {
-	margin: 0 0 6px;
-	font-size: 13px;
-	line-height: 1.4;
-	color: var(--sd-text);
-}
-
-.sd-shipment-list-card-meta {
-	margin: 0 0 12px;
+.sd-shipment-list-card-cargo-inline {
 	font-size: 12px;
-	line-height: 1.4;
-}
-
-.sd-shipment-list-card-foot {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-}
-
-.sd-shipment-list-card-phase {
-	font-size: 12px;
-	font-weight: 600;
+	font-weight: 500;
 	color: var(--sd-text-muted);
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
 }
 
-.sd-shipment-list-card-progress {
+.sd-shipment-list-card-cargo-inline::before {
+	content: "·";
+	margin-right: 8px;
+	color: var(--sd-text-faint);
+}
+
+.sd-shipment-list-card-top-aside {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	min-width: 160px;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.sd-shipment-list-card-subline {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	flex: 1;
-	max-width: 280px;
+	min-width: 0;
+}
+
+.sd-shipment-list-card-progress-inline {
+	display: flex;
+	align-items: center;
+	width: 88px;
+	flex-shrink: 0;
+}
+
+.sd-shipment-list-card-progress-inline .sd-progress {
+	flex: 1;
+	min-width: 0;
+	height: 4px;
 }
 
 .sd-shipment-list-card-progress-value {
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: 700;
 	color: var(--sd-text-muted);
 	white-space: nowrap;
-}
-
-.sd-shipment-list-card-progress .sd-progress {
-	flex: 1;
 }
 
 .sd-shipment-list-footer {
@@ -2775,15 +2787,24 @@ h1, h2, h3, h4 {
 	padding: 18px 20px;
 }
 
-.sd-dashboard-headline-text {
+.sd-dashboard-headline-greeting {
 	margin: 0;
 	font-size: 15px;
-	line-height: 1.5;
+	font-weight: 600;
+	line-height: 1.4;
 	color: var(--sd-text);
+}
+
+.sd-dashboard-headline-text {
+	margin: 6px 0 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--sd-text-muted);
 }
 
 .sd-dashboard-headline-text strong {
 	font-weight: 700;
+	color: var(--sd-text);
 }
 
 .sd-dashboard-headline-warn {
@@ -2792,12 +2813,7 @@ h1, h2, h3, h4 {
 
 .sd-dashboard-headline-sep {
 	margin: 0 6px;
-	color: var(--sd-text-muted);
-}
-
-.sd-dashboard-headline-greeting {
-	margin: 6px 0 0;
-	font-size: 13px;
+	color: var(--sd-text-faint);
 }
 
 .sd-dashboard-kpi-link:hover .sd-card {
@@ -3246,14 +3262,12 @@ h1, h2, h3, h4 {
 		width: 100%;
 	}
 
-	.sd-shipment-list-card-foot {
-		flex-direction: column;
-		align-items: flex-start;
+	.sd-shipment-list-card-row--bottom {
+		flex-wrap: wrap;
 	}
 
-	.sd-shipment-list-card-progress {
+	.sd-shipment-list-card-progress-inline {
 		width: 100%;
-		max-width: none;
 	}
 
 	.sd-tracking-summary-stats {

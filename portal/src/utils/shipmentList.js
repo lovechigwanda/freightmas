@@ -39,3 +39,26 @@ export function shipmentMetaLine(job) {
 	}
 	return parts.join(" · ");
 }
+
+export function shipmentCompactSubline(job) {
+	const parts = [];
+	if (job?.current_comment) {
+		parts.push(job.current_comment);
+	} else if (job?.operational_phase_label) {
+		parts.push(job.operational_phase_label);
+	}
+
+	const primary = shipmentPrimaryLabel(job);
+	if (job?.name && job.name !== primary) {
+		parts.push(job.name);
+	}
+
+	const isExport = job?.direction === "Export";
+	const primaryDate = isExport ? job?.etd : job?.eta;
+	const dateLabel = isExport ? "ETD" : "ETA";
+	if (primaryDate) {
+		parts.push(`${dateLabel} ${formatDate(primaryDate)}`);
+	}
+
+	return parts.join(" · ");
+}
