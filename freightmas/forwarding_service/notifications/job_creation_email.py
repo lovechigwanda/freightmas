@@ -269,8 +269,18 @@ def render_job_creation_email_template(forwarding_job, template_name):
 
 
 @frappe.whitelist()
-def send_job_creation_notification(forwarding_job, to_email, subject, message, cc_emails=None):
-	"""Send the job creation notification email and mark the job as notified."""
+def send_job_creation_notification(
+	forwarding_job, to_email, subject, message, cc_emails=None, template_name=None
+):
+	"""Send the job creation notification email and mark the job as notified.
+
+	The dialog's message field is a rich-text (Text Editor) widget, which
+	normalizes any HTML loaded into it and strips the template's inline styles
+	(table padding, font weights, borderless layout). To keep what the customer
+	receives identical to the Email Template, re-render the selected template
+	server-side and send that faithful HTML, rather than the editor's copy. The
+	subject stays editable and is taken as-is from the dialog.
+	"""
 	check_doc_read_permission("Forwarding Job", forwarding_job)
 
 	if not _notifications_enabled():
@@ -282,6 +292,9 @@ def send_job_creation_notification(forwarding_job, to_email, subject, message, c
 
 	_validate_email_address(to_email)
 	cc = _parse_cc_emails(cc_emails)
+
+	if template_name and frappe.db.exists("Email Template", template_name):
+		message = render_job_creation_email(job, template_name=template_name)["message"]
 
 	frappe.sendmail(
 		recipients=[to_email],

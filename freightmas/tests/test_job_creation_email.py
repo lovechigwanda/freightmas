@@ -368,6 +368,48 @@ class TestJobCreationEmail(IntegrationTestCase):
 		)
 
 	@patch("freightmas.forwarding_service.notifications.job_creation_email.frappe.sendmail")
+	def test_send_job_creation_notification_rerenders_template(self, mock_sendmail):
+		"""When a template is selected, send the faithfully rendered HTML, not the
+		editor's normalized copy passed in the message arg."""
+		_enable_job_creation_notifications(1)
+		_ensure_job_creation_email_template()
+		customer = _make_customer("sendtpl", tracking_email="track@example.com")
+		job = _make_forwarding_job(customer, "sendtpl", bl_number="BL-SEND")
+		frappe.set_user("Administrator")
+
+		editor_copy = "<p>stripped editor copy</p>"
+		result = send_job_creation_notification(
+			job.name,
+			"track@example.com",
+			build_job_creation_subject(job.name, customer.customer_name, job.customer_reference),
+			editor_copy,
+			template_name=JOB_CREATION_TEMPLATE_NAME,
+		)
+		self.assertTrue(result["success"])
+		sent_message = mock_sendmail.call_args.kwargs["message"]
+		self.assertNotEqual(sent_message, editor_copy)
+		self.assertIn("Job Reference:", sent_message)
+		self.assertIn("BL-SEND", sent_message)
+		self.assertIn("font-weight: 600", sent_message)
+
+	@patch("freightmas.forwarding_service.notifications.job_creation_email.frappe.sendmail")
+	def test_send_job_creation_notification_uses_message_without_template(self, mock_sendmail):
+		"""With no template selected, fall back to the message arg as-is."""
+		_enable_job_creation_notifications(1)
+		customer = _make_customer("sendnotpl", tracking_email="track@example.com")
+		job = _make_forwarding_job(customer, "sendnotpl")
+		frappe.set_user("Administrator")
+
+		send_job_creation_notification(
+			job.name,
+			"track@example.com",
+			build_job_creation_subject(job.name, customer.customer_name, job.customer_reference),
+			"<p>plain message</p>",
+			template_name="",
+		)
+		self.assertEqual(mock_sendmail.call_args.kwargs["message"], "<p>plain message</p>")
+
+	@patch("freightmas.forwarding_service.notifications.job_creation_email.frappe.sendmail")
 	def test_send_job_creation_notification_blocks_second_send(self, mock_sendmail):
 		_enable_job_creation_notifications(1)
 		customer = _make_customer("send2", tracking_email="track@example.com")

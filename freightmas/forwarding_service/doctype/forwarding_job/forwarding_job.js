@@ -2949,7 +2949,8 @@ function show_job_creation_email_dialog(frm, draft) {
                     to_email: values.to_email,
                     subject: values.subject,
                     message: values.message,
-                    cc_emails: values.cc_emails || ''
+                    cc_emails: values.cc_emails || '',
+                    template_name: values.email_template || ''
                 },
                 freeze: true,
                 freeze_message: __('Sending email...'),
