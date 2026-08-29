@@ -53,6 +53,26 @@ class ForwardingJob(Document):
 
         set_operational_phase(self)
 
+        from freightmas.forwarding_service.utils.tracking_orchestrator import (
+            sync_current_comment,
+            sync_service_comment_timeline_changes,
+        )
+
+        previous = None
+        if not self.is_new() and self.name:
+            previous = frappe.db.get_value(
+                self.doctype,
+                self.name,
+                [
+                    "port_clearance_tracking_comment",
+                    "border_clearance_tracking_comment",
+                    "warehouse_tracking_comment",
+                ],
+                as_dict=True,
+            )
+        sync_service_comment_timeline_changes(self, previous)
+        sync_current_comment(self)
+
     def lock_services_required_once_set(self):
         """Once a Services Required checkbox has been saved as ticked, it can
         never be turned off again (0 -> 1 is always allowed; 1 -> 0 is not).
@@ -1761,10 +1781,7 @@ def fetch_containers_from_bl(docname):
 
     from freightmas.integrations.tracking.dispatcher import fetch_tracking
     from freightmas.integrations.tracking.lifecycle import apply_provider_extras
-    from freightmas.integrations.tracking.status_labels import (
-        build_tracking_comment,
-        standardized_event_label,
-    )
+    from freightmas.integrations.tracking.status_labels import standardized_event_label
     from freightmas.utils.master_data_sync import (
         match_container_type,
         match_or_create_port,
@@ -1868,8 +1885,6 @@ def fetch_containers_from_bl(docname):
         ct_event = standardized_event_label(ct_code, ct_raw_event, ct_actual)
         ct_event_date = _extract_date(ct.get("latest_event_date"))
         ct_location = ct.get("latest_event_port", "")
-        # Build tracking comment: "In Transit - Vessel Discharged: 30-Jul-26"
-        ct_comment = build_tracking_comment(ct_status, ct_code, ct_raw_event, ct_event_date, ct_actual)
 
         if ct_number in existing_rows:
             # Update existing row
@@ -1879,10 +1894,7 @@ def fetch_containers_from_bl(docname):
             row.api_container_status = ct_status
             row.api_last_event = ct_event
             row.api_last_event_date = ct_event_date
-            row.tracking_comment = ct_comment
             row.truck_location = ct_location
-            row.updated_on = now_datetime()
-            row.updated_by = "Administrator"
             if ct.get("discharge_date"):
                 row.discharge_date = ct["discharge_date"]
             if ct.get("gate_out_date"):
@@ -1899,10 +1911,7 @@ def fetch_containers_from_bl(docname):
                 "api_container_status": ct_status,
                 "api_last_event": ct_event,
                 "api_last_event_date": ct_event_date,
-                "tracking_comment": ct_comment,
                 "truck_location": ct_location,
-                "updated_on": now_datetime(),
-                "updated_by": "Administrator",
                 "discharge_date": ct.get("discharge_date"),
                 "gate_out_date": ct.get("gate_out_date"),
                 "empty_return_date": ct.get("empty_return_date"),
@@ -1952,12 +1961,15 @@ def fetch_containers_from_bl(docname):
     doc.api_call_count = (doc.api_call_count or 0) + 1
 
     # --- Update unified tracking timeline (dedup at BL level) ---
+    from freightmas.forwarding_service.utils.operational_phase import set_operational_phase
+    from freightmas.forwarding_service.utils.tracking_orchestrator import sync_current_comment
+
     _update_tracking_timeline(
         doc, new_status, latest_event_code, latest_event_raw, latest_event_actual, latest_event_date, now
     )
 
-    # --- Sync summary fields from the last timeline row ---
-    _sync_tracking_summary(doc)
+    set_operational_phase(doc)
+    sync_current_comment(doc)
 
     # --- Keep DND & Storage in sync with the freshly-updated container dates ---
     # Rebuild the DND rows from the current containerised cargo and recalculate, so DND &
@@ -1991,6 +2003,13 @@ def _update_tracking_timeline(
     into a single event string (e.g. "Delivered - Empty container returned: 18-Apr-26").
     """
     from freightmas.integrations.tracking.status_labels import build_tracking_comment
+    from freightmas.forwarding_service.utils.tracking_orchestrator import (
+        SERVICE_SEA_AIR,
+        api_owns_job_narrative,
+    )
+
+    if not api_owns_job_narrative(doc):
+        return
 
     # Format the event date as DD-Mon-YY
     date_str = ""
@@ -2019,6 +2038,7 @@ def _update_tracking_timeline(
         # New event — append to timeline
         doc.append("tracking_timeline", {
             "source": "API",
+            "service": SERVICE_SEA_AIR,
             "event": combined_event,
             "date": now,
             "last_verified": now,
@@ -2156,16 +2176,6 @@ def push_dnd_to_charges(job_name):
 	if overwriting:
 		msg += f" Existing rows replaced: {', '.join(overwriting)}."
 	return msg
-
-
-def _sync_tracking_summary(doc):
-    """Update current_comment, last_updated_by, last_updated_on from the last timeline row."""
-    timeline = doc.get("tracking_timeline") or []
-    if timeline:
-        last = timeline[-1]
-        doc.current_comment = last.event
-        doc.last_updated_on = last.date
-        doc.last_updated_by = last.updated_by_name or last.updated_by
 
 
 def _extract_date(datetime_str):

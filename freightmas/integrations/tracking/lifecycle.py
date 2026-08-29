@@ -33,6 +33,14 @@ def _append_eta_history(doc, history_rows):
 	if not history_rows or not hasattr(doc, "tracking_timeline"):
 		return
 
+	from freightmas.forwarding_service.utils.tracking_orchestrator import (
+		SERVICE_SEA_AIR,
+		api_owns_job_narrative,
+	)
+
+	if not api_owns_job_narrative(doc):
+		return
+
 	for row in history_rows:
 		if not row.get("eta"):
 			continue
@@ -49,6 +57,7 @@ def _append_eta_history(doc, history_rows):
 
 		doc.append("tracking_timeline", {
 			"source": "API",
+			"service": SERVICE_SEA_AIR,
 			"event": event_text,
 			"date": row.get("recorded_at") or frappe.utils.now_datetime(),
 			"last_verified": frappe.utils.now_datetime(),

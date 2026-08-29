@@ -2,6 +2,16 @@ import frappe
 from frappe.utils import now, today, get_datetime, format_datetime
 from frappe import _
 from freightmas.utils.permissions import check_freightmas_role
+from freightmas.forwarding_service.utils.tracking_orchestrator import (
+	ROAD_SIGNIFICANT_MILESTONES,
+	SERVICE_ROAD,
+	append_road_timeline_event,
+)
+
+
+def _maybe_append_road_timeline(doc, milestone=None, comment=None):
+	if milestone in ROAD_SIGNIFICANT_MILESTONES or (comment or "").strip():
+		append_road_timeline_event(doc, comment, milestone)
 
 
 def get_context(context):
@@ -187,6 +197,7 @@ def bulk_update_milestone(job, cargo_indices, milestone, date=None, comment=None
 
         # Save document once for all updates
         if updated_count > 0:
+            _maybe_append_road_timeline(doc, milestone=milestone, comment=comment)
             doc.save(ignore_permissions=True)
             frappe.db.commit()
 
@@ -292,6 +303,7 @@ def update_milestone(job, cargo_idx, milestone, date=None, comment=None, border_
         cargo.updated_on = now()
         cargo.updated_by = frappe.session.user
 
+        _maybe_append_road_timeline(doc, milestone=milestone, comment=comment)
         doc.save(ignore_permissions=True)
         frappe.db.commit()
 
@@ -322,6 +334,8 @@ def update_tracking(job, cargo_idx, truck_location=None, comment=None):
         cargo.updated_on = now()
         cargo.updated_by = frappe.session.user
 
+        if comment:
+            _maybe_append_road_timeline(doc, comment=comment)
         doc.save(ignore_permissions=True)
         frappe.db.commit()
 
@@ -448,16 +462,12 @@ def add_job_tracking(job, comment):
         # Add to the unified tracking timeline
         doc.append("tracking_timeline", {
             "source": "Manual",
+            "service": SERVICE_ROAD,
             "event": comment,
             "date": now(),
             "updated_by": frappe.session.user,
         })
-        
-        # Update the current comment fields
-        doc.current_comment = comment
-        doc.last_updated_by = frappe.session.user
-        doc.last_updated_on = now()
-        
+
         doc.save(ignore_permissions=True)
         frappe.db.commit()
         

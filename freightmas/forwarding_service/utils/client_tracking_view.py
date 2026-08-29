@@ -10,6 +10,7 @@ import frappe
 from frappe.utils import formatdate, getdate, nowdate
 
 from freightmas.forwarding_service.utils.operational_phase import get_phase_label
+from freightmas.forwarding_service.utils.tracking_orchestrator import resolve_client_headline
 
 DOSSIER_STATUS_LABELS = {
 	"orange": "In Progress",
@@ -229,8 +230,9 @@ def dossier_status_key(doc, today=None):
 
 
 def dossier_latest_line(doc, status_key):
-	if doc.current_comment:
-		return doc.current_comment
+	headline = resolve_client_headline(doc)
+	if headline:
+		return headline
 	if status_key == "green":
 		return "Delivered · Job closed" if doc.status in ("Completed", "Closed") else "Delivered"
 	eta = formatdate(doc.eta, "dd-MMM-yy") if doc.eta else None
@@ -435,8 +437,9 @@ def _client_status_label(doc, status_key):
 
 
 def _client_status_headline(doc, status_key):
-	if doc.current_comment:
-		return doc.current_comment
+	headline = resolve_client_headline(doc)
+	if headline:
+		return headline
 	return dossier_latest_line(doc, status_key)
 
 
@@ -456,6 +459,7 @@ def _build_client_status(doc, status_key, journey, progress_percent):
 
 def _build_client_containers(cargo, doc, status_key):
 	"""Simplified container rows for the client portal."""
+	on_road = doc.operational_phase == "on_road"
 	rows = []
 	for row in cargo:
 		number = row.get("container_number")
@@ -471,7 +475,10 @@ def _build_client_containers(cargo, doc, status_key):
 
 		last_event = row.get("api_last_event")
 		last_event_date = row.get("api_last_event_date")
-		if not last_event and row.get("gate_out_date"):
+		if on_road and row.get("tracking_comment"):
+			last_event = row.get("tracking_comment")
+			last_event_date = row.get("updated_on") or last_event_date
+		elif not last_event and row.get("gate_out_date"):
 			last_event = "Gated out to consignee"
 			last_event_date = row.get("gate_out_date")
 		elif not last_event and doc.current_comment:
@@ -640,6 +647,7 @@ def build_client_tracking_view(doc, milestone_report_mode=None, milestone_percen
 				"event": row.event,
 				"date": row.date,
 				"source": row.source,
+				"service": getattr(row, "service", None) or "",
 			}
 			for row in sorted(doc.get("tracking_timeline") or [], key=lambda r: r.idx or 0, reverse=True)
 		][:10],
@@ -676,8 +684,9 @@ def pdf_route_line(doc):
 
 
 def pdf_headline(doc, status_key):
-	if doc.current_comment:
-		return doc.current_comment
+	headline = resolve_client_headline(doc)
+	if headline:
+		return headline
 	if doc.operational_phase:
 		return get_phase_label(doc.operational_phase)
 	primary = pdf_primary_label(doc)

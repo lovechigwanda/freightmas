@@ -154,17 +154,6 @@ frappe.ui.form.on('Forwarding Job', {
         toggle_base_fields(frm);
     },
 
-    before_save(frm) {
-        const timeline = frm.doc.tracking_timeline;
-        if (timeline && timeline.length > 0) {
-            const last = timeline[timeline.length - 1];
-
-            set_main_value_safe(frm, 'current_comment', last.event);
-            set_main_value_safe(frm, 'last_updated_on', last.date);
-            set_main_value_safe(frm, 'last_updated_by', last.updated_by_name || last.updated_by);
-        }
-    },
-
     after_save(frm) {
         const prev = frm._fwd_job_prev_status;
         const curr = frm.doc.status;

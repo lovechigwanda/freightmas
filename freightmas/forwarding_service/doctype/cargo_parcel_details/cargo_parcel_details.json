@@ -401,9 +401,10 @@
    "label": "Updated On"
   },
   {
+   "description": "Human updates only — e.g. road transport status. Sea/container API status is in the API Container Status section.",
    "fieldname": "tracking_comment",
    "fieldtype": "Data",
-   "label": "Tracking Comment"
+   "label": "Road / Manual Comment"
   },
   {
    "fieldname": "column_break_fowj",

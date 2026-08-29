@@ -47,14 +47,18 @@ def _run_tracking_for_doctype(doctype, updated_refs=None):
 	"""Fetch and update active tracking jobs for a given doctype."""
 	terminal_statuses = ["Delivered", "Arrived", ""]
 
+	filters = {
+		"enable_api_tracking": 1,
+		"api_last_fetched": ["is", "set"],
+		"api_tracking_status": ["not in", terminal_statuses],
+		"docstatus": ["<", 2],
+	}
+	if doctype == "Forwarding Job":
+		filters["operational_phase"] = ["not in", ["delivered", "closed", "cancelled"]]
+
 	jobs = frappe.get_all(
 		doctype,
-		filters={
-			"enable_api_tracking": 1,
-			"api_last_fetched": ["is", "set"],
-			"api_tracking_status": ["not in", terminal_statuses],
-			"docstatus": ["<", 2],
-		},
+		filters=filters,
 		fields=["name", "bl_number"],
 	)
 

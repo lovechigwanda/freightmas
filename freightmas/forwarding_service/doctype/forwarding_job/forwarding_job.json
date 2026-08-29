@@ -162,12 +162,15 @@
   "road_freight_milestones",
   "port_clearance_milestones_section",
   "port_clearance_milestones",
+  "port_clearance_tracking_comment",
   "road_transport_milestones_section",
   "road_transport_progress_summary",
   "border_clearance_milestones_section",
   "border_clearance_milestones",
+  "border_clearance_tracking_comment",
   "warehouse_milestones_section",
   "warehouse_milestones",
+  "warehouse_tracking_comment",
   "tracking_tab",
   "bl_tracking_summary_section",
   "enable_api_tracking",
@@ -699,6 +702,13 @@
    "options": "Job Milestone Progress"
   },
   {
+   "depends_on": "eval:doc.requires_port_clearance",
+   "description": "Client-facing status while port clearance is active. Becomes the job headline when phase is Under Port Clearance.",
+   "fieldname": "port_clearance_tracking_comment",
+   "fieldtype": "Small Text",
+   "label": "Port Clearance Tracking Comment"
+  },
+  {
    "collapsible": 1,
    "depends_on": "eval:doc.is_trucking_required",
    "fieldname": "road_transport_milestones_section",
@@ -727,6 +737,13 @@
    "options": "Job Milestone Progress"
   },
   {
+   "depends_on": "eval:doc.requires_border_clearance",
+   "description": "Client-facing status while border clearance is active. Becomes the job headline when phase is Under Border Clearance.",
+   "fieldname": "border_clearance_tracking_comment",
+   "fieldtype": "Small Text",
+   "label": "Border Clearance Tracking Comment"
+  },
+  {
    "collapsible": 1,
    "depends_on": "eval:doc.requires_warehousing",
    "fieldname": "warehouse_milestones_section",
@@ -739,6 +756,13 @@
    "fieldtype": "Table",
    "no_copy": 1,
    "options": "Job Milestone Progress"
+  },
+  {
+   "depends_on": "eval:doc.requires_warehousing",
+   "description": "Client-facing status while cargo is at warehouse. Becomes the job headline when phase is At Warehouse.",
+   "fieldname": "warehouse_tracking_comment",
+   "fieldtype": "Small Text",
+   "label": "Warehouse Tracking Comment"
   },
   {
    "fieldname": "tracking_tab",
@@ -866,6 +890,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "Auto-computed from the active service — updated when sea API, clearance comments, road updates, or timeline entries change.",
    "fieldname": "current_comment",
    "fieldtype": "Read Only",
    "label": "Current Comment",

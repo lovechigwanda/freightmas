@@ -66,9 +66,16 @@ class TestClientTrackingView(IntegrationTestCase):
 
 	def test_banner_includes_phase_and_progress(self):
 		customer = _make_customer("B1")
-		job = _make_job(customer, "B1")
-		frappe.db.set_value("Forwarding Job", job.name, "operational_phase", "in_transit")
-		frappe.db.set_value("Forwarding Job", job.name, "current_comment", "Vessel departed Beira")
+		job = _make_job(customer, "B1", requires_sea_air_freight=1, atd=nowdate())
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			{
+				"operational_phase": "in_transit",
+				"api_last_event": "Vessel departed Beira",
+				"api_last_event_date": nowdate(),
+			},
+		)
 		job.reload()
 
 		view = build_client_tracking_view(job, milestone_report_mode="Stage Summary", milestone_percent=42)
@@ -77,7 +84,7 @@ class TestClientTrackingView(IntegrationTestCase):
 		self.assertEqual(view["banner"]["operational_phase"], "in_transit")
 		self.assertGreaterEqual(view["banner"]["progress_percent"], 0)
 		self.assertLessEqual(view["banner"]["progress_percent"], 100)
-		self.assertEqual(view["banner"]["latest_update"], "Vessel departed Beira")
+		self.assertIn("Vessel departed Beira", view["banner"]["latest_update"])
 		self.assertEqual(view["banner"]["key_date_label"], "ETA")
 		self.assertIn("client_status", view)
 		self.assertIn("journey", view)
@@ -276,16 +283,25 @@ class TestClientTrackingView(IntegrationTestCase):
 			"PDF2",
 			customer_reference="PO-CLIENT-002",
 			bl_number="BL-888",
+			requires_sea_air_freight=1,
+			atd=nowdate(),
 		)
-		frappe.db.set_value("Forwarding Job", job.name, "current_comment", "Vessel departed Beira")
-		frappe.db.set_value("Forwarding Job", job.name, "operational_phase", "in_transit")
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			{
+				"api_last_event": "Vessel departed Beira",
+				"api_last_event_date": nowdate(),
+				"operational_phase": "in_transit",
+			},
+		)
 		job.reload()
 
 		ctx = build_pdf_job_context(job)
 
 		self.assertEqual(ctx["glance"]["primary_label"], "PO-CLIENT-002")
 		self.assertEqual(ctx["glance"]["secondary_label"], job.name)
-		self.assertEqual(ctx["glance"]["headline"], "Vessel departed Beira")
+		self.assertIn("Vessel departed Beira", ctx["glance"]["headline"])
 		self.assertIn("hero", ctx)
 		self.assertIn("facts", ctx)
 		self.assertIn("journey", ctx)
