@@ -1,5 +1,5 @@
 import { Plane, Ship, Truck } from "@lucide/vue";
-import { formatDate } from "../format";
+import { formatDate, formatDateShort } from "../format";
 
 const MODE_ICONS = {
 	Sea: Ship,
@@ -14,7 +14,7 @@ const PHASE_TONE = {
 	at_terminal: "teal",
 	under_port_clearance: "purple",
 	under_border_clearance: "orange",
-	on_road: "amber",
+	on_road: "teal",
 	at_warehouse: "amber",
 	delivered: "green",
 	closed: "neutral",
@@ -29,18 +29,16 @@ export function shipmentModeIcon(job) {
 	return MODE_ICONS[job?.shipment_mode] || Ship;
 }
 
+export function shipmentEquipmentLabel(job) {
+	return job?.cargo_count || job?.cargo_description || "–";
+}
+
 export function shipmentCargoChips(job) {
 	const chips = [];
 	if (job?.cargo_count) {
 		chips.push({ label: job.cargo_count });
 	} else if (job?.cargo_description) {
 		chips.push({ label: job.cargo_description });
-	}
-	if (job?.direction) {
-		chips.push({ label: job.direction });
-	}
-	if (job?.shipment_type) {
-		chips.push({ label: job.shipment_type });
 	}
 	return chips;
 }
@@ -72,25 +70,58 @@ export function shipmentHeadline(job) {
 	return "No tracking update yet";
 }
 
-export function shipmentEtaLabel(job) {
-	const isExport = job?.direction === "Export";
-	const date = isExport ? job?.etd : job?.eta;
-	const label = isExport ? "ETD" : "ETA";
+export function shipmentMilestoneLine(job) {
+	const phase = shipmentPhaseLabel(job);
+	let comment = job?.current_comment || "";
+	if (!comment) {
+		comment = phase === "–" ? "No tracking update yet" : "";
+	}
+	const shortDate = formatDateShort(job?.last_updated_on);
+	return { phase, comment, shortDate };
+}
 
-	if (!date) {
-		return { label, display: "–", urgency: "normal" };
+export function shipmentEtaAtaDisplay(job) {
+	const isExport = job?.direction === "Export";
+	const actualDate = isExport ? job?.atd : job?.ata;
+	const actualLabel = isExport ? "ATD" : "ATA";
+	const estimatedDate = isExport ? job?.etd : job?.eta;
+	const estimatedLabel = isExport ? "ETD" : "ETA";
+
+	if (actualDate) {
+		return {
+			kind: "actual",
+			label: actualLabel,
+			date: actualDate,
+			display: formatDate(actualDate),
+			urgency: "normal",
+		};
 	}
 
-	let urgency = "normal";
-	if (job?.is_overdue) {
-		urgency = "overdue";
+	if (estimatedDate) {
+		return {
+			kind: "estimated",
+			label: estimatedLabel,
+			date: estimatedDate,
+			display: formatDate(estimatedDate),
+			urgency: job?.is_overdue ? "overdue" : "normal",
+		};
+	}
+
+	return { kind: "none", display: "–", urgency: "normal" };
+}
+
+export function shipmentEtaLabel(job) {
+	const etaAta = shipmentEtaAtaDisplay(job);
+	if (etaAta.kind === "none") {
+		const isExport = job?.direction === "Export";
+		return { label: isExport ? "ETD" : "ETA", display: "–", urgency: "normal" };
 	}
 
 	return {
-		label,
-		date,
-		display: `${label} ${formatDate(date)}`,
-		urgency,
+		label: etaAta.label,
+		date: etaAta.date,
+		display: `${etaAta.label} ${etaAta.display}`,
+		urgency: etaAta.urgency,
 	};
 }
 

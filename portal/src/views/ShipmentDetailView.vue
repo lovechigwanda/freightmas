@@ -7,12 +7,9 @@
 
 		<div v-else-if="detail" class="sd-shipment-page">
 			<header class="sd-shipment-header">
-				<router-link to="/shipments" class="sd-table-link">&larr; Back to Shipments</router-link>
-				<div class="sd-shipment-header-main">
-					<h1 class="sd-shipment-title">{{ detail.header.name }}</h1>
-					<StatusBadge :status="detail.header.status" />
-					<span v-if="serviceTagLine" class="sd-shipment-subtitle">{{ serviceTagLine }}</span>
-				</div>
+				<router-link to="/shipments" class="sd-table-link">&larr; Shipments</router-link>
+				<h1 class="sd-shipment-title">{{ detail.header.name }}</h1>
+				<StatusBadge :status="detail.header.status" />
 			</header>
 
 			<ShipmentHero
@@ -43,6 +40,12 @@
 						:error="invoicesError"
 						compact-empty
 					/>
+					<ShipmentQuotationsCard
+						:quotations="quotations"
+						:loading="quotationsLoading"
+						:error="quotationsError"
+						compact-empty
+					/>
 				</div>
 			</div>
 
@@ -52,17 +55,18 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { api } from "../api/shipments";
 import { api as documentsApi } from "../api/documents";
 import { api as invoicesApi } from "../api/invoices";
-import { serviceTags } from "../utils/shipmentView";
+import { api as quotationsApi } from "../api/quotations";
 import StatusBadge from "../components/StatusBadge.vue";
 import ShipmentHero from "../components/ShipmentHero.vue";
 import ShipmentFactStrip from "../components/ShipmentFactStrip.vue";
 import JourneyTimeline from "../components/JourneyTimeline.vue";
 import ShipmentDocumentsCard from "../components/ShipmentDocumentsCard.vue";
 import ShipmentInvoicesCard from "../components/ShipmentInvoicesCard.vue";
+import ShipmentQuotationsCard from "../components/ShipmentQuotationsCard.vue";
 import ShipmentCargoTable from "../components/ShipmentCargoTable.vue";
 
 const props = defineProps({ id: { type: String, required: true } });
@@ -76,11 +80,9 @@ const documentsError = ref("");
 const invoices = ref([]);
 const invoicesLoading = ref(false);
 const invoicesError = ref("");
-
-const serviceTagLine = computed(() => {
-	if (!detail.value) return "";
-	return serviceTags(detail.value.header, detail.value.tracking_view?.sections);
-});
+const quotations = ref([]);
+const quotationsLoading = ref(false);
+const quotationsError = ref("");
 
 async function load(jobName) {
 	loading.value = true;
@@ -91,8 +93,11 @@ async function load(jobName) {
 	invoices.value = [];
 	invoicesError.value = "";
 	invoicesLoading.value = true;
+	quotations.value = [];
+	quotationsError.value = "";
+	quotationsLoading.value = true;
 	try {
-		const [detailRes, docsRes, invRes] = await Promise.all([
+		const [detailRes, docsRes, invRes, quoteRes] = await Promise.all([
 			api.getJobDetail(jobName),
 			documentsApi.getJobDocuments(jobName).catch((e) => {
 				documentsError.value = e.message || "Failed to load documents.";
@@ -100,6 +105,10 @@ async function load(jobName) {
 			}),
 			invoicesApi.getJobInvoices(jobName).catch((e) => {
 				invoicesError.value = e.message || "Failed to load invoices.";
+				return null;
+			}),
+			quotationsApi.getJobQuotations(jobName).catch((e) => {
+				quotationsError.value = e.message || "Failed to load quotations.";
 				return null;
 			}),
 		]);
@@ -110,12 +119,16 @@ async function load(jobName) {
 		if (invRes) {
 			invoices.value = invRes.invoices || [];
 		}
+		if (quoteRes) {
+			quotations.value = quoteRes.quotations || [];
+		}
 	} catch (e) {
 		error.value = e.message || "Failed to load this shipment.";
 	} finally {
 		loading.value = false;
 		documentsLoading.value = false;
 		invoicesLoading.value = false;
+		quotationsLoading.value = false;
 	}
 }
 

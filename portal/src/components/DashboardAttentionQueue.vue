@@ -29,6 +29,13 @@
 					View invoice
 				</router-link>
 				<router-link
+					v-else-if="item.type === 'pending_quotation'"
+					class="sd-table-link sd-dashboard-attention-action"
+					:to="`/quotations/${encodeURIComponent(item.quotation_name)}`"
+				>
+					Review quote
+				</router-link>
+				<router-link
 					v-else
 					class="sd-table-link sd-dashboard-attention-action"
 					:to="`/shipments/${encodeURIComponent(item.job_name)}`"
@@ -60,6 +67,7 @@ const ICONS = {
 	arriving_soon: Package,
 	overdue_invoice: Receipt,
 	new_document: FileText,
+	pending_quotation: FileText,
 };
 
 function iconFor(type) {

@@ -1,54 +1,58 @@
 <template>
-	<router-link
-		:to="`/shipments/${encodeURIComponent(job.name)}`"
-		class="sd-shipment-list-card"
-		:class="{ 'sd-shipment-list-card--overdue': job.is_overdue }"
+	<tr
+		class="sd-shipment-table-row"
+		:class="{ 'cc-row-overdue': job.is_overdue }"
+		@click="goToShipment"
 	>
-		<div class="sd-shipment-list-card-row sd-shipment-list-card-row--primary">
-			<div class="sd-shipment-list-card-identity">
-				<component :is="modeIcon" class="sd-shipment-list-card-mode" :size="16" stroke-width="2" />
-				<span class="sd-shipment-list-card-primary">{{ primaryLabel }}</span>
-				<span v-for="chip in cargoChips" :key="chip.label" class="sd-shipment-list-card-chip">
-					{{ chip.label }}
-				</span>
-				<span v-if="job.is_overdue" class="sd-shipment-list-card-chip sd-shipment-list-card-chip--warn">
-					Delayed
-				</span>
+		<td class="sd-shipment-table-shipment">
+			<span class="sd-shipment-table-primary">{{ primaryLabel }}</span>
+			<span v-if="job.is_overdue" class="sd-shipment-alert-dot" aria-hidden="true"></span>
+		</td>
+		<td class="sd-shipment-table-equip">{{ equipmentLabel }}</td>
+		<td class="sd-shipment-table-milestone">
+			<span
+				class="sd-shipment-table-phase"
+				:class="`sd-shipment-table-phase--${phaseTone}`"
+			>{{ milestone.phase }}</span>
+			<template v-if="milestone.comment">
+				<span class="sd-shipment-table-sep">&middot;</span>
+				<span class="sd-shipment-table-comment">{{ milestone.comment }}</span>
+			</template>
+			<template v-if="milestone.shortDate">
+				<span class="sd-shipment-table-sep">&middot;</span>
+				<span class="sd-shipment-table-date">{{ milestone.shortDate }}</span>
+			</template>
+		</td>
+		<td
+			class="sd-shipment-table-eta"
+			:class="`sd-shipment-table-eta--${etaAta.urgency}`"
+		>
+			<template v-if="etaAta.kind !== 'none'">
+				<span class="sd-shipment-table-eta-label">{{ etaAta.label }}</span>
+				<span class="sd-shipment-table-eta-date">{{ etaAta.display }}</span>
+			</template>
+			<span v-else>{{ etaAta.display }}</span>
+		</td>
+		<td class="sd-shipment-table-progress">
+			<div class="sd-shipment-table-progress-inner">
+				<ProgressBar
+					:percent="progressPercent"
+					:show-label="false"
+					:tone="job.is_overdue ? 'alert' : 'default'"
+				/>
+				<span class="sd-shipment-table-progress-value">{{ progressPercent }}%</span>
 			</div>
-			<div class="sd-shipment-list-card-signals">
-				<span
-					class="sd-shipment-list-card-phase"
-					:class="`sd-shipment-list-card-phase--${phaseTone}`"
-				>
-					{{ phaseLabel }}
-				</span>
-				<span
-					class="sd-shipment-list-card-eta"
-					:class="`sd-shipment-list-card-eta--${eta.urgency}`"
-				>
-					{{ eta.display }}
-				</span>
-			</div>
-		</div>
-
-		<div class="sd-shipment-list-card-row sd-shipment-list-card-row--secondary">
-			<p class="sd-shipment-list-card-headline sd-muted">{{ headline }}</p>
-			<div class="sd-shipment-list-card-progress-wrap">
-				<ProgressBar :percent="progressPercent" :show-label="false" />
-				<span class="sd-shipment-list-card-progress-value">{{ progressPercent }}%</span>
-			</div>
-		</div>
-	</router-link>
+		</td>
+	</tr>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import { useRouter } from "vue-router";
 import {
-	shipmentCargoChips,
-	shipmentEtaLabel,
-	shipmentHeadline,
-	shipmentModeIcon,
-	shipmentPhaseLabel,
+	shipmentEquipmentLabel,
+	shipmentEtaAtaDisplay,
+	shipmentMilestoneLine,
 	shipmentPhaseTone,
 	shipmentPrimaryLabel,
 } from "../utils/shipmentList";
@@ -58,14 +62,18 @@ const props = defineProps({
 	job: { type: Object, required: true },
 });
 
+const router = useRouter();
+
 const primaryLabel = computed(() => shipmentPrimaryLabel(props.job));
-const modeIcon = computed(() => shipmentModeIcon(props.job));
-const cargoChips = computed(() => shipmentCargoChips(props.job));
-const phaseLabel = computed(() => shipmentPhaseLabel(props.job));
+const equipmentLabel = computed(() => shipmentEquipmentLabel(props.job));
+const milestone = computed(() => shipmentMilestoneLine(props.job));
 const phaseTone = computed(() => shipmentPhaseTone(props.job));
-const eta = computed(() => shipmentEtaLabel(props.job));
-const headline = computed(() => shipmentHeadline(props.job));
+const etaAta = computed(() => shipmentEtaAtaDisplay(props.job));
 const progressPercent = computed(
 	() => props.job.client_progress_percent ?? props.job.milestone_percent ?? 0,
 );
+
+function goToShipment() {
+	router.push(`/shipments/${encodeURIComponent(props.job.name)}`);
+}
 </script>

@@ -22,6 +22,13 @@ export function formatDate(value) {
 	return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
 }
 
+export function formatDateShort(value) {
+	if (!value) return "";
+	const d = new Date(value);
+	if (Number.isNaN(d.getTime())) return value;
+	return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
 export function formatDateTime(value) {
 	if (!value) return "\u2013";
 	const d = new Date(value);

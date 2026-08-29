@@ -46,14 +46,15 @@
 								View all &rarr;
 							</router-link>
 						</div>
-						<div v-if="data.in_motion_jobs.length" class="sd-shipment-list">
-							<ShipmentListCard
-								v-for="job in data.in_motion_jobs"
-								:key="job.name"
-								:job="job"
-								class="sd-dashboard-in-motion-item"
-							/>
-						</div>
+						<table v-if="data.in_motion_jobs.length" class="sd-table sd-shipment-table">
+							<tbody>
+								<ShipmentListCard
+									v-for="job in data.in_motion_jobs"
+									:key="job.name"
+									:job="job"
+								/>
+							</tbody>
+						</table>
 						<EmptyState
 							v-else
 							:icon="Ship"

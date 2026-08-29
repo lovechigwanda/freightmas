@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import add_days, formatdate, get_year_start, getdate, nowdate
 
 from freightmas.portal.api.invoices import INVOICE_LIST_FIELDS, _with_job_reference
+from freightmas.portal.api.quotations import QUOTATION_LIST_FIELDS
 from freightmas.portal.api.shipments import JOB_LIST_FIELDS, NOT_ACTIVE_STATUSES
 from freightmas.portal.security import check_portal_access, get_portal_customer_names, log_portal_access
 from freightmas.forwarding_service.utils.milestone_progress import forwarding_milestone_progress_map
@@ -246,12 +247,33 @@ def _overdue_invoices(customers, today, limit=3):
 	return [_with_job_reference(row) for row in rows]
 
 
+def _pending_quotations(customers, limit=3):
+	return frappe.get_all(
+		"Quotation",
+		filters={
+			"docstatus": 1,
+			"quotation_to": "Customer",
+			"party_name": ["in", customers],
+			"workflow_state": "Sent to Customer",
+		},
+		fields=QUOTATION_LIST_FIELDS,
+		order_by="valid_till asc, transaction_date desc",
+		limit_page_length=limit,
+	)
+
+
 def _attention_items(customers, today):
 	items = []
 	seen_keys = set()
 
 	def add_item(item):
-		key = (item["type"], item.get("job_name"), item.get("invoice_name"), item.get("document_name"))
+		key = (
+			item["type"],
+			item.get("job_name"),
+			item.get("invoice_name"),
+			item.get("document_name"),
+			item.get("quotation_name"),
+		)
 		if key in seen_keys:
 			return
 		seen_keys.add(key)
@@ -289,6 +311,27 @@ def _attention_items(customers, today):
 			"invoice_name": invoice.name,
 			"document_name": None,
 			"document_job_name": None,
+			"quotation_name": None,
+		})
+
+	for quote in _pending_quotations(customers, limit=3):
+		subtitle_parts = []
+		if quote.grand_total:
+			subtitle_parts.append(f"{quote.grand_total:,.2f} {quote.currency or ''}".strip())
+		if quote.valid_till:
+			subtitle_parts.append(f"Valid until {formatdate(quote.valid_till, 'dd-MMM-yy')}")
+		if quote.customer_reference:
+			subtitle_parts.append(quote.customer_reference)
+		add_item({
+			"type": "pending_quotation",
+			"priority": 25,
+			"title": quote.name,
+			"subtitle": " · ".join(subtitle_parts) or quote.name,
+			"job_name": None,
+			"invoice_name": None,
+			"document_name": None,
+			"document_job_name": None,
+			"quotation_name": quote.name,
 		})
 
 	for job in _arriving_soon_jobs(customers, today, limit=3):
@@ -398,6 +441,9 @@ def get_overview():
 	arriving_soon_count = _arriving_soon_count(customers, today)
 
 	billing = _billing_summary(customers, today)
+	pending_quotes = _pending_quotations(customers, limit=1000)
+	pending_quotation_count = len(pending_quotes)
+	pending_quotation_total = sum((q.grand_total or 0) for q in pending_quotes)
 	attention_items = _attention_items(customers, today)
 	attention_job_names = {
 		item["job_name"] for item in attention_items if item.get("job_name")
@@ -414,5 +460,7 @@ def get_overview():
 		"attention_items": attention_items,
 		"in_motion_jobs": _in_motion_jobs(customers, today, exclude_job_names=attention_job_names),
 		"financial_snapshot": billing,
+		"pending_quotation_count": pending_quotation_count,
+		"pending_quotation_total": pending_quotation_total,
 		**billing,
 	}

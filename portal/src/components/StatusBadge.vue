@@ -22,6 +22,10 @@ const MAP = {
 	Paid: "sd-badge-green",
 	Return: "sd-badge-gray",
 	"Credit Note Issued": "sd-badge-gray",
+	"Awaiting your approval": "sd-badge-amber",
+	Approved: "sd-badge-green",
+	Declined: "sd-badge-red",
+	Expired: "sd-badge-gray",
 };
 
 const badgeClass = computed(() => MAP[props.status] || "sd-badge-gray");

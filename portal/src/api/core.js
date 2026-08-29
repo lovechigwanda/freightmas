@@ -66,9 +66,37 @@ async function call(prefix, method, params = {}) {
 	return data.message;
 }
 
+async function postCall(prefix, method, params = {}) {
+	const url = `/api/method/${prefix}.${method}`;
+	const res = await fetch(url, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: {
+			"X-Frappe-CSRF-Token": window.csrf_token || "",
+			Accept: "application/json",
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(params),
+	});
+
+	if (!res.ok) {
+		let detail = "";
+		try {
+			detail = extractServerMessage(await res.json());
+		} catch (e) {
+			// ignore - not JSON
+		}
+		throw new Error(detail || `Request to ${method} failed (${res.status}).`);
+	}
+
+	const data = await res.json();
+	return data.message;
+}
+
 export function createApiClient(prefix) {
 	return {
 		call: (method, params) => call(prefix, method, params),
+		post: (method, params) => postCall(prefix, method, params),
 		buildUrl: (method, params) => buildUrl(prefix, method, params),
 	};
 }

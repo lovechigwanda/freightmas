@@ -39,9 +39,20 @@
 			</div>
 			<div v-else-if="error" class="sd-state" style="color: var(--sd-red)">{{ error }}</div>
 			<template v-else>
-				<div v-if="jobs.length" class="sd-shipment-list">
-					<ShipmentListCard v-for="job in jobs" :key="job.name" :job="job" />
-				</div>
+				<table v-if="jobs.length" class="sd-table sd-shipment-table">
+					<thead>
+						<tr>
+							<th>Shipment</th>
+							<th>Equip.</th>
+							<th>Latest Milestone</th>
+							<th>ETA / ATA</th>
+							<th>Progress</th>
+						</tr>
+					</thead>
+					<tbody>
+						<ShipmentListCard v-for="job in jobs" :key="job.name" :job="job" />
+					</tbody>
+				</table>
 				<EmptyState v-else :icon="SearchX" title="No shipments match these filters" sub="Try clearing the search or filters above." />
 
 				<div v-if="jobs.length" class="sd-shipment-list-footer">

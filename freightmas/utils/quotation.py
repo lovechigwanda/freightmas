@@ -67,6 +67,10 @@ def on_quotation_workflow_change(doc, method=None):
 	elif doc.workflow_state == "Approved" and prev_workflow_state == "Pending Approval":
 		send_approval_notification_email(doc)
 
+	# Notification: Client accepted or declined (portal or desk)
+	elif prev_workflow_state == "Sent to Customer" and doc.workflow_state in ("Accepted", "Rejected"):
+		send_client_response_email(doc)
+
 
 def send_approval_request_email(doc):
 	"""
@@ -216,6 +220,69 @@ def send_approval_notification_email(doc):
 		frappe.log_error(
 			title=f"Failed to send approval notification email for {doc.name}",
 			message=frappe.get_traceback()
+		)
+
+
+def send_client_response_email(doc):
+	"""Notify quotation owner when a client accepts or declines."""
+	try:
+		recipients = []
+		if doc.owner:
+			recipients.append(doc.owner)
+
+		if not recipients:
+			return
+
+		accepted = doc.workflow_state == "Accepted"
+		action_label = "accepted" if accepted else "declined"
+		subject = f"Quotation {doc.name} - Client {action_label.title()}"
+
+		responder = get_fullname(frappe.session.user)
+		message = f"""
+		<p>Dear {get_fullname(doc.owner)},</p>
+
+		<p>The customer has <strong>{action_label}</strong> quotation {doc.name} via the client portal.</p>
+
+		<table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Quotation</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Customer</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{doc.party_name or doc.customer_name}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Amount</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{frappe.format_value(doc.grand_total, {"fieldtype": "Currency"})}</td>
+			</tr>
+			<tr>
+				<td style="padding: 8px; border: 1px solid #ddd;"><strong>Responded by</strong></td>
+				<td style="padding: 8px; border: 1px solid #ddd;">{responder}</td>
+			</tr>
+		</table>
+
+		<p style="margin-top: 20px;">
+			<a href="{frappe.utils.get_url()}/app/quotation/{doc.name}"
+			   style="background-color: #2490ef; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+				View Quotation
+			</a>
+		</p>
+		"""
+
+		frappe.sendmail(
+			recipients=recipients,
+			sender=get_formatted_email(frappe.session.user),
+			subject=subject,
+			message=message,
+			reference_doctype="Quotation",
+			reference_name=doc.name,
+			delayed=False,
+		)
+	except Exception:
+		frappe.log_error(
+			title=f"Failed to send client response email for {doc.name}",
+			message=frappe.get_traceback(),
 		)
 
 
