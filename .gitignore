@@ -7,3 +7,13 @@ node_modules
 __pycache__
 .codex
 .codex/
+
+
+# Local secrets and site data — never commit
+.env
+.env.*
+sites/
+site_config.json
+common_site_config.json
+*.pem
+*.key
