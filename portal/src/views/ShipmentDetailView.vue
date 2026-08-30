@@ -27,11 +27,10 @@
 				/>
 
 				<div class="sd-shipment-sidebar">
-					<ShipmentDocumentsCard
-						:documents="documents"
-						:loading="documentsLoading"
-						:error="documentsError"
-						:download-url="downloadUrl"
+					<ShipmentQuotationsCard
+						:quotations="quotations"
+						:loading="quotationsLoading"
+						:error="quotationsError"
 						compact-empty
 					/>
 					<ShipmentInvoicesCard
@@ -40,10 +39,11 @@
 						:error="invoicesError"
 						compact-empty
 					/>
-					<ShipmentQuotationsCard
-						:quotations="quotations"
-						:loading="quotationsLoading"
-						:error="quotationsError"
+					<ShipmentDocumentsCard
+						:documents="documents"
+						:loading="documentsLoading"
+						:error="documentsError"
+						:download-url="downloadUrl"
 						compact-empty
 					/>
 				</div>
