@@ -2476,7 +2476,7 @@ h1, h2, h3, h4 {
 
 .sd-shipment-table th:nth-child(1),
 .sd-shipment-table td:nth-child(1) {
-	width: 140px;
+	width: 180px;
 }
 
 .sd-shipment-table th:nth-child(2),
@@ -2499,12 +2499,20 @@ h1, h2, h3, h4 {
 }
 
 .sd-shipment-table-shipment {
-	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .sd-shipment-table-primary {
 	font-weight: 700;
 	color: var(--sd-accent);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+	flex-shrink: 1;
 }
 
 .sd-shipment-alert-dot {
