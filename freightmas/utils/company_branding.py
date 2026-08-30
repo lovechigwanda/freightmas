@@ -54,31 +54,3 @@ def company_logo_data_uri(company):
 	content, mime, _filename = result
 	encoded = base64.b64encode(content).decode()
 	return f"data:{mime};base64,{encoded}"
-
-
-def portal_invoice_pdf_logo_injection(company):
-	"""HTML/CSS prepended to portal invoice print HTML to embed the company logo."""
-	logo_uri = company_logo_data_uri(company)
-	if not logo_uri:
-		return ""
-	return f"""
-<style>
-  .letter-head img,
-  .letter-head .logo img,
-  .header-logo img,
-  .company-logo img {{
-    display: none !important;
-  }}
-  .fm-portal-embedded-logo img {{
-    max-width: 160px !important;
-    max-height: 90px !important;
-    width: auto !important;
-    height: auto !important;
-    object-fit: contain !important;
-    display: inline-block !important;
-  }}
-</style>
-<div class="fm-portal-embedded-logo" style="margin-bottom: 2mm;">
-  <img src="{logo_uri}" alt="" />
-</div>
-"""

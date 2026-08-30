@@ -2665,7 +2665,7 @@ h1, h2, h3, h4 {
 
 .sd-invoice-account-header-label {
 	font-size: 12px;
-	color: var(--sd-muted);
+	color: var(--sd-text-muted);
 }
 
 .sd-invoice-account-header-value {
@@ -2703,6 +2703,7 @@ h1, h2, h3, h4 {
 	border: 1px solid var(--sd-border-soft);
 	border-radius: 10px;
 	background: var(--sd-surface-alt);
+	color: var(--sd-text);
 	cursor: pointer;
 	text-align: left;
 	transition: border-color 0.15s ease, background 0.15s ease;
@@ -2723,7 +2724,7 @@ h1, h2, h3, h4 {
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	color: var(--sd-muted);
+	color: var(--sd-text-muted);
 }
 
 .sd-invoice-aging-bucket-value {
@@ -2733,7 +2734,7 @@ h1, h2, h3, h4 {
 
 .sd-invoice-aging-bucket-count {
 	font-size: 11px;
-	color: var(--sd-muted);
+	color: var(--sd-text-muted);
 }
 
 .sd-invoice-list-panel {
