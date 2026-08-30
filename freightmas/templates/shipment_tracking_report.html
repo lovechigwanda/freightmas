@@ -1,142 +1,463 @@
+{%- macro progress_bar(percent, css_class) -%}
+<table class="bar-wrap" cellpadding="0" cellspacing="0"><tr>
+	<td class="bar-track bar-track--{{ css_class }}">
+		<div class="bar-fill bar-fill--{{ css_class }}" style="width:{{ percent }}%;"></div>
+	</td>
+</tr></table>
+{%- endmacro -%}
+
+{%- macro page_masthead() -%}
+<table class="masthead">
+	<tr>
+		<td class="masthead-logo">
+			{% if logo %}
+				<img src="{{ logo }}" class="logo-img" alt="logo"/>
+			{% else %}
+				<div class="logo-fallback">{{ company[:1] | upper }}</div>
+			{% endif %}
+		</td>
+		<td class="masthead-title">
+			<div class="title-main">Shipment Tracking Report</div>
+			<div class="title-customer">{{ customer }}</div>
+		</td>
+		<td class="masthead-stats">
+			<table class="stats-panel" cellpadding="0" cellspacing="0">
+				<tr>
+					<td class="generated-block" rowspan="2" style="padding-right:20px;text-align:right;vertical-align:middle;">
+						<table cellpadding="0" cellspacing="0">
+							<tr><td class="generated-label" style="text-align:right;">Generated</td></tr>
+							<tr><td class="generated-date" style="text-align:right;">{{ generated_on }}</td></tr>
+						</table>
+					</td>
+					<td class="stats-divider" rowspan="2" style="width:1px;padding:0 20px;vertical-align:middle;">
+						<div class="stats-divider-line"></div>
+					</td>
+					<td class="stat-col stat-col--shipments" style="width:72px;text-align:center;padding-left:8px;">
+						<div class="stat-label">Shipments</div>
+					</td>
+					<td class="stat-col stat-col--transit" style="width:76px;text-align:center;padding-left:8px;">
+						<div class="stat-label">In Transit</div>
+					</td>
+					<td class="stat-col stat-col--delayed" style="width:64px;text-align:center;padding-left:8px;">
+						<div class="stat-label">Delayed</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="stat-col stat-col--shipments" style="width:72px;text-align:center;padding-left:8px;">
+						<div class="stat-value">{{ summary.total or 0 }}</div>
+					</td>
+					<td class="stat-col stat-col--transit" style="width:76px;text-align:center;padding-left:8px;">
+						<div class="stat-value">{{ summary.in_transit or 0 }}</div>
+					</td>
+					<td class="stat-col stat-col--delayed" style="width:64px;text-align:center;padding-left:8px;">
+						<div class="stat-value">{{ summary.delayed or 0 }}</div>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+{%- endmacro -%}
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-	@page { size: A4 portrait; margin: 12mm 14mm; }
+	@page { size: A4 landscape; margin: 10mm; }
 
 	body {
 		margin: 0;
-		font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-		color: #111827;
-		font-size: 11px;
+		font-family: Helvetica, Arial, sans-serif;
+		color: #2c2560;
+		font-size: 10px;
 		background: #fff;
+		padding-top: 58px;
 	}
 
-	/* ---- Header ---- */
-	.report-header {
+	/* ---- Fixed masthead (repeats every page) ---- */
+	.page-masthead {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		background: #2c2560;
+		padding: 8px 10mm 10px;
+		z-index: 100;
+	}
+	.masthead {
 		width: 100%;
 		border-collapse: collapse;
-		margin-bottom: 0;
 	}
-	.report-header td { vertical-align: middle; padding: 0; }
-	.header-logo {
-		width: 40px;
-		height: 40px;
+	.masthead td { vertical-align: middle; padding: 0; }
+	.masthead-logo { width: 46px; padding-right: 10px; }
+	.logo-img {
+		width: 38px; height: 38px;
 		border-radius: 4px;
 		object-fit: contain;
+		background: #fff;
 	}
-	.header-logo-fallback {
-		width: 40px;
-		height: 40px;
+	.logo-fallback {
+		width: 38px; height: 38px;
 		border-radius: 4px;
-		background: #2c2560;
-		color: #fff;
-		font: 800 16px/40px 'Work Sans', Helvetica, Arial, sans-serif;
+		background: #fff;
+		color: #2c2560;
+		font: 800 16px/38px Helvetica, Arial, sans-serif;
 		text-align: center;
 	}
-	.header-title {
-		font: 800 16px/1.2 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .04em;
-		text-transform: uppercase;
-		color: #2c2560;
-	}
-	.header-customer {
-		font: 700 12px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #111827;
-		margin-top: 3px;
-	}
-	.header-meta {
-		text-align: right;
-		font: 600 9.5px/1.5 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #64748b;
-		white-space: nowrap;
-	}
-	.header-rule {
-		height: 3px;
-		background: #F4901E;
-		margin: 10px 0 16px;
-	}
-
-	/* ---- Section titles ---- */
-	.section-heading {
-		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
+	.title-main {
+		font: 800 13px/1.2 Helvetica, Arial, sans-serif;
 		letter-spacing: .06em;
 		text-transform: uppercase;
-		color: #2c2560;
-		margin: 0 0 8px;
-		padding-bottom: 4px;
-		border-bottom: 1px solid #e6e9f0;
+		color: #fff;
 	}
-	.detail-section-heading {
-		margin-top: 20px;
+	.title-customer {
+		font: 600 10px/1.3 Helvetica, Arial, sans-serif;
+		color: #c7c2e6;
+		margin-top: 2px;
+	}
+	.masthead-stats { text-align: right; white-space: nowrap; width: 1%; }
+	.stats-panel {
+		border-collapse: collapse;
+		margin-left: auto;
+		table-layout: fixed;
+	}
+	.stats-panel td { vertical-align: middle; padding: 0; }
+	.generated-block {
+		text-align: right;
+		padding-right: 20px;
+		white-space: nowrap;
+		vertical-align: middle;
+	}
+	.generated-label {
+		font: 600 7px/1.3 Helvetica, Arial, sans-serif;
+		letter-spacing: .08em;
+		text-transform: uppercase;
+		color: #c7c2e6;
+		padding-bottom: 3px;
+	}
+	.generated-date {
+		font: 700 12px/1.2 Helvetica, Arial, sans-serif;
+		color: #fff;
+	}
+	.stats-divider {
+		width: 1px;
+		padding: 0 20px;
+		vertical-align: middle;
+	}
+	.stats-divider-line {
+		width: 1px;
+		height: 32px;
+		background: rgba(255,255,255,.28);
+	}
+	.stat-col {
+		text-align: center;
+		vertical-align: top;
+		padding-left: 8px;
+		white-space: nowrap;
+	}
+	.stat-col--shipments { width: 72px; }
+	.stat-col--transit { width: 76px; }
+	.stat-col--delayed { width: 64px; }
+	.stat-label {
+		font: 600 7px/1.3 Helvetica, Arial, sans-serif;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		color: #c7c2e6;
+		padding-bottom: 3px;
+	}
+	.stat-value {
+		font: 800 18px/1.1 Helvetica, Arial, sans-serif;
+		color: #fff;
 	}
 
-	/* ---- Tables ---- */
-	table.data-table {
+	/* ---- Section headings ---- */
+	.section-heading {
+		font: 700 10px/1 Helvetica, Arial, sans-serif;
+		letter-spacing: .08em;
+		text-transform: uppercase;
+		color: #2c2560;
+		margin: 14px 0 8px;
+		border-bottom: 1px solid #d8d8e8;
+		padding-bottom: 6px;
+	}
+	.section-marker {
+		display: inline-block;
+		width: 8px; height: 8px;
+		background: #2c2560;
+		margin-right: 6px;
+		vertical-align: middle;
+	}
+	.section-intro {
+		font-size: 9px;
+		color: #64748b;
+		margin: -4px 0 10px;
+	}
+
+	/* ---- Glance table ---- */
+	table.glance {
 		width: 100%;
 		border-collapse: collapse;
 		table-layout: fixed;
-		margin-bottom: 14px;
+		margin-bottom: 12px;
 	}
-	table.data-table th {
-		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
+	table.glance th {
+		font: 700 8px/1.3 Helvetica, Arial, sans-serif;
 		letter-spacing: .05em;
 		text-transform: uppercase;
-		color: #64748b;
+		color: #fff;
 		text-align: left;
-		padding: 6px 7px;
-		border: 1px solid #e6e9f0;
-		background: #f8f9fb;
+		padding: 7px 8px;
+		background: #2c2560;
+		border: 1px solid #241f4d;
 	}
-	table.data-table td {
-		padding: 7px 7px;
-		border: 1px solid #e6e9f0;
-		font-size: 10.5px;
-		color: #111827;
-		vertical-align: top;
+	table.glance td {
+		padding: 6px 8px;
+		border: 1px solid #e8e8f3;
+		font-size: 9.5px;
+		color: #2c2560;
+		vertical-align: middle;
 		line-height: 1.35;
-		word-wrap: break-word;
 	}
+	table.glance tr:nth-child(even) td { background: #F2F2F7; }
+	table.glance tr:nth-child(odd) td { background: #fff; }
+	.glance-num { color: #64748b; font-weight: 600; width: 24px; }
+	.glance-job-id { font-weight: 700; }
 	.eta-overdue { color: #b91c1c; font-weight: 700; }
 
-	/* ---- Detail blocks ---- */
-	.shipment-block {
+	.phase-pill {
+		display: inline-block;
+		padding: 2px 7px 2px 5px;
+		border-radius: 999px;
+		font: 600 8px/1.4 Helvetica, Arial, sans-serif;
+		letter-spacing: .03em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+	.phase-pill-dot {
+		display: inline-block;
+		width: 6px; height: 6px;
+		border-radius: 50%;
+		margin-right: 4px;
+		vertical-align: middle;
+	}
+
+	/* ---- Shipment cards ---- */
+	.shipment-card {
+		border: 1px solid #d8d8e8;
+		border-radius: 6px;
+		overflow: hidden;
+		margin-bottom: 10px;
 		page-break-inside: avoid;
-		margin-bottom: 16px;
-		padding-bottom: 14px;
-		border-bottom: 1px dashed #cbd5e1;
-	}
-	.shipment-block:last-child { border-bottom: none; }
-
-	.shipment-subheader {
-		font: 600 10.5px/1.4 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #111827;
-		margin: 0 0 10px;
+		border-left: 4px solid #2c2560;
 	}
 
-	.subsection-label {
-		font: 700 9px/1 'Work Sans', Helvetica, Arial, sans-serif;
+	.card-header {
+		padding: 6px 10px;
+		color: #fff;
+		background: #2c2560;
+	}
+	.card-header-table { width: 100%; border-collapse: collapse; }
+	.card-header-table td { vertical-align: middle; padding: 0; }
+
+	.card-num {
+		display: inline-block;
+		width: 22px; height: 22px;
+		border-radius: 50%;
+		background: rgba(255,255,255,.15);
+		font: 800 10px/22px Helvetica, Arial, sans-serif;
+		text-align: center;
+		margin-right: 8px;
+	}
+	.card-id { font: 700 11px/1.2 Helvetica, Arial, sans-serif; }
+	.card-id-sep {
+		display: inline-block;
+		width: 1px;
+		height: 12px;
+		background: rgba(255,255,255,.35);
+		margin: 0 8px;
+		vertical-align: middle;
+	}
+	.card-ref {
+		font: 500 9px/1.2 Helvetica, Arial, sans-serif;
+		color: #c7c2e6;
+	}
+
+	.header-pill {
+		display: inline-block;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: #fff;
+		color: #2c2560;
+		font: 700 8px/1.4 Helvetica, Arial, sans-serif;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+		margin-left: 8px;
+	}
+	.delayed-badge {
+		display: inline-block;
+		padding: 2px 7px;
+		border-radius: 999px;
+		background: transparent;
+		border: 1px solid #fff;
+		color: #fff;
+		font: 700 8px/1.4 Helvetica, Arial, sans-serif;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+		margin-left: 6px;
+	}
+
+	.card-header-right { text-align: right; white-space: nowrap; }
+	.card-comment {
+		font: 500 9px/1.3 Helvetica, Arial, sans-serif;
+		color: #e8e6f2;
+		max-width: 280px;
+		display: inline-block;
+		vertical-align: middle;
+		text-align: right;
+	}
+	.card-progress-wrap {
+		display: inline-block;
+		width: 70px;
+		vertical-align: middle;
+		margin-left: 8px;
+	}
+	.card-progress-pct {
+		font: 700 10px/1 Helvetica, Arial, sans-serif;
+		margin-left: 4px;
+		vertical-align: middle;
+	}
+
+	.bar-wrap { width: 100%; border-collapse: collapse; }
+	.bar-track {
+		height: 5px;
+		background: #d8d8e8;
+		border-radius: 3px;
+		overflow: hidden;
+	}
+	.bar-fill { height: 5px; border-radius: 3px; background: #2c2560; }
+	.bar-track--header { background: rgba(255,255,255,.25); }
+	.bar-fill--header { background: #fff; }
+	.bar-track--service { background: #e8e8f3; }
+	.bar-fill--service { background: #2c2560; }
+
+	/* ---- Fact strip ---- */
+	.fact-strip {
+		width: 100%;
+		border-collapse: collapse;
+		background: #F2F2F7;
+	}
+	.fact-strip td {
+		padding: 5px 8px;
+		border-right: 1px solid #e8e8f3;
+		vertical-align: top;
+	}
+	.fact-strip td:last-child { border-right: none; }
+	.fact-label {
+		font: 700 7px/1.1 Helvetica, Arial, sans-serif;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+		color: #6e6894;
+		margin: 0 0 2px;
+	}
+	.fact-value {
+		font: 700 9px/1.2 Helvetica, Arial, sans-serif;
+		color: #2c2560;
+		margin: 0;
+	}
+
+	/* ---- Services ---- */
+	.card-section {
+		padding: 5px 10px 6px;
+		border-top: 1px solid #e8e8f3;
+		background: #fff;
+	}
+	.card-section-title {
+		font: 700 8px/1 Helvetica, Arial, sans-serif;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		color: #2c2560;
+		margin-bottom: 5px;
+	}
+
+	table.services-row {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	table.services-row td {
+		vertical-align: top;
+		padding: 0 8px 0 0;
+	}
+	table.services-row td:last-child { padding-right: 0; }
+	.service-name {
+		font: 700 8px/1.2 Helvetica, Arial, sans-serif;
+		color: #2c2560;
+		margin-bottom: 2px;
+		border-bottom: 1px solid #e8e8f3;
+		padding-bottom: 2px;
+	}
+	.service-pct {
+		font: 700 9px/1 Helvetica, Arial, sans-serif;
+		color: #2c2560;
+		float: right;
+	}
+	.service-bar { margin: 2px 0; }
+	.service-comment {
+		font: 500 8.5px/1.35 Helvetica, Arial, sans-serif;
+		color: #64748b;
+	}
+
+	/* ---- Container table ---- */
+	table.containers {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 4px;
+	}
+	table.containers th {
+		font: 700 7px/1.3 Helvetica, Arial, sans-serif;
 		letter-spacing: .05em;
 		text-transform: uppercase;
-		color: #64748b;
-		margin: 10px 0 5px;
+		color: #2c2560;
+		text-align: left;
+		padding: 5px 7px;
+		background: #F2F2F7;
+		border: 1px solid #e8e8f3;
+	}
+	table.containers td {
+		padding: 5px 7px;
+		border: 1px solid #e8e8f3;
+		font-size: 9px;
+		color: #2c2560;
+		vertical-align: top;
 	}
 
-	.service-row {
-		font-size: 10.5px;
-		line-height: 1.5;
-		color: #111827;
-		margin: 0 0 4px;
-		padding-left: 2px;
+	/* ---- Completion ---- */
+	.completion-row {
+		padding: 5px 10px;
+		border-top: 1px solid #e8e8f3;
+		background: #F2F2F7;
+		font-size: 9px;
+		color: #2c2560;
 	}
-	.service-row strong { color: #2c2560; font-weight: 700; }
-
-	.completion-line {
-		font-size: 10.5px;
-		color: #64748b;
-		margin-top: 8px;
+	.completion-label {
+		font: 700 8px/1 Helvetica, Arial, sans-serif;
+		letter-spacing: .06em;
+		text-transform: uppercase;
+		color: #6e6894;
+		display: inline-block;
+		margin-right: 10px;
 	}
+	.status-pill {
+		display: inline-block;
+		padding: 2px 8px;
+		border-radius: 999px;
+		font: 700 8px/1.4 Helvetica, Arial, sans-serif;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+		margin-right: 8px;
+	}
+	.status-pill--pending { background: #e8e8f3; color: #2c2560; }
+	.status-pill--completed { background: #dcfce7; color: #166534; }
 
 	.doc-empty {
 		margin-top: 40px;
@@ -149,46 +470,30 @@
 </head>
 <body>
 
-	<!-- HEADER -->
-	<table class="report-header">
-		<tr>
-			<td style="width:52px;padding-right:12px;">
-				{% if logo %}
-					<img src="{{ logo }}" class="header-logo" alt="logo"/>
-				{% else %}
-					<div class="header-logo-fallback">{{ company[:1] | upper }}</div>
-				{% endif %}
-			</td>
-			<td>
-				<div class="header-title">Shipment Tracking Report</div>
-				<div class="header-customer">{{ customer }}</div>
-			</td>
-			<td class="header-meta">
-				<div>Generated: {{ generated_on }}</div>
-				{% if summary and summary.line %}
-					<div>{{ summary.line }}</div>
-				{% endif %}
-			</td>
-		</tr>
-	</table>
-	<div class="header-rule"></div>
+	<!-- FIXED MASTHEAD (every page) -->
+	<div class="page-masthead">
+		{{ page_masthead() }}
+	</div>
 
+	<div class="page-body">
 	{% if not jobs %}
 		<div class="doc-empty">No active shipments on file for {{ customer }}.</div>
 	{% endif %}
 
 	<!-- SHIPMENTS AT A GLANCE -->
 	{% if jobs %}
-	<div class="section-heading">Shipments at a Glance</div>
-	<table class="data-table">
+	<div class="section-heading"><span class="section-marker"></span>Shipments at a Glance</div>
+	<table class="glance">
 		<colgroup>
-			<col style="width:16%;"/>
+			<col style="width:3%;"/>
+			<col style="width:13%;"/>
+			<col style="width:18%;"/>
+			<col style="width:9%;"/>
 			<col style="width:14%;"/>
-			<col style="width:14%;"/>
-			<col style="width:14%;"/>
-			<col style="width:42%;"/>
+			<col style="width:43%;"/>
 		</colgroup>
 		<thead><tr>
+			<th>#</th>
 			<th>Job ID</th>
 			<th>Reference</th>
 			<th>ETA / ATA</th>
@@ -198,12 +503,17 @@
 		<tbody>
 			{% for job in jobs %}
 			<tr>
-				<td>{{ job.glance.job_id }}</td>
+				<td class="glance-num">{{ job.num or loop.index }}</td>
+				<td class="glance-job-id">{{ job.glance.job_id }}</td>
 				<td>{{ job.glance.reference }}</td>
 				<td class="{% if job.glance.eta_ata_urgency == 'overdue' %}eta-overdue{% endif %}">
-					{{ job.glance.eta_ata_display }}
+					{{ job.glance.eta_short }}
 				</td>
-				<td>{{ job.glance.phase_label }}</td>
+				<td>
+					<span class="phase-pill" style="background:{{ job.glance.phase_pill.bg }};color:{{ job.glance.phase_pill.text }};">
+						<span class="phase-pill-dot" style="background:{{ job.glance.phase_pill.dot }};"></span>{{ job.glance.phase_upper }}
+					</span>
+				</td>
 				<td>{{ job.glance.latest_comment }}</td>
 			</tr>
 			{% endfor %}
@@ -213,77 +523,116 @@
 
 	<!-- DETAILED PER SHIPMENT -->
 	{% if jobs %}
-	<div class="section-heading detail-section-heading">Detailed per Shipment</div>
-	{% for job in jobs %}
-	<div class="shipment-block">
-		<p class="shipment-subheader">
-			{{ job.ref }} — {{ job.customer_reference }} — {{ job.phase_label }} — {{ job.latest_comment }}
-		</p>
+	<div class="section-heading"><span class="section-marker"></span>Detailed per Shipment</div>
+	<p class="section-intro">One block per shipment, in the order of the table above.</p>
 
-		<table class="data-table">
-			<thead><tr>
-				<th>BL No</th>
-				<th>Cargo Count</th>
-				<th>ETA</th>
-				<th>ATA</th>
-				<th>Discharge</th>
-				<th>Route</th>
-				<th>Cargo Description</th>
-			</tr></thead>
-			<tbody><tr>
-				<td>{{ job.details_row.bl_number }}</td>
-				<td>{{ job.details_row.cargo_count }}</td>
-				<td>{{ job.details_row.eta }}</td>
-				<td>{{ job.details_row.ata }}</td>
-				<td>{{ job.details_row.discharge }}</td>
-				<td>{{ job.details_row.route }}</td>
-				<td>{{ job.details_row.cargo_description }}</td>
-			</tr></tbody>
-		</table>
+	{% for job in jobs %}
+	<div class="shipment-card">
+		<div class="card-header">
+			<table class="card-header-table"><tr>
+				<td>
+					<span class="card-num">{{ job.num or loop.index }}</span>
+					<span class="card-id">{{ job.block_header.ref }}</span>
+					<span class="card-id-sep"></span>
+					<span class="card-ref">{{ job.block_header.reference }}</span>
+					<span class="header-pill">{{ job.block_header.phase }}</span>
+					{% if job.block_header.is_delayed %}
+						<span class="delayed-badge">Delayed</span>
+					{% endif %}
+				</td>
+				<td class="card-header-right">
+					<span class="card-comment">{{ job.block_header.comment }}</span>
+					<span class="card-progress-wrap">{{ progress_bar(job.block_header.progress_percent, 'header') }}</span>
+					<span class="card-progress-pct">{{ job.block_header.progress_percent }}%</span>
+				</td>
+			</tr></table>
+		</div>
+
+		<table class="fact-strip" cellpadding="0" cellspacing="0"><tr>
+			<td>
+				<div class="fact-label">BL Number</div>
+				<div class="fact-value">{{ job.details_strip.bl_number }}</div>
+			</td>
+			<td>
+				<div class="fact-label">Cargo Count</div>
+				<div class="fact-value">{{ job.details_strip.cargo_count }}</div>
+			</td>
+			<td>
+				<div class="fact-label">ETA / ATA</div>
+				<div class="fact-value">{{ job.details_strip.eta_ata }}</div>
+			</td>
+			<td>
+				<div class="fact-label">Discharge</div>
+				<div class="fact-value">{{ job.details_strip.discharge }}</div>
+			</td>
+			<td>
+				<div class="fact-label">Route</div>
+				<div class="fact-value">{{ job.details_strip.route }}</div>
+			</td>
+			<td>
+				<div class="fact-label">Cargo Description</div>
+				<div class="fact-value">{{ job.details_strip.cargo_description }}</div>
+			</td>
+		</tr></table>
 
 		{% if job.services %}
-		<div class="subsection-label">Services</div>
-		{% for service in job.services %}
-		<p class="service-row">
-			<strong>{{ service.title }}</strong> — {{ service.comment }} · {{ service.progress_text }}
-		</p>
-		{% endfor %}
+		<div class="card-section">
+			<div class="card-section-title">Services</div>
+			<table class="services-row"><tr>
+				{% for service in job.services %}
+				<td style="width:{{ (100 / job.services | length) | round(2) }}%;">
+					<div class="service-name">
+						{{ service.title }}
+						<span class="service-pct">{{ service.percent }}%</span>
+					</div>
+					<div class="service-bar">{{ progress_bar(service.percent, 'service') }}</div>
+					<div class="service-comment">{{ service.comment }}</div>
+				</td>
+				{% endfor %}
+			</tr></table>
+		</div>
 		{% endif %}
 
 		{% if job.containers %}
-		<div class="subsection-label">Container Details</div>
-		<table class="data-table">
-			<thead><tr>
-				<th>Container</th>
-				<th>Type</th>
-				<th>Discharged</th>
-				<th>Gate-Out</th>
-				<th>Offloaded</th>
-				<th>Returned</th>
-				<th>Comment</th>
-			</tr></thead>
-			<tbody>
-				{% for row in job.containers %}
-				<tr>
-					<td>{{ row.container_number }}</td>
-					<td>{{ row.container_type }}</td>
-					<td>{{ row.discharged }}</td>
-					<td>{{ row.gate_out }}</td>
-					<td>{{ row.offloaded }}</td>
-					<td>{{ row.returned }}</td>
-					<td>{{ row.comment }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+		<div class="card-section">
+			<div class="card-section-title">Container Details</div>
+			<table class="containers">
+				<thead><tr>
+					<th>Container</th>
+					<th>Type</th>
+					<th>Disch.</th>
+					<th>Gate-Out</th>
+					<th>Offloaded</th>
+					<th>Returned</th>
+					<th>Comment</th>
+				</tr></thead>
+				<tbody>
+					{% for row in job.containers %}
+					<tr>
+						<td>{{ row.container_number }}</td>
+						<td>{{ row.container_type }}</td>
+						<td>{{ row.discharged }}</td>
+						<td>{{ row.gate_out }}</td>
+						<td>{{ row.offloaded }}</td>
+						<td>{{ row.returned }}</td>
+						<td>{{ row.comment }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 		{% endif %}
 
-		<div class="completion-line">
-			Completed — {{ job.completion.date_display }}
+		<div class="completion-row">
+			<span class="completion-label">Completion</span>
+			<span class="status-pill status-pill--{{ job.completion.status | lower }}">{{ job.completion.status }}</span>
+			Completed date {{ job.completion.date_display }}
 		</div>
 	</div>
 	{% endfor %}
 	{% endif %}
+
+	</div><!-- .page-body -->
 
 </body>
 </html>

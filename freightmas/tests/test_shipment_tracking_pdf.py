@@ -31,7 +31,7 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 		self.assertEqual(names.index(delayed.name), 0)
 		self.assertLess(names.index(on_time.name), len(names))
 
-	def test_pdf_template_renders_tabular_layout(self):
+	def test_pdf_template_renders_landscape_layout(self):
 		customer = _make_customer("HTML1")
 		job = _make_job(
 			customer,
@@ -39,6 +39,7 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 			customer_reference="PO-HTML-001",
 			requires_sea_air_freight=1,
 			requires_port_clearance=1,
+			is_trucking_required=1,
 		)
 		frappe.db.set_value(
 			"Forwarding Job",
@@ -60,23 +61,27 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 				"customer": customer.customer_name,
 				"logo": None,
 				"jobs": [{**ctx, "num": 1}],
-				"generated_on": "27 Aug 2026",
-				"summary": {"line": "1 SHIPMENT · 1 IN TRANSIT"},
+				"generated_on": "28-Aug-26",
+				"summary": {"total": 1, "in_transit": 1, "delayed": 0, "line": "1 SHIPMENT · 1 IN TRANSIT"},
 			},
 		)
 
+		self.assertIn("A4 landscape", html)
 		self.assertIn("Shipments at a Glance", html)
 		self.assertIn("Detailed per Shipment", html)
-		self.assertIn("Job ID", html)
-		self.assertIn("Latest Comment", html)
+		self.assertIn("Shipment Tracking Report", html)
+		self.assertIn("Shipments</div>", html)
+		self.assertIn("phase-pill", html)
 		self.assertIn("PO-HTML-001", html)
 		self.assertIn("Vessel departed Beira", html)
 		self.assertIn("Customs docs submitted", html)
 		self.assertIn("Services", html)
 		self.assertIn("Sea / Air Freight", html)
 		self.assertIn("Port Clearance", html)
+		self.assertIn("BL Number", html)
 		self.assertIn("Cargo Count", html)
-		self.assertIn("Completed —", html)
+		self.assertIn("PENDING", html)
+		self.assertIn("shipment-card", html)
 		self.assertNotIn("Shipment Journey", html)
 		self.assertNotIn("Journey progress", html)
 

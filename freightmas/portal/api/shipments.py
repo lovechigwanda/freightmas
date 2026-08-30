@@ -170,7 +170,7 @@ def _build_portal_tracking_pdf(customers, status=None, direction=None, operation
 	company = frappe.db.get_single_value("Global Defaults", "default_company") or "FreightMas"
 	company_name = frappe.db.get_value("Company", company, "company_name") or company
 	customer_name = _portal_customer_display_name(customers)
-	generated_on = now_datetime().strftime("%d %b %Y")
+	generated_on = now_datetime().strftime("%d-%b-%y")
 
 	html = frappe.render_template(
 		"freightmas/templates/shipment_tracking_report.html",
@@ -189,10 +189,10 @@ def _build_portal_tracking_pdf(customers, status=None, direction=None, operation
 	return get_pdf(
 		html,
 		options={
-			"orientation": "Portrait",
+			"orientation": "Landscape",
 			"page-size": "A4",
-			"margin-top": "12mm",
-			"margin-bottom": "16mm",
+			"margin-top": "10mm",
+			"margin-bottom": "14mm",
 			"margin-left": "10mm",
 			"margin-right": "10mm",
 			"footer-left": f"Prepared for {customer_name} — Confidential",

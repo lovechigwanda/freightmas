@@ -5,7 +5,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_days, nowdate
+from frappe.utils import add_days, formatdate, nowdate
 
 from freightmas.forwarding_service.utils.client_tracking_view import (
 	build_client_tracking_view,
@@ -304,14 +304,36 @@ class TestClientTrackingView(IntegrationTestCase):
 		self.assertEqual(ctx["glance"]["primary_label"], "PO-CLIENT-002")
 		self.assertEqual(ctx["glance"]["secondary_label"], job.name)
 		self.assertIn("Vessel departed Beira", ctx["glance"]["latest_comment"])
+		self.assertIn("block_header", ctx)
+		self.assertIn("details_strip", ctx)
+		self.assertEqual(ctx["details_strip"]["bl_number"], "BL-888")
+		self.assertIn("eta_ata", ctx["details_strip"])
+		self.assertIn("mode_line", ctx["details_strip"])
+		self.assertIn("phase_upper", ctx["glance"])
+		self.assertIn("eta_short", ctx["glance"])
 		self.assertIn("details_row", ctx)
 		self.assertEqual(ctx["details_row"]["bl_number"], "BL-888")
 		self.assertIn("services", ctx)
 		self.assertGreater(len(ctx["services"]), 0)
+		self.assertIn("percent", ctx["services"][0])
+		self.assertIn("status", ctx["completion"])
+		self.assertEqual(ctx["completion"]["status"], "PENDING")
 		self.assertIn("hero", ctx)
 		self.assertIn("journey", ctx)
 		self.assertGreater(len(ctx["journey"]), 0)
 		self.assertIn("steps", ctx["hero"])
+
+	def test_build_pdf_job_context_eta_ata_shows_single_date(self):
+		customer = _make_customer("PDFETA")
+		job_eta_only = _make_job(customer, "PDFETA1", eta=add_days(nowdate(), 10))
+		job_eta_only.reload()
+		self.assertEqual(build_pdf_job_context(job_eta_only)["details_strip"]["eta_ata"], formatdate(job_eta_only.eta, "dd-MMM-yy"))
+
+		job_with_ata = _make_job(customer, "PDFETA2", eta=add_days(nowdate(), 10))
+		ata = add_days(nowdate(), 5)
+		frappe.db.set_value("Forwarding Job", job_with_ata.name, "ata", ata)
+		job_with_ata.reload()
+		self.assertEqual(build_pdf_job_context(job_with_ata)["details_strip"]["eta_ata"], formatdate(ata, "dd-MMM-yy"))
 
 	def test_build_pdf_job_context_service_rows_only_applicable_services(self):
 		customer = _make_customer("PDF5")
@@ -341,6 +363,119 @@ class TestClientTrackingView(IntegrationTestCase):
 		self.assertNotIn("Border Clearance", titles)
 		self.assertNotIn("Warehouse", titles)
 		self.assertTrue(any("Awaiting customs release" in row["comment"] for row in ctx["services"]))
+
+	def test_build_pdf_job_context_shows_port_clearance_without_milestones(self):
+		customer = _make_customer("PDF6")
+		job = _make_job(
+			customer,
+			"PDF6",
+			requires_sea_air_freight=1,
+			requires_port_clearance=1,
+		)
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			"port_clearance_tracking_comment",
+			"Docs with broker",
+		)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		titles = [row["title"] for row in ctx["services"]]
+
+		self.assertIn("Port Clearance", titles)
+		port = next(row for row in ctx["services"] if row["title"] == "Port Clearance")
+		self.assertIn("Docs with broker", port["comment"])
+
+	def test_build_pdf_job_context_shows_road_when_trucking_required(self):
+		customer = _make_customer("PDF7")
+		job = _make_job(customer, "PDF7", is_trucking_required=1)
+		frappe.db.set_value("Forwarding Job", job.name, "requires_sea_air_freight", 0)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		titles = [row["title"] for row in ctx["services"]]
+		self.assertIn("Road Transport", titles)
+
+	def test_build_pdf_job_context_service_comment_omits_item_counts(self):
+		customer = _make_customer("PDF8")
+		job = _make_job(customer, "PDF8", requires_port_clearance=1)
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			"port_clearance_tracking_comment",
+			"Awaiting customs release",
+		)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		port = next(row for row in ctx["services"] if row["title"] == "Port Clearance")
+		self.assertEqual(port["comment"], "Awaiting customs release")
+		self.assertNotIn("items complete", port["comment"])
+		self.assertNotIn("steps complete", port["comment"])
+		self.assertIn("items complete", port["progress_text"])
+
+	def test_build_pdf_job_context_excludes_lcl_from_container_rows(self):
+		customer = _make_customer("PDF9")
+		job = _make_job(customer, "PDF9", shipment_type="LCL")
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "General Cargo",
+				"cargo_item_description": "Plastic moulding products",
+				"cargo_quantity": 1,
+			},
+		)
+		job.save(ignore_permissions=True)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		self.assertEqual(ctx["containers"], [])
+
+	def test_build_pdf_job_context_includes_containerised_rows_only(self):
+		customer = _make_customer("PDF10")
+		job = _make_job(customer, "PDF10")
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "Containerised",
+				"container_number": "MSCU1234567",
+				"container_type": "20SD",
+				"cargo_quantity": 1,
+			},
+		)
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "General Cargo",
+				"cargo_item_description": "Loose cartons",
+				"cargo_quantity": 1,
+			},
+		)
+		job.save(ignore_permissions=True)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		self.assertEqual(len(ctx["containers"]), 1)
+		self.assertEqual(ctx["containers"][0]["container_number"], "MSCU1234567")
+
+	def test_build_pdf_job_context_fact_strip_order_and_cargo_description(self):
+		customer = _make_customer("PDF11")
+		job = _make_job(
+			customer,
+			"PDF11",
+			bl_number="BL-111",
+			cargo_description="Plastic moulding products",
+			shipment_type="LCL",
+		)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		strip = ctx["details_strip"]
+		self.assertEqual(strip["bl_number"], "BL-111")
+		self.assertEqual(strip["cargo_description"], "Plastic moulding products")
+		self.assertIn("cargo_count", strip)
+		self.assertIn("eta_ata", strip)
 
 	def test_build_pdf_job_context_journey_has_phase_rows_not_checklists(self):
 		customer = _make_customer("PDF3")

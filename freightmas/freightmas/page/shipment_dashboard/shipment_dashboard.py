@@ -2403,7 +2403,7 @@ def _build_shipment_tracking_pdf(customer):
 
 	dossier_jobs = _pdf_jobs_for_customer(customer, numbered=True)
 
-	generated_on = frappe.utils.now_datetime().strftime("%d %b %Y")
+	generated_on = frappe.utils.now_datetime().strftime("%d-%b-%y")
 	customer_name = frappe.db.get_value("Customer", customer, "customer_name") or customer
 	company_name = frappe.db.get_value("Company", company, "company_name") or company
 
@@ -2427,10 +2427,10 @@ def _build_shipment_tracking_pdf(customer):
 	pdf = get_pdf(
 		html,
 		options={
-			"orientation": "Portrait",
+			"orientation": "Landscape",
 			"page-size": "A4",
-			"margin-top": "12mm",
-			"margin-bottom": "16mm",
+			"margin-top": "10mm",
+			"margin-bottom": "14mm",
 			"margin-left": "10mm",
 			"margin-right": "10mm",
 			"footer-left": f"Prepared for {customer_name} — Confidential",
