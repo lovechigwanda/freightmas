@@ -11,6 +11,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 
 from freightmas.api import get_report_filename
+from freightmas.utils.company_branding import company_logo_data_uri
 
 
 def _report_module():
@@ -38,15 +39,21 @@ def _report_context(filters, data):
 	total_debit = sum(row.get("debit", 0) for row in data if row.get("debit"))
 	total_credit = sum(row.get("credit", 0) for row in data if row.get("credit"))
 	closing_balance = data[-1].get("balance", 0) if data else 0
-	company_currency = frappe.db.get_value("Company", filters.get("company"), "default_currency") or "USD"
+	company = filters.get("company")
+	company_currency = frappe.db.get_value("Company", company, "default_currency") or "USD"
+	company_name = frappe.db.get_value("Company", company, "company_name") or company
+	statement_date = _format_display_date(frappe.utils.today())
 
 	return {
-		"company": filters.get("company"),
+		"company": company,
+		"company_name": company_name,
+		"logo": company_logo_data_uri(company),
 		"party_type": party_type,
 		"party_name": _party_display_name(party_type, party) or party,
 		"report_name": "Statement of Account Job Linked",
 		"from_date": _format_display_date(filters.get("from_date")),
 		"to_date": _format_display_date(filters.get("to_date")),
+		"statement_date": statement_date,
 		"currency": company_currency,
 		"include_draft": filters.get("include_draft_invoices", False),
 		"data": data,
@@ -69,10 +76,10 @@ def build_statement_job_linked_pdf(filters):
 		{
 			"orientation": "Landscape",
 			"page-size": "A4",
-			"margin-top": "15mm",
-			"margin-right": "15mm",
-			"margin-bottom": "15mm",
-			"margin-left": "15mm",
+			"margin-top": "10mm",
+			"margin-right": "10mm",
+			"margin-bottom": "14mm",
+			"margin-left": "10mm",
 			"footer-right": "Page [page] of [topage]",
 			"footer-font-size": "8",
 			"print-media-type": True,

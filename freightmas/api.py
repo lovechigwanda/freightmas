@@ -995,71 +995,12 @@ def export_statement_of_account_job_linked_to_pdf(filters):
     check_freightmas_role()
     import json
 
+    from freightmas.utils.statement_job_linked_export import build_statement_job_linked_pdf
+
     filters = json.loads(filters)
+    filename, pdf = build_statement_job_linked_pdf(filters)
 
-    module = frappe.get_module(
-        "freightmas.freightmas.report.statement_of_account_job_linked.statement_of_account_job_linked"
-    )
-    columns, data = module.execute(filters)
-
-    total_debit = sum(row.get('debit', 0) for row in data if row.get('debit'))
-    total_credit = sum(row.get('credit', 0) for row in data if row.get('credit'))
-    closing_balance = data[-1].get('balance', 0) if data else 0
-
-    party_type = filters.get('party_type')
-    party = filters.get('party')
-    party_name = frappe.db.get_value(party_type, party,
-        'customer_name' if party_type == 'Customer' else 'supplier_name'
-    ) if party else None
-
-    def format_date(date_str):
-        if date_str:
-            return frappe.utils.formatdate(date_str, "dd-MMM-yy")
-        return ""
-
-    company_currency = frappe.db.get_value("Company", filters.get('company'),
-        "default_currency") or "USD"
-
-    context = {
-        "company": filters.get('company'),
-        "party_type": party_type,
-        "party_name": party_name or party,
-        "report_name": "Statement of Account Job Linked",
-        "from_date": format_date(filters.get('from_date')),
-        "to_date": format_date(filters.get('to_date')),
-        "currency": company_currency,
-        "include_draft": filters.get('include_draft_invoices', False),
-        "data": data,
-        "totals": {
-            "debit": total_debit,
-            "credit": total_credit,
-            "balance": closing_balance
-        },
-        "frappe": frappe,
-        "today": frappe.utils.today()
-    }
-
-    html = frappe.render_template(
-        "freightmas/templates/statement_of_account_job_linked.html",
-        context
-    )
-
-    pdf = frappe.utils.pdf.get_pdf(
-        html,
-        {
-            "orientation": "Landscape",
-            "page-size": "A4",
-            "margin-top": "15mm",
-            "margin-right": "15mm",
-            "margin-bottom": "15mm",
-            "margin-left": "15mm",
-            "footer-right": "Page [page] of [topage]",
-            "footer-font-size": "8",
-            "print-media-type": True
-        }
-    )
-
-    frappe.local.response.filename = get_report_filename("Statement_of_Account_Job_Linked", "pdf", party)
+    frappe.local.response.filename = filename
     frappe.local.response.filecontent = pdf
     frappe.local.response.type = "download"
 

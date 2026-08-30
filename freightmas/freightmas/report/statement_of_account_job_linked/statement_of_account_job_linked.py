@@ -6,8 +6,6 @@ import frappe
 from frappe import _
 from frappe.utils import formatdate
 
-MAX_REMARKS_LENGTH = 120
-
 # Job reference fields present on both Sales Invoice and Purchase Invoice
 INVOICE_JOB_REF_FIELDS = [
     "forwarding_job_reference",
@@ -17,13 +15,6 @@ INVOICE_JOB_REF_FIELDS = [
     "warehouse_job_reference",
     "trip_reference",
 ]
-
-
-def _truncate_remarks(text, max_len=MAX_REMARKS_LENGTH):
-    if not text:
-        return text
-    text = str(text)
-    return text if len(text) <= max_len else text[:max_len].rstrip() + "..."
 
 
 def execute(filters=None):
@@ -145,7 +136,7 @@ def get_data(filters):
             "debit": entry.debit,
             "credit": entry.credit,
             "balance": balance,
-            "remarks": _truncate_remarks(entry.remarks)
+            "remarks": entry.remarks
         }
         data.append(row)
 
