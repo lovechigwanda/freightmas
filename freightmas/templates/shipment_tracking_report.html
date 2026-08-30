@@ -1,328 +1,142 @@
-{%- macro progress_bar(percent, css_class, color) -%}
-<table class="progress-wrap" cellpadding="0" cellspacing="0"><tr>
-	<td class="progress-track">
-		<div class="progress-fill progress-fill--{{ css_class }}" style="width:{{ percent }}%;background:{{ color }};"></div>
-	</td>
-	<td class="progress-pct">{{ percent }}%</td>
-</tr></table>
-{%- endmacro -%}
-
-{%- macro step_marker(state) -%}
-<span class="step-marker step-marker--{{ state }}">
-	{%- if state == 'done' -%}✓{%- elif state == 'current' -%}●{%- else -%}○{%- endif -%}
-</span>
-{%- endmacro -%}
-
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
-	@page { size: A4 portrait; }
+	@page { size: A4 portrait; margin: 12mm 14mm; }
 
 	body {
 		margin: 0;
 		font-family: 'Work Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 		color: #111827;
 		font-size: 11px;
-		background: #f6f7fb;
+		background: #fff;
 	}
 
-	h1, h2, h3 { margin: 0; }
-
-	/* ---- Banner ---- */
-	.banner {
+	/* ---- Header ---- */
+	.report-header {
 		width: 100%;
 		border-collapse: collapse;
-		background: #2c2560;
-		border-radius: 10px 10px 0 0;
+		margin-bottom: 0;
 	}
-	.banner td { padding: 14px 26px; vertical-align: middle; }
-	.banner-logo {
-		width: 44px; height: 44px;
-		border-radius: 6px;
+	.report-header td { vertical-align: middle; padding: 0; }
+	.header-logo {
+		width: 40px;
+		height: 40px;
+		border-radius: 4px;
 		object-fit: contain;
-		background: #fff;
 	}
-	.banner-logo-fallback {
-		width: 44px; height: 44px;
-		border-radius: 6px;
-		background: #fff;
-		color: #2c2560;
-		font: 800 18px/44px 'Work Sans', Helvetica, Arial, sans-serif;
+	.header-logo-fallback {
+		width: 40px;
+		height: 40px;
+		border-radius: 4px;
+		background: #2c2560;
+		color: #fff;
+		font: 800 16px/40px 'Work Sans', Helvetica, Arial, sans-serif;
 		text-align: center;
 	}
-	.banner-title {
-		font: 800 20px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .01em;
-		color: #fff;
-	}
-	.banner-customer {
-		font: 800 13px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .02em;
-		color: #F4901E;
-		padding-top: 5px;
-	}
-	.banner-meta {
-		text-align: right;
-		font: 600 9.5px/1.6 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .03em;
-		color: #c7c2e6;
-		white-space: nowrap;
-	}
-	.banner-rule {
-		height: 4px;
-		background: #F4901E;
-		border-radius: 0 0 10px 10px;
-		margin-bottom: 6px;
-	}
-
-	/* ---- Glance table ---- */
-	.glance-wrap { margin-top: 18px; margin-bottom: 8px; }
-	.glance-title {
-		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .06em;
-		text-transform: uppercase;
-		color: #64748b;
-		margin-bottom: 8px;
-	}
-	table.glance { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; border: 1px solid #e6e9f0; border-radius: 10px; }
-	table.glance th {
-		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .05em;
-		text-transform: uppercase;
-		color: #64748b;
-		text-align: left;
-		padding: 8px 8px 7px;
-		border-bottom: 1px solid #e6e9f0;
-		background: #fafbfc;
-	}
-	table.glance td {
-		padding: 9px 8px;
-		border-bottom: 1px solid #eef1f4;
-		font-size: 10.5px;
-		color: #111827;
-		vertical-align: middle;
-	}
-	table.glance tr:last-child td { border-bottom: none; }
-	.glance-primary { font-weight: 700; color: #111827; display: block; }
-	.glance-secondary { font-size: 9px; color: #94a3b8; display: block; margin-top: 2px; }
-	.glance-cargo { font-size: 9px; color: #64748b; display: block; margin-top: 2px; }
-	.glance-headline { color: #64748b; white-space: normal; line-height: 1.35; }
-	.glance-eta--overdue { color: #b91c1c; font-weight: 700; }
-	.glance-eta--normal { color: #111827; }
-
-	.progress-wrap { width: 100%; border-collapse: collapse; }
-	.progress-track {
-		height: 6px;
-		background: #e6e9f0;
-		border-radius: 3px;
-		overflow: hidden;
-		width: 100%;
-	}
-	.progress-fill { height: 6px; border-radius: 3px; }
-	.progress-pct {
-		font: 600 9.5px/1 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #64748b;
-		padding-left: 6px;
-		white-space: nowrap;
-		width: 1%;
-	}
-
-	/* ---- Detail page ---- */
-	.detail-page {
-		page-break-before: always;
-		padding-top: 4px;
-	}
-	.detail-page:first-of-type { page-break-before: auto; }
-
-	.card {
-		background: #fff;
-		border: 1px solid #e6e9f0;
-		border-radius: 10px;
-		margin-bottom: 12px;
-		overflow: hidden;
-		page-break-inside: avoid;
-	}
-
-	/* Hero */
-	.hero {
-		border-left: 4px solid #dd6b20;
-		padding: 16px 18px;
-	}
-	.hero--green { border-left-color: #15803d; }
-	.hero--red { border-left-color: #b91c1c; }
-	.hero--orange { border-left-color: #dd6b20; }
-	.hero--gray { border-left-color: #98a1ac; }
-
-	.hero-top { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-	.hero-status {
-		font: 800 22px/1.15 'Work Sans', Helvetica, Arial, sans-serif;
-		color: #111827;
-	}
-	.hero-keydate {
-		text-align: right;
-		font: 700 11px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		white-space: nowrap;
-	}
-	.hero-keydate--overdue { color: #b91c1c; }
-	.hero-keydate--normal { color: #4338ca; }
-	.hero-headline {
-		margin: 0 0 6px;
-		font-size: 12px;
-		color: #475569;
-		line-height: 1.4;
-	}
-	.hero-route {
-		margin: 0 0 12px;
-		font-size: 10.5px;
-		color: #64748b;
-	}
-	.hero-ref {
-		margin: 10px 0 0;
-		text-align: right;
-		font-size: 9px;
-		color: #94a3b8;
-	}
-	.hero-delayed {
-		display: inline-block;
-		margin-left: 8px;
-		padding: 1px 6px;
-		border-radius: 999px;
-		background: #fef2f2;
-		color: #b91c1c;
-		font: 700 9px/16px 'Work Sans', Helvetica, Arial, sans-serif;
-		vertical-align: middle;
-	}
-
-	.hero-steps {
-		width: 100%;
-		border-collapse: collapse;
-		margin: 0 0 12px;
-	}
-	.hero-steps td {
-		text-align: center;
-		vertical-align: top;
-		padding: 0 2px;
-		font-size: 9px;
-		color: #64748b;
-	}
-	.step-marker {
-		display: inline-block;
-		width: 18px;
-		height: 18px;
-		line-height: 18px;
-		border-radius: 50%;
-		font-size: 10px;
-		font-weight: 700;
-		margin-bottom: 4px;
-	}
-	.step-marker--done {
-		background: #15803d;
-		color: #fff;
-	}
-	.step-marker--current {
-		background: #4338ca;
-		color: #fff;
-	}
-	.step-marker--pending {
-		background: #e6e9f0;
-		color: #94a3b8;
-	}
-	.step-connector {
-		display: block;
-		height: 2px;
-		background: #e6e9f0;
-		margin: 8px 0 0;
-	}
-	.step-connector--done { background: #15803d; }
-
-	.hero-progress-label {
-		font: 600 9px/1 'Work Sans', Helvetica, Arial, sans-serif;
+	.header-title {
+		font: 800 16px/1.2 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .04em;
 		text-transform: uppercase;
-		color: #64748b;
-		margin-bottom: 5px;
+		color: #2c2560;
 	}
-
-	/* Fact strip */
-	.fact-strip { width: 100%; border-collapse: collapse; }
-	.fact-strip td {
-		width: 16.66%;
-		padding: 12px 10px;
-		vertical-align: top;
-		border-right: 1px solid #eef1f4;
-	}
-	.fact-strip td:last-child { border-right: none; }
-	.fact-label {
-		display: block;
-		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
-		letter-spacing: .05em;
-		text-transform: uppercase;
-		color: #94a3b8;
-		margin-bottom: 4px;
-	}
-	.fact-value {
-		display: block;
-		font: 600 10.5px/1.35 'Work Sans', Helvetica, Arial, sans-serif;
+	.header-customer {
+		font: 700 12px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
 		color: #111827;
+		margin-top: 3px;
+	}
+	.header-meta {
+		text-align: right;
+		font: 600 9.5px/1.5 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #64748b;
+		white-space: nowrap;
+	}
+	.header-rule {
+		height: 3px;
+		background: #F4901E;
+		margin: 10px 0 16px;
 	}
 
-	/* Journey */
-	.section-title {
+	/* ---- Section titles ---- */
+	.section-heading {
 		font: 700 11px/1 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .06em;
 		text-transform: uppercase;
-		color: #64748b;
-		padding: 12px 14px 0;
+		color: #2c2560;
+		margin: 0 0 8px;
+		padding-bottom: 4px;
+		border-bottom: 1px solid #e6e9f0;
 	}
-	table.journey { width: 100%; border-collapse: collapse; }
-	table.journey td {
-		padding: 9px 14px;
-		border-bottom: 1px solid #eef1f4;
-		font-size: 10.5px;
-		vertical-align: middle;
+	.detail-section-heading {
+		margin-top: 20px;
 	}
-	table.journey tr:last-child td { border-bottom: none; }
-	table.journey tr.journey--current td { background: #f8fafc; }
-	.journey-marker {
-		width: 22px;
-		font-weight: 700;
-		color: #64748b;
-	}
-	.journey-marker--done { color: #15803d; }
-	.journey-marker--current { color: #4338ca; }
-	.journey-marker--pending { color: #cbd5e1; }
-	.journey-title { font-weight: 600; color: #111827; }
-	.journey-summary { color: #64748b; }
-	.journey-status {
-		text-align: right;
-		white-space: nowrap;
-		font-weight: 600;
-		color: #64748b;
-	}
-	.journey-status--current { color: #4338ca; }
-	.journey-status--done { color: #15803d; }
 
-	/* Containers */
-	table.containers { width: 100%; border-collapse: collapse; }
-	table.containers th {
+	/* ---- Tables ---- */
+	table.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		table-layout: fixed;
+		margin-bottom: 14px;
+	}
+	table.data-table th {
 		font: 700 8px/1.3 'Work Sans', Helvetica, Arial, sans-serif;
 		letter-spacing: .05em;
 		text-transform: uppercase;
 		color: #64748b;
 		text-align: left;
-		padding: 0 14px 6px;
-		border-bottom: 1px solid #e6e9f0;
+		padding: 6px 7px;
+		border: 1px solid #e6e9f0;
+		background: #f8f9fb;
 	}
-	table.containers td {
-		padding: 7px 14px;
-		border-bottom: 1px solid #eef1f4;
+	table.data-table td {
+		padding: 7px 7px;
+		border: 1px solid #e6e9f0;
 		font-size: 10.5px;
 		color: #111827;
+		vertical-align: top;
+		line-height: 1.35;
+		word-wrap: break-word;
 	}
-	table.containers tr:last-child td { border-bottom: none; }
-	.container-num { font-weight: 600; }
+	.eta-overdue { color: #b91c1c; font-weight: 700; }
+
+	/* ---- Detail blocks ---- */
+	.shipment-block {
+		page-break-inside: avoid;
+		margin-bottom: 16px;
+		padding-bottom: 14px;
+		border-bottom: 1px dashed #cbd5e1;
+	}
+	.shipment-block:last-child { border-bottom: none; }
+
+	.shipment-subheader {
+		font: 600 10.5px/1.4 'Work Sans', Helvetica, Arial, sans-serif;
+		color: #111827;
+		margin: 0 0 10px;
+	}
+
+	.subsection-label {
+		font: 700 9px/1 'Work Sans', Helvetica, Arial, sans-serif;
+		letter-spacing: .05em;
+		text-transform: uppercase;
+		color: #64748b;
+		margin: 10px 0 5px;
+	}
+
+	.service-row {
+		font-size: 10.5px;
+		line-height: 1.5;
+		color: #111827;
+		margin: 0 0 4px;
+		padding-left: 2px;
+	}
+	.service-row strong { color: #2c2560; font-weight: 700; }
+
+	.completion-line {
+		font-size: 10.5px;
+		color: #64748b;
+		margin-top: 8px;
+	}
 
 	.doc-empty {
 		margin-top: 40px;
@@ -335,31 +149,29 @@
 </head>
 <body>
 
-	<!-- BANNER -->
-	<table class="banner">
+	<!-- HEADER -->
+	<table class="report-header">
 		<tr>
-			<td>
-				<table style="border-collapse:collapse;"><tr>
-					<td style="padding:0 14px 0 0;">
-						{% if logo %}
-							<img src="{{ logo }}" class="banner-logo" alt="logo"/>
-						{% else %}
-							<div class="banner-logo-fallback">{{ company[:1] | upper }}</div>
-						{% endif %}
-					</td>
-					<td style="padding:0;">
-						<div class="banner-title">SHIPMENT TRACKING</div>
-						<div class="banner-customer">{{ customer | upper }}</div>
-					</td>
-				</tr></table>
+			<td style="width:52px;padding-right:12px;">
+				{% if logo %}
+					<img src="{{ logo }}" class="header-logo" alt="logo"/>
+				{% else %}
+					<div class="header-logo-fallback">{{ company[:1] | upper }}</div>
+				{% endif %}
 			</td>
-			<td class="banner-meta">
-				<div>GENERATED: {{ generated_on | upper }}</div>
-				<div>{{ summary.line }}</div>
+			<td>
+				<div class="header-title">Shipment Tracking Report</div>
+				<div class="header-customer">{{ customer }}</div>
+			</td>
+			<td class="header-meta">
+				<div>Generated: {{ generated_on }}</div>
+				{% if summary and summary.line %}
+					<div>{{ summary.line }}</div>
+				{% endif %}
 			</td>
 		</tr>
 	</table>
-	<div class="banner-rule"></div>
+	<div class="header-rule"></div>
 
 	{% if not jobs %}
 		<div class="doc-empty">No active shipments on file for {{ customer }}.</div>
@@ -367,142 +179,111 @@
 
 	<!-- SHIPMENTS AT A GLANCE -->
 	{% if jobs %}
-	<div class="glance-wrap">
-		<div class="glance-title">Shipments at a Glance</div>
-		<table class="glance">
-			<colgroup>
-				<col style="width:16%;"/>
-				<col style="width:14%;"/>
-				<col style="width:12%;"/>
-				<col style="width:12%;"/>
-				<col style="width:28%;"/>
-				<col style="width:18%;"/>
-			</colgroup>
+	<div class="section-heading">Shipments at a Glance</div>
+	<table class="data-table">
+		<colgroup>
+			<col style="width:16%;"/>
+			<col style="width:14%;"/>
+			<col style="width:14%;"/>
+			<col style="width:14%;"/>
+			<col style="width:42%;"/>
+		</colgroup>
+		<thead><tr>
+			<th>Job ID</th>
+			<th>Reference</th>
+			<th>ETA / ATA</th>
+			<th>Phase</th>
+			<th>Latest Comment</th>
+		</tr></thead>
+		<tbody>
+			{% for job in jobs %}
+			<tr>
+				<td>{{ job.glance.job_id }}</td>
+				<td>{{ job.glance.reference }}</td>
+				<td class="{% if job.glance.eta_ata_urgency == 'overdue' %}eta-overdue{% endif %}">
+					{{ job.glance.eta_ata_display }}
+				</td>
+				<td>{{ job.glance.phase_label }}</td>
+				<td>{{ job.glance.latest_comment }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% endif %}
+
+	<!-- DETAILED PER SHIPMENT -->
+	{% if jobs %}
+	<div class="section-heading detail-section-heading">Detailed per Shipment</div>
+	{% for job in jobs %}
+	<div class="shipment-block">
+		<p class="shipment-subheader">
+			{{ job.ref }} — {{ job.customer_reference }} — {{ job.phase_label }} — {{ job.latest_comment }}
+		</p>
+
+		<table class="data-table">
 			<thead><tr>
-				<th>Reference</th>
+				<th>BL No</th>
+				<th>Cargo Count</th>
+				<th>ETA</th>
+				<th>ATA</th>
+				<th>Discharge</th>
 				<th>Route</th>
-				<th>Phase</th>
-				<th>ETA / ETD</th>
-				<th>Latest Update</th>
-				<th>Progress</th>
+				<th>Cargo Description</th>
+			</tr></thead>
+			<tbody><tr>
+				<td>{{ job.details_row.bl_number }}</td>
+				<td>{{ job.details_row.cargo_count }}</td>
+				<td>{{ job.details_row.eta }}</td>
+				<td>{{ job.details_row.ata }}</td>
+				<td>{{ job.details_row.discharge }}</td>
+				<td>{{ job.details_row.route }}</td>
+				<td>{{ job.details_row.cargo_description }}</td>
+			</tr></tbody>
+		</table>
+
+		{% if job.services %}
+		<div class="subsection-label">Services</div>
+		{% for service in job.services %}
+		<p class="service-row">
+			<strong>{{ service.title }}</strong> — {{ service.comment }} · {{ service.progress_text }}
+		</p>
+		{% endfor %}
+		{% endif %}
+
+		{% if job.containers %}
+		<div class="subsection-label">Container Details</div>
+		<table class="data-table">
+			<thead><tr>
+				<th>Container</th>
+				<th>Type</th>
+				<th>Discharged</th>
+				<th>Gate-Out</th>
+				<th>Offloaded</th>
+				<th>Returned</th>
+				<th>Comment</th>
 			</tr></thead>
 			<tbody>
-				{% for job in jobs %}
+				{% for row in job.containers %}
 				<tr>
-					<td>
-						<span class="glance-primary">{{ job.glance.primary_label }}</span>
-						{% if job.glance.secondary_label %}
-							<span class="glance-secondary">{{ job.glance.secondary_label }}</span>
-						{% endif %}
-						{% if job.glance.cargo_units %}
-							<span class="glance-cargo">{{ job.glance.cargo_units }}</span>
-						{% endif %}
-					</td>
-					<td>{{ job.glance.route }}</td>
-					<td style="color:{{ job.glance.phase_color }};font-weight:600;">{{ job.glance.phase_label }}</td>
-					<td class="glance-eta--{{ job.glance.eta_urgency }}">{{ job.glance.eta_display }}</td>
-					<td class="glance-headline">{{ job.glance.headline }}</td>
-					<td>{{ progress_bar(job.glance.progress_percent, job.glance.progress_class, job.glance.progress_color) }}</td>
+					<td>{{ row.container_number }}</td>
+					<td>{{ row.container_type }}</td>
+					<td>{{ row.discharged }}</td>
+					<td>{{ row.gate_out }}</td>
+					<td>{{ row.offloaded }}</td>
+					<td>{{ row.returned }}</td>
+					<td>{{ row.comment }}</td>
 				</tr>
 				{% endfor %}
 			</tbody>
 		</table>
-	</div>
-	{% endif %}
-
-	<!-- ONE PAGE PER SHIPMENT -->
-	{% for job in jobs %}
-	<div class="detail-page">
-		<div class="card hero hero--{{ job.status_key }}">
-			<table class="hero-top"><tr>
-				<td class="hero-status">
-					{{ job.hero.status_label }}
-					{% if job.hero.is_delayed %}<span class="hero-delayed">Delayed</span>{% endif %}
-				</td>
-				<td class="hero-keydate hero-keydate--{{ job.hero.key_date_urgency }}">
-					{{ job.hero.key_date_label }} {{ job.hero.key_date_display }}
-				</td>
-			</tr></table>
-			{% if job.hero.headline %}
-				<p class="hero-headline">{{ job.hero.headline }}</p>
-			{% endif %}
-			{% if job.hero.route_line %}
-				<p class="hero-route">{{ job.hero.route_line }}</p>
-			{% endif %}
-
-			{% if job.hero.steps %}
-			<table class="hero-steps"><tr>
-				{% for step in job.hero.steps %}
-				<td>
-					{{ step_marker(step.state) }}<br/>
-					<span>{{ step.label }}</span>
-					{% if not loop.last %}<span class="step-connector{% if step.state == 'done' %} step-connector--done{% endif %}"></span>{% endif %}
-				</td>
-				{% endfor %}
-			</tr></table>
-			{% endif %}
-
-			<div class="hero-progress-label">Journey progress</div>
-			{{ progress_bar(job.hero.progress_percent, job.hero.progress_class, job.hero.progress_color) }}
-			<div class="hero-ref">{{ job.ref }}</div>
-		</div>
-
-		<div class="card">
-			<table class="fact-strip"><tr>
-				{% for fact in job.facts %}
-				<td>
-					<span class="fact-label">{{ fact.label }}</span>
-					<span class="fact-value">{{ fact.value }}</span>
-				</td>
-				{% endfor %}
-			</tr></table>
-		</div>
-
-		{% if job.journey %}
-		<div class="card">
-			<div class="section-title">Shipment Journey</div>
-			<table class="journey">
-				{% for phase in job.journey %}
-				<tr class="journey--{{ phase.state }}">
-					<td class="journey-marker journey-marker--{{ phase.state }}" style="width:28px;">
-						{%- if phase.state == 'done' -%}✓{%- elif phase.state == 'current' -%}●{%- else -%}○{%- endif -%}
-					</td>
-					<td class="journey-title" style="width:26%;">{{ phase.title }}</td>
-					<td class="journey-summary">{{ phase.summary }}</td>
-					<td class="journey-status journey-status--{{ phase.state }}">{{ phase.status_text }}</td>
-				</tr>
-				{% endfor %}
-			</table>
-		</div>
 		{% endif %}
 
-		{% if job.containers %}
-		<div class="card">
-			<div class="section-title">Containers</div>
-			<table class="containers">
-				<thead><tr>
-					<th>Container</th>
-					<th>Type</th>
-					<th>Status</th>
-					<th>Last Event</th>
-					<th>Date</th>
-				</tr></thead>
-				<tbody>
-					{% for row in job.containers %}
-					<tr>
-						<td class="container-num">{{ row.container_number }}</td>
-						<td>{{ row.container_type }}</td>
-						<td>{{ row.status }}</td>
-						<td>{{ row.last_event }}</td>
-						<td>{{ row.last_event_date }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+		<div class="completion-line">
+			Completed — {{ job.completion.date_display }}
 		</div>
-		{% endif %}
 	</div>
 	{% endfor %}
+	{% endif %}
 
 </body>
 </html>

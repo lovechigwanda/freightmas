@@ -31,14 +31,25 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 		self.assertEqual(names.index(delayed.name), 0)
 		self.assertLess(names.index(on_time.name), len(names))
 
-	def test_pdf_template_renders_portal_layout(self):
+	def test_pdf_template_renders_tabular_layout(self):
 		customer = _make_customer("HTML1")
 		job = _make_job(
 			customer,
 			"HTML1",
 			customer_reference="PO-HTML-001",
+			requires_sea_air_freight=1,
+			requires_port_clearance=1,
 		)
-		frappe.db.set_value("Forwarding Job", job.name, "current_comment", "Awaiting vessel arrival")
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			{
+				"current_comment": "Awaiting vessel arrival",
+				"port_clearance_tracking_comment": "Customs docs submitted",
+				"api_last_event": "Vessel departed Beira",
+				"api_last_event_date": nowdate(),
+			},
+		)
 		job.reload()
 
 		ctx = build_pdf_job_context(job)
@@ -55,13 +66,19 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 		)
 
 		self.assertIn("Shipments at a Glance", html)
+		self.assertIn("Detailed per Shipment", html)
+		self.assertIn("Job ID", html)
+		self.assertIn("Latest Comment", html)
 		self.assertIn("PO-HTML-001", html)
-		self.assertIn("Shipment Journey", html)
-		self.assertIn("Journey progress", html)
-		self.assertIn("Awaiting vessel arrival", html)
-		self.assertNotIn("LATEST:", html)
-		self.assertNotIn("sec-card", html)
-		self.assertNotIn("card-grid", html)
+		self.assertIn("Vessel departed Beira", html)
+		self.assertIn("Customs docs submitted", html)
+		self.assertIn("Services", html)
+		self.assertIn("Sea / Air Freight", html)
+		self.assertIn("Port Clearance", html)
+		self.assertIn("Cargo Count", html)
+		self.assertIn("Completed —", html)
+		self.assertNotIn("Shipment Journey", html)
+		self.assertNotIn("Journey progress", html)
 
 	def test_build_shipment_tracking_pdf_returns_bytes(self):
 		customer = _make_customer("PDFX1")

@@ -10,7 +10,11 @@ import frappe
 from frappe.utils import formatdate, getdate, nowdate
 
 from freightmas.forwarding_service.utils.operational_phase import get_phase_label
-from freightmas.forwarding_service.utils.tracking_orchestrator import resolve_client_headline
+from freightmas.forwarding_service.utils.tracking_orchestrator import (
+	_sea_air_headline,
+	resolve_client_headline,
+	rollup_road_headline,
+)
 
 DOSSIER_STATUS_LABELS = {
 	"orange": "In Progress",
@@ -200,6 +204,7 @@ def build_job_cargo_list(doc):
 			"api_container_status": r.api_container_status,
 			"api_last_event": r.api_last_event,
 			"api_last_event_date": r.api_last_event_date,
+			"tracking_comment": getattr(r, "tracking_comment", None),
 		}
 		for r in (doc.cargo_parcel_details or [])
 	]
@@ -595,7 +600,7 @@ def build_client_tracking_view(doc, milestone_report_mode=None, milestone_percen
 			],
 		})
 
-	for title in ("Port Clearance", "Border Clearance"):
+	for title in ("Port Clearance", "Border Clearance", "Warehouse"):
 		section = _build_clearance_section(
 			groups_by_name.get(title),
 			title,
@@ -768,6 +773,123 @@ def _pdf_fact_strip(doc):
 	]
 
 
+PDF_SERVICE_ORDER = (
+	("Sea / Air Freight", "requires_sea_air_freight"),
+	("Port Clearance", "requires_port_clearance"),
+	("Road Transport", "is_trucking_required"),
+	("Border Clearance", "requires_border_clearance"),
+	("Warehouse", "requires_warehousing"),
+)
+
+
+def pdf_route_short(doc):
+	origin = doc.port_of_loading or "–"
+	dest = doc.destination or doc.port_of_discharge or "–"
+	return f"{origin} → {dest}"
+
+
+def _pdf_format_date(value):
+	return formatdate(value, "dd MMM yyyy") if value else "—"
+
+
+def _pdf_arrival_dates(doc):
+	if doc.direction == "Export":
+		return _pdf_format_date(doc.etd), _pdf_format_date(doc.atd)
+	return _pdf_format_date(doc.eta), _pdf_format_date(doc.ata)
+
+
+def pdf_glance_eta_ata_display(doc, is_overdue):
+	is_export = doc.direction == "Export"
+	if is_export:
+		actual, estimated = doc.atd, doc.etd
+		label = "ATD" if actual else "ETD"
+	else:
+		actual, estimated = doc.ata, doc.eta
+		label = "ATA" if actual else "ETA"
+	date = actual or estimated
+	if not date:
+		return {"display": "—", "urgency": "normal"}
+	return {
+		"display": f"{label} {_pdf_format_date(date)}",
+		"urgency": "overdue" if is_overdue and not actual else "normal",
+	}
+
+
+def _pdf_service_progress_text(section):
+	progress = section.get("progress") or {}
+	pct = progress.get("percent", 0)
+	done = progress.get("done", 0)
+	total = progress.get("total", 0)
+	if pct >= 100:
+		return "100% complete"
+	if section.get("kind") in ("clearance_checklist", "clearance_stages") and total:
+		return f"{done} of {total} items complete"
+	if pct:
+		return f"{pct}% complete"
+	return "Not started"
+
+
+def _pdf_service_comment(doc, title, section):
+	if title == "Sea / Air Freight":
+		return (_sea_air_headline(doc) or "").strip() or _phase_summary(section, doc) or "—"
+	if title == "Port Clearance":
+		return (doc.get("port_clearance_tracking_comment") or "").strip() or _phase_summary(section, doc) or "—"
+	if title == "Road Transport":
+		return (rollup_road_headline(doc) or "").strip() or _phase_summary(section, doc) or "—"
+	if title == "Border Clearance":
+		return (doc.get("border_clearance_tracking_comment") or "").strip() or _phase_summary(section, doc) or "—"
+	if title == "Warehouse":
+		return (doc.get("warehouse_tracking_comment") or "").strip() or _phase_summary(section, doc) or "—"
+	return _phase_summary(section, doc) or "—"
+
+
+def _build_pdf_service_rows(doc, tracking):
+	sections_by_title = {section["title"]: section for section in tracking.get("sections") or []}
+	rows = []
+	for title, flag in PDF_SERVICE_ORDER:
+		if not doc.get(flag):
+			continue
+		section = sections_by_title.get(title)
+		if not section and title == "Sea / Air Freight":
+			section = {"kind": "sea_air", "progress": _progress_fraction(0, 0)}
+		if not section:
+			continue
+		rows.append({
+			"title": title,
+			"comment": _pdf_service_comment(doc, title, section),
+			"progress_text": _pdf_service_progress_text(section),
+		})
+	return rows
+
+
+def _build_pdf_container_rows(cargo):
+	rows = []
+	for row in cargo:
+		number = row.get("container_number")
+		if not number or number == "–":
+			continue
+		if row.get("cargo_type") not in ("Containerised", "General Cargo", None):
+			continue
+		returned = row.get("returned_on_date") or row.get("empty_return_date")
+		comment = (row.get("tracking_comment") or "").strip() or (row.get("api_last_event") or "").strip() or "—"
+		rows.append({
+			"container_number": number,
+			"container_type": row.get("container_type") or "—",
+			"discharged": _pdf_format_date(row.get("discharge_date")),
+			"gate_out": _pdf_format_date(row.get("gate_out_date")),
+			"offloaded": _pdf_format_date(row.get("offloaded_on_date")),
+			"returned": _pdf_format_date(returned),
+			"comment": comment,
+			# Legacy keys for portal Excel export
+			"status": row.get("api_container_status") or "—",
+			"last_event": comment,
+			"last_event_date": _pdf_format_date(
+				row.get("offloaded_on_date") or row.get("gate_out_date") or row.get("api_last_event_date")
+			),
+		})
+	return rows
+
+
 def build_pdf_job_context(doc):
 	"""Client-portal-shaped context for the Shipment Tracking PDF."""
 	today = getdate(nowdate())
@@ -782,12 +904,16 @@ def build_pdf_job_context(doc):
 	cargo = build_job_cargo_list(doc)
 	cargo_units = pdf_cargo_units(cargo)
 	eta = pdf_eta_display(doc, is_overdue)
+	eta_ata = pdf_glance_eta_ata_display(doc, is_overdue)
 	progress_percent = client_status["progress_percent"]
 	progress_class = pdf_progress_class(progress_percent)
 	phase_tone = PHASE_TONE.get(doc.operational_phase, "neutral")
+	latest_comment = pdf_headline(doc, status_key)
+	phase_label = banner.get("operational_phase_label") or get_phase_label(doc.operational_phase) or "—"
 
 	is_import = doc.direction == "Import"
 	sort_date = doc.eta if is_import else doc.etd
+	eta_display, ata_display = _pdf_arrival_dates(doc)
 
 	journey_rows = [
 		{
@@ -800,18 +926,14 @@ def build_pdf_job_context(doc):
 		for phase in tracking["journey"]
 	]
 
-	container_rows = [
-		{
-			"container_number": row["container_number"],
-			"container_type": row["container_type"],
-			"status": row["status"],
-			"last_event": row["last_event"],
-			"last_event_date": formatdate(row["last_event_date"], "dd MMM yyyy")
-			if row.get("last_event_date")
-			else "—",
-		}
-		for row in tracking["containers"]
-	]
+	container_rows = _build_pdf_container_rows(cargo)
+	services = _build_pdf_service_rows(doc, tracking)
+
+	completed = doc.status in ("Completed", "Closed", "Delivered") or bool(doc.completed_on)
+	completion = {
+		"completed": completed,
+		"date_display": _pdf_format_date(doc.completed_on) if doc.completed_on else "—",
+	}
 
 	key_date = banner.get("key_date")
 	key_date_label = banner.get("key_date_label") or "ETA"
@@ -827,10 +949,24 @@ def build_pdf_job_context(doc):
 
 	return {
 		"ref": doc.name,
+		"customer_reference": doc.customer_reference or "—",
+		"latest_comment": latest_comment,
+		"phase_label": phase_label,
 		"bl_number": doc.bl_number or "—",
 		"direction": doc.direction or "—",
 		"mode": " · ".join(part for part in mode_parts if part) or "—",
 		"cargo_display": cargo_display,
+		"details_row": {
+			"bl_number": doc.bl_number or "—",
+			"cargo_count": doc.cargo_count or "—",
+			"eta": eta_display,
+			"ata": ata_display,
+			"discharge": _pdf_format_date(doc.discharge_date),
+			"route": pdf_route_short(doc),
+			"cargo_description": doc.cargo_description or "—",
+		},
+		"services": services,
+		"completion": completion,
 		"dates": {
 			"etd": doc.etd,
 			"atd": doc.atd,
@@ -848,15 +984,21 @@ def build_pdf_job_context(doc):
 		"progress_class": progress_class,
 		"progress_color": pdf_progress_color(progress_percent),
 		"glance": {
+			"job_id": doc.name,
+			"reference": doc.customer_reference or "—",
+			"eta_ata_display": eta_ata["display"],
+			"eta_ata_urgency": eta_ata["urgency"],
+			"phase_label": phase_label,
+			"latest_comment": latest_comment,
+			# Legacy keys for portal Excel export
 			"primary_label": primary_label,
 			"secondary_label": secondary_label,
-			"route": pdf_route_line(doc).split(" · ")[0],
-			"phase_label": banner.get("operational_phase_label") or get_phase_label(doc.operational_phase) or "—",
+			"route": pdf_route_short(doc),
 			"phase_tone": phase_tone,
 			"phase_color": PHASE_TONE_COLORS.get(phase_tone, PHASE_TONE_COLORS["neutral"]),
 			"eta_display": eta["display"],
 			"eta_urgency": eta["urgency"],
-			"headline": pdf_headline(doc, status_key),
+			"headline": latest_comment,
 			"cargo_units": cargo_units,
 			"progress_percent": progress_percent,
 			"progress_class": progress_class,

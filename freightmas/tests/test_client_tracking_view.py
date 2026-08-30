@@ -299,14 +299,48 @@ class TestClientTrackingView(IntegrationTestCase):
 
 		ctx = build_pdf_job_context(job)
 
+		self.assertEqual(ctx["glance"]["job_id"], job.name)
+		self.assertEqual(ctx["glance"]["reference"], "PO-CLIENT-002")
 		self.assertEqual(ctx["glance"]["primary_label"], "PO-CLIENT-002")
 		self.assertEqual(ctx["glance"]["secondary_label"], job.name)
-		self.assertIn("Vessel departed Beira", ctx["glance"]["headline"])
+		self.assertIn("Vessel departed Beira", ctx["glance"]["latest_comment"])
+		self.assertIn("details_row", ctx)
+		self.assertEqual(ctx["details_row"]["bl_number"], "BL-888")
+		self.assertIn("services", ctx)
+		self.assertGreater(len(ctx["services"]), 0)
 		self.assertIn("hero", ctx)
-		self.assertIn("facts", ctx)
 		self.assertIn("journey", ctx)
 		self.assertGreater(len(ctx["journey"]), 0)
 		self.assertIn("steps", ctx["hero"])
+
+	def test_build_pdf_job_context_service_rows_only_applicable_services(self):
+		customer = _make_customer("PDF5")
+		job = _make_job(
+			customer,
+			"PDF5",
+			requires_sea_air_freight=1,
+			requires_port_clearance=1,
+			requires_border_clearance=0,
+			is_trucking_required=0,
+			requires_warehousing=0,
+		)
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			"port_clearance_tracking_comment",
+			"Awaiting customs release",
+		)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		titles = [row["title"] for row in ctx["services"]]
+
+		self.assertIn("Sea / Air Freight", titles)
+		self.assertIn("Port Clearance", titles)
+		self.assertNotIn("Road Transport", titles)
+		self.assertNotIn("Border Clearance", titles)
+		self.assertNotIn("Warehouse", titles)
+		self.assertTrue(any("Awaiting customs release" in row["comment"] for row in ctx["services"]))
 
 	def test_build_pdf_job_context_journey_has_phase_rows_not_checklists(self):
 		customer = _make_customer("PDF3")
