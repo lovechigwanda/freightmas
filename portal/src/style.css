@@ -2494,6 +2494,16 @@ h1, h2, h3, h4 {
 	width: 110px;
 }
 
+.sd-shipment-table--no-equip th:nth-child(3),
+.sd-shipment-table--no-equip td:nth-child(3) {
+	width: 150px;
+}
+
+.sd-shipment-table--no-equip th:nth-child(4),
+.sd-shipment-table--no-equip td:nth-child(4) {
+	width: 110px;
+}
+
 .sd-shipment-table-row {
 	cursor: pointer;
 }
@@ -2527,6 +2537,9 @@ h1, h2, h3, h4 {
 
 .sd-shipment-table-equip {
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
 	color: var(--sd-text);
 	font-variant-numeric: tabular-nums;
 }

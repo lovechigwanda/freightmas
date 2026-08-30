@@ -30,7 +30,7 @@ export function shipmentModeIcon(job) {
 }
 
 export function shipmentEquipmentLabel(job) {
-	return job?.cargo_count || job?.cargo_description || "–";
+	return job?.cargo_count || "–";
 }
 
 export function shipmentCargoChips(job) {

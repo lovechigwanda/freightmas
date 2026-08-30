@@ -8,7 +8,7 @@
 			<span class="sd-shipment-table-primary">{{ primaryLabel }}</span>
 			<span v-if="job.is_overdue" class="sd-shipment-alert-dot" aria-hidden="true"></span>
 		</td>
-		<td class="sd-shipment-table-equip">{{ equipmentLabel }}</td>
+		<td v-if="showEquip" class="sd-shipment-table-equip">{{ equipmentLabel }}</td>
 		<td class="sd-shipment-table-milestone">
 			<span
 				class="sd-shipment-table-phase"
@@ -60,6 +60,7 @@ import ProgressBar from "./ProgressBar.vue";
 
 const props = defineProps({
 	job: { type: Object, required: true },
+	showEquip: { type: Boolean, default: true },
 });
 
 const router = useRouter();

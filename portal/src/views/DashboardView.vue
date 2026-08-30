@@ -46,12 +46,13 @@
 								View all &rarr;
 							</router-link>
 						</div>
-						<table v-if="data.in_motion_jobs.length" class="sd-table sd-shipment-table">
+						<table v-if="data.in_motion_jobs.length" class="sd-table sd-shipment-table sd-shipment-table--no-equip">
 							<tbody>
 								<ShipmentListCard
 									v-for="job in data.in_motion_jobs"
 									:key="job.name"
 									:job="job"
+									:show-equip="false"
 								/>
 							</tbody>
 						</table>
