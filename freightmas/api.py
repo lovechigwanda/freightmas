@@ -1012,89 +1012,14 @@ def export_statement_of_account_job_linked_to_excel(filters):
     """Export Statement of Account Job Linked to Excel"""
     check_freightmas_role()
     import json
-    from io import BytesIO
+
+    from freightmas.utils.statement_job_linked_export import build_statement_job_linked_excel
 
     filters = json.loads(filters)
+    filename, content = build_statement_job_linked_excel(filters)
 
-    module = frappe.get_module(
-        "freightmas.freightmas.report.statement_of_account_job_linked.statement_of_account_job_linked"
-    )
-    columns, data = module.execute(filters)
-
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Statement"
-
-    header_font = Font(bold=True, color="FFFFFF")
-    title_font = Font(bold=True, size=14)
-    subtitle_font = Font(bold=True, size=12)
-    total_font = Font(bold=True)
-    header_fill = PatternFill("solid", fgColor="305496")
-    thin_border = Border(
-        left=Side(style='thin'),
-        right=Side(style='thin'),
-        top=Side(style='thin'),
-        bottom=Side(style='thin')
-    )
-
-    current_row = 1
-    num_cols = len(columns)
-    last_col = get_column_letter(num_cols)
-
-    ws.merge_cells(f'A{current_row}:{last_col}{current_row}')
-    ws[f'A{current_row}'] = filters.get('company')
-    ws[f'A{current_row}'].font = title_font
-    current_row += 1
-
-    party_type = filters.get('party_type')
-    party = filters.get('party')
-    party_name = frappe.db.get_value(party_type, party,
-        'customer_name' if party_type == 'Customer' else 'supplier_name'
-    ) or party
-
-    ws.merge_cells(f'A{current_row}:{last_col}{current_row}')
-    ws[f'A{current_row}'] = "Statement of Account Job Linked"
-    ws[f'A{current_row}'].font = subtitle_font
-    current_row += 1
-
-    ws.merge_cells(f'A{current_row}:{last_col}{current_row}')
-    ws[f'A{current_row}'] = f"{party_type}: {party_name}"
-    ws[f'A{current_row}'].font = subtitle_font
-    current_row += 1
-
-    for col_idx, col in enumerate(columns, 1):
-        cell = ws.cell(row=current_row, column=col_idx, value=col.get('label'))
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.border = thin_border
-
-    current_row += 1
-
-    for row in data:
-        for col_idx, col in enumerate(columns, 1):
-            field = col.get('fieldname')
-            cell = ws.cell(row=current_row, column=col_idx, value=row.get(field))
-
-            if col.get('fieldtype') in ['Currency', 'Float']:
-                cell.number_format = '#,##0.00'
-                cell.alignment = Alignment(horizontal='right')
-
-            cell.border = thin_border
-
-            if row.get('voucher_type') in ['Opening Balance', 'Closing Balance']:
-                cell.font = total_font
-
-        current_row += 1
-
-    for col in range(1, num_cols + 1):
-        ws.column_dimensions[get_column_letter(col)].width = 15
-
-    output = BytesIO()
-    wb.save(output)
-    output.seek(0)
-
-    frappe.local.response.filename = get_report_filename("Statement_of_Account_Job_Linked", "xlsx", party)
-    frappe.local.response.filecontent = output.read()
+    frappe.local.response.filename = filename
+    frappe.local.response.filecontent = content
     frappe.local.response.type = "binary"
 ##########################################################
 
