@@ -3,6 +3,17 @@ import frappe
 
 def after_install():
 	create_default_container_types()
+	seed_job_creation_email_templates()
+
+
+def seed_job_creation_email_templates():
+	"""Create the job-creation Email Templates and set the FreightMas Settings
+	default. Patches are marked applied without running on a fresh install, so
+	this seeding must happen here for new sites; the logic is idempotent and
+	safe to run alongside the equivalent patch on existing sites."""
+	from freightmas.patches.seed_job_creation_email_template import execute as seed_templates
+
+	seed_templates()
 
 
 def create_default_container_types():

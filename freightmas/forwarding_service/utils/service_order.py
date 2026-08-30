@@ -686,12 +686,15 @@ def _render_milestone_table_html(labels, include_heading=False):
 			f"{_('Please provide tracking updates as each milestone below is reached.')}<br>"
 		)
 
+	cell_style = "width:33.33%;vertical-align:top;padding:0 8px 0 0;font-size:12px;line-height:1.35;"
+	cells = "".join(f"<td style='{cell_style}'>{column}</td>" for column in columns)
+
 	return (
 		f"<div style='margin-top:4px;font-size:13px;line-height:1.35;'>"
 		f"{heading}"
 		f"<table class='milestone-table' style='width:100%;border-collapse:collapse;'>"
 		f"<tr>"
-		f"{''.join(f'<td style=\"width:33.33%;vertical-align:top;padding:0 8px 0 0;font-size:12px;line-height:1.35;\">{column}</td>' for column in columns)}"
+		f"{cells}"
 		f"</tr></table></div>"
 	)
 

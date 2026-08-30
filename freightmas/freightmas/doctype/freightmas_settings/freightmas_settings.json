@@ -557,7 +557,6 @@
    "label": "Enable Job Creation Notifications"
   },
   {
-   "default": "Job Creation Notification",
    "depends_on": "eval:doc.enable_job_creation_notifications",
    "description": "Default email template for the Notify Customer dialog when a Forwarding Job is started.",
    "fieldname": "default_job_creation_email_template",
