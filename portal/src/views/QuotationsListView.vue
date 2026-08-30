@@ -96,6 +96,7 @@ import QuotationListCard from "../components/QuotationListCard.vue";
 const statusTabs = [
 	{ value: "pending", label: "Awaiting approval" },
 	{ value: "approved", label: "Approved" },
+	{ value: "job_created", label: "Job created" },
 	{ value: "declined", label: "Declined" },
 ];
 

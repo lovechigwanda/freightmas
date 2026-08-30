@@ -5,13 +5,13 @@ from frappe import _
 from frappe.model.workflow import apply_workflow
 from frappe.utils import add_days, getdate, nowdate, today
 
+from freightmas.portal.print_formats import download_portal_pdf
 from freightmas.portal.security import (
 	assert_party_scope,
 	check_portal_access,
 	get_portal_customer_names,
 	log_portal_access,
 )
-from freightmas.utils.company_branding import portal_invoice_pdf_logo_injection
 from freightmas.utils.quotation import send_client_response_email
 
 QUOTATION_LIST_FIELDS = [
@@ -38,16 +38,22 @@ QUOTATION_SEARCH_FIELDS = [
 ]
 
 PORTAL_STATUS_PENDING = ("Sent to Customer",)
-PORTAL_STATUS_APPROVED = ("Accepted", "JO Created")
+PORTAL_STATUS_APPROVED = ("Accepted",)
+PORTAL_STATUS_JOB_CREATED = ("JO Created",)
 PORTAL_STATUS_DECLINED = ("Rejected", "Expired")
-PORTAL_VISIBLE_STATES = PORTAL_STATUS_PENDING + PORTAL_STATUS_APPROVED + PORTAL_STATUS_DECLINED
+PORTAL_VISIBLE_STATES = (
+	PORTAL_STATUS_PENDING
+	+ PORTAL_STATUS_APPROVED
+	+ PORTAL_STATUS_JOB_CREATED
+	+ PORTAL_STATUS_DECLINED
+)
 
-JOB_CARD_STATES = PORTAL_STATUS_APPROVED
+JOB_CARD_STATES = PORTAL_STATUS_APPROVED + PORTAL_STATUS_JOB_CREATED
 
 CLIENT_STATUS_LABELS = {
 	"Sent to Customer": "Awaiting your approval",
 	"Accepted": "Approved",
-	"JO Created": "Approved",
+	"JO Created": "Job created",
 	"Rejected": "Declined",
 	"Expired": "Expired",
 }
@@ -77,6 +83,8 @@ def _status_filter(status):
 		return list(PORTAL_STATUS_PENDING)
 	if status == "approved":
 		return list(PORTAL_STATUS_APPROVED)
+	if status == "job_created":
+		return list(PORTAL_STATUS_JOB_CREATED)
 	if status == "declined":
 		return list(PORTAL_STATUS_DECLINED)
 	frappe.throw(_("Invalid quotation status filter."), frappe.ValidationError)
@@ -99,18 +107,6 @@ def _is_expired(valid_till, ref_date=None):
 		return False
 	ref_date = ref_date or getdate(nowdate())
 	return getdate(valid_till) < ref_date
-
-
-def _serialize_item_row(row):
-	return {
-		"idx": row.idx,
-		"item_code": row.item_code,
-		"item_name": row.item_name,
-		"description": row.description,
-		"qty": row.qty,
-		"rate": row.rate,
-		"amount": row.amount,
-	}
 
 
 def _linked_shipment_for_quotation(quotation_name):
@@ -176,7 +172,8 @@ def _load_quotation_detail(quotation_name):
 
 	today = getdate(nowdate())
 	row = _serialize_quotation_row(doc.as_dict(), today)
-	row["items"] = [_serialize_item_row(item) for item in doc.items]
+	row["total"] = doc.total
+	row["total_taxes_and_charges"] = doc.total_taxes_and_charges
 	row["terms"] = doc.get("terms") or None
 	row["tc_name"] = doc.get("tc_name") or None
 	row = _enrich_shipment_context([row])[0]
@@ -264,6 +261,13 @@ def get_quotations_summary():
 			"workflow_state": ["in", list(PORTAL_STATUS_APPROVED)],
 		},
 	)
+	job_created_count = frappe.db.count(
+		"Quotation",
+		filters={
+			**_base_quotation_filters(customers),
+			"workflow_state": ["in", list(PORTAL_STATUS_JOB_CREATED)],
+		},
+	)
 	declined_count = frappe.db.count(
 		"Quotation",
 		filters={
@@ -277,6 +281,7 @@ def get_quotations_summary():
 		"pending_total": pending_total,
 		"expiring_soon_count": expiring_soon,
 		"approved_count": approved_count,
+		"job_created_count": job_created_count,
 		"declined_count": declined_count,
 	}
 
@@ -364,28 +369,11 @@ def download_quotation_pdf(quotation_name):
 	doc = frappe.get_doc("Quotation", quotation_name)
 	_assert_quotation_portal_visible(doc)
 
-	frappe.local.flags.ignore_print_permissions = True
-	try:
-		html = frappe.get_print(
-			"Quotation",
-			quotation_name,
-			print_format="FreightMas Quotation",
-			doc=doc,
-			as_pdf=False,
-		)
-	finally:
-		frappe.local.flags.ignore_print_permissions = False
-	html = portal_invoice_pdf_logo_injection(doc.company) + html
-	pdf_file = frappe.utils.pdf.get_pdf(html)
-
-	frappe.local.response.filename = f"{quotation_name.replace(' ', '-').replace('/', '-')}.pdf"
-	frappe.local.response.filecontent = pdf_file
-	frappe.local.response.type = "download"
-
-	log_portal_access(
-		"download_quotation_pdf",
+	download_portal_pdf(
 		doctype="Quotation",
-		docname=quotation_name,
+		name=quotation_name,
+		doc=doc,
+		log_action="download_quotation_pdf",
 		party_type="Customer",
 		party=doc.party_name,
 	)

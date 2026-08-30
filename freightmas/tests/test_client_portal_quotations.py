@@ -286,3 +286,54 @@ class TestPortalQuotationsCrossTenant(IntegrationTestCase):
 				portal_quotations.get_quotations()
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_get_quotations_approved_excludes_job_created(self):
+		customer_a = _make_customer("Q10a")
+		user_a = _make_user_and_contact("Q10a", customer_a)
+		accepted = _make_quotation(customer_a, "Q10a", workflow_state="Accepted")
+		job_created = _make_quotation(customer_a, "Q10b", workflow_state="JO Created")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_quotations.get_quotations(status="approved")
+		finally:
+			frappe.set_user("Administrator")
+
+		names = [row["name"] for row in result["quotations"]]
+		self.assertIn(accepted.name, names)
+		self.assertNotIn(job_created.name, names)
+
+	def test_get_quotations_job_created_returns_only_jo_created(self):
+		customer_a = _make_customer("Q11a")
+		user_a = _make_user_and_contact("Q11a", customer_a)
+		accepted = _make_quotation(customer_a, "Q11a", workflow_state="Accepted")
+		job_created = _make_quotation(customer_a, "Q11b", workflow_state="JO Created")
+
+		frappe.set_user(user_a.name)
+		try:
+			result = portal_quotations.get_quotations(status="job_created")
+		finally:
+			frappe.set_user("Administrator")
+
+		names = [row["name"] for row in result["quotations"]]
+		self.assertIn(job_created.name, names)
+		self.assertNotIn(accepted.name, names)
+		self.assertEqual(result["quotations"][0]["client_status"], "Job created")
+
+	def test_cancelled_quotation_excluded_from_all_tabs(self):
+		customer_a = _make_customer("Q12a")
+		user_a = _make_user_and_contact("Q12a", customer_a)
+		cancelled = _make_quotation(customer_a, "Q12a", workflow_state="Cancelled")
+
+		frappe.set_user(user_a.name)
+		try:
+			for status in ("pending", "approved", "job_created", "declined"):
+				result = portal_quotations.get_quotations(status=status)
+				names = [row["name"] for row in result["quotations"]]
+				self.assertNotIn(
+					cancelled.name,
+					names,
+					msg=f"Cancelled quotation should not appear in {status} tab",
+				)
+		finally:
+			frappe.set_user("Administrator")

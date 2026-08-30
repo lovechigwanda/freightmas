@@ -47,6 +47,12 @@
 					<span class="sd-invoice-detail-summary-balance">{{ formatMoney(quotation.grand_total) }}</span>
 				</div>
 				<ul class="sd-list">
+					<li v-if="quotation.total != null">
+						<span class="sd-muted">Subtotal</span><span>{{ formatMoney(quotation.total) }}</span>
+					</li>
+					<li v-if="quotation.total_taxes_and_charges">
+						<span class="sd-muted">Tax</span><span>{{ formatMoney(quotation.total_taxes_and_charges) }}</span>
+					</li>
 					<li><span class="sd-muted">Quoted</span><span>{{ formatDate(quotation.transaction_date) }}</span></li>
 					<li><span class="sd-muted">Valid until</span><span>{{ formatDate(quotation.valid_till) }}</span></li>
 					<li v-if="quotation.customer_reference">
@@ -88,29 +94,6 @@
 						<router-link class="sd-table-link" :to="shipmentLink">{{ quotation.job_name }}</router-link>
 					</li>
 				</ul>
-			</div>
-
-			<div class="sd-card" style="margin-bottom: 14px;">
-				<div class="sd-card-title"><span class="sd-card-title-main">Line items</span></div>
-				<table class="sd-table" v-if="quotation.items?.length">
-					<thead>
-						<tr>
-							<th>Description</th>
-							<th style="text-align: right;">Qty</th>
-							<th style="text-align: right;">Rate</th>
-							<th style="text-align: right;">Amount</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="item in quotation.items" :key="item.idx">
-							<td>{{ item.description || item.item_name || item.item_code }}</td>
-							<td style="text-align: right;">{{ item.qty }}</td>
-							<td style="text-align: right;">{{ formatMoney(item.rate) }}</td>
-							<td style="text-align: right;">{{ formatMoney(item.amount) }}</td>
-						</tr>
-					</tbody>
-				</table>
-				<EmptyState v-else :icon="FileText" title="No line items" />
 			</div>
 
 			<div v-if="quotation.payment_terms_template" class="sd-card" style="margin-bottom: 14px;">
@@ -159,11 +142,10 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { Download, FileText } from "@lucide/vue";
+import { Download } from "@lucide/vue";
 import { api } from "../api/quotations";
 import { formatDate, formatMoney } from "../format";
 import StatusBadge from "../components/StatusBadge.vue";
-import EmptyState from "../components/EmptyState.vue";
 
 const props = defineProps({ quotationName: { type: String, required: true } });
 

@@ -5,6 +5,8 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 
+from freightmas.portal.print_formats import SETTINGS_FIELD_BY_DOCTYPE, validate_portal_print_format
+
 
 class FreightMasSettings(Document):
 	def validate(self):
@@ -28,6 +30,11 @@ class FreightMasSettings(Document):
 
 		if self.tracking_provider == "Traqo" and self.enable_shipping_tracker:
 			self.traqo_webhook_url = get_traqo_webhook_url()
+
+		for doctype, fieldname in SETTINGS_FIELD_BY_DOCTYPE.items():
+			print_format = self.get(fieldname)
+			if print_format:
+				validate_portal_print_format(doctype, print_format)
 
 
 def get_traqo_webhook_url():

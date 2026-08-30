@@ -77,6 +77,10 @@
   "default_quotation_tc",
   "portal_tab",
   "client_report_milestone_detail",
+  "portal_print_formats_section",
+  "portal_sales_invoice_print_format",
+  "column_break_portal_pf",
+  "portal_quotation_print_format",
   "enable_command_center_home_page",
   "enable_job_creation_notifications",
   "default_job_creation_email_template"
@@ -541,6 +545,31 @@
    "fieldtype": "Select",
    "label": "Client Report Milestone Detail",
    "options": "Full Milestones\nStage Summary"
+  },
+  {
+   "fieldname": "portal_print_formats_section",
+   "fieldtype": "Section Break",
+   "label": "Portal PDF Downloads"
+  },
+  {
+   "default": "FreightMas Sales Invoice",
+   "description": "Print format used when client portal users download Sales Invoice PDFs. Only formats marked 'Allow Client Portal Download' on the Print Format record may be selected.",
+   "fieldname": "portal_sales_invoice_print_format",
+   "fieldtype": "Link",
+   "label": "Portal Sales Invoice Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "column_break_portal_pf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "FreightMas Quotation",
+   "description": "Print format used when client portal users download Quotation PDFs. Only formats marked 'Allow Client Portal Download' on the Print Format record may be selected.",
+   "fieldname": "portal_quotation_print_format",
+   "fieldtype": "Link",
+   "label": "Portal Quotation Print Format",
+   "options": "Print Format"
   },
   {
    "default": "0",

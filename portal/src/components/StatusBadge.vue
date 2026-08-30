@@ -24,6 +24,7 @@ const MAP = {
 	"Credit Note Issued": "sd-badge-gray",
 	"Awaiting your approval": "sd-badge-amber",
 	Approved: "sd-badge-green",
+	"Job created": "sd-badge-green",
 	Declined: "sd-badge-red",
 	Expired: "sd-badge-gray",
 };
