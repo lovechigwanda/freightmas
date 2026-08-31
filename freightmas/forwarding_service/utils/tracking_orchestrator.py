@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import formatdate, getdate, now_datetime
+from frappe.utils import formatdate, get_datetime, getdate, now_datetime
 
 from freightmas.forwarding_service.utils.operational_phase import (
 	_containerised_parcels,
@@ -109,7 +109,7 @@ def rollup_road_headline(doc) -> str | None:
 		if not text:
 			continue
 
-		updated = getattr(row, "updated_on", None)
+		updated = get_datetime(getattr(row, "updated_on", None))
 		ts = updated.timestamp() if updated else 0
 		if best is None or ts >= (best_ts or 0):
 			best = text
