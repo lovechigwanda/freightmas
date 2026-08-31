@@ -14,7 +14,7 @@
 			</nav>
 
 			<div class="sd-filters sd-shipments-toolbar-actions" style="margin-bottom: 0;">
-				<input v-model="search" type="text" placeholder="Search job, BL, reference..." @input="onFilterChange" />
+				<input v-model="search" type="text" placeholder="Search job, BL, reference..." @input="onSearchInput" />
 				<select v-model="direction" @change="onFilterChange">
 					<option value="">All Directions</option>
 					<option v-for="d in directions" :key="d" :value="d">{{ d }}</option>
@@ -190,6 +190,15 @@ function onFilterChange() {
 	page.value = 0;
 	clearTimeout(debounceTimer);
 	debounceTimer = setTimeout(load, 300);
+}
+
+function onSearchInput() {
+	// A search should cover all shipments, not just the current status tab.
+	if (search.value && status.value !== "") {
+		status.value = "";
+		syncStatusToRoute();
+	}
+	onFilterChange();
 }
 
 function onPhasesChange() {
