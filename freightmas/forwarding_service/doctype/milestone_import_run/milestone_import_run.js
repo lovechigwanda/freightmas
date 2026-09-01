@@ -74,14 +74,16 @@ function run_preview(frm) {
 
 function apply_updates(frm) {
 	const preview = frm.__milestone_preview;
-	if (!preview || !preview.to_update.length) return;
+	if (!preview) return;
+
+	const comment_updates = preview.comment_updates || [];
 
 	const checked_idxs = [];
 	frm.fields_dict.import_preview.$wrapper.find(".milestone-import-check:checked").each(function () {
 		checked_idxs.push(parseInt($(this).attr("data-idx"), 10));
 	});
 	const selected = checked_idxs.map((i) => preview.to_update[i]);
-	if (!selected.length) {
+	if (!selected.length && !comment_updates.length) {
 		frappe.msgprint(__("Select at least one milestone to update."));
 		return;
 	}
@@ -89,7 +91,7 @@ function apply_updates(frm) {
 	frappe.call({
 		doc: frm.doc,
 		method: "apply_import",
-		args: { updates: selected },
+		args: { updates: selected, comment_updates: comment_updates },
 		freeze: true,
 		freeze_message: __("Updating milestones..."),
 		callback(r) {
@@ -109,7 +111,8 @@ function apply_updates(frm) {
 }
 
 function render_preview(frm, result) {
-	const { to_update, already_done, unmatched_jobs, milestone_not_enabled, unmapped_columns } = result;
+	const { to_update, already_done, unmatched_jobs, submitted_jobs, milestone_not_enabled, unmapped_columns } =
+		result;
 	const esc = frappe.utils.escape_html;
 	let html = "";
 
@@ -149,6 +152,11 @@ function render_preview(frm, result) {
 	if (unmatched_jobs.length) {
 		html += `<h5 class="text-muted">${__("Job references not found")} (${unmatched_jobs.length})</h5>`;
 		html += `<p class="text-muted">${unmatched_jobs.map(esc).join(", ")}</p>`;
+	}
+
+	if (submitted_jobs && submitted_jobs.length) {
+		html += `<h5 class="text-muted">${__("Submitted jobs (skipped)")} (${submitted_jobs.length})</h5>`;
+		html += `<p class="text-muted">${submitted_jobs.map(esc).join(", ")}</p>`;
 	}
 
 	if (milestone_not_enabled.length) {

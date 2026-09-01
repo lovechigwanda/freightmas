@@ -32,6 +32,15 @@ MILESTONE_TABLE_FIELDS = {
 	"Warehouse": "warehouse_milestones",
 }
 
+# Service modules that also carry a per-job, client-facing tracking comment
+# (Small Text) on the Forwarding Job. When present, the import template gains a
+# single "Tracking Comment" column and any non-empty cell overwrites this field.
+TRACKING_COMMENT_FIELDS = {
+	"Port Clearance": "port_clearance_tracking_comment",
+}
+
+TRACKING_COMMENT_HEADER = "Tracking Comment"
+
 
 def _resolve_column_map(service_module):
 	"""Build {header_lower: {milestone, milestone_code, milestone_label,
@@ -116,10 +125,16 @@ def _parse_cell_date(value):
 		return None
 
 
-def classify_rows(headers, data_rows, job_reference_header, column_map):
+def classify_rows(headers, data_rows, job_reference_header, column_map, service_module=None):
 	"""Pure classification - matches every (job, milestone) cell against the
-	resolved column map and returns the 5-bucket preview payload. Writes
-	nothing. Callers are responsible for role/permission gating."""
+	resolved column map and returns the preview payload buckets. Writes
+	nothing. Callers are responsible for role/permission gating.
+
+	When the module carries a per-job tracking comment (TRACKING_COMMENT_FIELDS),
+	a single "Tracking Comment" column is also recognised: any non-empty cell
+	becomes a `comment_updates` entry that will overwrite the job's field.
+	Submitted/cancelled jobs (docstatus != 0) are skipped entirely and reported
+	in `submitted_jobs`."""
 	header_lookup = {header.strip().lower(): idx for idx, header in enumerate(headers) if header}
 	job_ref_idx = header_lookup.get(job_reference_header)
 	if job_ref_idx is None:
@@ -129,10 +144,13 @@ def classify_rows(headers, data_rows, job_reference_header, column_map):
 			)
 		)
 
+	comment_field = TRACKING_COMMENT_FIELDS.get(service_module)
+	comment_idx = header_lookup.get(TRACKING_COMMENT_HEADER.strip().lower()) if comment_field else None
+
 	milestone_columns = []
 	unmapped_columns = []
 	for idx, header in enumerate(headers):
-		if idx == job_ref_idx or not header:
+		if idx == job_ref_idx or idx == comment_idx or not header:
 			continue
 		mapping = column_map.get(header.strip().lower())
 		if mapping:
@@ -148,7 +166,9 @@ def classify_rows(headers, data_rows, job_reference_header, column_map):
 	to_update = []
 	already_done = []
 	unmatched_jobs = []
+	submitted_jobs = []
 	milestone_not_enabled = []
+	comment_by_job = {}
 	job_cache = {}
 
 	for row in data_rows:
@@ -168,6 +188,23 @@ def classify_rows(headers, data_rows, job_reference_header, column_map):
 		job = job_cache[job_ref]
 		if not job:
 			continue
+
+		if job.docstatus != 0:
+			if job_ref not in submitted_jobs:
+				submitted_jobs.append(job_ref)
+			continue
+
+		if comment_idx is not None and comment_idx < len(row):
+			comment = row[comment_idx]
+			comment = str(comment).strip() if comment is not None else ""
+			if comment:
+				comment_by_job[job_ref] = {
+					"job": job_ref,
+					"fieldname": comment_field,
+					"service_module": service_module,
+					"comment": comment,
+					"existing_comment": job.get(comment_field) or "",
+				}
 
 		for idx, mapping in milestone_columns:
 			if idx >= len(row):
@@ -211,25 +248,45 @@ def classify_rows(headers, data_rows, job_reference_header, column_map):
 		"to_update": to_update,
 		"already_done": already_done,
 		"unmatched_jobs": unmatched_jobs,
+		"submitted_jobs": submitted_jobs,
 		"milestone_not_enabled": milestone_not_enabled,
 		"unmapped_columns": unmapped_columns,
+		"comment_updates": list(comment_by_job.values()),
 	}
 
 
-def apply_updates(updates):
+def _comment_result_base(job_name, comment_update):
+	"""A Milestone Import Result row shape for a tracking-comment outcome. Reuses
+	the milestone-result columns: no milestone code/date, a descriptive label."""
+	return {
+		"job": job_name,
+		"milestone_code": "",
+		"milestone_label": _("{0} Tracking Comment").format(comment_update["service_module"]),
+		"completed_on": None,
+	}
+
+
+def apply_updates(updates, comment_updates=None):
 	"""Write exactly the `to_update` rows the caller previewed (optionally
-	filtered down). Never adds/removes milestone rows - only sets
-	is_completed/completed_on/remarks on rows that already exist, so the
-	existing Forwarding Job guards (prevent_milestone_row_deletion,
-	prevent_manual_milestone_rows) are unaffected. Returns per-row outcomes
-	plus counts, for persisting into a Milestone Import Result table."""
+	filtered down), plus any per-job tracking comment overrides. Never
+	adds/removes milestone rows - only sets is_completed/completed_on/remarks on
+	rows that already exist, so the existing Forwarding Job guards
+	(prevent_milestone_row_deletion, prevent_manual_milestone_rows) are
+	unaffected. A tracking comment unconditionally overwrites the job's field.
+	Returns per-row outcomes plus counts, for persisting into a Milestone Import
+	Result table."""
 	by_job = {}
 	for update in updates or []:
-		by_job.setdefault(update["job"], []).append(update)
+		by_job.setdefault(update["job"], {"milestones": [], "comment": None})["milestones"].append(update)
+	for comment_update in comment_updates or []:
+		by_job.setdefault(comment_update["job"], {"milestones": [], "comment": None})["comment"] = comment_update
 
 	results = []
 
-	for job_name, job_updates in by_job.items():
+	for job_name, work in by_job.items():
+		job_updates = work["milestones"]
+		comment_update = work["comment"]
+
 		if not frappe.has_permission("Forwarding Job", "write", job_name):
 			for update in job_updates:
 				results.append(
@@ -242,10 +299,35 @@ def apply_updates(updates):
 						"message": _("No write permission."),
 					}
 				)
+			if comment_update:
+				results.append(
+					{**_comment_result_base(job_name, comment_update), "outcome": "Failed", "message": _("No write permission.")}
+				)
 			continue
 
 		try:
 			job = frappe.get_doc("Forwarding Job", job_name)
+
+			# Defensive: a job submitted between preview and apply. classify_rows
+			# already filters these out, so this only catches a race.
+			if job.docstatus != 0:
+				for update in job_updates:
+					results.append(
+						{
+							"job": job_name,
+							"milestone_code": update["milestone_code"],
+							"milestone_label": update["milestone_label"],
+							"completed_on": update["completed_on"],
+							"outcome": "Skipped",
+							"message": _("Job is submitted."),
+						}
+					)
+				if comment_update:
+					results.append(
+						{**_comment_result_base(job_name, comment_update), "outcome": "Skipped", "message": _("Job is submitted.")}
+					)
+				continue
+
 			job_results = []
 			applied_in_job = 0
 			for update in job_updates:
@@ -271,6 +353,11 @@ def apply_updates(updates):
 				job_results.append({**base, "outcome": "Updated", "message": ""})
 				applied_in_job += 1
 
+			if comment_update:
+				job.set(comment_update["fieldname"], comment_update["comment"])
+				job_results.append({**_comment_result_base(job_name, comment_update), "outcome": "Updated", "message": ""})
+				applied_in_job += 1
+
 			if applied_in_job:
 				job.save()
 			results.extend(job_results)
@@ -286,6 +373,10 @@ def apply_updates(updates):
 						"outcome": "Failed",
 						"message": str(e),
 					}
+				)
+			if comment_update:
+				results.append(
+					{**_comment_result_base(job_name, comment_update), "outcome": "Failed", "message": str(e)}
 				)
 
 	return {
@@ -316,5 +407,8 @@ def download_import_template(service_module):
 	header_row = [job_reference_header.title()] + [
 		header_by_code.get(d.milestone_code, d.milestone_code) for d in definitions
 	]
+
+	if service_module in TRACKING_COMMENT_FIELDS:
+		header_row.append(TRACKING_COMMENT_HEADER)
 
 	build_xlsx_response([header_row], f"Milestone Import Template - {service_module}")
