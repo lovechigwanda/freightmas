@@ -88,6 +88,21 @@ def location_matches(event_location, target_location):
 	)
 
 
+_TRANSSHIPMENT_DESC_KEYWORDS = ("transshipment", "trans-shipment", "trans shipment")
+
+
+def _is_transshipment_description(description):
+	desc = (description or "").lower()
+	return any(kw in desc for kw in _TRANSSHIPMENT_DESC_KEYWORDS)
+
+
+def _is_at_transshipment_port(evt_location, transshipment_location_names):
+	for port_name in transshipment_location_names or []:
+		if location_matches(evt_location, port_name):
+			return True
+	return False
+
+
 def parse_container_events(
 	events,
 	locations=None,
@@ -95,6 +110,7 @@ def parse_container_events(
 	pod_location_id=None,
 	pol_location_name=None,
 	pod_location_name=None,
+	transshipment_location_names=None,
 ):
 	"""Parse milestone events into container-level dates and latest event.
 
@@ -105,6 +121,7 @@ def parse_container_events(
 		pod_location_id: SeaRates POD location id guard
 		pol_location_name: Traqo POL port name guard (export-side gate-outs)
 		pod_location_name: Traqo POD port name guard (import discharge/gate-out)
+		transshipment_location_names: intermediate ports where DISC must be ignored
 	"""
 	locations = locations or {}
 	today = frappe.utils.nowdate()
@@ -152,11 +169,15 @@ def parse_container_events(
 			return location_matches(evt_location, pod_location_name)
 		return False
 
-	def _apply_event_date(code, evt_date, evt_location):
+	def _apply_event_date(code, evt_date, evt_location, description=""):
 		nonlocal discharge_date, gate_out_date, empty_return_date
 		if evt_date > today:
 			return
 		if code == "DISC":
+			if _is_transshipment_description(description):
+				return
+			if _is_at_transshipment_port(evt_location, transshipment_location_names):
+				return
 			if pod_guard is not None and not _is_at_pod(evt_location):
 				return
 			if not discharge_date or evt_date > discharge_date:
@@ -182,7 +203,12 @@ def parse_container_events(
 				continue
 			evt_date = extract_date(event.get("date"))
 			if evt_date:
-				_apply_event_date(event.get("event_code"), evt_date, event.get("location"))
+				_apply_event_date(
+					event.get("event_code"),
+					evt_date,
+					event.get("location"),
+					event.get("description", ""),
+				)
 
 	_gate_out_keywords = (
 		"gate out", "gate-out", "pickup", "picked up",

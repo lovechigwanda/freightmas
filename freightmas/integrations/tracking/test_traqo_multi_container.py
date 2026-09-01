@@ -6,7 +6,12 @@
 import unittest
 
 from freightmas.integrations.tracking.base import location_matches, parse_container_events
-from freightmas.integrations.tracking.traqo import _events_for_container, _parse_containers
+from freightmas.integrations.tracking.traqo import (
+	_events_for_container,
+	_parse_containers,
+	_parse_route,
+	_parse_traqo_response,
+)
 
 
 def _beira_bl_fixture():
@@ -36,6 +41,34 @@ def _beira_bl_fixture():
 		"locations_table": [
 			{"name": "Xiamen", "country": "China"},
 			{"name": "Singapore", "country": "Singapore"},
+			{"name": "Beira", "country": "Mozambique"},
+		],
+	}
+
+
+def _colombo_beira_in_transit_fixture():
+	"""Modelled on FWJB-00286-26: Fos sur mer → Beira via Colombo, still in transit."""
+	events = [
+		{"idx": 1, "event_code": "DEPA", "timestamp": "2026-07-10 00:00:00", "location": "Fos sur mer", "is_actual": 1, "description": "Vessel departed", "container_number": "LHV4047029"},
+		{"idx": 2, "event_code": "DISC", "timestamp": "2026-07-23 00:00:00", "location": "Port of Colombo", "is_actual": 1, "description": "Full Transshipment Discharged", "container_number": "LHV4047029"},
+		{"idx": 3, "event_code": "LOAD", "timestamp": "2026-08-28 00:00:00", "location": "Port of Colombo", "is_actual": 1, "description": "Loaded on vessel", "container_number": "LHV4047029"},
+	]
+	return {
+		"status": "IN_TRANSIT",
+		"origin": "Fos sur mer, France",
+		"destination": "Beira, Mozambique",
+		"eta": "2026-09-04 00:00:00",
+		"reference_number": "SHP-78004",
+		"containers_table": [
+			{"container_number": "LHV4047029", "iso_code": "22G1", "size_type": "20SD", "status": "IN_TRANSIT"},
+		],
+		"events_table": events,
+		"voyage_plan_table": [
+			{"origin": "Fos sur mer", "destination": "Port of Colombo", "arrival_actual": True},
+		],
+		"locations_table": [
+			{"name": "Fos sur mer", "country": "France"},
+			{"name": "Port of Colombo", "country": "Sri Lanka"},
 			{"name": "Beira", "country": "Mozambique"},
 		],
 	}
@@ -92,3 +125,40 @@ class TestTraqoMultiContainerParsing(unittest.TestCase):
 		]
 		result = parse_container_events(events, pol_location_name="Xiamen", pod_location_name="Beira")
 		self.assertEqual(result["gate_out_date"], "2026-08-19")
+
+	def test_transshipment_disc_excluded_by_description(self):
+		events = [
+			{"idx": 1, "event_code": "DISC", "timestamp": "2026-07-23 00:00:00", "location": "Beira", "is_actual": 1, "description": "Full Transshipment Discharged"},
+		]
+		result = parse_container_events(events, pod_location_name="Beira")
+		self.assertIsNone(result["discharge_date"])
+
+	def test_transshipment_disc_excluded_by_port_list(self):
+		events = [
+			{"idx": 1, "event_code": "DISC", "timestamp": "2026-07-23 00:00:00", "location": "Port of Colombo", "is_actual": 1, "description": "Discharged"},
+		]
+		result = parse_container_events(
+			events,
+			pod_location_name="Beira",
+			transshipment_location_names=["Port of Colombo"],
+		)
+		self.assertIsNone(result["discharge_date"])
+
+
+class TestColomboTransshipmentRouteParsing(unittest.TestCase):
+	def test_parse_route_uses_destination_as_pod_not_last_voyage_leg(self):
+		data = _colombo_beira_in_transit_fixture()
+		route = _parse_route(data)
+		self.assertEqual(route["pod"]["name"], "Beira")
+		self.assertIn("Port of Colombo", route["transshipment_ports"])
+		self.assertFalse(route["pod"]["actual"])
+
+	def test_in_transit_colombo_transshipment_yields_no_discharge_date(self):
+		data = _colombo_beira_in_transit_fixture()
+		parsed = _parse_traqo_response(data, "BL")
+		container = parsed["containers"][0]
+		self.assertEqual(container["container_number"], "LHV4047029")
+		self.assertIsNone(container["discharge_date"])
+		self.assertIsNone(container["gate_out_date"])
+		self.assertEqual(parsed["route"]["pod"]["name"], "Beira")
+		self.assertIsNone(parsed["mappings"]["ata"])

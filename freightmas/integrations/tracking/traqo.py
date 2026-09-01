@@ -12,6 +12,7 @@ from freightmas.integrations.tracking.base import (
 	compute_mappings,
 	extract_date,
 	get_tracking_settings,
+	location_matches,
 	parse_container_events,
 )
 
@@ -182,6 +183,41 @@ def _location_key(value):
 	return str(value).strip().lower()
 
 
+def _port_name_from_field(value):
+	if not value:
+		return ""
+	return str(value).split(",")[0].strip()
+
+
+def _leg_destination_name(leg):
+	return (
+		leg.get("destination")
+		or leg.get("pod")
+		or leg.get("to")
+		or ""
+	).strip()
+
+
+def _transshipment_ports_from_voyage_plan(voyage_plan, final_pod_name):
+	"""Collect intermediate ports from voyage legs that are not the final POD."""
+	if not voyage_plan:
+		return []
+
+	ports = []
+	seen = set()
+	for leg in voyage_plan:
+		dest = _leg_destination_name(leg)
+		if not dest:
+			continue
+		if final_pod_name and location_matches(dest, final_pod_name):
+			continue
+		key = _location_key(dest)
+		if key and key not in seen:
+			seen.add(key)
+			ports.append(dest)
+	return ports
+
+
 def _parse_route(data):
 	locations_by_name = {}
 	for loc in data.get("locations_table") or []:
@@ -190,6 +226,8 @@ def _parse_route(data):
 			locations_by_name[key] = loc
 
 	voyage_plan = data.get("voyage_plan_table") or []
+	final_pod_name = _port_name_from_field(data.get("destination"))
+	final_pol_name = _port_name_from_field(data.get("origin"))
 	pol = _empty_route_leg()
 	pod = _empty_route_leg()
 
@@ -198,11 +236,28 @@ def _parse_route(data):
 		last = voyage_plan[-1]
 		pol = _route_leg_from_voyage(first, locations_by_name, is_pol=True)
 		pod = _route_leg_from_voyage(last, locations_by_name, is_pol=False)
+
+		if final_pod_name:
+			pod_meta = _route_leg_from_name(final_pod_name, locations_by_name)
+			pod["name"] = pod_meta["name"]
+			pod["country"] = pod_meta["country"]
+			pod["country_code"] = pod_meta["country_code"]
+			pod["locode"] = pod_meta["locode"]
+
+			last_dest = _leg_destination_name(last)
+			if not location_matches(last_dest, final_pod_name):
+				pod["date"] = data.get("eta") or pod.get("date") or ""
+				pod["actual"] = False
+
+		if final_pol_name and not pol.get("name"):
+			pol_meta = _route_leg_from_name(final_pol_name, locations_by_name)
+			pol["name"] = pol_meta["name"]
+			pol["country"] = pol_meta["country"]
+			pol["country_code"] = pol_meta["country_code"]
+			pol["locode"] = pol_meta["locode"]
 	else:
-		pol_name = (data.get("origin") or "").split(",")[0].strip()
-		pod_name = (data.get("destination") or "").split(",")[0].strip()
-		pol = _route_leg_from_name(pol_name, locations_by_name)
-		pod = _route_leg_from_name(pod_name, locations_by_name)
+		pol = _route_leg_from_name(final_pol_name, locations_by_name)
+		pod = _route_leg_from_name(final_pod_name, locations_by_name)
 		pod["date"] = data.get("eta") or ""
 		pod["actual"] = False
 
@@ -211,15 +266,16 @@ def _parse_route(data):
 			if code in ("GTIN", "LOAD", "DEPA") and not pol.get("date"):
 				pol["date"] = event.get("timestamp") or ""
 				pol["actual"] = bool(event.get("is_actual"))
-				if event.get("location"):
-					pol["name"] = str(event.get("location"))
-			if code in ("ARRI", "DISC") and not pod.get("date"):
+			if code == "ARRI" and not pod.get("date"):
 				pod["date"] = event.get("timestamp") or ""
 				pod["actual"] = bool(event.get("is_actual"))
-				if event.get("location"):
-					pod["name"] = str(event.get("location"))
 
-	return {"pol": pol, "pod": pod}
+	transshipment_ports = _transshipment_ports_from_voyage_plan(
+		voyage_plan,
+		final_pod_name or pod.get("name"),
+	)
+
+	return {"pol": pol, "pod": pod, "transshipment_ports": transshipment_ports}
 
 
 def _empty_route_leg():
@@ -287,6 +343,7 @@ def _parse_containers(data, tracking_type, route_data=None):
 	route_data = route_data or {}
 	pol_name = (route_data.get("pol") or {}).get("name") or None
 	pod_name = (route_data.get("pod") or {}).get("name") or None
+	transshipment_ports = route_data.get("transshipment_ports") or []
 
 	if not containers_raw:
 		ref = data.get("reference_number", "")
@@ -306,6 +363,7 @@ def _parse_containers(data, tracking_type, route_data=None):
 			container_events,
 			pol_location_name=pol_name,
 			pod_location_name=pod_name,
+			transshipment_location_names=transshipment_ports,
 		)
 		status = container.get("status") or data.get("status") or ""
 		parsed.append({

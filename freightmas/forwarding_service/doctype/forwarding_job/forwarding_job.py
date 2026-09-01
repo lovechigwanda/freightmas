@@ -1855,14 +1855,8 @@ def fetch_containers_from_bl(docname):
 
     apply_provider_extras(doc, tracking)
 
-    # Discharge date — latest across all containers
-    latest_discharge = None
-    for ct in containers:
-        if ct.get("discharge_date"):
-            if not latest_discharge or ct["discharge_date"] > latest_discharge:
-                latest_discharge = ct["discharge_date"]
-    if not doc.discharge_date and latest_discharge:
-        doc.discharge_date = latest_discharge
+    new_status_raw = metadata.get("status", "")
+    is_in_transit = (new_status_raw or "").replace("_", " ").upper() == "IN TRANSIT"
 
     # --- Update/create cargo_parcel_details rows ---
     existing_rows = {
@@ -1897,10 +1891,16 @@ def fetch_containers_from_bl(docname):
             row.truck_location = ct_location
             if ct.get("discharge_date"):
                 row.discharge_date = ct["discharge_date"]
+            elif is_in_transit:
+                row.discharge_date = None
             if ct.get("gate_out_date"):
                 row.gate_out_date = ct["gate_out_date"]
+            elif is_in_transit:
+                row.gate_out_date = None
             if ct.get("empty_return_date"):
                 row.empty_return_date = ct["empty_return_date"]
+            elif is_in_transit:
+                row.empty_return_date = None
             sync_cargo_milestones_from_port_dates(row)
         else:
             # Append new row
@@ -1930,6 +1930,17 @@ def fetch_containers_from_bl(docname):
     # Sync milestones on all existing rows (including those not in this API response)
     for row in doc.cargo_parcel_details or []:
         sync_cargo_milestones_from_port_dates(row)
+
+    # Discharge date — latest across all containers (clear when still in transit)
+    latest_discharge = None
+    for row in doc.cargo_parcel_details or []:
+        if row.discharge_date:
+            if not latest_discharge or row.discharge_date > latest_discharge:
+                latest_discharge = row.discharge_date
+    if latest_discharge:
+        doc.discharge_date = latest_discharge
+    elif is_in_transit:
+        doc.discharge_date = None
 
     # --- Find the latest event across all containers for the BL-level summary ---
     latest_event_code = ""
