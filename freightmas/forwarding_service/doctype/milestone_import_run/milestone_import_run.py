@@ -26,19 +26,21 @@ class MilestoneImportRun(Document):
 
 		headers, rows = mi._read_workbook(self.import_file)
 		job_reference_header, column_map, _header_by_code = mi._resolve_column_map(self.service_module)
-		preview = mi.classify_rows(headers, rows, job_reference_header, column_map)
+		preview = mi.classify_rows(headers, rows, job_reference_header, column_map, self.service_module)
 
 		self.status = "Previewed"
 		self.save()
 		return preview
 
 	@frappe.whitelist()
-	def apply_import(self, updates):
+	def apply_import(self, updates, comment_updates=None):
 		check_freightmas_role()
 		if isinstance(updates, str):
 			updates = frappe.parse_json(updates)
+		if isinstance(comment_updates, str):
+			comment_updates = frappe.parse_json(comment_updates)
 
-		summary = mi.apply_updates(updates)
+		summary = mi.apply_updates(updates, comment_updates)
 
 		self.set("import_results", [])
 		for row in summary["results"]:
