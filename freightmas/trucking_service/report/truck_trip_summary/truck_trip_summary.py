@@ -41,7 +41,7 @@ def get_simple_data(filters):
     
     query = """
         SELECT 
-            t.truck, t.driver, t.name AS trip_id, t.route,
+            t.truck, IFNULL(t.driver_name, t.driver) AS driver, t.name AS trip_id, t.route,
             t.customer,
             IFNULL(t.total_estimated_revenue, 0) AS estimated_revenue,
             t.date_loaded, t.date_offloaded,

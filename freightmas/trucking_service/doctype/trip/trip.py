@@ -6,6 +6,9 @@ import json
 from frappe.model.document import Document
 from frappe.utils import flt, today, cstr
 from freightmas.utils.permissions import check_freightmas_role, check_doc_read_permission
+from freightmas.trucking_service.doctype.trip.assignment_snapshot import (
+    apply_truck_assignment_snapshot,
+)
 
 
 class Trip(Document):
@@ -14,11 +17,52 @@ class Trip(Document):
         for charge in self.trip_revenue_charges:
             if charge.is_invoiced and frappe.flags.in_update:
                 frappe.throw(f"You cannot modify an invoiced charge: {charge.charge}")
-        
+
+        self.snapshot_truck_assignment()
+        self.sync_driver_name()
+
         # Validate milestone tracking
         self.validate_milestone_sequence()
         self.validate_milestone_dates()
         self.validate_milestone_requirements()
+
+    def snapshot_truck_assignment(self):
+        """Store horse, trailer, warehouse, and default driver on this Trip.
+
+        Do not use live fetch_from for these fields. Saving Truck would otherwise
+        rewrite every historical trip via update_linked_doctypes.
+        """
+        if not self.truck:
+            return
+
+        truck = frappe.db.get_value(
+            "Truck",
+            self.truck,
+            ["horse", "assigned_trailer", "assigned_driver", "warehouse"],
+            as_dict=True,
+        )
+        if not truck:
+            return
+
+        truck_changed = self.has_value_changed("truck")
+        driver_explicitly_set = bool(self.has_value_changed("driver") and self.driver)
+        trailer_explicitly_set = bool(self.has_value_changed("trailer") and self.trailer)
+        apply_truck_assignment_snapshot(
+            self,
+            truck,
+            truck_changed=truck_changed,
+            driver_explicitly_set=driver_explicitly_set,
+            trailer_explicitly_set=trailer_explicitly_set,
+        )
+
+    def sync_driver_name(self):
+        """Keep driver_name in sync with the Driver selected on this trip."""
+        if self.driver:
+            full_name = frappe.db.get_value("Driver", self.driver, "full_name")
+            if full_name:
+                self.driver_name = full_name
+        elif not self.driver_name:
+            self.driver_name = None
 
     def validate_milestone_sequence(self):
         """Ensure milestones are in proper sequence"""

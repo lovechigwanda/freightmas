@@ -20,12 +20,13 @@
   "amended_from",
   "truck_and_driver_details_section",
   "truck",
+  "s_warehouse",
   "column_break_mvsf",
   "horse",
-  "driver",
-  "column_break_aazz",
   "trailer",
-  "s_warehouse",
+  "column_break_aazz",
+  "driver",
+  "driver_name",
   "route_information_section",
   "trip_direction",
   "destination",
@@ -192,25 +193,37 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "truck.horse",
    "fieldname": "horse",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Horse",
-   "no_copy": 1
+   "link_filters": "[[\"Vehicle\",\"is_horse\",\"=\",1]]",
+   "no_copy": 1,
+   "options": "Vehicle",
+   "read_only": 1
   },
   {
-   "fetch_from": "truck.assigned_trailer",
    "fieldname": "trailer",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Trailer",
-   "no_copy": 1
+   "link_filters": "[[\"Vehicle\",\"is_trailer\",\"=\",1]]",
+   "no_copy": 1,
+   "options": "Vehicle"
   },
   {
-   "fetch_from": "truck.assigned_driver_name",
    "fieldname": "driver",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Driver",
-   "no_copy": 1
+   "no_copy": 1,
+   "options": "Driver"
+  },
+  {
+   "fieldname": "driver_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Driver Name",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "columns": 2,
@@ -236,6 +249,7 @@
    "label": "Basic Trip Information"
   },
   {
+   "description": "Driver, horse and trailer are stored on this trip. Changing the Truck master (for example reassigning its driver) will not update past trips.",
    "fieldname": "truck_and_driver_details_section",
    "fieldtype": "Section Break",
    "label": "Truck & Driver Details"
@@ -769,11 +783,12 @@
    "label": "Drop Off At"
   },
   {
-   "fetch_from": "truck.warehouse",
    "fieldname": "s_warehouse",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Fuel Warehouse",
-   "no_copy": 1
+   "no_copy": 1,
+   "options": "Warehouse",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -793,7 +808,7 @@
    "link_fieldname": "trip_reference"
   }
  ],
- "modified": "2026-03-07 23:59:06.316916",
+ "modified": "2026-09-01 20:35:00.000000",
  "modified_by": "lchigwanda@outlook.com",
  "module": "Trucking Service",
  "name": "Trip",

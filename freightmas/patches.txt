@@ -36,3 +36,4 @@ freightmas.patches.revert_branded_email_templates
 freightmas.patches.backfill_tracking_timeline_service
 freightmas.patches.clear_api_parcel_tracking_comments
 freightmas.patches.setup_portal_print_formats
+freightmas.patches.snapshot_trip_driver_assignment
