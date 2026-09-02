@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import formatdate, get_datetime, getdate, now_datetime
+from frappe.utils import formatdate, getdate, now_datetime
 
 from freightmas.forwarding_service.utils.operational_phase import (
 	_containerised_parcels,
@@ -27,8 +27,20 @@ SERVICE_GENERAL = "General"
 
 SERVICE_COMMENT_FIELDS = (
 	("port_clearance_tracking_comment", SERVICE_PORT_CLEARANCE),
+	("road_transport_tracking_comment", SERVICE_ROAD),
 	("border_clearance_tracking_comment", SERVICE_BORDER),
 	("warehouse_tracking_comment", SERVICE_WAREHOUSE),
+)
+
+ROAD_MILESTONE_COUNT_STAGES = (
+	("booked", lambda row: getattr(row, "is_booked", 0)),
+	("loaded", lambda row: getattr(row, "is_loaded", 0)),
+	("at border", lambda row: getattr(row, "border_arrived_on", None)),
+	("at border 2", lambda row: getattr(row, "border_2_arrived_on", None)),
+	("at offloading point", lambda row: getattr(row, "offloading_arrived_on", None)),
+	("offloaded", lambda row: getattr(row, "is_offloaded", 0)),
+	("returned", lambda row: getattr(row, "is_returned", 0)),
+	("completed", lambda row: getattr(row, "is_completed", 0)),
 )
 
 ROAD_SIGNIFICANT_MILESTONES = frozenset({
@@ -76,7 +88,7 @@ def resolve_client_headline(doc) -> str:
 	if phase == "at_warehouse":
 		return (doc.get("warehouse_tracking_comment") or "").strip() or get_phase_label(phase)
 	if phase == "on_road":
-		return rollup_road_headline(doc) or get_phase_label(phase)
+		return build_road_client_headline(doc) or get_phase_label(phase)
 	if phase in ("planning", "awaiting_departure", "in_transit"):
 		return _sea_air_headline(doc) or get_phase_label(phase)
 	if phase == "at_terminal":
@@ -90,41 +102,28 @@ def resolve_client_headline(doc) -> str:
 	return (doc.get("current_comment") or "").strip() or get_phase_label(phase) or ""
 
 
-def rollup_road_headline(doc) -> str | None:
-	"""Pick the latest human road comment across truck-required parcels."""
+def road_milestone_count_summary(doc) -> str | None:
+	"""Auto-generated milestone counts across truck-required parcels."""
 	parcels = _truck_parcels(doc)
 	if not parcels:
 		return None
 
-	best = None
-	best_ts = None
-	for row in parcels:
-		comment = (getattr(row, "tracking_comment", None) or "").strip()
-		location = (getattr(row, "truck_location", None) or "").strip()
-		text = comment
-		if comment and location:
-			text = f"{comment} ({location})"
-		elif location and not comment:
-			text = location
-		if not text:
-			continue
+	parts = []
+	for label, is_done in ROAD_MILESTONE_COUNT_STAGES:
+		count = sum(1 for row in parcels if is_done(row))
+		if count:
+			parts.append(f"{count} {label}")
 
-		updated = get_datetime(getattr(row, "updated_on", None))
-		ts = updated.timestamp() if updated else 0
-		if best is None or ts >= (best_ts or 0):
-			best = text
-			best_ts = ts
+	return ", ".join(parts) if parts else None
 
-	if best:
-		return best
 
-	loaded = sum(1 for row in parcels if getattr(row, "is_loaded", 0))
-	total = len(parcels)
-	if loaded and loaded < total:
-		return f"{loaded} of {total} containers loaded"
-	if loaded == total:
-		return f"All {total} containers loaded"
-	return None
+def build_road_client_headline(doc) -> str | None:
+	"""Combine auto load counts with the job-level road service comment."""
+	counts = road_milestone_count_summary(doc)
+	comment = (doc.get("road_transport_tracking_comment") or "").strip()
+	if counts and comment:
+		return f"{counts} · {comment}"
+	return counts or comment or None
 
 
 def sync_current_comment(doc) -> None:

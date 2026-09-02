@@ -12,8 +12,9 @@ from frappe.utils import formatdate, getdate, nowdate
 from freightmas.forwarding_service.utils.operational_phase import get_phase_label
 from freightmas.forwarding_service.utils.tracking_orchestrator import (
 	_sea_air_headline,
+	build_road_client_headline,
 	resolve_client_headline,
-	rollup_road_headline,
+	road_milestone_count_summary,
 )
 
 DOSSIER_STATUS_LABELS = {
@@ -336,6 +337,9 @@ def _phase_summary(section, doc):
 		return "Awaiting departure"
 
 	if kind == "road":
+		counts = road_milestone_count_summary(doc)
+		if counts:
+			return counts
 		progress = section.get("progress") or {}
 		if progress.get("percent", 0) >= 100:
 			return "Delivered to destination"
@@ -950,7 +954,12 @@ def _pdf_service_comment(doc, title, section):
 	if title == "Port Clearance":
 		return (doc.get("port_clearance_tracking_comment") or "").strip() or _pdf_phase_summary(section, doc) or "—"
 	if title == "Road Transport":
-		return (rollup_road_headline(doc) or "").strip() or _pdf_phase_summary(section, doc) or "—"
+		return (
+			(doc.get("road_transport_tracking_comment") or "").strip()
+			or (road_milestone_count_summary(doc) or "").strip()
+			or _pdf_phase_summary(section, doc)
+			or "—"
+		)
 	if title == "Border Clearance":
 		return (doc.get("border_clearance_tracking_comment") or "").strip() or _pdf_phase_summary(section, doc) or "—"
 	if title == "Warehouse":

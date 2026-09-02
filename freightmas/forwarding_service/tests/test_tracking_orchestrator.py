@@ -11,8 +11,9 @@ from freightmas.forwarding_service.utils.tracking_orchestrator import (
 	SERVICE_PORT_CLEARANCE,
 	api_owns_job_narrative,
 	append_service_comment_to_timeline,
+	build_road_client_headline,
 	resolve_client_headline,
-	rollup_road_headline,
+	road_milestone_count_summary,
 	sync_current_comment,
 )
 
@@ -34,6 +35,7 @@ def _job(**kwargs):
 		"api_last_event_date": None,
 		"current_comment": None,
 		"port_clearance_tracking_comment": None,
+		"road_transport_tracking_comment": None,
 		"border_clearance_tracking_comment": None,
 		"warehouse_tracking_comment": None,
 		"cargo_parcel_details": [],
@@ -45,6 +47,22 @@ def _job(**kwargs):
 	})
 	doc.update(kwargs)
 	return doc
+
+
+def _truck_parcel(**kwargs):
+	row = frappe._dict({
+		"is_truck_required": 1,
+		"is_booked": 0,
+		"is_loaded": 0,
+		"is_offloaded": 0,
+		"is_returned": 0,
+		"is_completed": 0,
+		"border_arrived_on": None,
+		"border_2_arrived_on": None,
+		"offloading_arrived_on": None,
+	})
+	row.update(kwargs)
+	return row
 
 
 class TestTrackingOrchestrator(unittest.TestCase):
@@ -86,42 +104,79 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		)
 		self.assertEqual(resolve_client_headline(doc), "Cargo stored in bonded warehouse")
 
-	def test_on_road_headline_from_parcel_comment(self):
-		doc = _job(
-			is_trucking_required=1,
-			cargo_parcel_details=[frappe._dict({
-				"is_truck_required": 1,
-				"is_loaded": 1,
-				"is_completed": 0,
-				"tracking_comment": "En route to Harare",
-				"updated_on": frappe.utils.now_datetime(),
-			})],
-		)
-		self.assertEqual(resolve_client_headline(doc), "En route to Harare")
-
-	def test_rollup_road_headline_picks_latest_updated(self):
-		from frappe.utils import add_to_date, now_datetime
-
-		older = add_to_date(now_datetime(), hours=-2)
-		newer = now_datetime()
+	def test_road_milestone_count_summary_across_parcels(self):
 		doc = _job(
 			is_trucking_required=1,
 			cargo_parcel_details=[
-				frappe._dict({
-					"is_truck_required": 1,
-					"is_loaded": 1,
-					"tracking_comment": "Older update",
-					"updated_on": older,
-				}),
-				frappe._dict({
-					"is_truck_required": 1,
-					"is_loaded": 1,
-					"tracking_comment": "Latest update",
-					"updated_on": newer,
-				}),
+				_truck_parcel(is_booked=1, is_loaded=1),
+				_truck_parcel(is_booked=1, is_loaded=1, is_offloaded=1),
+				_truck_parcel(is_booked=1),
 			],
 		)
-		self.assertEqual(rollup_road_headline(doc), "Latest update")
+		self.assertEqual(
+			road_milestone_count_summary(doc),
+			"3 booked, 2 loaded, 1 offloaded",
+		)
+
+	def test_road_milestone_count_summary_includes_extended_stages(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[
+				_truck_parcel(
+					is_loaded=1,
+					border_arrived_on="2026-02-01",
+					border_2_arrived_on="2026-02-02",
+					offloading_arrived_on="2026-02-03",
+				),
+				_truck_parcel(is_loaded=1, border_arrived_on="2026-02-01"),
+			],
+		)
+		self.assertEqual(
+			road_milestone_count_summary(doc),
+			"2 loaded, 2 at border, 1 at border 2, 1 at offloading point",
+		)
+
+	def test_on_road_headline_counts_plus_comment(self):
+		doc = _job(
+			is_trucking_required=1,
+			road_transport_tracking_comment="Loaded waiting for genset (Beira)",
+			cargo_parcel_details=[
+				_truck_parcel(is_loaded=1),
+				_truck_parcel(is_loaded=1),
+				_truck_parcel(is_loaded=1, is_offloaded=1),
+			],
+		)
+		self.assertEqual(
+			resolve_client_headline(doc),
+			"3 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
+		)
+
+	def test_on_road_headline_counts_only_when_comment_empty(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[
+				_truck_parcel(is_loaded=1),
+				_truck_parcel(is_offloaded=1),
+			],
+		)
+		self.assertEqual(resolve_client_headline(doc), "1 loaded, 1 offloaded")
+
+	def test_on_road_headline_comment_only_when_no_milestones(self):
+		doc = _job(
+			is_trucking_required=1,
+			road_transport_tracking_comment="Transport booked, awaiting loading",
+			cargo_parcel_details=[_truck_parcel(is_loaded=1, is_completed=0)],
+		)
+		# Parcel is loaded so phase is on_road; no milestone flags set except loaded
+		doc.cargo_parcel_details[0].is_loaded = 0
+		self.assertEqual(
+			build_road_client_headline(doc),
+			"Transport booked, awaiting loading",
+		)
+
+	def test_build_road_client_headline_returns_none_without_parcels_or_comment(self):
+		doc = _job(is_trucking_required=1)
+		self.assertIsNone(build_road_client_headline(doc))
 
 	def test_sea_air_headline_from_api_last_event(self):
 		doc = _job(

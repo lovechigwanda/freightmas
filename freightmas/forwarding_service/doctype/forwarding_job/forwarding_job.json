@@ -165,6 +165,7 @@
   "port_clearance_tracking_comment",
   "road_transport_milestones_section",
   "road_transport_progress_summary",
+  "road_transport_tracking_comment",
   "border_clearance_milestones_section",
   "border_clearance_milestones",
   "border_clearance_tracking_comment",
@@ -721,6 +722,13 @@
    "fieldname": "road_transport_progress_summary",
    "fieldtype": "HTML",
    "label": "Road Transport Progress"
+  },
+  {
+   "depends_on": "eval:doc.is_trucking_required",
+   "description": "Client-facing narrative while road transport is active. Combined with auto load counts for the job headline when phase is On Road.",
+   "fieldname": "road_transport_tracking_comment",
+   "fieldtype": "Small Text",
+   "label": "Road Transport Tracking Comment"
   },
   {
    "collapsible": 1,

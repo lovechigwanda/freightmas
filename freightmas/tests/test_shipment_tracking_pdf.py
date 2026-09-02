@@ -93,3 +93,50 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 
 		self.assertTrue(customer_name)
 		self.assertTrue(pdf.startswith(b"%PDF"))
+
+	def test_pdf_glance_latest_comment_shows_road_counts_and_comment(self):
+		customer = _make_customer("ROAD1")
+		job = _make_job(
+			customer,
+			"ROAD1",
+			is_trucking_required=1,
+		)
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "Containerised",
+				"container_number": "TRK-R1A",
+				"container_type": "40HC",
+				"cargo_quantity": 1,
+				"is_truck_required": 1,
+			},
+		)
+		job.append(
+			"cargo_parcel_details",
+			{
+				"cargo_type": "Containerised",
+				"container_number": "TRK-R1B",
+				"container_type": "40HC",
+				"cargo_quantity": 1,
+				"is_truck_required": 1,
+			},
+		)
+		job.save(ignore_permissions=True)
+		row_a, row_b = job.cargo_parcel_details
+		frappe.db.set_value("Cargo Parcel Details", row_a.name, "is_loaded", 1)
+		frappe.db.set_value("Cargo Parcel Details", row_b.name, {"is_loaded": 1, "is_offloaded": 1})
+		frappe.db.set_value(
+			"Forwarding Job",
+			job.name,
+			{
+				"operational_phase": "on_road",
+				"road_transport_tracking_comment": "Loaded waiting for genset (Beira)",
+			},
+		)
+		job.reload()
+
+		ctx = build_pdf_job_context(job)
+		self.assertEqual(
+			ctx["glance"]["latest_comment"],
+			"2 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
+		)

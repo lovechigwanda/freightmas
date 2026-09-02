@@ -65,6 +65,7 @@ class ForwardingJob(Document):
                 self.name,
                 [
                     "port_clearance_tracking_comment",
+                    "road_transport_tracking_comment",
                     "border_clearance_tracking_comment",
                     "warehouse_tracking_comment",
                 ],
