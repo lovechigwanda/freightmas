@@ -115,7 +115,7 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		)
 		self.assertEqual(
 			road_milestone_count_summary(doc),
-			"3 booked, 2 loaded, 1 offloaded",
+			"1 booked, 1 loaded, 1 offloaded",
 		)
 
 	def test_road_milestone_count_summary_includes_extended_stages(self):
@@ -133,8 +133,45 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		)
 		self.assertEqual(
 			road_milestone_count_summary(doc),
-			"2 loaded, 2 at border, 1 at border 2, 1 at offloading point",
+			"1 at border, 1 at offloading point",
 		)
+
+	def test_road_milestone_count_summary_five_loaded(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[_truck_parcel(is_loaded=1) for _ in range(5)],
+		)
+		self.assertEqual(road_milestone_count_summary(doc), "5 loaded")
+
+	def test_road_milestone_count_summary_four_loaded_one_at_border(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[
+				*[_truck_parcel(is_loaded=1) for _ in range(4)],
+				_truck_parcel(is_loaded=1, border_arrived_on="2026-02-01"),
+			],
+		)
+		self.assertEqual(road_milestone_count_summary(doc), "4 loaded, 1 at border")
+
+	def test_road_milestone_count_summary_single_container_omits_count(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[_truck_parcel(is_loaded=1)],
+		)
+		self.assertEqual(road_milestone_count_summary(doc), "Loaded")
+
+	def test_road_milestone_count_summary_single_container_highest_stage_only(self):
+		doc = _job(
+			is_trucking_required=1,
+			cargo_parcel_details=[_truck_parcel(
+				is_booked=1,
+				is_loaded=1,
+				border_arrived_on="2026-02-01",
+				offloading_arrived_on="2026-02-02",
+				is_offloaded=1,
+			)],
+		)
+		self.assertEqual(road_milestone_count_summary(doc), "Offloaded")
 
 	def test_on_road_headline_counts_plus_comment(self):
 		doc = _job(
@@ -148,7 +185,7 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		)
 		self.assertEqual(
 			resolve_client_headline(doc),
-			"3 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
+			"2 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
 		)
 
 	def test_on_road_headline_counts_only_when_comment_empty(self):

@@ -138,5 +138,5 @@ class TestShipmentTrackingPdf(IntegrationTestCase):
 		ctx = build_pdf_job_context(job)
 		self.assertEqual(
 			ctx["glance"]["latest_comment"],
-			"2 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
+			"1 loaded, 1 offloaded · Loaded waiting for genset (Beira)",
 		)

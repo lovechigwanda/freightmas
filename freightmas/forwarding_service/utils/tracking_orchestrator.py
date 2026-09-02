@@ -102,16 +102,39 @@ def resolve_client_headline(doc) -> str:
 	return (doc.get("current_comment") or "").strip() or get_phase_label(phase) or ""
 
 
+def _parcel_highest_road_stage(row) -> str | None:
+	"""Return the highest road milestone reached for one truck-required parcel."""
+	latest = None
+	for label, is_done in ROAD_MILESTONE_COUNT_STAGES:
+		if is_done(row):
+			latest = label
+	return latest
+
+
 def road_milestone_count_summary(doc) -> str | None:
 	"""Auto-generated milestone counts across truck-required parcels."""
 	parcels = _truck_parcels(doc)
 	if not parcels:
 		return None
 
+	buckets: dict[str, int] = {}
+	for row in parcels:
+		stage = _parcel_highest_road_stage(row)
+		if stage:
+			buckets[stage] = buckets.get(stage, 0) + 1
+
+	if not buckets:
+		return None
+
+	single_parcel = len(parcels) == 1
 	parts = []
-	for label, is_done in ROAD_MILESTONE_COUNT_STAGES:
-		count = sum(1 for row in parcels if is_done(row))
-		if count:
+	for label, _is_done in ROAD_MILESTONE_COUNT_STAGES:
+		count = buckets.get(label, 0)
+		if not count:
+			continue
+		if single_parcel:
+			parts.append(label.title())
+		else:
 			parts.append(f"{count} {label}")
 
 	return ", ".join(parts) if parts else None
