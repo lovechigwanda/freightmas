@@ -70,6 +70,7 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		doc = _job(
 			requires_port_clearance=1,
 			ata="2026-02-01",
+			discharge_date="2026-02-02",
 			port_clearance_tracking_comment="DO obtained, entry filed",
 			port_clearance_milestones=[frappe._dict({"is_completed": 0})],
 			cargo_parcel_details=[frappe._dict({"cargo_type": "Containerised", "gate_out_date": None})],
@@ -80,10 +81,12 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		doc = _job(
 			requires_port_clearance=1,
 			ata="2026-02-01",
+			discharge_date="2026-02-02",
+			port_clearance_tracking_comment="Clearance in progress",
 			port_clearance_milestones=[frappe._dict({"is_completed": 0})],
 			cargo_parcel_details=[frappe._dict({"cargo_type": "Containerised", "gate_out_date": None})],
 		)
-		self.assertEqual(resolve_client_headline(doc), "Under Port Clearance")
+		self.assertEqual(resolve_client_headline(doc), "Clearance in progress")
 
 	def test_border_clearance_headline(self):
 		doc = _job(
@@ -229,6 +232,7 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		doc = _job(
 			requires_port_clearance=1,
 			ata="2026-02-01",
+			discharge_date="2026-02-02",
 			port_clearance_tracking_comment="Clearance started",
 			port_clearance_milestones=[frappe._dict({"is_completed": 0})],
 			cargo_parcel_details=[frappe._dict({"cargo_type": "Containerised", "gate_out_date": None})],
@@ -243,6 +247,7 @@ class TestTrackingOrchestrator(unittest.TestCase):
 		doc = _job(
 			requires_port_clearance=1,
 			ata="2026-02-01",
+			discharge_date="2026-02-02",
 			port_clearance_tracking_comment="Waiting for DO",
 			port_clearance_milestones=[frappe._dict({"is_completed": 0})],
 			cargo_parcel_details=[frappe._dict({"cargo_type": "Containerised", "gate_out_date": None})],

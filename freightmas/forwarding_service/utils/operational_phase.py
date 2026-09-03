@@ -317,17 +317,22 @@ def _trucking_in_progress(doc):
 	return False
 
 
+def _port_clearance_tracking_started(doc):
+	if _milestones_started(doc, "port_clearance_milestones"):
+		return True
+	return bool((doc.get("port_clearance_tracking_comment") or "").strip())
+
+
 def _port_clearance_in_progress(doc):
 	if not doc.requires_port_clearance:
 		return False
 	if _milestones_complete(doc, "port_clearance_milestones"):
 		return False
 
-	started = _milestones_started(doc, "port_clearance_milestones")
-	if started or doc.ata:
-		return True
 	if doc.direction == "Export" and doc.status != "Draft":
 		return True
+	if doc.direction in ("Import", "Transit"):
+		return bool(doc.discharge_date) and _port_clearance_tracking_started(doc)
 	return False
 
 
