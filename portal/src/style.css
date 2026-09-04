@@ -2068,6 +2068,19 @@ h1, h2, h3, h4 {
 	gap: 20px;
 }
 
+.sd-documents-card--full {
+	margin-top: 14px;
+}
+
+.sd-documents-panel {
+	min-width: 0;
+}
+
+.sd-documents-panel + .sd-documents-panel {
+	border-left: 1px solid var(--sd-border-soft);
+	padding-left: 20px;
+}
+
 .sd-documents-panel-title {
 	display: flex;
 	align-items: center;
@@ -3284,10 +3297,6 @@ h1, h2, h3, h4 {
 	font-size: 13px;
 }
 
-.sd-documents-panel-title--incoming {
-	margin-top: 18px;
-}
-
 .sd-documents-actions {
 	display: flex;
 	align-items: center;
@@ -3514,6 +3523,14 @@ h1, h2, h3, h4 {
 	.sd-fact-strip,
 	.sd-shipment-main-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.sd-documents-panel + .sd-documents-panel {
+		border-left: none;
+		padding-left: 0;
+		border-top: 1px solid var(--sd-border-soft);
+		padding-top: 20px;
+		margin-top: 4px;
 	}
 
 	.sd-milestones-section--wide {

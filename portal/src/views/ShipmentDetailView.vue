@@ -39,17 +39,17 @@
 						:error="invoicesError"
 						compact-empty
 					/>
-					<ShipmentDocumentsCard
-						:documents="documents"
-						:loading="documentsLoading"
-						:error="documentsError"
-						:download-url="downloadUrl"
-						:job-name="id"
-						compact-empty
-						@refresh="reloadDocuments"
-					/>
 				</div>
 			</div>
+
+			<ShipmentDocumentsCard
+				:documents="documents"
+				:loading="documentsLoading"
+				:error="documentsError"
+				:download-url="downloadUrl"
+				:job-name="id"
+				@refresh="reloadDocuments"
+			/>
 
 			<ShipmentCargoTable :containers="detail.tracking_view?.containers || []" />
 		</div>

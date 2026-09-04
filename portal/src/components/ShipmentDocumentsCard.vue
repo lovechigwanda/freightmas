@@ -1,22 +1,24 @@
 <template>
-	<div
-		class="sd-card sd-documents-card"
-		:class="{ 'sd-documents-card--compact': compactEmpty && !hasVisibleContent && !loading && !error }"
-	>
+	<div class="sd-card sd-documents-card sd-documents-card--full">
 		<div class="sd-card-title"><span class="sd-card-title-main">Documents</span></div>
 
-		<div v-if="loading">
-			<div class="cc-row-skeleton cc-skeleton" v-for="i in 4" :key="i"></div>
+		<div v-if="loading" class="sd-documents-split">
+			<div class="sd-documents-panel">
+				<div class="cc-row-skeleton cc-skeleton" v-for="i in 3" :key="'out-' + i"></div>
+			</div>
+			<div class="sd-documents-panel">
+				<div class="cc-row-skeleton cc-skeleton" v-for="i in 3" :key="'in-' + i"></div>
+			</div>
 		</div>
 		<div v-else-if="error" class="sd-state" style="color: var(--sd-red); padding: 20px 0;">{{ error }}</div>
-		<div v-else>
-			<template v-if="hasOutgoing">
+		<div v-else class="sd-documents-split">
+			<section class="sd-documents-panel">
 				<div class="sd-documents-panel-title">
 					Outgoing
-					<span class="sd-documents-count">{{ documents.outgoing.length }}</span>
+					<span v-if="hasOutgoing" class="sd-documents-count">{{ documents.outgoing.length }}</span>
 				</div>
 				<p class="sd-muted sd-documents-intro">Documents shared with you by your account team.</p>
-				<ul class="sd-documents-list">
+				<ul v-if="hasOutgoing" class="sd-documents-list">
 					<li v-for="row in documents.outgoing" :key="row.name" class="sd-documents-list-item">
 						<div>
 							<div class="sd-documents-list-label">{{ row.document_label }}</div>
@@ -32,19 +34,11 @@
 						</a>
 					</li>
 				</ul>
-			</template>
-			<p v-else-if="compactEmpty && !hasIncoming && !jobName" class="sd-documents-empty-compact sd-muted">
-				No documents shared yet.
-			</p>
-			<EmptyState
-				v-else-if="!hasOutgoing && !hasIncoming && !jobName"
-				:icon="FileText"
-				title="No outgoing documents yet"
-				sub="Your team has not shared any documents for this shipment."
-			/>
+				<p v-else class="sd-documents-empty-compact sd-muted">No documents shared yet.</p>
+			</section>
 
-			<template v-if="jobName">
-				<div class="sd-documents-panel-title sd-documents-panel-title--incoming">
+			<section class="sd-documents-panel">
+				<div class="sd-documents-panel-title">
 					Incoming
 					<span v-if="hasIncoming" class="sd-documents-count">{{ incomingRows.length }}</span>
 				</div>
@@ -85,7 +79,7 @@
 					</li>
 				</ul>
 
-				<div class="sd-documents-adhoc">
+				<div v-if="jobName" class="sd-documents-adhoc">
 					<div class="sd-documents-adhoc-title">Submit additional document</div>
 					<div class="sd-documents-adhoc-form">
 						<select v-model="adHocDocument" class="sd-documents-select" :disabled="adHocUploading">
@@ -124,16 +118,14 @@
 					accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx"
 					@change="onRowFileSelected"
 				/>
-			</template>
+			</section>
 		</div>
 	</div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { FileText } from "@lucide/vue";
 import { api as documentsApi } from "../api/documents";
-import EmptyState from "./EmptyState.vue";
 
 const props = defineProps({
 	documents: { type: Object, default: null },
@@ -141,7 +133,6 @@ const props = defineProps({
 	error: { type: String, default: "" },
 	downloadUrl: { type: Function, required: true },
 	jobName: { type: String, default: "" },
-	compactEmpty: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["refresh"]);
@@ -159,7 +150,6 @@ const uploadingRows = ref({});
 const incomingRows = computed(() => props.documents?.incoming || []);
 const hasOutgoing = computed(() => (props.documents?.outgoing?.length || 0) > 0);
 const hasIncoming = computed(() => incomingRows.value.length > 0);
-const hasVisibleContent = computed(() => hasOutgoing.value || hasIncoming.value || !!props.jobName);
 const canSubmitAdHoc = computed(
 	() => !!props.jobName && !!adHocDocument.value && !!adHocFile.value && !adHocUploading.value,
 );
