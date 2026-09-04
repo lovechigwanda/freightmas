@@ -34,13 +34,16 @@ SANDBOX_CASES = (
 		"path": "/bl/SHZ8037930",
 		"sealine": "CMDU",
 		"expected_reference": "SHZ8037930",
-		"expected_sealine": "CMDU",
+		"expected_sealine": None,
 	},
 )
 
 REQUIRED_TOP_LEVEL_KEYS = ("metadata", "route", "vessel", "containers", "mappings", "provider_extras")
 REQUIRED_CONTAINER_KEYS = (
 	"container_number",
+	"iso_code",
+	"size_type",
+	"container_description",
 	"latest_event_code",
 	"latest_event_description",
 	"latest_event_date",
@@ -157,10 +160,14 @@ def _validate_parsed_result(parsed, case):
 			errors.append(f"missing top-level key: {key}")
 
 	metadata = parsed.get("metadata") or {}
-	if metadata.get("sealine_code") != case["expected_sealine"]:
-		errors.append(
-			f"sealine_code expected {case['expected_sealine']!r}, got {metadata.get('sealine_code')!r}"
-		)
+	expected_sealine = case.get("expected_sealine")
+	if expected_sealine is not None:
+		if metadata.get("sealine_code") != expected_sealine:
+			errors.append(
+				f"sealine_code expected {expected_sealine!r}, got {metadata.get('sealine_code')!r}"
+			)
+	elif not metadata.get("sealine_code"):
+		errors.append("metadata.sealine_code is empty")
 	if not metadata.get("status"):
 		errors.append("metadata.status is empty")
 
@@ -190,6 +197,8 @@ def _validate_parsed_result(parsed, case):
 	extras = parsed.get("provider_extras") or {}
 	if not extras.get("traqo_shipment_id"):
 		errors.append("provider_extras.traqo_shipment_id is empty")
+	if "container_summary" not in extras:
+		errors.append("provider_extras.container_summary is missing")
 
 	return errors
 
@@ -206,7 +215,9 @@ def _format_summary(parsed, sandbox=False):
 		f"[{mode}] status={metadata.get('status')} | "
 		f"containers={len(containers)} | "
 		f"latest_event={first.get('latest_event_code')} | "
+		f"iso={first.get('iso_code') or '-'} | "
+		f"size={first.get('size_type') or '-'} | "
+		f"summary={extras.get('container_summary') or '-'} | "
 		f"vessel={mappings.get('vessel_flight_no') or '-'} | "
-		f"eta={mappings.get('eta') or '-'} | "
-		f"public_url={'yes' if extras.get('tracking_public_url') else 'no'}"
+		f"eta={mappings.get('eta') or '-'}"
 	)

@@ -46,6 +46,37 @@ def _beira_bl_fixture():
 	}
 
 
+def _untagged_single_container_fixture():
+	"""Sandbox-style CT payload: shipment-level events without container_number tags."""
+	events = [
+		{"idx": 1, "event_code": "GTIN", "timestamp": "2026-07-08 13:09:29", "location": "Port of Long Beach", "is_actual": 1, "description": "Gate in full"},
+		{"idx": 2, "event_code": "LOAD", "timestamp": "2026-07-13 02:35:53", "location": "Port of Long Beach", "is_actual": 1, "description": "Loaded on vessel"},
+		{"idx": 3, "event_code": "GTOT", "timestamp": "2026-09-06 13:09:29", "location": "Port of Klaipeda", "is_actual": 0, "description": "Gate out"},
+	]
+	return {
+		"status": "DELIVERED",
+		"reference_number": "MRSU6859427",
+		"container_summary": "1×40HC",
+		"containers_table": [
+			{
+				"container_number": "MRSU6859427",
+				"iso_code": "45G1",
+				"size_type": "40HC",
+				"container_description": "40ft High Cube General Purpose",
+				"status": "DELIVERED",
+			},
+		],
+		"events_table": events,
+		"voyage_plan_table": [
+			{"origin": "Port of Long Beach", "destination": "Port of Klaipeda"},
+		],
+		"locations_table": [
+			{"name": "Port of Long Beach", "country": "United States"},
+			{"name": "Port of Klaipeda", "country": "Lithuania"},
+		],
+	}
+
+
 def _colombo_beira_in_transit_fixture():
 	"""Modelled on FWJB-00286-26: Fos sur mer → Beira via Colombo, still in transit."""
 	events = [
@@ -74,6 +105,23 @@ def _colombo_beira_in_transit_fixture():
 	}
 
 
+class TestMatchContainerType(unittest.TestCase):
+	def test_match_by_iso_code(self):
+		from freightmas.utils.master_data_sync import match_container_type
+
+		self.assertEqual(match_container_type("45G1"), "40HC")
+
+	def test_match_by_size_type_when_iso_missing(self):
+		from freightmas.utils.master_data_sync import match_container_type
+
+		self.assertEqual(match_container_type(None, "40HC"), "40HC")
+
+	def test_iso_code_takes_priority_over_size_type(self):
+		from freightmas.utils.master_data_sync import match_container_type
+
+		self.assertEqual(match_container_type("45G1", "20SD"), "40HC")
+
+
 class TestLocationMatches(unittest.TestCase):
 	def test_exact_and_partial_port_names(self):
 		self.assertTrue(location_matches("Beira", "Beira"))
@@ -82,6 +130,19 @@ class TestLocationMatches(unittest.TestCase):
 
 
 class TestTraqoMultiContainerParsing(unittest.TestCase):
+	def test_events_for_container_returns_shared_timeline_when_untagged(self):
+		events = _untagged_single_container_fixture()["events_table"]
+		self.assertEqual(len(_events_for_container(events, "MRSU6859427")), len(events))
+
+	def test_untagged_events_populate_latest_event_code(self):
+		parsed = _parse_traqo_response(_untagged_single_container_fixture(), "CT")
+		container = parsed["containers"][0]
+		self.assertEqual(container["latest_event_code"], "GTOT")
+		self.assertEqual(container["iso_code"], "45G1")
+		self.assertEqual(container["size_type"], "40HC")
+		self.assertEqual(container["container_description"], "40ft High Cube General Purpose")
+		self.assertEqual(parsed["provider_extras"]["container_summary"], "1×40HC")
+
 	def test_events_for_container_filters_by_container_number(self):
 		events = _beira_bl_fixture()["events_table"]
 		medu = _events_for_container(events, "MEDU5945450")

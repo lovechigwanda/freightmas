@@ -17,6 +17,16 @@ def apply_provider_extras(doc, tracking):
 
 	if extras.get("traqo_shipment_id"):
 		doc.traqo_shipment_id = extras["traqo_shipment_id"]
+	if not doc.get("tracking_public_url") and get_tracking_provider() == "Traqo":
+		reference = extras.get("traqo_shipment_id") or doc.get("bl_number")
+		if reference:
+			try:
+				from freightmas.integrations.tracking.traqo import create_share_link
+				share_url = create_share_link(reference)
+				if share_url:
+					doc.tracking_public_url = share_url
+			except Exception:
+				frappe.log_error(title=f"Traqo share link failed: {reference}")
 	if extras.get("tracking_public_url"):
 		doc.tracking_public_url = extras["tracking_public_url"]
 	if extras.get("predictive_eta"):

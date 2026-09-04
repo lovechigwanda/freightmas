@@ -37,18 +37,20 @@ def resolve_sealine(sealine=None, shipping_line=None):
 	return scac.strip().upper() if scac else None
 
 
-def require_sealine_for_traqo(sealine, shipping_line):
-	"""Traqo requires a carrier SCAC on every tracking request."""
+def resolve_sealine_for_traqo(number, tracking_type, sealine=None, shipping_line=None):
+	"""Resolve Traqo SCAC from job data, then carrier lookup, then allow auto-detect."""
 	if get_tracking_provider() != "Traqo":
 		return resolve_sealine(sealine, shipping_line)
 
 	scac = resolve_sealine(sealine, shipping_line)
-	if not scac:
-		frappe.throw(
-			"Shipping Line (with SCAC code) is required for Traqo tracking. "
-			"Set the Shipping Line on the job before fetching."
-		)
-	return scac
+	if scac:
+		return scac
+
+	if number:
+		from freightmas.integrations.tracking.traqo import lookup_carrier
+		return lookup_carrier(number, tracking_type)
+
+	return None
 
 
 def extract_date(datetime_str):

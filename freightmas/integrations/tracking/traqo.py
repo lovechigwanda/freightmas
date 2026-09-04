@@ -57,11 +57,51 @@ def _request(api_key, method, path, **kwargs):
 	return payload
 
 
+def lookup_carrier(number, tracking_type="BL"):
+	"""Resolve carrier SCAC for a reference without tracking (free, no slot)."""
+	_settings, api_key = get_tracking_settings()
+	if not number:
+		return None
+
+	tracking_type = (tracking_type or "BL").upper()
+	lookup_type = "container" if tracking_type == "CT" else "bl"
+	params = {"number": number.strip(), "type": lookup_type}
+
+	try:
+		result = _request(api_key, "GET", "/carriers/lookup", params=params)
+	except frappe.ValidationError:
+		return None
+
+	data = result.get("data") or {}
+	carrier = data.get("carrier") or {}
+	scac = carrier.get("scac") or carrier.get("sealine")
+	if scac:
+		return str(scac).strip().upper()
+
+	candidates = data.get("candidates") or []
+	if candidates:
+		top = candidates[0] or {}
+		scac = top.get("scac") or top.get("sealine")
+		if scac:
+			return str(scac).strip().upper()
+
+	return None
+
+
+def create_share_link(reference):
+	"""Create or retrieve a branded public tracking link for a shipment."""
+	if not reference:
+		return None
+
+	_settings, api_key = get_tracking_settings()
+	result = _request(api_key, "POST", f"/shipments/{reference.strip()}/share")
+	data = result.get("data") or {}
+	return data.get("url")
+
+
 def fetch_tracking(number, tracking_type="BL", sealine=None, traqo_shipment_id=None):
 	"""Call Traqo live tracking API and return normalized tracking data."""
 	_settings, api_key = get_tracking_settings()
-	if not sealine:
-		frappe.throw("Carrier SCAC (sealine) is required for Traqo tracking.")
 
 	tracking_type = (tracking_type or "BL").upper()
 	if tracking_type == "BK":
@@ -73,7 +113,11 @@ def fetch_tracking(number, tracking_type="BL", sealine=None, traqo_shipment_id=N
 	else:
 		path = f"/bl/{path_number}"
 
-	result = _request(api_key, "GET", path, params={"sealine": sealine.strip().upper()})
+	params = {}
+	if sealine:
+		params["sealine"] = sealine.strip().upper()
+
+	result = _request(api_key, "GET", path, params=params or None)
 	data = result.get("data") or {}
 	if not data:
 		frappe.throw("No tracking data returned from Traqo API")
@@ -152,7 +196,7 @@ def _parse_traqo_response(data, tracking_type):
 
 	provider_extras = {
 		"traqo_shipment_id": data.get("reference_number") or data.get("name"),
-		"tracking_public_url": data.get("shipment_public_url"),
+		"container_summary": data.get("container_summary") or "",
 		"predictive_eta": extract_date(predictive_eta),
 		"eta_reliable": data.get("eta_reliable"),
 		"eta_warning": data.get("eta_warning"),
@@ -370,6 +414,7 @@ def _parse_containers(data, tracking_type, route_data=None):
 			"container_number": container_number,
 			"iso_code": container.get("iso_code") or container.get("iso") or "",
 			"size_type": container.get("size_type") or container.get("type") or "",
+			"container_description": container.get("container_description") or "",
 			"status": status,
 			**{k: event_data[k] for k in (
 				"latest_event_code", "latest_event_actual", "latest_event_description",
@@ -400,6 +445,8 @@ def _event_container_number(event):
 
 def _events_for_container(events, container_number):
 	if not container_number:
+		return events
+	if not any(_event_container_number(event) for event in events):
 		return events
 	return [event for event in events if _event_container_number(event) == container_number]
 

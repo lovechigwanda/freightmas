@@ -52,19 +52,27 @@ def _resolve_country(country_code):
 	return frappe.db.get_value("Country", {"code": country_code.lower()}, "name")
 
 
-def match_container_type(iso_code):
-	"""Match a Searates ISO container code to a FreightMas Container Type.
+def match_container_type(iso_code, size_type=None):
+	"""Match API container equipment to a FreightMas Container Type.
 
 	Args:
 		iso_code: ISO 6346 type code e.g. "42G1"
+		size_type: Carrier shorthand e.g. "40HC" (Traqo fallback when iso_code is null)
 
 	Returns:
 		Container Type name (str) if matched, or None
 	"""
-	if not iso_code:
-		return None
+	if iso_code:
+		match = frappe.db.get_value("Container Type", {"iso_code": iso_code}, "name")
+		if match:
+			return match
 
-	return frappe.db.get_value("Container Type", {"iso_code": iso_code}, "name")
+	if size_type:
+		normalized = str(size_type).strip().upper()
+		if normalized:
+			return frappe.db.get_value("Container Type", {"container_name": normalized}, "name")
+
+	return None
 
 
 def match_shipping_line(scac_code):

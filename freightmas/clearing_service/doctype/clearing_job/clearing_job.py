@@ -1233,7 +1233,7 @@ def fetch_containers_from_bl(docname):
         if not ct_number:
             continue
 
-        matched_ct = match_container_type(ct.get("iso_code"))
+        matched_ct = match_container_type(ct.get("iso_code"), ct.get("size_type"))
         ct_status = ct.get("status", "")
         ct_status = ct_status.replace("_", " ").title() if ct_status else ""
         ct_code = ct.get("latest_event_code", "")

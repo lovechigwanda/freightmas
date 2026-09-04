@@ -5,13 +5,13 @@
 
 import frappe
 
-from freightmas.integrations.tracking.base import get_tracking_provider, require_sealine_for_traqo
+from freightmas.integrations.tracking.base import get_tracking_provider, resolve_sealine_for_traqo
 
 
 def fetch_tracking(number, tracking_type="BL", sealine=None, shipping_line=None, traqo_shipment_id=None):
 	"""Fetch tracking data from the configured provider."""
 	provider = get_tracking_provider()
-	sealine = require_sealine_for_traqo(sealine, shipping_line)
+	sealine = resolve_sealine_for_traqo(number, tracking_type, sealine, shipping_line)
 
 	if provider == "Traqo":
 		from freightmas.integrations.tracking.traqo import fetch_tracking as traqo_fetch
@@ -29,7 +29,7 @@ def fetch_tracking(number, tracking_type="BL", sealine=None, shipping_line=None,
 def refresh_tracking(number, tracking_type="BL", sealine=None, shipping_line=None, traqo_shipment_id=None):
 	"""Refresh tracking for scheduler/webhook use."""
 	provider = get_tracking_provider()
-	sealine = require_sealine_for_traqo(sealine, shipping_line)
+	sealine = resolve_sealine_for_traqo(number, tracking_type, sealine, shipping_line)
 
 	if provider == "Traqo":
 		from freightmas.integrations.tracking.traqo import refresh_tracking as traqo_refresh
