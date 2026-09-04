@@ -310,6 +310,8 @@ def create_forwarding_job(job_order_name):
 			"document": doc.document,
 			"attach": doc.attach,
 			"client_view": doc.get("client_view"),
+			"client_upload": doc.get("client_upload"),
+			"uploaded_by_client": doc.get("uploaded_by_client"),
 			"is_submitted": doc.is_submitted,
 			"date_submitted": doc.date_submitted,
 			"is_verified": doc.is_verified,

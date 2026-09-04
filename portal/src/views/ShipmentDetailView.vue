@@ -44,7 +44,9 @@
 						:loading="documentsLoading"
 						:error="documentsError"
 						:download-url="downloadUrl"
+						:job-name="id"
 						compact-empty
+						@refresh="reloadDocuments"
 					/>
 				</div>
 			</div>
@@ -134,6 +136,19 @@ async function load(jobName) {
 
 function downloadUrl(checklistRow) {
 	return documentsApi.downloadDocumentUrl(props.id, checklistRow);
+}
+
+async function reloadDocuments() {
+	if (!props.id) return;
+	documentsLoading.value = true;
+	documentsError.value = "";
+	try {
+		documents.value = await documentsApi.getJobDocuments(props.id);
+	} catch (e) {
+		documentsError.value = e.message || "Failed to load documents.";
+	} finally {
+		documentsLoading.value = false;
+	}
 }
 
 watch(() => props.id, (id) => id && load(id), { immediate: true });

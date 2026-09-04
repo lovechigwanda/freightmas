@@ -9,6 +9,8 @@
   "document",
   "attach",
   "client_view",
+  "client_upload",
+  "uploaded_by_client",
   "section_break_xbpp",
   "is_submitted",
   "date_submitted",
@@ -41,6 +43,24 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Client View"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "description": "When enabled, the client can upload this document on the Client Portal.",
+   "fieldname": "client_upload",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Client Upload"
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "uploaded_by_client",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Uploaded By Client",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_xbpp",
