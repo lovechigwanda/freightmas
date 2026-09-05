@@ -178,6 +178,52 @@ frappe.ui.form.on('Trip', {
     }
 });
 
+//////////////////////////////////////////////////////////////////////////////
+// Snapshot truck assignment onto the trip (do not live-fetch from Truck)
+frappe.ui.form.on('Trip', {
+    truck: function(frm) {
+        snapshot_trip_assignment_from_truck(frm);
+    },
+    driver: function(frm) {
+        if (!frm.doc.driver) {
+            frm.set_value('driver_name', '');
+            return;
+        }
+        frappe.db.get_value('Driver', frm.doc.driver, 'full_name', function(r) {
+            if (r) {
+                frm.set_value('driver_name', r.full_name || '');
+            }
+        });
+    }
+});
+
+function snapshot_trip_assignment_from_truck(frm) {
+    if (!frm.doc.truck) {
+        frm.set_value('horse', '');
+        frm.set_value('trailer', '');
+        frm.set_value('driver', '');
+        frm.set_value('driver_name', '');
+        frm.set_value('s_warehouse', '');
+        return;
+    }
+
+    frappe.db.get_value(
+        'Truck',
+        frm.doc.truck,
+        ['horse', 'assigned_trailer', 'assigned_driver', 'assigned_driver_name', 'warehouse'],
+        function(r) {
+            if (!r) {
+                return;
+            }
+            frm.set_value('horse', r.horse || '');
+            frm.set_value('trailer', r.assigned_trailer || '');
+            frm.set_value('driver', r.assigned_driver || '');
+            frm.set_value('driver_name', r.assigned_driver_name || '');
+            frm.set_value('s_warehouse', r.warehouse || '');
+        }
+    );
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //FILTER ROUTES BASED ON DIRECTION SELECTED AND ONLY SHOW ACTIVE ROUTES
 frappe.ui.form.on('Trip', {

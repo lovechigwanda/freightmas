@@ -111,6 +111,7 @@
   },
   {
    "fetch_from": "truck.cost_centre",
+   "fetch_if_empty": 1,
    "fieldname": "cost_centre",
    "fieldtype": "Read Only",
    "label": "Cost Centre"
@@ -119,7 +120,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-17 06:07:29.107830",
+ "modified": "2026-09-01 20:35:00.000000",
  "modified_by": "Administrator",
  "module": "Trucking Service",
  "name": "Trip Revenue Charges",

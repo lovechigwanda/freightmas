@@ -116,7 +116,7 @@ def get_data(filters):
             name,
             date_created,
             truck,
-            driver,
+            IFNULL(driver_name, driver) AS driver,
             customer,
             customer_reference,
             route,

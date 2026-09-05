@@ -40,6 +40,7 @@ def get_data(filters):
 	rows = frappe.db.sql("""
 		SELECT
 			t.driver,
+			MAX(IFNULL(t.driver_name, t.driver)) as driver_name,
 			COUNT(t.name) as trip_count,
 			SUM(IFNULL(t.total_estimated_revenue, 0)) as total_revenue,
 			SUM(IFNULL(t.distance_loaded, 0) + IFNULL(t.extra_distance_loaded, 0)
@@ -76,7 +77,7 @@ def get_data(filters):
 		avg_rev_per_trip = (revenue / row.trip_count) if row.trip_count else 0
 
 		data.append({
-			"driver": row.driver,
+			"driver": row.driver_name or row.driver,
 			"trip_count": row.trip_count,
 			"completed_trips": row.completed_trips,
 			"total_revenue": flt(revenue, 2),
